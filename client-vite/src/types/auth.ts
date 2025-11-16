@@ -2,6 +2,7 @@ export interface LoginCredentials {
   username: string;
   password: string;
   role?: string;
+  department_id?: string;
 }
 
 export interface AuthContextType {

@@ -37,7 +37,7 @@ const generateRefreshToken = (user_id, username) => {
 router.post('/', asyncErrorHandler(async (req, res, next) => {
     console.log('🔐 Login attempt for user:', req.body.username);
     
-    const { username, password, role } = req.body;
+    const { username, password, role, department_id } = req.body;
     
     // Validate input
     if (!username || !password) {
@@ -47,6 +47,12 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
     
     if (!role) {
         const error = new CustomError('Role is required', 400);
+        return next(error);
+    }
+
+    // Validate department is provided for HOD and User roles
+    if ((role === 'HOD' || role === 'User') && !department_id) {
+        const error = new CustomError('Department is required for HOD and User roles', 400);
         return next(error);
     }
 
@@ -70,6 +76,23 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
             console.log('❌ Role mismatch: user role is', user.role, 'but requested role is', role);
             const error = new CustomError(`Invalid role. User role is ${user.role}`, 403);
             return next(error);
+        }
+
+        // Validate department for HOD and User roles
+        if ((role === 'HOD' || role === 'User') && department_id) {
+            const deptIdNum = parseInt(department_id);
+            console.log('🔍 Department validation:', {
+                userDepartmentId: user.department_id,
+                userDepartmentIdType: typeof user.department_id,
+                requestedDepartmentId: deptIdNum,
+                requestedDepartmentIdType: typeof deptIdNum,
+                match: user.department_id === deptIdNum
+            });
+            if (user.department_id !== deptIdNum) {
+                console.log('❌ Department mismatch: user department_id is', user.department_id, 'but requested department_id is', deptIdNum);
+                const error = new CustomError('User does not belong to the selected department', 403);
+                return next(error);
+            }
         }
 
         const match = await bcrypt.compare(password, user.password_hash);

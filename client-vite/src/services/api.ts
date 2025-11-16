@@ -3,7 +3,7 @@ import type { AuthResponse, CreateUserRequest, User } from '../types/user';
 const API_BASE_URL = 'http://localhost:3000/api';
 
 class ApiService {
-  private async request(endpoint: string, options: RequestInit = {}) {
+  async request(endpoint: string, options: RequestInit = {}) {
     const token = localStorage.getItem('authToken');
     const config: RequestInit = {
       headers: {
@@ -68,10 +68,14 @@ class ApiService {
     }
   }
 
-  async login(username: string, password: string, role?: string): Promise<AuthResponse> {
+  async login(username: string, password: string, role?: string, department_id?: string): Promise<AuthResponse> {
+    const body: any = { username, password, role: role || 'User' };
+    if (department_id) {
+      body.department_id = parseInt(department_id);
+    }
     return this.request('/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password, role: role || 'User' }),
+      body: JSON.stringify(body),
     });
   }
 
@@ -89,6 +93,11 @@ class ApiService {
 
   async getMasterList(): Promise<any[]> {
     const response = await this.request('/master-list');
+    return response.data || [];
+  }
+
+  async getDepartments(): Promise<any[]> {
+    const response = await this.request('/departments');
     return response.data || [];
   }
 }

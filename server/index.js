@@ -8,6 +8,7 @@ import CustomError from './utils/customError.js';
 import masterListRoutes from './routes/masterList.js';
 import authRoutes from './routes/login.js';
 import usersRoutes from './routes/users.js';
+import departmentsRoutes from './routes/departments.js';
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.use('/api/master-list', masterListRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/login', authRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/departments', departmentsRoutes);
 
 app.use('/health', (req, res) => {
     res.status(200).json({ status: 'OK' });
