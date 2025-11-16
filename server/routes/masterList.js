@@ -1,10 +1,10 @@
 import express from 'express';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
-import Pool from '../config/connection.js';
+import Client from '../config/connection.js';
 const router = express.Router();
 
 router.get('/', asyncErrorHandler(async(req, res, next)=>{
-    const response = await Pool.query(
+    const response = await Client.query(
         `SELECT * FROM master_card`
     )
     console.log(response[0]);

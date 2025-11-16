@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import Pool from './config/connection.js';
+import Client from './config/connection.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 import CustomError from './utils/customError.js';
 import masterListRoutes from './routes/masterList.js';
+import userRoutes from './routes/users.js';
+import loginRoutes from './routes/login.js';
 
 const app = express();
 app.use(express.json());
@@ -16,6 +18,8 @@ app.use(cors({
 }))
 
 app.use('/api/master-list', masterListRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/login', loginRoutes);
 app.use('/health', (req, res) => {
     res.status(200).json({status: 'OK'});
 });
@@ -36,7 +40,7 @@ app.use((error, req, res, next) => {
 
 async function query(arg){
     try {
-        const res = await Pool.query(arg);
+        const res = await Client.query(arg);
         return res;
     } catch (err) {
         throw err;
