@@ -8,6 +8,11 @@ import authorizeRoles from '../utils/authorizeRoles.js';
 
 const router = express.Router();
 
+router.get('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (req, res, next) => {
+  const [rows] = await Client.query('SELECT user_id, username, full_name, email, department_id, role, created_at FROM users');
+  res.status(200).json({ users: rows });
+}));
+
 router.post('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (req, res, next) => {
   const { username, full_name, password, email, department_id, role } = req.body;
   if (!username || !password || !email) {
