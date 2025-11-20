@@ -19,14 +19,15 @@ router.get('/', asyncErrorHandler(async (req, res, next) => {
 }));
 
 router.get('/id', asyncErrorHandler(async (req, res, next) => {
-    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards');
-    const currentYear = new Date().getFullYear()%100;
+    let part_name = req.query.part_name;
+    if (!part_name) {
+        return res.status(400).json({ message: 'part_name query parameter is required' });
+    }
+    part_name = part_name.replace(/['"]+/g, '');
+    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards WHERE part_name = ?', [part_name]);
+    
     const count = rows[0].count + 1;
-    const serial = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z' };
-    const quotient = Math.floor((count - 1) / 999);
-    const remainder = ((count - 1) % 999) + 1;
-    const currentSerial = serial[quotient] || 'TRIAL';
-    const formattedId = `FY${currentYear}-${currentSerial}${String(remainder).padStart(3, '0')}`;
+    const formattedId = `${part_name}-${count}`;
     res.status(200).json({ trialId: formattedId });
 }));
 
