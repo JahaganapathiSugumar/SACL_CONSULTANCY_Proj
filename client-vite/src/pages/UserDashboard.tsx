@@ -7,7 +7,10 @@ const UserDashboard: React.FC = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+<<<<<<< HEAD
   const [showPending, setShowPending] = useState(false);
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 
   // Function to get department name based on user role
   const getDepartmentInfo = () => {
@@ -119,8 +122,13 @@ const UserDashboard: React.FC = () => {
             borderRadius: '50%',
             transition: 'background-color 0.2s'
           }} 
+<<<<<<< HEAD
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+=======
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           onClick={() => setShowNotifications(true)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -151,8 +159,13 @@ const UserDashboard: React.FC = () => {
               transition: 'background-color 0.2s'
             }}
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+<<<<<<< HEAD
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+=======
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           >
             <div style={{
               width: '32px',
@@ -239,8 +252,13 @@ const UserDashboard: React.FC = () => {
                   transition: 'background-color 0.2s'
                 }}
                 onClick={logout}
+<<<<<<< HEAD
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+=======
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               >
                 🚪 Logout
               </div>
@@ -349,8 +367,13 @@ const UserDashboard: React.FC = () => {
             cursor: 'pointer',
             transition: 'background-color 0.2s'
           }}
+<<<<<<< HEAD
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#545b62')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6c757d')}
+=======
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
         >
           Close
         </button>
@@ -358,6 +381,7 @@ const UserDashboard: React.FC = () => {
     </div>
   );
 
+<<<<<<< HEAD
   // Pending Modal Component (opened by the new "Pending Cards" button)
   const PendingModal = () => {
     // Example pending items — replace with real data or props as needed
@@ -470,6 +494,8 @@ const UserDashboard: React.FC = () => {
     );
   };
 
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
   return (
     <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <CustomHeader />
@@ -505,6 +531,7 @@ const UserDashboard: React.FC = () => {
               </div>
               <div className="button-group" style={{ display: 'flex', gap: '15px' }}>
                 <button 
+<<<<<<< HEAD
                   className="btn-pending-cards"
                   onClick={() => setShowPending(true)}
                   style={{
@@ -525,6 +552,8 @@ const UserDashboard: React.FC = () => {
                 </button>
 
                 <button 
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                   className="btn-view-users"
                   onClick={() => setShowUserDetails(true)}
                   style={{
@@ -538,8 +567,13 @@ const UserDashboard: React.FC = () => {
                     fontSize: '14px',
                     transition: 'background-color 0.2s'
                   }}
+<<<<<<< HEAD
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#545b62')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6c757d')}
+=======
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 >
                   👥 View User Details
                 </button>
@@ -689,8 +723,13 @@ const UserDashboard: React.FC = () => {
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
+<<<<<<< HEAD
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#545b62')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6c757d')}
+=======
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           >
             ← Back to Dashboard
           </button>
@@ -699,9 +738,12 @@ const UserDashboard: React.FC = () => {
 
       {/* Notification Modal */}
       {showNotifications && <NotificationModal />}
+<<<<<<< HEAD
 
       {/* Pending Modal */}
       {showPending && <PendingModal />}
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
     </div>
   );
 };

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from "react";
+=======
+import React, {useEffect, useState} from "react";
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 import {
   Box,
   Paper,
@@ -18,6 +22,7 @@ import {
   Button,
   Alert,
   CircularProgress,
+<<<<<<< HEAD
   InputAdornment,
   IconButton,
 } from "@mui/material";
@@ -26,6 +31,11 @@ import Autocomplete from "@mui/material/Autocomplete";
 import PouringDetailsTable from './pouring';
 import type { PouringDetails } from './pouring';
 
+=======
+} from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
+
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 // Colors
 const SAKTHI_COLORS = {
   primary: "#2950bbff",
@@ -38,6 +48,11 @@ const SAKTHI_COLORS = {
   white: "#FFFFFF",
   success: "#10B981",
 };
+<<<<<<< HEAD
+=======
+import PouringDetailsTable from './pouring.tsx';
+import type { PouringDetails } from './pouring.tsx';
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 
 const MACHINES = ["DISA-1", "DISA-2", "DISA-3", "DISA-4", "DISA-5"];
 const SAMPLING_REASONS = ["First trial", "Metallurgy trial", "Porosity verification", "others"];
@@ -105,8 +120,12 @@ interface PartData {
   pattern_code: string;
   part_name: string;
   material_grade: string;
+<<<<<<< HEAD
   // chemical_composition may come as an object (preferred) or as a JSON string
   chemical_composition: any;
+=======
+  chemical_composition: string;
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
   micro_structure: string;
   tensile: string;
   impact: string;
@@ -122,6 +141,7 @@ interface MouldCorrection {
   fillerSize: string;
 }
 
+<<<<<<< HEAD
 /*
   REPLACED PARSING LOGIC:
   Backend now returns chemical_composition as JSON (object). Accept either object or JSON string.
@@ -172,6 +192,53 @@ const parseChemicalComposition = (composition: any) => {
     cr: getFirst(['cr']),
     cu: getFirst(['cu']),
   };
+=======
+const parseChemicalComposition = (composition: string) => {
+  const data = { c: '', si: '', mn: '', p: '', s: '', mg: '', cr: '', cu: '' };
+
+  if (!composition) return data;
+
+  const lines = composition.split('\n');
+
+  lines.forEach(line => {
+    const cleanLine = line.trim().toLowerCase();
+
+    if (cleanLine.includes('c') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.c) data.c = match[0];
+    }
+    if (cleanLine.includes('si') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.si) data.si = match[0];
+    }
+    if (cleanLine.includes('mn') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.mn) data.mn = match[0];
+    }
+    if (cleanLine.includes('p') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.p) data.p = match[0];
+    }
+    if (cleanLine.includes('s') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.s) data.s = match[0];
+    }
+    if (cleanLine.includes('mg') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.mg) data.mg = match[0];
+    }
+    if (cleanLine.includes('cr') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.cr) data.cr = match[0];
+    }
+    if (cleanLine.includes('cu') && cleanLine.match(/\d/)) {
+      const match = cleanLine.match(/[\d.]+/);
+      if (match && !data.cu) data.cu = match[0];
+    }
+  });
+
+  return data;
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 };
 
 const parseTensileData = (tensile: string) => {
@@ -407,6 +474,7 @@ function SampleCardSubmitted({
 }
 
 export default function FoundrySampleCard() {
+<<<<<<< HEAD
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
   const [machine, setMachine] = useState("");
@@ -424,6 +492,23 @@ export default function FoundrySampleCard() {
   const [toolingType, setToolingType] = useState("");
   const [toolingFiles, setToolingFiles] = useState<File[]>([]);
 
+=======
+  const [selectedPart, setSelectedPart] = React.useState<PartData | null>(null);
+  const [selectedPattern, setSelectedPattern] = React.useState<PartData | null>(null);
+  const [machine, setMachine] = React.useState("");
+  const [reason, setReason] = React.useState("");
+  const [trialNo, setTrialNo] = React.useState("");
+  const [hodApproved, setHodApproved] = React.useState(false);
+  const [masterParts, setMasterParts] = useState<PartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [samplingDate, setSamplingDate] = React.useState("");
+  const [mouldCount, setMouldCount] = React.useState("");
+  const [sampleTraceability, setSampleTraceability] = useState("");
+  const [toolingType, setToolingType] = useState("");
+  const [toolingFiles, setToolingFiles] = useState<File[]>([]);
+  
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
   // New state for routing
   const [currentView, setCurrentView] = useState<'form' | 'submitted' | 'pouring'>('form');
   const [submittedData, setSubmittedData] = useState<any>(null);
@@ -468,10 +553,17 @@ export default function FoundrySampleCard() {
     sampleTraceability &&
     toolingType &&
     // Check if all mould corrections have required fields filled
+<<<<<<< HEAD
     mouldCorrections.every(correction =>
       correction.compressibility &&
       correction.squeezePressure &&
       correction.fillerSize
+=======
+    mouldCorrections.every(correction => 
+      correction.compressibility && 
+      correction.squeezePressure && 
+      correction.fillerSize 
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
     )
   );
 
@@ -511,11 +603,19 @@ export default function FoundrySampleCard() {
   };
 
   useEffect(() => {
+<<<<<<< HEAD
     const getMasterParts = async () => {
       try {
         setLoading(true);
         const response = await fetch('http://localhost:3000/api/master-list');
         if (!response.ok) {
+=======
+    const getMasterParts = async() => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:3000/api/master-list');
+        if(!response.ok){
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           throw new Error("Failed to fetch master list");
         }
         const data = await response.json();
@@ -531,7 +631,11 @@ export default function FoundrySampleCard() {
     getMasterParts();
   }, []);
 
+<<<<<<< HEAD
   useEffect(() => {
+=======
+  React.useEffect(() => {
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
     if (selectedPart) {
       setSelectedPattern(selectedPart);
     } else {
@@ -539,6 +643,7 @@ export default function FoundrySampleCard() {
     }
   }, [selectedPart]);
 
+<<<<<<< HEAD
   // Generate trial number when selectedPart changes (auto-generate via backend)
   const generateTrialId = async (partName?: string) => {
     const name = partName || selectedPart?.part_name;
@@ -585,6 +690,8 @@ export default function FoundrySampleCard() {
   }, [selectedPart]);
 
   // Use the new JSON-parsing chemical data
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
   const chemicalData = selectedPart ? parseChemicalComposition(selectedPart.chemical_composition) : { c: '', si: '', mn: '', p: '', s: '', mg: '', cr: '', cu: '' };
   const tensileData = selectedPart ? parseTensileData(selectedPart.tensile) : { tensileStrength: '', yieldStrength: '', elongation: '', impactCold: '', impactRoom: '' };
   const microData = selectedPart ? parseMicrostructureData(selectedPart.micro_structure) : { nodularity: '', pearlite: '', carbide: '' };
@@ -686,7 +793,11 @@ export default function FoundrySampleCard() {
                       onChange={(_, newValue) => handlePatternChange(newValue)}
                       getOptionLabel={(option) => option.pattern_code}
                       renderOption={(props, option) => (
+<<<<<<< HEAD
                         <li {...props} key={option.id} style={{ whiteSpace: 'normal', lineHeight: '1.5', padding: '8px 16px' }}>
+=======
+                        <li {...props} style={{ whiteSpace: 'normal', lineHeight: '1.5', padding: '8px 16px' }}>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>{option.pattern_code}</Typography>
                             <Typography variant="caption" color="text.secondary">{option.part_name}</Typography>
@@ -717,7 +828,11 @@ export default function FoundrySampleCard() {
                       onChange={(_, newValue) => handlePartChange(newValue)}
                       getOptionLabel={(option) => option.part_name}
                       renderOption={(props, option) => (
+<<<<<<< HEAD
                         <li {...props} key={option.id} style={{ whiteSpace: 'normal', lineHeight: '1.5', padding: '8px 16px' }}>
+=======
+                        <li {...props} style={{ whiteSpace: 'normal', lineHeight: '1.5', padding: '8px 16px' }}>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>{option.part_name}</Typography>
                             <Typography variant="caption" color="text.secondary">{option.pattern_code}</Typography>
@@ -742,6 +857,7 @@ export default function FoundrySampleCard() {
 
                   <Box>
                     <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}>TRIAL No</Typography>
+<<<<<<< HEAD
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <TextField
                         fullWidth
@@ -771,6 +887,18 @@ export default function FoundrySampleCard() {
                       </IconButton>
                     </Box>
                     {trialError && <Typography color="error" variant="caption">{trialError}</Typography>}
+=======
+                    <TextField
+                      fullWidth
+                      value={trialNo}
+                      onChange={(e) => setTrialNo(e.target.value)}
+                      placeholder="Enter trial number"
+                      size="small"
+                      type="number"
+                      required
+                      InputProps={{ sx: { bgcolor: SAKTHI_COLORS.white, borderRadius: 2 } }}
+                    />
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                   </Box>
                 </Box>
               </Box>

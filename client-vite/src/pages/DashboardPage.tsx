@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 import AddUserModal from '../components/admin/AddUserModal';
 import UserManagement from '../components/admin/UserManagement';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +13,7 @@ const DashboardPage: React.FC = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+<<<<<<< HEAD
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
 
   // Function to get department name based on user role
@@ -449,11 +454,56 @@ const DashboardPage: React.FC = () => {
   const CustomHeader = () => (
     <header style={{
       backgroundColor: '#494949',
+=======
+
+ // Function to get department name based on user role
+const getDepartmentInfo = () => {
+  if (user?.role === 'Admin' || user?.role === 'Methods') {
+    return { displayText: '', showDepartment: false }; // Return empty string for display text
+  } else {
+    // Use the actual department name from your table
+    const department = user?.department_name || 
+                      user?.department || 
+                      getDepartmentName(user?.department_id);
+    
+    return { 
+      displayText: department || 'Operations',
+      showDepartment: true 
+    };
+  }
+};
+
+// Helper function to map department_id to department_name
+const getDepartmentName = (departmentId: number | string) => {
+  const departmentMap = {
+    1: 'ADMIN',
+    2: 'NPD METHODS', 
+    3: 'NPD QC',
+    4: 'SANDPLANT',
+    5: 'FETTLING & VISUAL INSPECTION',
+    6: 'MOULDING',
+    7: 'QUALITY',
+    8: 'MACHINESHOP',
+    9: 'NDT QC',
+    10: 'QA',
+    11: 'CUSTOMER'
+  };
+  
+  return departmentMap[departmentId as keyof typeof departmentMap] || null;
+};
+
+const departmentInfo = getDepartmentInfo();
+
+  const CustomHeader = () => (
+    <header style={{
+      backgroundColor: 'white',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
       padding: '15px 30px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
+<<<<<<< HEAD
     }}>
       {/* Load Poppins */}
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" /> 
@@ -494,15 +544,39 @@ const DashboardPage: React.FC = () => {
           <div style={{ fontSize: '12px', color: '#888787ff', fontWeight: 500 }}>
             Driving Quality & Innovation
           </div>
+=======
+      borderBottom: '1px solid #e0e0e0'
+    }}>
+      {/* Left side - Logo/Brand and Department Info */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+        <div style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: '#333',
+          letterSpacing: '1px'
+        }}>
+          SAKTHI AUTO COMPONENTS LTD
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
         </div>
         
         {/* Department and Role Info */}
         <div style={{
+<<<<<<< HEAD
           padding: '8px 8px',
         }}>
           <div style={{
             fontSize: '14px',
             fontWeight: 500,
+=======
+          padding: '8px 16px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '6px',
+          border: '1px solid #e0e0e0'
+        }}>
+          <div style={{
+            fontSize: '14px',
+            fontWeight: '600',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
             color: '#333',
             display: 'flex',
             alignItems: 'center',
@@ -510,22 +584,38 @@ const DashboardPage: React.FC = () => {
           }}>
             <span style={{
               padding: '4px 8px',
+<<<<<<< HEAD
               backgroundColor: '#FF9C00',
               color: 'white',
               borderRadius: '4px',
               fontSize: '12px',
               fontWeight: 500
+=======
+              backgroundColor: '#007bff',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: '500'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
             }}>
               {user?.role?.toUpperCase() || 'USER'}
             </span>
             {departmentInfo.showDepartment && (
               <>
                 <span style={{ color: '#666' }}>|</span>
+<<<<<<< HEAD
                 <span style={{ color: '#555', fontWeight: 400 }}>{departmentInfo.displayText}</span>
               </>
             )}
             {!departmentInfo.showDepartment && (
               <span style={{ color: '#555', fontWeight: 400 }}>{departmentInfo.displayText}</span>
+=======
+                <span style={{ color: '#555' }}>{departmentInfo.displayText}</span>
+              </>
+            )}
+            {!departmentInfo.showDepartment && (
+              <span style={{ color: '#555' }}>{departmentInfo.displayText}</span>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
             )}
           </div>
         </div>
@@ -546,6 +636,7 @@ const DashboardPage: React.FC = () => {
             borderRadius: '50%',
             transition: 'background-color 0.2s'
           }} 
+<<<<<<< HEAD
           onMouseEnter={(e) => {
             const target = e.currentTarget as HTMLDivElement;
             target.style.backgroundColor = '#f5f5f5';
@@ -554,6 +645,10 @@ const DashboardPage: React.FC = () => {
             const target = e.currentTarget as HTMLDivElement;
             target.style.backgroundColor = 'transparent';
           }}
+=======
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           onClick={() => setShowNotifications(true)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -584,6 +679,7 @@ const DashboardPage: React.FC = () => {
               transition: 'background-color 0.2s'
             }}
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+<<<<<<< HEAD
             onMouseEnter={(e) => {
               const target = e.currentTarget as HTMLDivElement;
               target.style.backgroundColor = '#f5f5f5';
@@ -592,17 +688,29 @@ const DashboardPage: React.FC = () => {
               const target = e.currentTarget as HTMLDivElement;
               target.style.backgroundColor = 'transparent';
             }}
+=======
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           >
             <div style={{
               width: '32px',
               height: '32px',
+<<<<<<< HEAD
               backgroundColor: '#FF9C00',
+=======
+              backgroundColor: '#007bff',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
+<<<<<<< HEAD
               fontWeight: 700,
+=======
+              fontWeight: 'bold',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               fontSize: '14px'
             }}>
               {user?.username?.charAt(0).toUpperCase() || 'U'}
@@ -610,19 +718,32 @@ const DashboardPage: React.FC = () => {
             <div style={{ textAlign: 'left' }}>
               <div style={{
                 fontSize: '14px',
+<<<<<<< HEAD
                 fontWeight: 500,
                 color: '#000000'
+=======
+                fontWeight: '500',
+                color: '#333'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               }}>
                 {user?.username || 'User'}
               </div>
               <div style={{
                 fontSize: '12px',
+<<<<<<< HEAD
                 color: '#000000',
                 fontWeight: 500
               }}>
                 {user?.role || 'User Role'}
                 {user?.department_name && user.role !== 'Admin' && user.role !== 'Methods' && (
                   <span style={{ fontWeight: 400 }}> • {user.department_name}</span>
+=======
+                color: '#666'
+              }}>
+                {user?.role || 'User Role'}
+                {user?.department_name && user.role !== 'Admin' && user.role !== 'Methods' && (
+                  <span> • {user.department_name}</span>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 )}
               </div>
             </div>
@@ -660,6 +781,7 @@ const DashboardPage: React.FC = () => {
                 padding: '12px 16px',
                 borderBottom: '1px solid #f0f0f0'
               }}>
+<<<<<<< HEAD
                 <div style={{ fontSize: '14px', fontWeight: 500, color: '#333' }}>
                   {user?.username}
                 </div>
@@ -667,6 +789,15 @@ const DashboardPage: React.FC = () => {
                   {user?.role}
                   {user?.department_name && user.role !== 'Admin' && user.role !== 'Methods' && (
                     <span style={{ fontWeight: 400 }}> • {user.department_name}</span>
+=======
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
+                  {user?.username}
+                </div>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                  {user?.role}
+                  {user?.department_name && user.role !== 'Admin' && user.role !== 'Methods' && (
+                    <span> • {user.department_name}</span>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                   )}
                 </div>
               </div>
@@ -676,6 +807,7 @@ const DashboardPage: React.FC = () => {
                   cursor: 'pointer',
                   fontSize: '14px',
                   color: '#333',
+<<<<<<< HEAD
                   transition: 'background-color 0.2s',
                   fontWeight: 500
                 }}
@@ -688,6 +820,13 @@ const DashboardPage: React.FC = () => {
                   const target = e.currentTarget as HTMLDivElement;
                   target.style.backgroundColor = 'transparent';
                 }}
+=======
+                  transition: 'background-color 0.2s'
+                }}
+                onClick={logout}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               >
                 🚪 Logout
               </div>
@@ -730,7 +869,11 @@ const DashboardPage: React.FC = () => {
           borderBottom: '1px solid #e0e0e0',
           paddingBottom: '15px'
         }}>
+<<<<<<< HEAD
           <h3 style={{ margin: 0, color: '#333', fontWeight: 700 }}>Notifications</h3>
+=======
+          <h3 style={{ margin: 0, color: '#333' }}>Notifications</h3>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           <button 
             onClick={() => setShowNotifications(false)}
             style={{
@@ -752,12 +895,20 @@ const DashboardPage: React.FC = () => {
             backgroundColor: '#f8fbff',
             borderRadius: '6px',
             borderLeft: '3px solid #007bff',
+<<<<<<< HEAD
             marginBottom: '10px',
             fontWeight: 500
           }}>
             <div style={{ fontWeight: 700, color: '#333' }}>New Idea Submitted</div>
             <div style={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>A new idea has been submitted to your department</div>
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px', fontWeight: 400 }}>5 min ago</div>
+=======
+            marginBottom: '10px'
+          }}>
+            <div style={{ fontWeight: '600', color: '#333' }}>New Idea Submitted</div>
+            <div style={{ fontSize: '14px', color: '#666' }}>A new idea has been submitted to your department</div>
+            <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>5 min ago</div>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           </div>
           
           <div style={{
@@ -765,18 +916,27 @@ const DashboardPage: React.FC = () => {
             backgroundColor: '#f0f9f0',
             borderRadius: '6px',
             borderLeft: '3px solid #28a745',
+<<<<<<< HEAD
             marginBottom: '10px',
             fontWeight: 500
           }}>
             <div style={{ fontWeight: 700, color: '#333' }}>Idea Approved</div>
             <div style={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>Your idea "TEST-05" has been approved</div>
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px', fontWeight: 400 }}>1 hour ago</div>
+=======
+            marginBottom: '10px'
+          }}>
+            <div style={{ fontWeight: '600', color: '#333' }}>Idea Approved</div>
+            <div style={{ fontSize: '14px', color: '#666' }}>Your idea "TEST-05" has been approved</div>
+            <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>1 hour ago</div>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           </div>
           
           <div style={{
             padding: '12px',
             backgroundColor: '#fffbf0',
             borderRadius: '6px',
+<<<<<<< HEAD
             borderLeft: '3px solid #ffc107',
             marginBottom: '10px',
             fontWeight: 500
@@ -784,6 +944,14 @@ const DashboardPage: React.FC = () => {
             <div style={{ fontWeight: 700, color: '#333' }}>Action Required</div>
             <div style={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>3 ideas are pending your review</div>
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px', fontWeight: 400 }}>2 hours ago</div>
+=======
+            borderLeft: "3px solid #ffc107",
+            marginBottom: '10px'
+          }}>
+            <div style={{ fontWeight: '600', color: '#333' }}>Action Required</div>
+            <div style={{ fontSize: '14px', color: '#666' }}>3 ideas are pending your review</div>
+            <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>2 hours ago</div>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           </div>
         </div>
         
@@ -797,6 +965,7 @@ const DashboardPage: React.FC = () => {
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
+<<<<<<< HEAD
             transition: 'background-color 0.2s',
             fontWeight: 500
           }}
@@ -808,6 +977,12 @@ const DashboardPage: React.FC = () => {
             const target = e.currentTarget as HTMLButtonElement;
             target.style.backgroundColor = '#6c757d';
           }}
+=======
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
         >
           Close
         </button>
@@ -816,13 +991,21 @@ const DashboardPage: React.FC = () => {
   );
 
   return (
+<<<<<<< HEAD
     <div className="dashboard" style={{ backgroundColor: '#494949', minHeight: '100vh', fontFamily: "'Poppins', sans-serif" }}>
+=======
+    <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
       <CustomHeader />
       <main className="dashboard-content" style={{ padding: '20px' }}>
         {showUserDetails ? (
           <UserManagement />
         ) : (
+<<<<<<< HEAD
           <div className="welcome-section" style={{ backgroundColor: '#494949', padding: '20px', borderRadius: '8px' }}>
+=======
+          <div className="welcome-section">
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
             {/* Header Section */}
             <div className="welcome-header" style={{ 
               display: 'flex', 
@@ -833,24 +1016,36 @@ const DashboardPage: React.FC = () => {
               <div>
                 <h2 style={{ 
                   fontSize: '24px', 
+<<<<<<< HEAD
                   fontWeight: 700,
                   color: '#FF9C00',
+=======
+                  fontWeight: 'bold',
+                  color: '#333',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                   margin: 0,
                   marginBottom: '5px'
                 }}>
                   Admin Ideas Dashboard
                 </h2>
                 <p style={{ 
+<<<<<<< HEAD
                   color: '#ffffff',
                   fontSize: '14px',
                   margin: 0,
                   fontWeight: 500
+=======
+                  color: '#666',
+                  fontSize: '14px',
+                  margin: 0
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 }}>
                   Welcome back, {user?.username}!
                 </p>
               </div>
               <div className="button-group" style={{ display: 'flex', gap: '15px' }}>
                 {user?.role === 'Admin' && (
+<<<<<<< HEAD
                   <>
                     <button 
                       className="btn-add-master"
@@ -905,18 +1100,44 @@ const DashboardPage: React.FC = () => {
                       Add User Profiles
                     </button>
                   </>
+=======
+                  <button 
+                    className="btn-add-user"
+                    onClick={() => setIsAddUserModalOpen(true)}
+                    style={{
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
+                  >
+                    + Add User Profiles
+                  </button>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 )}
                 <button 
                   className="btn-view-users"
                   onClick={() => setShowUserDetails(true)}
                   style={{
+<<<<<<< HEAD
                     backgroundImage: 'none',
                     backgroundColor: '#FF9C00',
+=======
+                    backgroundColor: '#6c757d',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                     color: 'white',
                     border: 'none',
                     padding: '10px 20px',
                     borderRadius: '6px',
                     cursor: 'pointer',
+<<<<<<< HEAD
                     fontWeight: 500,
                     fontSize: '14px',
                     transition: 'background-color 0.2s'
@@ -931,6 +1152,16 @@ const DashboardPage: React.FC = () => {
                   }}
                 >
                   View User Details
+=======
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+                >
+                  👥 View User Details
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 </button>
               </div>
             </div>
@@ -938,10 +1169,16 @@ const DashboardPage: React.FC = () => {
             {/* Overview Section */}
             <div style={{ marginBottom: '30px' }}>
               <p style={{ 
+<<<<<<< HEAD
                 color: '#FFFFFF',
                 fontSize: '14px',
                 marginBottom: '15px',
                 fontWeight: 500
+=======
+                color: '#666',
+                fontSize: '14px',
+                marginBottom: '15px'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               }}>
                 Overview of idea submissions across all departments
               </p>
@@ -964,7 +1201,11 @@ const DashboardPage: React.FC = () => {
                     key={index}
                     className="stat-card"
                     style={{
+<<<<<<< HEAD
                       backgroundColor: '#f0f0f0',
+=======
+                      backgroundColor: 'white',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                       padding: '20px',
                       borderRadius: '8px',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -973,6 +1214,7 @@ const DashboardPage: React.FC = () => {
                       transition: 'transform 0.2s, box-shadow 0.2s'
                     }}
                     onMouseEnter={(e) => {
+<<<<<<< HEAD
                       const target = e.currentTarget as HTMLDivElement;
                       target.style.transform = 'translateY(-2px)';
                       target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
@@ -981,11 +1223,23 @@ const DashboardPage: React.FC = () => {
                       const target = e.currentTarget as HTMLDivElement;
                       target.style.transform = 'translateY(0)';
                       target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+=======
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                     }}
                   >
                     <div style={{ 
                       fontSize: '24px', 
+<<<<<<< HEAD
                       fontWeight: 400,
+=======
+                      fontWeight: 'bold',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                       color: '#333',
                       marginBottom: '5px'
                     }}>
@@ -994,7 +1248,11 @@ const DashboardPage: React.FC = () => {
                     <div style={{ 
                       fontSize: '12px',
                       color: '#666',
+<<<<<<< HEAD
                       fontWeight: 500
+=======
+                      fontWeight: '500'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                     }}>
                       {stat.label}
                     </div>
@@ -1013,23 +1271,38 @@ const DashboardPage: React.FC = () => {
             <div style={{ marginBottom: '30px' }}>
               <h3 style={{ 
                 fontSize: '18px',
+<<<<<<< HEAD
                 fontWeight: 700,
                 color: '#FF9C00',
+=======
+                fontWeight: 'bold',
+                color: '#333',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 marginBottom: '15px'
               }}>
                 Employee Management
               </h3>
               <p style={{ 
+<<<<<<< HEAD
                 color: '#FFFFFF',
                 fontSize: '14px',
                 marginBottom: '15px',
                 fontWeight: 500
+=======
+                color: '#666',
+                fontSize: '14px',
+                marginBottom: '15px'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               }}>
                 Manage employee data
               </p>
 
               <div style={{
+<<<<<<< HEAD
                 backgroundColor: '#f0f0f0',
+=======
+                backgroundColor: 'white',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 padding: '20px',
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -1045,6 +1318,7 @@ const DashboardPage: React.FC = () => {
                     marginBottom: '15px',
                     fontSize: '14px',
                     outline: 'none',
+<<<<<<< HEAD
                     transition: 'border-color 0.2s',
                     fontWeight: 400
                   }}
@@ -1060,6 +1334,16 @@ const DashboardPage: React.FC = () => {
                 
                 <div style={{ marginBottom: '15px' }}>
                   <strong style={{ color: '#333', fontWeight: 500 }}>All Departments</strong>
+=======
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#007bff'}
+                  onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                />
+                
+                <div style={{ marginBottom: '15px' }}>
+                  <strong style={{ color: '#333' }}>All Departments</strong>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 </div>
                 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
@@ -1073,6 +1357,7 @@ const DashboardPage: React.FC = () => {
                         fontSize: '14px',
                         color: '#333',
                         cursor: 'pointer',
+<<<<<<< HEAD
                         transition: 'background-color 0.2s',
                         fontWeight: 500
                       }}
@@ -1084,6 +1369,12 @@ const DashboardPage: React.FC = () => {
                         const target = e.currentTarget as HTMLDivElement;
                         target.style.backgroundColor = '#e9ecef';
                       }}
+=======
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dde1e6'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e9ecef'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                     >
                       {dept}
                     </div>
@@ -1096,23 +1387,38 @@ const DashboardPage: React.FC = () => {
             <div>
               <h3 style={{ 
                 fontSize: '18px',
+<<<<<<< HEAD
                 fontWeight: 700,
                 color: '#FF9C00',
+=======
+                fontWeight: 'bold',
+                color: '#333',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 marginBottom: '15px'
               }}>
                 Idea Directory
               </h3>
               <p style={{ 
+<<<<<<< HEAD
                 color: '#FFFFFF',
                 fontSize: '14px',
                 marginBottom: '15px',
                 fontWeight: 500
+=======
+                color: '#666',
+                fontSize: '14px',
+                marginBottom: '15px'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
               }}>
                 Showing ideas from all departments (302 levels)
               </p>
 
               <div style={{
+<<<<<<< HEAD
                 backgroundColor: 'grey',
+=======
+                backgroundColor: 'white',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 overflow: 'hidden'
@@ -1121,6 +1427,7 @@ const DashboardPage: React.FC = () => {
                   <table style={{ 
                     width: '100%',
                     borderCollapse: 'collapse',
+<<<<<<< HEAD
                     minWidth: '800px',
                     backgroundColor: 'transparent'
                   }}>
@@ -1128,18 +1435,35 @@ const DashboardPage: React.FC = () => {
                       <tr style={{ 
                         backgroundColor: '#bfbfbf',
                         borderBottom: '1px solid #999'
+=======
+                    minWidth: '800px'
+                  }}>
+                    <thead>
+                      <tr style={{ 
+                        backgroundColor: '#f8f9fa',
+                        borderBottom: '1px solid #dee2e6'
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                       }}>
                         {['IDEA', 'DEPARTMENT', 'DATE UPLOADED', 'EMPLOYEE', 'STATUS', 'ASSIGNED TO', 'ACTIONS'].map((header, index) => (
                           <th key={index} style={{
                             padding: '12px 15px',
                             textAlign: 'left',
                             fontSize: '12px',
+<<<<<<< HEAD
                             fontWeight: 700,
                             color: '#fff',
                             textTransform: 'uppercase'
                           }}>
                             {header}
                           </th>
+=======
+                            fontWeight: 'bold',
+                            color: '#666',
+                            textTransform: 'uppercase'
+                          }}>
+                            {header}
+                        </th>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                         ))}
                       </tr>
                     </thead>
@@ -1151,6 +1475,7 @@ const DashboardPage: React.FC = () => {
                         { idea: 'test-002 Read Only', department: '[legal]', date: '2025-10-30', employee: 'Pestablishment', status: 'Rejected', assigned: 'Martin Gusepong 2', actions: '✅ 2025-10-30' }
                       ].map((row, index) => (
                         <tr key={index} style={{ 
+<<<<<<< HEAD
                           borderBottom: '1px solid #999',
                           backgroundColor: index % 2 === 0 ? '#d3d3d3' : '#c0c0c0',
                           transition: 'background-color 0.2s'
@@ -1173,21 +1498,48 @@ const DashboardPage: React.FC = () => {
                           <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>
                             <div style={{ fontWeight: 400 }}>{row.employee}</div>
                             <div style={{ fontSize: '12px', color: '#666', fontWeight: 400 }}>ID: 102</div>
+=======
+                          borderBottom: '1px solid #dee2e6',
+                          backgroundColor: index % 2 === 0 ? 'white' : '#f8f9fa',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#f8f9fa'}
+                        >
+                          <td style={{ padding: '12px 15px', fontSize: '14px' }}>
+                            <div style={{ fontWeight: '500', color: '#333' }}>{row.idea}</div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>Mastery: &lt;sudity&gt;e{1000 + index}</div>
+                          </td>
+                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333' }}>{row.department}</td>
+                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333' }}>{row.date}</td>
+                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333' }}>
+                            <div>{row.employee}</div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>ID: 102</div>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                           </td>
                           <td style={{ padding: '12px 15px', fontSize: '14px' }}>
                             <span style={{
                               padding: '4px 8px',
                               borderRadius: '4px',
                               fontSize: '12px',
+<<<<<<< HEAD
                               fontWeight: 400,
+=======
+                              fontWeight: '500',
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                               backgroundColor: row.status === 'Implemented' ? '#d4edda' : '#f8d7da',
                               color: row.status === 'Implemented' ? '#155724' : '#721c24'
                             }}>
                               {row.status}
                             </span>
                           </td>
+<<<<<<< HEAD
                           <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.assigned}</td>
                           <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.actions}</td>
+=======
+                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333' }}>{row.assigned}</td>
+                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333' }}>{row.actions}</td>
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
                         </tr>
                       ))}
                     </tbody>
@@ -1209,6 +1561,7 @@ const DashboardPage: React.FC = () => {
               padding: '10px 20px',
               borderRadius: '6px',
               cursor: 'pointer',
+<<<<<<< HEAD
               transition: 'background-color 0.2s',
               fontWeight: 500
             }}
@@ -1220,6 +1573,12 @@ const DashboardPage: React.FC = () => {
               const target = e.currentTarget as HTMLButtonElement;
               target.style.backgroundColor = '#6c757d';
             }}
+=======
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#545b62'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
           >
             ← Back to Dashboard
           </button>
@@ -1236,12 +1595,15 @@ const DashboardPage: React.FC = () => {
         }}
       />
 
+<<<<<<< HEAD
       {/* Add Master List Modal */}
       <AddMasterModal 
         isOpen={isAddMasterModalOpen}
         onClose={() => setIsAddMasterModalOpen(false)}
       />
 
+=======
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
       {/* Notification Modal */}
       {showNotifications && <NotificationModal />}
     </div>

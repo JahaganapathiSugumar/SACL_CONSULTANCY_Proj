@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules/
 */node_modules/
@@ -81,3 +82,7 @@ jspm_packages/
 # OS
 .DS_Store
 Thumbs.db
+=======
+.env
+/node_modules
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030

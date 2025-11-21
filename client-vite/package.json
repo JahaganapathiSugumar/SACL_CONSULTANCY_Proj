@@ -14,9 +14,13 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.5",
     "bcryptjs": "^3.0.3",
+<<<<<<< HEAD
     "html2canvas": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.4",
+=======
+    "jsonwebtoken": "^9.0.2",
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
     "mysql2": "^3.15.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -28,12 +32,20 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@vitejs/plugin-react": "^4.0.0",
+<<<<<<< HEAD
+=======
+    "vite": "^4.0.0",
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "typescript": "~5.9.3",
+<<<<<<< HEAD
     "typescript-eslint": "^8.46.3",
     "vite": "^4.0.0"
+=======
+    "typescript-eslint": "^8.46.3"
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
   }
 }

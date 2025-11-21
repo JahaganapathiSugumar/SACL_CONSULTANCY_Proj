@@ -17,8 +17,13 @@ import {
   Alert,
 } from '@mui/material';
 
+<<<<<<< HEAD
 import SandPropertiesTable from './sand';
 import type { SandProperties } from './sand';
+=======
+import SandPropertiesTable from './sand.tsx';
+import type { SandProperties } from './sand.tsx';
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 import MouldingTable from './moulding';
 
 // Colors

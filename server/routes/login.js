@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import CustomError from '../utils/customError.js';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 dotenv.config();
+<<<<<<< HEAD
 
 const router = express.Router();
 
@@ -28,10 +29,27 @@ const generateToken = (user_id, username, department_id, role) => {
     );
     return token;
 }
+=======
+const router = express.Router();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+
+const generateToken = (user_id, username, department_id = null, role = null) => {
+    const payload = {
+        user_id,
+        username,
+        department_id,
+        role,
+        iat: Math.floor(Date.now() / 1000)
+    };
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+};
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 
 const generateRefreshToken = (user_id, username) => {
     const refreshSecret = process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET + '_refresh');
     return jwt.sign({ user_id, username }, refreshSecret, { expiresIn: '7d' });
+<<<<<<< HEAD
 }
 
 router.post('/', asyncErrorHandler(async (req, res, next) => {
@@ -92,10 +110,47 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
                 console.log('❌ Department mismatch: user department_id is', user.department_id, 'but requested department_id is', deptIdNum);
                 const error = new CustomError('User does not belong to the selected department', 403);
                 return next(error);
+=======
+};
+
+router.post('/', asyncErrorHandler(async (req, res, next) => {
+    const { username, password, role, department_id } = req.body || {};
+
+    if (!username || !password) {
+        return next(new CustomError('Username and password are required', 400));
+    }
+
+    if (!role) {
+        return next(new CustomError('Role is required', 400));
+    }
+
+    if ((role === 'HOD' || role === 'User') && !department_id) {
+        return next(new CustomError('Department is required for HOD and User roles', 400));
+    }
+
+    try {
+        const [rows] = await Client.query('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
+
+        if (!rows || rows.length === 0) {
+            return next(new CustomError('Invalid credentials', 401));
+        }
+
+        const user = rows[0];
+
+        if (user.role !== role) {
+            return next(new CustomError(`Invalid role. User role is ${user.role}`, 403));
+        }
+
+        if ((role === 'HOD' || role === 'User') && department_id) {
+            const deptIdNum = parseInt(department_id, 10);
+            if (user.department_id !== deptIdNum) {
+                return next(new CustomError('User does not belong to the selected department', 403));
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
             }
         }
 
         const match = await bcrypt.compare(password, user.password_hash);
+<<<<<<< HEAD
         console.log('🔑 Password match:', match);
 
         if (match) {
@@ -140,6 +195,36 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
 export default router;
 
 // Refresh token endpoint
+=======
+
+        if (!match) {
+            return next(new CustomError('Invalid credentials', 401));
+        }
+
+        const token = generateToken(user.user_id, user.username, user.department_id, user.role);
+        const refreshToken = generateRefreshToken(user.user_id, user.username);
+
+        return res.status(200).json({
+            success: true,
+            token,
+            refreshToken,
+            user: {
+                user_id: user.user_id,
+                username: user.username,
+                full_name: user.full_name,
+                email: user.email,
+                department_id: user.department_id,
+                role: user.role
+            },
+            expiresIn: '24h',
+            message: `Login successful as ${user.role}`
+        });
+    } catch (err) {
+        return next(new CustomError('Server error during login', 500));
+    }
+}));
+
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
 router.post('/refresh-token', asyncErrorHandler(async (req, res, next) => {
     const { refreshToken } = req.body || {};
     if (!refreshToken) {
@@ -154,9 +239,18 @@ router.post('/refresh-token', asyncErrorHandler(async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Invalid refresh token' });
     }
 
+<<<<<<< HEAD
     // payload should contain user_id and username
     const { user_id, username } = payload;
     // create new access token
     const newToken = generateToken(user_id, username);
     res.json({ success: true, token: newToken });
 }));
+=======
+    const { user_id, username } = payload;
+    const newToken = generateToken(user_id, username);
+    return res.json({ success: true, token: newToken });
+}));
+
+export default router;
+>>>>>>> 34cd5aa040aa847d79734b64fa1ffaf348004030
