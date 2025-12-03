@@ -1,0 +1,80 @@
+import express from 'express';
+const router = express.Router();
+import asyncErrorHandler from '../utils/asyncErrorHandler.js';
+import Client from '../config/connection.js';
+import CustomError from '../utils/customError.js';
+
+router.post('/', asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, department_id, username, completed_at, approval_status, remarks } = req.body;
+    const [result] = await Client.query(
+        `INSERT INTO department_progress (trial_id, department_id, username, completed_at, approval_status, remarks) VALUES (?, ?, ?, ?, ?, ?)`,
+        [trial_id, department_id, username, completed_at, approval_status, remarks]
+    );
+    res.status(201).json({
+        success: true,
+        data: "Department progress added successfully"
+    });
+}));
+
+router.put('/update', asyncErrorHandler(async (req, res, next) => {
+    const { progress_id, current_department_id, username, role } = req.body;
+    if (role == 'HOD') {
+        const next_department_id = current_department_id + 1;
+        const next_department_user = await Client.query(
+            `SELECT * FROM users WHERE department_id = ? AND role = 'user'`,
+            [next_department_id]
+        );
+        if (next_department_user.length === 0) {
+            throw new CustomError("No user found for the department.");
+        }
+        const next_department_username = next_department_user[0].username;
+        const [result] = await Client.query(
+            `UPDATE department_progress SET current_department_id = ?, username = ? WHERE progress_id = ?`,
+            [next_department_id, next_department_username, progress_id]
+        );
+        res.status(200).json({
+            success: true,
+            data: "Department progress approved successfully"
+        });
+    }
+    else if (role == 'user') {
+        const current_department_hod = await Client.query(
+            `SELECT * FROM users WHERE department_id = ? AND role = 'HOD'`,
+            [current_department_id]
+        );
+        if (current_department_hod.length === 0) {
+            throw new CustomError("No HOD found for the department.");
+        }
+        const current_department_hod_username = current_department_hod[0].username;
+        const [result] = await Client.query(
+            `UPDATE department_progress SET username = ?, remarks = ? WHERE progress_id = ?`,
+            [current_department_hod_username, remarks, progress_id]
+        );
+        res.status(200).json({
+            success: true,
+            data: "Department progress updated successfully"
+        });
+    }
+}));
+
+router.put('/approve', asyncErrorHandler(async (req, res, next) => {
+    const { progress_id, remarks } = req.body;
+    const [result] = await Client.query(
+        `UPDATE department_progress SET approval_status = 'approved', remarks = ? WHERE progress_id = ?`,
+        [remarks, progress_id]
+    );
+    res.status(200).json({
+        success: true,
+        data: "Department progress approved successfully"
+    });
+}));
+
+// CREATE TABLE department_progress (
+//     progress_id SERIAL PRIMARY KEY,
+//     trial_id INT REFERENCES trial_cards(trial_id),
+//     department_id INT REFERENCES departments(department_id),
+//     username VARCHAR(50) REFERENCES users(username),
+//     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     approval_status VARCHAR(20) DEFAULT 'pending',
+//     remarks TEXT
+// );
