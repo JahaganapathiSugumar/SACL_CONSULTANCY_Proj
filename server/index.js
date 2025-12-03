@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import Client from './config/connection.js';
 import dotenv from 'dotenv';
+import getClientIp from './utils/getClientIp.js';
 dotenv.config();
 
 import CustomError from './utils/customError.js';
@@ -20,6 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: "*"
 }))
+
+app.use((req, res, next) => {
+    req.clientIp = getClientIp(req);
+    next();
+})
 
 app.use('/api/master-list', masterListRoutes);
 app.use('/api/users', userRoutes);
