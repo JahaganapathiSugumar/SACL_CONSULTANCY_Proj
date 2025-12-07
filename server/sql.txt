@@ -193,3 +193,24 @@ CREATE TABLE machine_shop (
     inspections JSON[]
     remarks TEXT
 );
+
+CREATE TABLE department_progress (
+    progress_id SERIAL PRIMARY KEY,
+    trial_id INT REFERENCES trial_cards(trial_id),
+    department_id INT REFERENCES departments(department_id),
+    username VARCHAR(50) REFERENCES users(username),
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    approval_status VARCHAR(20) DEFAULT 'pending',
+    remarks TEXT
+);
+
+CREATE TABLE documents (
+    document_id SERIAL PRIMARY KEY,
+    trial_id INT REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
+    document_type VARCHAR(50) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_base64 TEXT,
+    uploaded_by INT REFERENCES users(user_id),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    remarks TEXT
+);
