@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Box,
     Paper,
@@ -13,29 +14,133 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    Button as MUIButton,
+    Button,
     Alert,
+    ThemeProvider,
+    createTheme,
+    Container,
+    Grid,
+    Chip,
+    Divider,
+    GlobalStyles,
+    CircularProgress
 } from "@mui/material";
+
+// Icons
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
+import FactoryIcon from '@mui/icons-material/Factory';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import PrintIcon from '@mui/icons-material/Print';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ScienceIcon from '@mui/icons-material/Science';
+import PersonIcon from "@mui/icons-material/Person";
+import SaclHeader from "./common/SaclHeader";
 
-/* ---------- Types ---------- */
-type Row = { id: string; label: string; values: string[] };
-type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
+
+/* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-    primary: "#2446acff",
-    accent: "#F59E0B",
-    lightBlue: "#7FB3FF",
-    lightGray: "#E5E7EB",
-    background: "#F8FAFC",
-    lightOrange: "#FEF3C7",
-    lightGreen: "#D1FAE5",
-    darkGray: "#374151",
-    white: "#ffffff",
+    primary: "#1e293b",    // Slate 800
+    secondary: "#ea580c",  // Orange 600
+    background: "#f1f5f9", // Light Slate Background
+    surface: "#ffffff",
+    border: "#e2e8f0",     // Slate 200
+    textPrimary: "#0f172a",
+    textSecondary: "#64748b",
+
+    // Header Colors
+    blueHeaderBg: "#eff6ff", // Light Blue
+    blueHeaderText: "#3b82f6", // Blue
+    orangeHeaderBg: "#fff7ed", // Light Orange
+    orangeHeaderText: "#c2410c", // Dark Orange
+
+    // Specific for Inspection Status
+    successBg: "#ecfdf5",
+    successText: "#059669",
 };
+
+const theme = createTheme({
+    breakpoints: {
+        values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
+    },
+    palette: {
+        primary: { main: COLORS.primary },
+        secondary: { main: COLORS.secondary },
+        background: { default: COLORS.background, paper: COLORS.surface },
+        text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
+    },
+    typography: {
+        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+        h6: { fontWeight: 700, color: COLORS.primary },
+        subtitle1: { fontWeight: 600, color: COLORS.primary },
+        subtitle2: { fontWeight: 600, fontSize: "0.75rem", letterSpacing: 0.5, textTransform: 'uppercase' },
+        body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
+        caption: { fontWeight: 600, color: COLORS.textSecondary, textTransform: 'uppercase' }
+    },
+    components: {
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 16,
+                    boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)",
+                    border: `1px solid ${COLORS.border}`,
+                },
+            },
+        },
+        MuiTableCell: {
+            styleOverrides: {
+                root: {
+                    borderBottom: `1px solid ${COLORS.border}`,
+                    borderRight: `1px solid ${COLORS.border}`,
+                    padding: "8px 12px",
+                },
+                head: {
+                    fontWeight: 700,
+                    fontSize: "0.8rem",
+                    textAlign: "center",
+                    color: COLORS.blueHeaderText,
+                    backgroundColor: COLORS.blueHeaderBg,
+                },
+                body: {
+                    color: COLORS.textPrimary,
+                }
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    "& .MuiOutlinedInput-root": {
+                        borderRadius: 8,
+                        backgroundColor: "#fff",
+                        "& fieldset": { borderColor: "#cbd5e1" },
+                        "&:hover fieldset": { borderColor: COLORS.primary },
+                        "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
+                    },
+                },
+            },
+        },
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    padding: "8px 24px",
+                    boxShadow: "none",
+                    "&:hover": { boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }
+                },
+            },
+        },
+    },
+});
+
+/* ---------- Types & Helpers ---------- */
+type Row = { id: string; label: string; values: string[] };
+type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
 
 const fileToMeta = (f: File | null) => {
     if (!f) return null;
@@ -46,20 +151,21 @@ function uid(prefix = "") {
     return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
 }
 
-/* ---------- Component ---------- */
+/* ---------- Main Component ---------- */
 export default function VisualInspection({
-    initialRows = ["Insp Qty", "Accp Qty", "Rej Qty", "Reason for rejection: cavity wise"],
-    initialCols = ["Cavity 1"],
+    initialRows = ["Cavity number", "Inspected Quantity", "Accpted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
+    initialCols = ["Value 1"],
     onSave = async (payload: any) => {
-        // default no-op; you should pass your save handler that posts to backend
-        console.log("VisualInspection default onSave", payload);
-        return { ok: true };
+        // Mock save
+        return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
     },
 }: {
     initialRows?: string[];
     initialCols?: string[];
     onSave?: (payload: any) => Promise<any> | any;
 }) {
+    const navigate = useNavigate();
+
     const makeRows = (labels: string[]): Row[] =>
         labels.map((lab, i) => ({
             id: `${lab}-${i}-${uid()}`,
@@ -69,61 +175,84 @@ export default function VisualInspection({
 
     const [cols, setCols] = useState<string[]>([...initialCols]);
     const [rows, setRows] = useState<Row[]>(() => makeRows(initialRows));
+
+    // Calculate rejection percentage for a specific column
+    const calculateRejectionPercentage = (colIndex: number): string => {
+        const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
+        const rejectedRow = rows.find(r => r.label === "Rejected Quantity");
+
+        if (!inspectedRow || !rejectedRow) return "";
+
+        const inspected = parseFloat(inspectedRow.values[colIndex] || "0");
+        const rejected = parseFloat(rejectedRow.values[colIndex] || "0");
+
+        if (isNaN(inspected) || isNaN(rejected) || inspected === 0) {
+            return "";
+        }
+
+        const percentage = (rejected / inspected) * 100;
+        return percentage.toFixed(2);
+    };
+
     const [groupMeta, setGroupMeta] = useState<GroupMeta>({
         ok: null,
         remarks: "",
         attachment: null,
     });
+
+    // Status states
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
+    const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
 
-    // preview state
+    // Additional PDF files and remarks (new)
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
+
+    // Preview state
     const [previewMode, setPreviewMode] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
     // IP state
-    const [userIP, setUserIP] = useState<string>("");
-    const [shouldRedirect, setShouldRedirect] = useState<boolean>(true);
+    const [userIP, setUserIP] = useState<string>("Loading...");
 
-    // auto-hide messages
+    // Auto-hide messages
     useEffect(() => {
-        if (message) {
-            const t = setTimeout(() => setMessage(null), 4000);
+        if (alert) {
+            const t = setTimeout(() => setAlert(null), 4000);
             return () => clearTimeout(t);
         }
-    }, [message]);
+    }, [alert]);
 
-    // fetch IP once on mount
+    // Fetch IP
     useEffect(() => {
         const fetchUserIP = async () => {
             try {
                 const res = await fetch("https://api.ipify.org?format=json");
-                if (!res.ok) throw new Error("Failed to fetch IP");
+                if (!res.ok) throw new Error("Failed");
                 const data = await res.json();
                 setUserIP(data.ip ?? "Unavailable");
             } catch (err) {
-                console.error("IP fetch error:", err);
                 setUserIP("Unavailable");
             }
         };
         fetchUserIP();
     }, []);
 
-    // auto redirect effect: only if submitted AND shouldRedirect is true
-    useEffect(() => {
-        if (submitted && shouldRedirect) {
-            const t = setTimeout(() => {
-                window.location.href = "/dashboard"; // adjust dashboard route if needed
-            }, 2000);
-            return () => clearTimeout(t);
-        }
-    }, [submitted, shouldRedirect]);
-
     const addColumn = () => {
-        const next = `Cavity ${cols.length + 1}`;
+        const next = `Value ${cols.length + 1}`;
         setCols((c) => [...c, next]);
         setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
+    };
+
+    const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []) as File[];
+        setAttachedFiles(prev => [...prev, ...files]);
+    };
+
+    const removeAttachedFile = (index: number) => {
+        setAttachedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const removeColumn = (index: number) => {
@@ -155,16 +284,18 @@ export default function VisualInspection({
         setCols([...initialCols]);
         setRows(makeRows(initialRows));
         setGroupMeta({ ok: null, remarks: "", attachment: null });
+        setAttachedFiles([]);
+        setAdditionalRemarks("");
         setMessage(null);
+        setAlert(null);
         setPreviewMode(false);
         setPreviewPayload(null);
         setSubmitted(false);
-        setShouldRedirect(true);
     };
 
     const buildPayload = () => {
         return {
-            created_at: new Date().toISOString(),
+            created_at: new Date().toLocaleString(),
             cols: cols.slice(),
             rows: rows.map((r) => ({
                 label: r.label,
@@ -175,10 +306,12 @@ export default function VisualInspection({
                 remarks: groupMeta.remarks || null,
                 attachment: fileToMeta(groupMeta.attachment),
             },
+            attachedFiles: attachedFiles.map(f => f.name),
+            additionalRemarks: additionalRemarks,
         };
     };
 
-    // Save & Continue -> show floating preview (no final save yet)
+    // Save & Continue -> Open Preview
     const handleSaveAndContinue = () => {
         setSaving(true);
         setMessage(null);
@@ -187,10 +320,8 @@ export default function VisualInspection({
             setPreviewPayload(payload);
             setPreviewMode(true);
             setSubmitted(false);
-            setShouldRedirect(true);
         } catch (err: any) {
-            console.error("VisualInspection prepare preview error", err);
-            setMessage(err?.message || "Failed to prepare preview");
+            setAlert({ severity: "error", message: "Failed to prepare preview" });
         } finally {
             setSaving(false);
         }
@@ -204,526 +335,467 @@ export default function VisualInspection({
         try {
             await onSave(previewPayload);
             setSubmitted(true);
-            setMessage("Successfully submitted");
-            // redirect handled by useEffect (and can be disabled if user prints)
+            setAlert({ severity: "success", message: "Inspection data submitted successfully" });
         } catch (err: any) {
-            console.error("VisualInspection final save error", err);
-            setMessage(err?.message || "Save failed");
+            setAlert({ severity: "error", message: "Submission failed" });
         } finally {
             setSaving(false);
         }
     };
 
-    // Export preview as PDF via browser print
     const handleExportPdf = () => {
-        if (!previewPayload) return;
-
-        // user wants to print -> don't auto redirect anymore
-        setShouldRedirect(false);
-
-        const popup = window.open("", "_blank", "width=1000,height=800");
-        if (!popup) {
-            alert("Unable to open print window. Please check popup blocker.");
-            return;
-        }
-        const html = `
-      <html>
-        <head>
-          <title>Visual Inspection Preview</title>
-          <style>
-            body { font-family: Inter, Roboto, Arial, sans-serif; margin: 20px; color: ${COLORS.darkGray}; }
-            .glass { background: rgba(255,255,255,0.9); border-radius: 16px; padding: 24px; box-shadow: 0 18px 45px rgba(15,23,42,0.18); }
-            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-            th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-            th { background: ${COLORS.lightBlue}; color: white; font-weight: 700; text-align:center; }
-            h2 { margin: 0 0 8px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="glass">
-            ${renderPreviewHtml(previewPayload)}
-          </div>
-        </body>
-      </html>
-    `;
-        popup.document.write(html);
-        popup.document.close();
-        popup.focus();
-        popup.print();
+        window.print();
     };
-
-    const renderPreviewHtml = (payload: any) => {
-        if (!payload) return "<div>No preview data</div>";
-        const colsHtml = (payload.cols || [])
-            .map((c: string) => `<th>${escapeHtml(c)}</th>`)
-            .join("");
-        const rowsHtml = (payload.rows || [])
-            .map((r: any) => {
-                const vals = (r.values || [])
-                    .map((v: any) => `<td>${v === null ? "" : escapeHtml(String(v))}</td>`)
-                    .join("");
-                return `<tr><td style="font-weight:700;">${escapeHtml(r.label)}</td>${vals}</tr>`;
-            })
-            .join("");
-
-        return `
-      <h2>Visual Inspection</h2>
-      <div><strong>IP:</strong> ${escapeHtml(userIP || "")}</div>
-      <div><strong>Created:</strong> ${escapeHtml(
-            new Date(payload.created_at).toLocaleString()
-        )}</div>
-      <table>
-        <thead>
-          <tr><th style="min-width:180px;">Parameter</th>${colsHtml}</tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-      <div style="margin-top:16px;">
-        <strong>Group OK:</strong> ${payload.group?.ok === null ? "" : payload.group.ok ? "OK" : "NOT OK"
-            }<br/>
-        <strong>Remarks:</strong> ${escapeHtml(payload.group?.remarks ?? "")}<br/>
-        <strong>Attachment:</strong> ${payload.group?.attachment
-                ? escapeHtml(payload.group.attachment.name)
-                : "No file attached"
-            }
-      </div>
-    `;
-    };
-
-    const escapeHtml = (s: string) =>
-        s
-            ?.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;") ?? s;
-
-    /* ---------- Render ---------- */
 
     return (
-        <Box mb={3} sx={{ position: "relative" }}>
-            {/* Heading row with IP on the right */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 1,
-                }}
-            >
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.darkGray }}>
-                    VISUAL INSPECTION
-                </Typography>
-                <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 700, color: "#DC2626" }} // bold red IP
-                >
-                    IP: {userIP || "Fetching..."}
-                </Typography>
-            </Box>
+        <ThemeProvider theme={theme}>
+            <GlobalStyles styles={{
+                "@media print": {
+                    "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
+                    "body *": { visibility: "hidden" },
+                    ".print-section, .print-section *": { visibility: "visible" },
+                    ".print-section": { display: "block !important", position: "absolute", left: 0, top: 0, width: "100%", color: "black", backgroundColor: "white", padding: "20px" },
+                    ".MuiModal-root": { display: "none !important" }
+                }
+            }} />
 
-            <Paper variant="outlined" sx={{ overflowX: "auto", border: `2px solid ${COLORS.lightGray}` }}>
-                <Table size="small">
-                    <TableHead>
-                        <TableRow sx={{ backgroundColor: COLORS.lightBlue }}>
-                            <TableCell sx={{ minWidth: 200, color: COLORS.white, fontWeight: 700 }}>
-                                Parameter
-                            </TableCell>
+            <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
+                <Container maxWidth="xl" disableGutters>
 
-                            {cols.map((col, ci) => (
-                                <TableCell key={ci} sx={{ minWidth: 120, color: COLORS.white, fontWeight: 700 }}>
-                                    <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                                        <TextField
-                                            variant="standard"
-                                            value={col}
-                                            onChange={(e) => updateColLabel(ci, e.target.value)}
-                                            InputProps={{ disableUnderline: true }}
-                                            size="small"
-                                            sx={{
-                                                "& .MuiInputBase-input": {
-                                                    textAlign: "center",
-                                                    color: COLORS.white,
-                                                    fontWeight: 700,
-                                                },
-                                            }}
-                                        />
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => removeColumn(ci)}
-                                            title="Remove column"
-                                            sx={{ color: COLORS.white, "&:hover": { backgroundColor: "rgba(255,255,255,0.12)" } }}
-                                            aria-label={`remove-column-${ci}`}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                </TableCell>
-                            ))}
+                    {/* SACL HEADER */}
+                    <SaclHeader />
 
-                            <TableCell sx={{ width: 140, color: COLORS.white, fontWeight: 700 }}>OK</TableCell>
-                            <TableCell sx={{ width: 320, color: COLORS.white, fontWeight: 700 }}>Remarks</TableCell>
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                        {rows.map((r, ri) => (
-                            <TableRow
-                                key={r.id}
-                                sx={{
-                                    backgroundColor: ri % 2 === 0 ? COLORS.white : COLORS.background,
-                                    "&:hover": { backgroundColor: COLORS.lightGreen, transition: "all .15s ease-in-out" },
-                                }}
-                            >
-                                <TableCell
-                                    sx={{
-                                        fontWeight: 600,
-                                        backgroundColor: ri % 2 === 0 ? "#F8FBFF" : "#F7FFF6",
-                                    }}
-                                >
-                                    {r.label}
-                                </TableCell>
-
-                                {cols.map((_, ci) => (
-                                    <TableCell key={ci}>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            value={r.values[ci] ?? ""}
-                                            onChange={(e) => updateCell(r.id, ci, e.target.value)}
-                                            variant="outlined"
-                                            sx={{
-                                                "& .MuiOutlinedInput-root": {
-                                                    borderRadius: 6,
-                                                    backgroundColor: COLORS.white,
-                                                },
-                                            }}
-                                        />
-                                    </TableCell>
-                                ))}
-
-                                {ri === 0 ? (
-                                    <>
-                                        <TableCell
-                                            rowSpan={rows.length}
-                                            sx={{
-                                                backgroundColor: COLORS.lightGreen,
-                                                verticalAlign: "middle",
-                                                padding: "12px 8px",
-                                            }}
-                                        >
-                                            <RadioGroup
-                                                row
-                                                value={groupMeta.ok === null ? "" : String(groupMeta.ok)}
-                                                onChange={(e) =>
-                                                    setGroupMeta((g) => ({ ...g, ok: e.target.value === "true" }))
-                                                }
-                                            >
-                                                <FormControlLabel value="true" control={<Radio />} label="OK" />
-                                                <FormControlLabel value="false" control={<Radio />} label="NOT OK" />
-                                            </RadioGroup>
-                                        </TableCell>
-
-                                        <TableCell
-                                            rowSpan={rows.length}
-                                            sx={{
-                                                backgroundColor: COLORS.lightOrange,
-                                                verticalAlign: "top",
-                                                padding: "12px 8px",
-                                            }}
-                                        >
-                                            <Box display="flex" flexDirection="column" height="100%">
-                                                <TextField
-                                                    size="small"
-                                                    fullWidth
-                                                    multiline
-                                                    rows={6}
-                                                    placeholder="Remarks (optional)"
-                                                    value={groupMeta.remarks}
-                                                    onChange={(e) =>
-                                                        setGroupMeta((g) => ({ ...g, remarks: e.target.value }))
-                                                    }
-                                                    variant="outlined"
-                                                    sx={{
-                                                        "& .MuiOutlinedInput-root": {
-                                                            borderRadius: 6,
-                                                            backgroundColor: COLORS.white,
-                                                        },
-                                                        mb: 2,
-                                                    }}
-                                                />
-
-                                                <Box display="flex" alignItems="center" gap={2}>
-                                                    <input
-                                                        accept="image/*,application/pdf"
-                                                        id="visual-group-file"
-                                                        style={{ display: "none" }}
-                                                        type="file"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files?.[0] ?? null;
-                                                            setGroupMeta((g) => ({ ...g, attachment: file }));
-                                                        }}
-                                                    />
-                                                    <label htmlFor="visual-group-file">
-                                                        <MUIButton
-                                                            size="small"
-                                                            variant="contained"
-                                                            component="span"
-                                                            startIcon={<UploadFileIcon />}
-                                                            sx={{ backgroundColor: COLORS.primary }}
-                                                        >
-                                                            Attach File
-                                                        </MUIButton>
-                                                    </label>
-
-                                                    {groupMeta.attachment ? (
-                                                        <Box display="flex" alignItems="center" gap={1}>
-                                                            <InsertDriveFileIcon />
-                                                            <Typography noWrap sx={{ maxWidth: 180 }}>
-                                                                {groupMeta.attachment.name}
-                                                            </Typography>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() =>
-                                                                    setGroupMeta((g) => ({ ...g, attachment: null }))
-                                                                }
-                                                            >
-                                                                <DeleteIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    ) : (
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            No file attached
-                                                        </Typography>
-                                                    )}
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
-                                    </>
-                                ) : null}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-
-                <Box
-                    p={1}
-                    sx={{
-                        borderTop: `1px solid ${COLORS.lightGray}`,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                    }}
-                >
-                    <MUIButton
-                        size="small"
-                        variant="contained"
-                        onClick={addColumn}
-                        sx={{ backgroundColor: COLORS.accent }}
-                    >
-                        + Add Column
-                    </MUIButton>
-                    <Typography variant="caption" color="text.secondary">
-                        Add more cavities/columns as needed
-                    </Typography>
-
-                    <Box sx={{ flex: 1 }} />
-
-                    <MUIButton size="small" variant="outlined" onClick={reset} disabled={saving} sx={{ mr: 1 }}>
-                        Reset
-                    </MUIButton>
-
-                    <MUIButton size="small" variant="contained" onClick={handleSaveAndContinue} disabled={saving}>
-                        {saving ? "Processing..." : "Save & Continue"}
-                    </MUIButton>
-                </Box>
-            </Paper>
-
-            {message && !previewMode && (
-                <Box mt={1}>
-                    <Typography variant="body2" color="text.secondary">
-                        {message}
-                    </Typography>
-                </Box>
-            )}
-
-            {/* Floating Apple-style Liquid Glass preview overlay */}
-            {previewMode && previewPayload && (
-                <Box
-                    sx={{
-                        position: "fixed",
-                        inset: 0,
-                        zIndex: 1300,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        bgcolor: "rgba(15,23,42,0.5)",
-                        backdropFilter: "blur(6px)",
-                    }}
-                >
-                    <Box
-                        sx={{
-                            width: "90%",
-                            maxWidth: 980,
-                            maxHeight: "80vh",
-                            overflow: "auto",
-                            borderRadius: 4,
-                            p: 3,
-                            background:
-                                "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(248,250,252,0.9))",
-                            boxShadow: "0 25px 80px rgba(15,23,42,0.45)",
-                            border: "1px solid rgba(255,255,255,0.8)",
-                            position: "relative",
-                        }}
-                    >
-                        {/* Red Cross close button on top-right */}
-                        <IconButton
-                            onClick={() => {
-                                if (submitted) {
-                                    window.location.href = "/dashboard";
-                                } else {
-                                    setPreviewMode(false);
-                                    setPreviewPayload(null);
-                                }
-                            }}
-                            sx={{
-                                position: "absolute",
-                                top: 8,
-                                right: 8,
-                                color: "#DC2626",
-                                "&:hover": { backgroundColor: "rgba(220,38,38,0.08)" },
-                            }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            mb={1}
-                            pr={5}
-                        >
-                            <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                    Visual Inspection – Preview
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                    Review your data before final submission
-                                </Typography>
-                            </Box>
-
-                            {/* IP display in preview */}
-                            <Typography
-                                variant="body2"
-                                sx={{ fontWeight: 700, color: "#DC2626" }}
-                            >
-                                IP: {userIP || "Fetching..."}
-                            </Typography>
+                    {/* HEADER */}
+                    <Paper sx={{
+                        p: 1.5, mb: 3,
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        borderLeft: `6px solid ${COLORS.secondary}`
+                    }}>
+                        <Box display="flex" alignItems="center" gap={2}>
+                            <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
+                            <Typography variant="h6">VISUAL INSPECTION</Typography>
                         </Box>
+                        <Box display="flex" gap={1} alignItems="center">
+                            <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
+                            <Chip
+                                label="USER NAME"
+                                sx={{
+                                    bgcolor: COLORS.secondary,
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    fontSize: '0.75rem'
+                                }}
+                                size="small"
+                                icon={<PersonIcon style={{ color: 'white' }} />}
+                            />
+                        </Box>
+                    </Paper>
 
-                        <Box mt={2} sx={{ borderRadius: 3, overflow: "hidden" }}>
+                    {/* MAIN CONTENT */}
+                    <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
+
+                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                            <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                            <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>INSPECTION DETAILS</Typography>
+                        </Box>
+                        <Divider sx={{ mb: 2, borderColor: COLORS.border }} />
+
+                        {alert && <Alert severity={alert.severity} sx={{ mb: 2 }}>{alert.message}</Alert>}
+
+                        <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
                             <Table size="small">
                                 <TableHead>
-                                    <TableRow sx={{ backgroundColor: COLORS.lightBlue }}>
-                                        <TableCell sx={{ minWidth: 180, color: COLORS.white, fontWeight: 700 }}>
-                                            Parameter
-                                        </TableCell>
-                                        {previewPayload.cols.map((c: string, i: number) => (
-                                            <TableCell
-                                                key={i}
-                                                sx={{
-                                                    minWidth: 120,
-                                                    color: COLORS.white,
-                                                    fontWeight: 700,
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                {c}
+                                    <TableRow>
+                                        <TableCell sx={{ minWidth: 200 }}>Parameter</TableCell>
+                                        {cols.map((col, ci) => (
+                                            <TableCell key={ci} sx={{ minWidth: 140 }}>
+                                                <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                                    <TextField
+                                                        variant="standard"
+                                                        value={col}
+                                                        onChange={(e) => updateColLabel(ci, e.target.value)}
+                                                        InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                        size="small"
+                                                        sx={{ input: { textAlign: 'center' } }}
+                                                    />
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => removeColumn(ci)}
+                                                        sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}
+                                                    >
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Box>
                                             </TableCell>
                                         ))}
+                                        <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
+                                        <TableCell sx={{ width: 280, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                                     </TableRow>
                                 </TableHead>
+
                                 <TableBody>
-                                    {previewPayload.rows.map((r: any, idx: number) => (
-                                        <TableRow
-                                            key={idx}
-                                            sx={{
-                                                backgroundColor: idx % 2 === 0 ? COLORS.white : COLORS.background,
-                                            }}
-                                        >
-                                            <TableCell sx={{ fontWeight: 700 }}>{r.label}</TableCell>
-                                            {r.values.map((v: any, j: number) => (
-                                                <TableCell key={j}>{v === null ? "" : String(v)}</TableCell>
-                                            ))}
+                                    {rows.map((r, ri) => (
+                                        <TableRow key={r.id}>
+                                            <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
+                                                {r.label}
+                                            </TableCell>
+
+                                            {cols.map((_, ci) => {
+                                                const isRejectionPercentage = r.label === "Rejection Percentage (%)";
+                                                const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r.values[ci] ?? "");
+
+                                                return (
+                                                    <TableCell key={ci}>
+                                                        <TextField
+                                                            size="small"
+                                                            fullWidth
+                                                            value={displayValue}
+                                                            onChange={(e) => updateCell(r.id, ci, e.target.value)}
+                                                            variant="outlined"
+                                                            InputProps={{
+                                                                readOnly: isRejectionPercentage,
+                                                            }}
+                                                            sx={{
+                                                                "& .MuiInputBase-input": {
+                                                                    textAlign: 'center',
+                                                                    fontFamily: 'Roboto Mono',
+                                                                    fontSize: '0.85rem',
+                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' : 'transparent',
+                                                                    fontWeight: isRejectionPercentage ? 700 : 400,
+                                                                },
+                                                                "& .MuiInputBase-root": {
+                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' : 'white'
+                                                                }
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                );
+                                            })}
+
+                                            {ri === 0 ? (
+                                                <>
+                                                    <TableCell
+                                                        rowSpan={rows.length}
+                                                        sx={{
+                                                            bgcolor: COLORS.successBg,
+                                                            verticalAlign: "middle",
+                                                            textAlign: 'center'
+                                                        }}
+                                                    >
+                                                        <RadioGroup
+                                                            row
+                                                            sx={{ justifyContent: 'center' }}
+                                                            value={groupMeta.ok === null ? "" : String(groupMeta.ok)}
+                                                            onChange={(e) => setGroupMeta((g) => ({ ...g, ok: e.target.value === "true" }))}
+                                                        >
+                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} />
+                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} />
+                                                        </RadioGroup>
+                                                    </TableCell>
+
+                                                    <TableCell
+                                                        rowSpan={rows.length}
+                                                        colSpan={2} // Cover remarks space
+                                                        sx={{ bgcolor: '#fff7ed', verticalAlign: "top" }}
+                                                    >
+                                                        <Box display="flex" flexDirection="column" height="100%" gap={1}>
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                multiline
+                                                                rows={5}
+                                                                placeholder="Remarks (optional)"
+                                                                value={groupMeta.remarks}
+                                                                onChange={(e) => setGroupMeta((g) => ({ ...g, remarks: e.target.value }))}
+                                                                variant="outlined"
+                                                                sx={{ bgcolor: 'white' }}
+                                                            />
+
+                                                            <Box display="flex" alignItems="center" gap={1} mt="auto">
+                                                                <input
+                                                                    accept="image/*,application/pdf"
+                                                                    id="visual-group-file"
+                                                                    style={{ display: "none" }}
+                                                                    type="file"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0] ?? null;
+                                                                        setGroupMeta((g) => ({ ...g, attachment: file }));
+                                                                    }}
+                                                                />
+                                                                <label htmlFor="visual-group-file">
+                                                                    <Button
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        component="span"
+                                                                        startIcon={<UploadFileIcon />}
+                                                                        sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
+                                                                    >
+                                                                        Attach PDF
+                                                                    </Button>
+                                                                </label>
+
+                                                                {groupMeta.attachment ? (
+                                                                    <Chip
+                                                                        icon={<InsertDriveFileIcon />}
+                                                                        label={groupMeta.attachment.name}
+                                                                        onDelete={() => setGroupMeta((g) => ({ ...g, attachment: null }))}
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        sx={{ maxWidth: 140 }}
+                                                                    />
+                                                                ) : (
+                                                                    <Typography variant="caption" color="text.secondary">
+
+                                                                    </Typography>
+                                                                )}
+                                                            </Box>
+                                                        </Box>
+                                                    </TableCell>
+                                                </>
+                                            ) : null}
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </Box>
 
-                        <Box mt={2} display="flex" gap={3}>
-                            <Box flex={1}>
-                                <Typography sx={{ fontWeight: 700, mb: 0.5 }}>Group Result</Typography>
-                                <Typography variant="body2">
-                                    <strong>OK:</strong>{" "}
-                                    {previewPayload.group.ok === null
-                                        ? ""
-                                        : previewPayload.group.ok
-                                            ? "OK"
-                                            : "NOT OK"}
-                                </Typography>
-                                <Typography variant="body2">
-                                    <strong>Remarks:</strong> {previewPayload.group.remarks ?? ""}
-                                </Typography>
-                                <Typography variant="body2">
-                                    <strong>Attachment:</strong>{" "}
-                                    {previewPayload.group.attachment
-                                        ? previewPayload.group.attachment.name
-                                        : "No file attached"}
-                                </Typography>
-                            </Box>
-                        </Box>
+                        <Button
+                            size="small"
+                            onClick={addColumn}
+                            startIcon={<AddCircleIcon />}
+                            sx={{ mt: 1, color: COLORS.secondary }}
+                        >
+                            Add Column
+                        </Button>
 
-                        {message && (
-                            <Box mt={2}>
-                                <Alert severity={submitted ? "success" : "info"} sx={{ borderRadius: 3 }}>
-                                    {message}
-                                </Alert>
-                            </Box>
-                        )}
+                        {/* Attach PDF / Image Section */}
 
-                        <Box mt={3} display="flex" alignItems="center" gap={2}>
-                            {/* Edit button: disabled after Save */}
-                            <MUIButton
+
+                        {/* Additional Remarks Section */}
+
+
+                        {/* ACTIONS */}
+                        <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
+                            <Button
                                 variant="outlined"
-                                onClick={() => setPreviewMode(false)}
-                                disabled={saving || submitted}
+                                onClick={reset}
+                                disabled={saving}
+                                sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
                             >
-                                Edit
-                            </MUIButton>
-
-                            <MUIButton
+                                Reset Form
+                            </Button>
+                            <Button
                                 variant="contained"
-                                onClick={handleExportPdf}
-                                startIcon={<UploadFileIcon />}
-                                sx={{ backgroundColor: COLORS.primary }}
+                                onClick={handleSaveAndContinue}
+                                disabled={saving}
+                                startIcon={<SaveIcon />}
+                                sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: COLORS.orangeHeaderText } }}
                             >
-                                Export PDF
-                            </MUIButton>
-
-                            <MUIButton
-                                variant="contained"
-                                onClick={handleFinalSave}
-                                disabled={saving || submitted}
-                                sx={{ backgroundColor: COLORS.accent }}
-                            >
-                                {saving ? "Saving..." : submitted ? "Submitted" : "Save"}
-                            </MUIButton>
-
-                            <Box sx={{ flex: 1 }} />
+                                {saving ? "Processing..." : "Save and Continue"}
+                            </Button>
                         </Box>
+
+                    </Paper>
+
+                    {/* PREVIEW MODAL */}
+                    {previewMode && previewPayload && (
+                        <Box
+                            sx={{
+                                position: "fixed", inset: 0, zIndex: 1300,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                bgcolor: "rgba(15,23,42,0.85)", backdropFilter: "blur(4px)",
+                                p: 2
+                            }}
+                        >
+                            <Paper
+                                sx={{
+                                    width: "100%", maxWidth: 1000, maxHeight: "90vh", overflow: "hidden",
+                                    display: "flex", flexDirection: "column", borderRadius: 3
+                                }}
+                            >
+                                <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
+                                    <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
+                                    <IconButton size="small" onClick={() => navigate("/dimensional-inspection")} sx={{ color: '#ef4444' }}>
+                                        <CloseIcon />
+                                    </IconButton>
+                                </Box>
+
+                                <Box sx={{ p: 4, overflowY: "auto", bgcolor: COLORS.background }}>
+                                    <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                            <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Visual Inspection Report</Typography>
+                                            <Typography variant="body2" color="textSecondary">Created: {previewPayload.created_at}</Typography>
+                                        </Box>
+                                        <Divider sx={{ mb: 3 }} />
+
+                                        {/* Preview Table */}
+                                        <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                                                        {previewPayload.cols.map((c: string, i: number) => (
+                                                            <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {previewPayload.rows.map((r: any, idx: number) => (
+                                                        <TableRow key={idx}>
+                                                            <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
+                                                            {r.values.map((v: any, j: number) => (
+                                                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                                                    {v === null ? "-" : String(v)}
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </Box>
+
+                                        {/* Group Result Preview */}
+                                        <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                            <Typography variant="subtitle2" mb={1} color="textSecondary">FINAL STATUS & REMARKS</Typography>
+                                            <Grid container spacing={2}>
+                                                <Grid size={{ xs: 12, sm: 4 }}>
+                                                    <Box display="flex" alignItems="center" gap={1}>
+                                                        <Typography variant="body2">Status:</Typography>
+                                                        {previewPayload.group.ok === true ?
+                                                            <Chip label="OK" color="success" size="small" /> :
+                                                            previewPayload.group.ok === false ?
+                                                                <Chip label="NOT OK" color="error" size="small" /> :
+                                                                <Chip label="-" size="small" />
+                                                        }
+                                                    </Box>
+                                                </Grid>
+                                                <Grid size={{ xs: 12, sm: 8 }}>
+                                                    <Typography variant="body2">
+                                                        <strong>Remarks:</strong> {previewPayload.group.remarks || "No remarks"}
+                                                    </Typography>
+                                                    {previewPayload.group.attachment && (
+                                                        <Typography variant="caption" display="block" mt={0.5} color="primary">
+                                                            Attachment: {previewPayload.group.attachment.name}
+                                                        </Typography>
+                                                    )}
+                                                </Grid>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Attached PDF Files Preview */}
+                                        {previewPayload.attachedFiles && previewPayload.attachedFiles.length > 0 && (
+                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                    {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
+                                                        <Chip
+                                                            key={idx}
+                                                            icon={<InsertDriveFileIcon />}
+                                                            label={fileName}
+                                                            variant="outlined"
+                                                            sx={{ bgcolor: 'white' }}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            </Box>
+                                        )}
+
+                                        {/* Additional Remarks Preview */}
+                                        {previewPayload.additionalRemarks && (
+                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
+                                                <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {alert && (
+                                        <Alert severity={alert.severity} sx={{ mt: 2 }}>{alert.message}</Alert>
+                                    )}
+                                </Box>
+
+                                <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: 'white' }}>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => setPreviewMode(false)}
+                                        disabled={saving || submitted}
+                                        sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
+                                    >
+                                        Back to Edit
+                                    </Button>
+
+                                    {submitted ? (
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleExportPdf}
+                                            startIcon={<PrintIcon />}
+                                            sx={{ bgcolor: COLORS.primary }}
+                                        >
+                                            Download PDF
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleFinalSave}
+                                            disabled={saving}
+                                            sx={{ bgcolor: COLORS.secondary }}
+                                        >
+                                            {saving ? "Saving..." : "Confirm & Submit"}
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Paper>
+                        </Box>
+                    )}
+
+                    {/* PRINT SECTION */}
+                    <Box className="print-section" sx={{ display: 'none' }}>
+                        <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                            <Box>
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>VISUAL INSPECTION REPORT</Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'right' }}>
+                                <Typography variant="body2">IP: {userIP}</Typography>
+                                {previewPayload && <Typography variant="body2">Date: {previewPayload.created_at}</Typography>}
+                            </Box>
+                        </Box>
+
+                        {previewPayload && (
+                            <>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '12px' }}>
+                                    <thead>
+                                        <tr style={{ backgroundColor: '#f0f0f0' }}>
+                                            <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>Parameter</th>
+                                            {previewPayload.cols.map((c: string, i: number) => (
+                                                <th key={i} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>{c}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {previewPayload.rows.map((r: any, idx: number) => (
+                                            <tr key={idx}>
+                                                <td style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{r.label}</td>
+                                                {r.values.map((v: any, j: number) => (
+                                                    <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
+                                                        {v === null ? "" : String(v)}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                <div style={{ marginTop: '20px', padding: '10px', border: '1px solid black' }}>
+                                    <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Final Result</div>
+                                    <div>Status: {previewPayload.group.ok === true ? 'OK' : previewPayload.group.ok === false ? 'NOT OK' : '-'}</div>
+                                    <div>Remarks: {previewPayload.group.remarks || '-'}</div>
+                                </div>
+                            </>
+                        )}
                     </Box>
-                </Box>
-            )}
-        </Box>
+
+                </Container>
+            </Box>
+        </ThemeProvider>
     );
 }

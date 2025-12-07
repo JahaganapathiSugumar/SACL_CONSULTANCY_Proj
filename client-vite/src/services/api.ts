@@ -35,7 +35,7 @@ class ApiService {
                 const retryConfig = {
                   ...config,
                   headers: {
-                    ...(config.headers as Record<string,string>),
+                    ...(config.headers as Record<string, string>),
                     Authorization: `Bearer ${refreshData.token}`
                   }
                 };
@@ -69,10 +69,8 @@ class ApiService {
   }
 
   async login(username: string, password: string, role?: string, department_id?: string): Promise<AuthResponse> {
-    const body: any = { username, password, role: role || 'User' };
-    if (department_id) {
-      body.department_id = parseInt(department_id);
-    }
+    // Only send username and password - backend will determine role and department
+    const body = { username, password };
     return this.request('/login', {
       method: 'POST',
       body: JSON.stringify(body),

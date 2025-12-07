@@ -33,10 +33,10 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
 export default router;
 
 // CREATE TABLE metallurgical_inspection (
-//     id SERIAL PRIMARY KEY,
-//     trial_id TEXT REFERENCES trial_cards(trial_id) NOT NULL,
+//     inspection_id SERIAL PRIMARY KEY,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
 //     user_name TEXT,
-//     dates DATE,
+//     date DATE,
 //     micro_examination JSON[],
 //     remarks TEXT
 // );

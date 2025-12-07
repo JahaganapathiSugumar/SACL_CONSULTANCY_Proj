@@ -30,8 +30,8 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
 }));
 
 // CREATE TABLE sand_properties (
-//     id SERIAL PRIMARY KEY,
-//     trial_id TEXT REFERENCES trial_cards(trial_id) NOT NULL,
+//     prop_id SERIAL PRIMARY KEY,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
 //     date DATE,
 //     t_clay NUMERIC(6,3),
 //     a_clay NUMERIC(6,3),
@@ -42,5 +42,5 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
 //     moi NUMERIC(6,3),
 //     compactability NUMERIC(6,3),
 //     permeability NUMERIC(6,3),
-//     other_remarks TEXT
+//     remarks TEXT
 // );

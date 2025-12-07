@@ -1,1187 +1,576 @@
-// src/components/moulding.tsx
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
   Typography,
+  TextField,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
   Chip,
-  TextField,
+  ThemeProvider,
+  createTheme,
   Button,
-  Alert,
-  CircularProgress,
+  Grid,
+  Container,
   IconButton,
+  useMediaQuery,
+  GlobalStyles,
+  Divider
 } from "@mui/material";
 
+// Icons
+import FactoryIcon from '@mui/icons-material/Factory';
+import PrintIcon from '@mui/icons-material/Print';
+import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from "@mui/icons-material/Close";
-import { useNavigate } from "react-router-dom";
+import ScienceIcon from '@mui/icons-material/Science'; // Kept as generic icon or swap to Engineering
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SaveIcon from '@mui/icons-material/Save';
+import PersonIcon from "@mui/icons-material/Person";
+import SaclHeader from "./common/SaclHeader";
+/* ---------------- 1. Theme Configuration ---------------- */
 
-import axios from "axios";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+const COLORS = {
+  primary: "#1e293b",    // Slate 800
+  secondary: "#ea580c",  // Orange 600 (Buttons)
+  background: "#f1f5f9", // Light Slate Background
+  surface: "#ffffff",
+  border: "#e2e8f0",     // Slate 200
+  textPrimary: "#0f172a",
+  textSecondary: "#64748b",
 
-// Import the inspection component so we can render it in-place after submit
-import MetallurgicalInspection from "./MetallurgicalInspection";
-
-// Colors
-const SAKTHI_COLORS = {
-  primary: "#2950bbff",
-  secondary: "#DC2626",
-  accent: "#F59E0B",
-  background: "#F8FAFC",
-  lightBlue: "#3B82F6",
-  darkGray: "#374151",
-  lightGray: "#E5E7EB",
-  white: "#FFFFFF",
-  success: "#10B981",
+  // Header Colors (Material Correction Style)
+  blueHeaderBg: "#eff6ff", // Light Blue
+  blueHeaderText: "#3b82f6", // Blue
+  orangeHeaderBg: "#fff7ed", // Light Orange
+  orangeHeaderText: "#c2410c", // Dark Orange
 };
 
-/* -------------------------
- Types
-------------------------- */
-export interface MouldingData {
-  mouldThickness: string;
-  compressability: string;
-  squeezePressure: string;
-  mouldHardness: string;
-  userName: string;
-  otherRemarks: string;
-  type: string;
-}
+const theme = createTheme({
+  breakpoints: {
+    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
+  },
+  palette: {
+    primary: { main: COLORS.primary },
+    secondary: { main: COLORS.secondary },
+    background: { default: COLORS.background, paper: COLORS.surface },
+    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h6: { fontWeight: 700, color: COLORS.primary },
+    subtitle1: { fontWeight: 600 },
+    subtitle2: { fontWeight: 600, fontSize: "0.75rem", letterSpacing: 0.5, textTransform: 'uppercase' },
+    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
+    caption: { fontWeight: 600, color: COLORS.textSecondary, textTransform: 'uppercase' }
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)",
+          border: `1px solid ${COLORS.border}`,
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: `1px solid ${COLORS.border}`,
+          borderRight: `1px solid ${COLORS.border}`,
+          padding: "12px 8px",
+        },
+        head: {
+          fontWeight: 700,
+          fontSize: "0.8rem",
+          textAlign: "center",
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 8,
+            backgroundColor: "#fff",
+            "& fieldset": { borderColor: "#cbd5e1" },
+            "&:hover fieldset": { borderColor: COLORS.primary },
+            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 600,
+          textTransform: "none",
+          padding: "10px 24px",
+          boxShadow: "none",
+          "&:hover": { boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }
+        },
+      },
+    },
+  },
+});
 
-interface SubmittedData {
-  selectedPart: any | null;
-  selectedPattern: any | null;
-  machine: string;
-  reason: string;
-  trialNo: string;
-  samplingDate: string;
-  mouldCount: string;
-  sampleTraceability: string;
-}
+/* ---------------- UI Sub-components ---------------- */
 
-interface MouldingTableProps {
-  submittedData?: SubmittedData;
-  onSave?: (data: MouldingData) => void;
-  onComplete?: () => void;
-  readOnly?: boolean;
-}
+const SpecInput = ({ inputStyle, ...props }: any) => (
+  <TextField
+    {...props}
+    variant="outlined"
+    size="small"
+    fullWidth
+    inputProps={{
+      ...props.inputProps,
+      style: { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.9rem', ...inputStyle }
+    }}
+    sx={{
+      "& .MuiOutlinedInput-root": { backgroundColor: props.readOnly ? "#f8fafc" : "#fff" },
+      ...props.sx
+    }}
+  />
+);
 
-interface MouldingPreviewPayload {
-  moulding: MouldingData;
-  submittedData?: SubmittedData;
-}
+/* ---------------- Main Component ---------------- */
 
-/* -------------------------
- Simple parsers (kept concise)
- ------------------------- */
-const parseTensileData = (tensile: string) => {
-  const lines = tensile ? tensile.split("\n") : [];
-  let tensileStrength = "";
-  let yieldStrength = "";
-  let elongation = "";
-  lines.forEach((line) => {
-    const cleanLine = line.trim();
-    if (
-      !tensileStrength &&
-      (cleanLine.match(/\d+\s*(MPa|N\/mm²|Mpa|Kgf\/mm²)/) ||
-        cleanLine.includes("Tensile Strength"))
-    ) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) tensileStrength = m[1];
-    }
-    if (!yieldStrength && cleanLine.includes("Yield")) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) yieldStrength = m[1];
-    }
-    if (!elongation && (cleanLine.includes("Elongation") || cleanLine.includes("%"))) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) elongation = m[1];
-    }
-  });
-  return { tensileStrength, yieldStrength, elongation, impactCold: "", impactRoom: "" };
-};
-
-const parseMicrostructureData = (microstructure: string) => {
-  const lines = microstructure ? microstructure.split("\n") : [];
-  let nodularity = "";
-  let pearlite = "";
-  let carbide = "";
-  lines.forEach((line) => {
-    const cleanLine = line.toLowerCase();
-    if (!nodularity && cleanLine.includes("nodularity")) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) nodularity = m[1];
-    }
-    if (!pearlite && cleanLine.includes("pearlite")) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) pearlite = m[1];
-    }
-    if (!carbide && (cleanLine.includes("carbide") || cleanLine.includes("cementite"))) {
-      const m = cleanLine.match(/(\d+)/);
-      if (m) carbide = m[1];
-    }
-  });
-  return { nodularity: nodularity || "--", pearlite: pearlite || "--", carbide: carbide || "--" };
-};
-
-const parseHardnessData = (hardness: string) => {
-  const lines = hardness ? hardness.split("\n") : [];
-  let surface = "";
-  let core = "";
-  lines.forEach((line) => {
-    const cleanLine = line.toLowerCase();
-    if (cleanLine.includes("surface") && !surface) {
-      const m = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (m) surface = m[1];
-    } else if (cleanLine.includes("core") && !core) {
-      const m = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (m) core = m[1];
-    } else if (!surface) {
-      const m = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (m) surface = m[1];
-    }
-  });
-  return { surface: surface || "--", core: core || "--" };
-};
-
-/* -------------------------
- SubmittedSampleCard (read-only view) with Apple glass effect
- ------------------------- */
-const SubmittedSampleCard: React.FC<{ submittedData: SubmittedData }> = ({ submittedData }) => {
-  const chemicalData = submittedData?.selectedPart
-    ? submittedData.selectedPart.chemical_composition || {
-        c: "",
-        si: "",
-        mn: "",
-        p: "",
-        s: "",
-        mg: "",
-        cr: "",
-        cu: "",
-      }
-    : { c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" };
-
-  const tensileData = submittedData?.selectedPart
-    ? parseTensileData(submittedData.selectedPart.tensile || "")
-    : { tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" };
-
-  const microData = submittedData?.selectedPart
-    ? parseMicrostructureData(submittedData.selectedPart.micro_structure || "")
-    : { nodularity: "", pearlite: "", carbide: "" };
-
-  const hardnessData = submittedData?.selectedPart
-    ? parseHardnessData(submittedData.selectedPart.hardness || "")
-    : { surface: "", core: "" };
-
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        overflow: "hidden",
-        mb: 3,
-        borderRadius: 4,
-        border: "1px solid rgba(255,255,255,0.45)",
-        background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(148,163,184,0.18))",
-        backdropFilter: "blur(24px)",
-        boxShadow: "0 24px 80px rgba(15,23,42,0.65)",
-      }}
-    >
-      <Box
-        sx={{
-          p: 3,
-          borderBottom: "1px solid rgba(148,163,184,0.55)",
-          background: "linear-gradient(135deg, rgba(15,23,42,0.75), rgba(30,64,175,0.90))",
-          color: SAKTHI_COLORS.white,
-        }}
-      >
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
-            gap: 3,
-          }}
-        >
-          <Box>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}>
-              Pattern Code
-            </Typography>
-            <TextField
-              fullWidth
-              value={submittedData?.selectedPattern?.pattern_code || ""}
-              size="small"
-              InputProps={{
-                readOnly: true,
-                sx: {
-                  bgcolor: "rgba(248,250,252,0.98)",
-                  borderRadius: 2,
-                  color: SAKTHI_COLORS.darkGray,
-                  fontWeight: 600,
-                },
-              }}
-            />
-          </Box>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}>
-              Part Name
-            </Typography>
-            <TextField
-              fullWidth
-              value={submittedData?.selectedPart?.part_name || ""}
-              size="small"
-              InputProps={{
-                readOnly: true,
-                sx: {
-                  bgcolor: "rgba(248,250,252,0.98)",
-                  borderRadius: 2,
-                  color: SAKTHI_COLORS.darkGray,
-                  fontWeight: 600,
-                },
-              }}
-            />
-          </Box>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}>
-              TRIAL No
-            </Typography>
-            <TextField
-              fullWidth
-              value={submittedData?.trialNo || ""}
-              size="small"
-              InputProps={{
-                readOnly: true,
-                sx: {
-                  bgcolor: "rgba(248,250,252,0.98)",
-                  borderRadius: 2,
-                  color: SAKTHI_COLORS.darkGray,
-                  fontWeight: 600,
-                },
-              }}
-            />
-          </Box>
-        </Box>
-      </Box>
-
-      <Box sx={{ px: 3, pt: 3, pb: 2 }}>
-        <Chip
-          label="Submitted Sample Card Data (Read Only)"
-          sx={{
-            bgcolor: "rgba(22,163,74,0.12)",
-            color: SAKTHI_COLORS.darkGray,
-            border: "1px dashed rgba(16,185,129,0.7)",
-            fontWeight: 600,
-            py: 2,
-          }}
-        />
-      </Box>
-
-      <Box sx={{ p: 3 }}>
-        {/* METALLURGICAL SPECIFICATION */}
-        <Paper
-          variant="outlined"
-          sx={{
-            border: `1px solid rgba(30,64,175,0.4)`,
-            mb: 3,
-            background: "rgba(248,250,252,0.9)",
-          }}
-        >
-          <Box sx={{ bgcolor: SAKTHI_COLORS.accent, p: 1.5, textAlign: "center" }}>
-            <Typography sx={{ fontWeight: 800, color: SAKTHI_COLORS.white }}>
-              METALLURGICAL SPECIFICATION
-            </Typography>
-          </Box>
-
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  align="center"
-                  sx={{ bgcolor: "#7f1d1d", fontWeight: 700, color: "#F9FAFB" }}
-                >
-                  Chemical Composition
-                </TableCell>
-                <TableCell
-                  colSpan={3}
-                  align="center"
-                  sx={{ bgcolor: "#7f1d1d", fontWeight: 700, color: "#F9FAFB" }}
-                >
-                  Microstructure
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>C%</TableCell>
-                <TableCell>Si%</TableCell>
-                <TableCell>Mn%</TableCell>
-                <TableCell>P%</TableCell>
-                <TableCell>S%</TableCell>
-                <TableCell>Mg%</TableCell>
-                <TableCell>Cr%</TableCell>
-                <TableCell>Cu%</TableCell>
-                <TableCell>Nodularity%</TableCell>
-                <TableCell>Pearlite%</TableCell>
-                <TableCell>Carbide%</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.c || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.si || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.mn || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.p || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.s || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.mg || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.cr || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={chemicalData.cu || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={microData.nodularity}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={microData.pearlite}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={microData.carbide}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-
-          {/* Mechanical summary */}
-          <Table size="small" sx={{ mt: 2 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  align="center"
-                  sx={{ bgcolor: "#7f1d1d", fontWeight: 700, color: "#F9FAFB" }}
-                >
-                  Mechanical Properties
-                </TableCell>
-                <TableCell
-                  colSpan={4}
-                  align="center"
-                  sx={{ bgcolor: "#7f1d1d", fontWeight: 700, color: "#F9FAFB" }}
-                >
-                  NDT Inspection
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Tensile (Min)</TableCell>
-                <TableCell>Yield (Min)</TableCell>
-                <TableCell>Elongation%</TableCell>
-                <TableCell>Impact Cold</TableCell>
-                <TableCell>Impact Room</TableCell>
-                <TableCell colSpan={2}>Hardness: Surface / Core</TableCell>
-                <TableCell>X-Ray</TableCell>
-                <TableCell>MPI</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={tensileData.tensileStrength}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={tensileData.yieldStrength}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={tensileData.elongation}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={hardnessData.surface}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={hardnessData.core}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.selectedPart?.xray || ""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={""}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Paper>
-
-        {/* Date/moulds/machine table */}
-        <Paper
-          variant="outlined"
-          sx={{
-            border: `1px solid rgba(30,64,175,0.4)`,
-            overflow: "auto",
-            mb: 3,
-            background: "rgba(248,250,252,0.9)",
-          }}
-        >
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Date of Sampling</TableCell>
-                <TableCell>No. of Moulds</TableCell>
-                <TableCell>DISA / FOUNDRY-A</TableCell>
-                <TableCell>Reason For Sampling</TableCell>
-                <TableCell>Sample Traceability</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.samplingDate}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.mouldCount}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.machine}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.reason}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    value={submittedData?.sampleTraceability}
-                    size="small"
-                    InputProps={{ readOnly: true, sx: { bgcolor: SAKTHI_COLORS.background } }}
-                  />
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Paper>
-      </Box>
-    </Paper>
-  );
-};
-
-/* -------------------------
- Main Moulding Table Component
- ------------------------- */
-const MouldingTable: React.FC<MouldingTableProps> = ({
-  submittedData,
-  onSave,
-  onComplete,
-}) => {
+function FoundrySampleCard() {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // ref points to the entire content we want to export (sample card + moulding)
-  const printRef = useRef<HTMLDivElement | null>(null);
-
-  const [data, setData] = useState<MouldingData>({
-    mouldThickness: "",
+  // State - Swapped to Moulding Fields
+  const [mouldState, setMouldState] = useState({
+    thickness: "",
     compressability: "",
-    squeezePressure: "",
-    mouldHardness: "",
-    userName: "",
-    otherRemarks: "",
-    type: "",
+    pressure: "",
+    hardness: "",
+    remarks: ""
   });
+  // Attach PDF / Images
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-  const [exporting, setExporting] = useState(false);
-  const [sending, setSending] = useState(false); // network sending state
 
-  // When true we display MetallurgicalInspection in the same route
-  const [showInspection, setShowInspection] = useState(false);
 
-  // Preview overlay state (Apple glass, like VisualInspection)
   const [previewMode, setPreviewMode] = useState(false);
-  const [previewPayload, setPreviewPayload] = useState<MouldingPreviewPayload | null>(null);
-  const [previewSubmitted, setPreviewSubmitted] = useState(false); // final save done
-  const [message, setMessage] = useState<string | null>(null);
-
-  const setField = useCallback((key: keyof MouldingData, value: string) => {
-    setData((prev) => ({ ...prev, [key]: value }));
+  const [submitted, setSubmitted] = useState(false);
+  const [userIP, setUserIP] = useState<string>("");
+  useEffect(() => {
+    const fetchIP = async () => { try { const r = await fetch("https://api.ipify.org?format=json"); const d = await r.json(); setUserIP(d.ip); } catch { setUserIP("Offline"); } };
+    fetchIP();
   }, []);
 
-  const allFilled = Object.values(data).every((v) => v.toString().trim() !== "");
-
-  const handleCloseToDashboard = () => {
-    navigate("/dashboard");
+  const handleChange = (field: string, value: string) => {
+    setMouldState(prev => ({ ...prev, [field]: value }));
   };
 
-  const TopRightClose: React.FC = () => (
-    <IconButton
-      aria-label="Close"
-      onClick={handleCloseToDashboard}
-      sx={{
-        position: "absolute",
-        top: 16,
-        right: 16,
-        bgcolor: "rgba(15,23,42,0.85)",
-        color: "#fff",
-        "&:hover": { bgcolor: "rgba(15,23,42,1)" },
-        zIndex: 10,
-      }}
-      size="small"
-    >
-      <CloseIcon fontSize="small" />
-    </IconButton>
-  );
+  const handleReset = () => {
+    setMouldState({
+      thickness: "", compressability: "", pressure: "", hardness: "",
+      remarks: ""
+    });
+    setSubmitted(false);
+  };
+  // Handle file uploads
+  const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList) return;
+    const files = Array.from(fileList) as File[];
+    setAttachedFiles(prev => [...prev, ...files]);
+  };
 
-  // auto-hide messages
-  useEffect(() => {
-    if (message) {
-      const t = setTimeout(() => setMessage(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [message]);
+  // Remove uploaded file chip
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
-  // POST to backend (http://localhost:3000/api/moulding)
-  const sendToServer = useCallback(
-    async (payload: { moulding: MouldingData; submittedData?: SubmittedData }) => {
-      const BACKEND = "http://localhost:3000";
-      const url = `${BACKEND}/api/moulding`;
 
-      try {
-        setSending(true);
-        console.log("Sending moulding payload to:", url, payload);
-        const token = localStorage.getItem("token");
-        const headers: any = { "Content-Type": "application/json" };
-        if (token) headers.Authorization = `Bearer ${token}`;
-
-        const res = await axios.post(url, payload, {
-          headers,
-          timeout: 10000,
-        });
-
-        console.log("Moulding save response:", res?.status, res?.data);
-        if (!res || res.status < 200 || res.status >= 300) {
-          throw new Error(res?.data?.message || `Server responded with ${res?.status}`);
-        }
-        return res.data;
-      } catch (err: any) {
-        console.error("Moulding submit failed:", err?.response?.data || err.message || err);
-        throw err;
-      } finally {
-        setSending(false);
-      }
-    },
-    []
-  );
-
-  // ---------- Save & Continue -> open Apple glass preview ----------
-  const handleSaveAndContinue = useCallback(() => {
-    if (!allFilled) {
-      alert("Please fill all moulding fields before submitting.");
-      return;
-    }
-
-    onSave && onSave(data);
-
-    const payload: MouldingPreviewPayload = {
-      moulding: { ...data },
-      submittedData: submittedData ?? undefined,
-    };
-
-    setPreviewPayload(payload);
+  const handleSaveAndContinue = () => {
     setPreviewMode(true);
-    setPreviewSubmitted(false);
-    setMessage(null);
-  }, [allFilled, data, onSave, submittedData]);
-
-  // ---------- Final Save from preview ----------
-  const handleFinalSave = useCallback(async () => {
-    if (!previewPayload) return;
-
-    try {
-      setMessage(null);
-      const result = await sendToServer(previewPayload);
-
-      if (result?.insertedRow) {
-        console.log("Inserted row from server:", result.insertedRow);
-      }
-
-      setPreviewSubmitted(true);
-      setMessage("Moulding data submitted successfully.");
-    } catch (err: any) {
-      console.error("Moulding preview final save error", err);
-      setMessage(err?.message || "Failed to submit moulding data");
-    }
-  }, [previewPayload, sendToServer]);
-
-  const handleCompleteProcess = useCallback(() => {
-    onComplete && onComplete();
-  }, [onComplete]);
-
-  // ---------- PDF Export (black & white, preview in new tab) ----------
-  const handleExportPDF = async () => {
-    const el = printRef.current;
-    if (!el) {
-      alert("Nothing to export");
-      return;
-    }
-
-    try {
-      setExporting(true);
-
-      const originalScrollY = window.scrollY;
-      el.scrollIntoView({ behavior: "auto", block: "center" });
-
-      const sourceCanvas = await html2canvas(el, { scale: 2, useCORS: true, logging: false });
-
-      window.scrollTo(0, originalScrollY);
-
-      // Convert to black & white (grayscale)
-      const bwCanvas = document.createElement("canvas");
-      bwCanvas.width = sourceCanvas.width;
-      bwCanvas.height = sourceCanvas.height;
-      const bwCtx = bwCanvas.getContext("2d");
-      if (!bwCtx) throw new Error("Could not get BW canvas context");
-
-      bwCtx.drawImage(sourceCanvas, 0, 0);
-      const imgDataObj = bwCtx.getImageData(0, 0, bwCanvas.width, bwCanvas.height);
-      const dataArr = imgDataObj.data;
-      for (let i = 0; i < dataArr.length; i += 4) {
-        const r = dataArr[i];
-        const g = dataArr[i + 1];
-        const b = dataArr[i + 2];
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        dataArr[i] = gray;
-        dataArr[i + 1] = gray;
-        dataArr[i + 2] = gray;
-      }
-      bwCtx.putImageData(imgDataObj, 0, 0);
-
-      const canvas = bwCanvas;
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 20;
-
-      const scale = (pageWidth - margin * 2) / canvas.width;
-      const imgHeight = canvas.height * scale;
-      const imgWidth = canvas.width * scale;
-
-      if (imgHeight <= pageHeight - margin * 2) {
-        const imgData = canvas.toDataURL("image/png");
-        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
-      } else {
-        const totalPages = Math.ceil(imgHeight / (pageHeight - margin * 2));
-        const sliceHeightPx = Math.floor((pageHeight - margin * 2) / scale);
-
-        for (let page = 0; page < totalPages; page++) {
-          const pageCanvas = document.createElement("canvas");
-          pageCanvas.width = canvas.width;
-          const remainingPx = canvas.height - page * sliceHeightPx;
-          pageCanvas.height = remainingPx < sliceHeightPx ? remainingPx : sliceHeightPx;
-
-          const ctx = pageCanvas.getContext("2d");
-          if (!ctx) throw new Error("Could not get canvas context");
-
-          ctx.drawImage(
-            canvas,
-            0,
-            page * sliceHeightPx,
-            canvas.width,
-            pageCanvas.height,
-            0,
-            0,
-            pageCanvas.width,
-            pageCanvas.height
-          );
-
-          const pageData = pageCanvas.toDataURL("image/png");
-          const pageImgHeight = pageCanvas.height * scale;
-
-          if (page > 0) pdf.addPage();
-          pdf.addImage(pageData, "PNG", margin, margin, imgWidth, pageImgHeight);
-        }
-      }
-
-      // Open preview instead of direct download
-      const pdfBlobUrl = pdf.output("bloburl");
-      window.open(pdfBlobUrl, "_blank");
-    } catch (err) {
-      console.error("Export PDF failed:", err);
-      alert("Failed to export PDF. See console for details.");
-    } finally {
-      setExporting(false);
-    }
   };
 
-  // ---------------------------
-  // If showInspection is true, render MetallurgicalInspection in-place
-  // ---------------------------
-  if (showInspection) {
-    return (
-      <Box sx={{ p: 3, position: "relative" }}>
-        <TopRightClose />
-        <MetallurgicalInspection />
-      </Box>
-    );
-  }
+  const handleFinalSubmit = () => {
+    setSubmitted(true);
+  };
 
-  // ======= EDITABLE VIEW (main data entering page) =======
+  const handleExportPDF = () => { window.print(); };
+
+  // Helper grid box for preview
+  const GridValueBox = ({ label, value }: { label: string, value: string }) => (
+    <Box sx={{
+      p: 2,
+      borderRadius: 2,
+      border: `1px solid ${COLORS.border}`,
+      textAlign: 'center',
+      bgcolor: 'white',
+      flex: 1
+    }}>
+      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>{label}</Typography>
+      <Typography variant="h6" sx={{ fontSize: '1rem' }}>{value || "-"}</Typography>
+    </Box>
+  );
+
   return (
-    <Box ref={printRef} sx={{ p: 3, position: "relative" }}>
-      <TopRightClose />
-      {submittedData && <SubmittedSampleCard submittedData={submittedData} />}
+    <ThemeProvider theme={theme}>
+      <GlobalStyles styles={{
+        "@media print": {
+          "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
+          "body *": { visibility: "hidden" },
+          ".print-section, .print-section *": { visibility: "visible" },
+          ".print-section": { display: "block !important", position: "absolute", left: 0, top: 0, width: "100%", color: "black", backgroundColor: "white", padding: "20px" },
+          ".MuiModal-root": { display: "none !important" }
+        }
+      }} />
 
-      <Paper elevation={3} sx={{ p: 2, bgcolor: "#c8d4f0", border: "2px solid black", mb: 3 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ textDecoration: "underline", mb: 1 }}>
-          MOULDING:
-        </Typography>
+      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
+        <Container maxWidth="xl" disableGutters>
 
-        <Table size="small" sx={{ border: "2px solid black" }}>
-          <TableHead>
-            <TableRow>
-              <TableCell
-                sx={{ border: "2px solid black", bgcolor: "white", color: "red", fontWeight: "bold" }}
-              >
-                MOULDING
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>
-                Mould Thickness
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>
-                Compressability
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>
-                Squeeze Pressure
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>
-                Mould Hardness
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>User Name</TableCell>
-              <TableCell sx={{ border: "2px solid black", fontWeight: "bold" }}>
-                Other Remarks
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell sx={{ border: "2px solid black", height: 60, p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.type}
-                  onChange={(e) => setField("type", e.target.value)}
-                  placeholder="Enter type"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.mouldThickness}
-                  onChange={(e) => setField("mouldThickness", e.target.value)}
-                  placeholder="Enter thickness"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.compressability}
-                  onChange={(e) => setField("compressability", e.target.value)}
-                  placeholder="Enter compressability"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.squeezePressure}
-                  onChange={(e) => setField("squeezePressure", e.target.value)}
-                  placeholder="Enter pressure"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.mouldHardness}
-                  onChange={(e) => setField("mouldHardness", e.target.value)}
-                  placeholder="Enter hardness"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.userName}
-                  onChange={(e) => setField("userName", e.target.value)}
-                  placeholder="Enter username"
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-              <TableCell sx={{ border: "2px solid black", p: 0.5 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={data.otherRemarks}
-                  onChange={(e) => setField("otherRemarks", e.target.value)}
-                  placeholder="Enter remarks"
-                  multiline
-                  rows={2}
-                  InputProps={{ sx: { bgcolor: "white" } }}
-                />
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
-        <Box
-          sx={{ position: "relative", border: "2px solid black", borderTop: "none", height: 80, mt: -1, p: 1 }}
-        />
-
-        {/* Actions aligned center */}
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 2 }}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() =>
-              setData({
-                mouldThickness: "",
-                compressability: "",
-                squeezePressure: "",
-                mouldHardness: "",
-                userName: "",
-                otherRemarks: "",
-                type: "",
-              })
-            }
-          >
-            Clear
-          </Button>
-
-          {/* Only Submit & Continue button (no Export PDF here) */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSaveAndContinue}
-            disabled={!allFilled || sending}
-            startIcon={sending ? <CircularProgress size={16} /> : undefined}
-          >
-            {sending ? "Submitting..." : "Submit & Continue"}
-          </Button>
-        </Box>
-      </Paper>
-
-      {allFilled && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Moulding data is ready. Click "Submit & Continue" to open preview.
-        </Alert>
-      )}
-
-      {/* ---------- Apple-style Liquid Glass preview overlay (like VisualInspection) ---------- */}
-      {previewMode && previewPayload && (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1300,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "rgba(15,23,42,0.5)",
-            backdropFilter: "blur(6px)",
-          }}
-        >
-          <Box
-            sx={{
-              width: "90%",
-              maxWidth: 980,
-              maxHeight: "80vh",
-              overflow: "auto",
-              borderRadius: 4,
-              p: 3,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(248,250,252,0.9))",
-              boxShadow: "0 25px 80px rgba(15,23,42,0.45)",
-              border: "1px solid rgba(255,255,255,0.8)",
-              position: "relative",
-            }}
-          >
-            {/* Red Cross close button on top-right */}
-            <IconButton
-              onClick={() => {
-                if (previewSubmitted) {
-                  window.location.href = "/dashboard";
-                } else {
-                  setPreviewMode(false);
-                  setPreviewPayload(null);
-                }
-              }}
-              sx={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                color: "#DC2626",
-                "&:hover": { backgroundColor: "rgba(220,38,38,0.08)" },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1} pr={5}>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Moulding – Preview
-                </Typography>
-                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  Review your data before final submission
-                </Typography>
-              </Box>
+          <SaclHeader />
+          {/* Header Bar */}
+          <Paper sx={{
+            p: 1.5, mb: 3,
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            borderLeft: `6px solid ${COLORS.secondary}`
+          }}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
+              <Typography variant="h6">MOULDING DETAILS</Typography>
             </Box>
+            <Box display="flex" gap={1} alignItems="center">
+              <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
+              <Chip
+                label="USER NAME"
+                sx={{
+                  bgcolor: COLORS.secondary,
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: '0.75rem'
+                }}
+                size="small"
+                icon={<PersonIcon style={{ color: 'white' }} />}
+              />
+            </Box>
+          </Paper>
 
-            {/* Glassy sample card preview */}
-            {previewPayload.submittedData && (
-              <Box mb={3}>
-                <SubmittedSampleCard submittedData={previewPayload.submittedData} />
-              </Box>
-            )}
+          {/* Main Content Card */}
+          <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
 
-            {/* Moulding data preview table */}
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                mb: 2,
-                background: "rgba(248,250,252,0.95)",
-                border: "1px solid rgba(148,163,184,0.6)",
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                Moulding Data
-              </Typography>
-              <Table size="small">
+            {/* Inner Header */}
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+              <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+            </Box>
+            <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
+
+            {/* <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Chip label="Input Required" size="small" variant="outlined" sx={{ color: COLORS.textSecondary }} />
+            </Box> */}
+
+            <Box sx={{ overflowX: "auto", mb: 4 }}>
+              <Table size="small" sx={{ minWidth: 1000 }}>
                 <TableHead>
+                  {/* Split Group Headers (Material UI Style) */}
                   <TableRow>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Mould Thickness</TableCell>
-                    <TableCell>Compressability</TableCell>
-                    <TableCell>Squeeze Pressure</TableCell>
-                    <TableCell>Mould Hardness</TableCell>
-                    <TableCell>User Name</TableCell>
-                    <TableCell>Other Remarks</TableCell>
+                    <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
+                      <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
+                    </TableCell>
+                    <TableCell colSpan={1} sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText, borderBottom: 'none' }}>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Column Headers */}
+                  <TableRow>
+                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
+                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
+                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Squeeze Pressure</TableCell>
+                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary, borderRight: `2px solid ${COLORS.border}` }}>Mould Hardness</TableCell>
+
+                    <TableCell width="40%" sx={{ bgcolor: '#fff7ed', color: COLORS.textSecondary }}>Remarks</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell>{previewPayload.moulding.type || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.mouldThickness || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.compressability || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.squeezePressure || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.mouldHardness || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.userName || "--"}</TableCell>
-                    <TableCell>{previewPayload.moulding.otherRemarks || "--"}</TableCell>
+                    {/* Blue Section Inputs */}
+                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} /></TableCell>
+                    <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
+                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} />
+                    </TableCell>
+
+                    {/* Orange Section Inputs */}
+                    <TableCell>
+                      <SpecInput
+                        value={mouldState.remarks}
+                        onChange={(e: any) => handleChange('remarks', e.target.value)}
+                        placeholder="--"
+                      />
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-            </Paper>
+            </Box>
+            {/* Attach PDF / Image Section */}
+            <Box sx={{ mt: 3, mb: 3 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
+              >
+                Attach PDF / Image Files
+              </Typography>
 
-            {message && (
-              <Box mt={1}>
-                <Alert severity={previewSubmitted ? "success" : "info"} sx={{ borderRadius: 3 }}>
-                  {message}
-                </Alert>
-              </Box>
-            )}
-
-            {/* Actions in preview */}
-            <Box mt={3} display="flex" alignItems="center" gap={2}>
-              {/* Edit button: disabled after Save */}
               <Button
                 variant="outlined"
-                onClick={() => setPreviewMode(false)}
-                disabled={sending || previewSubmitted}
-              >
-                Edit
-              </Button>
-
-              <Button
-                variant="contained"
-                onClick={handleExportPDF}
-                disabled={exporting}
-                sx={{ backgroundColor: SAKTHI_COLORS.primary }}
-              >
-                {exporting ? "Generating PDF..." : "Export PDF"}
-              </Button>
-
-              <Button
-                variant="contained"
-                onClick={handleFinalSave}
-                disabled={sending || previewSubmitted}
-                sx={{ backgroundColor: SAKTHI_COLORS.accent }}
-              >
-                {sending ? "Saving..." : previewSubmitted ? "Saved" : "Save"}
-              </Button>
-
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setPreviewMode(false);
-                  setShowInspection(true);
-                  handleCompleteProcess();
+                component="label"
+                sx={{
+                  bgcolor: "white",
+                  borderStyle: "dashed",
+                  py: 1.5,
+                  px: 3,
+                  fontWeight: 600,
                 }}
-                disabled={!previewSubmitted}
-                sx={{ backgroundColor: SAKTHI_COLORS.success }}
               >
-                Continue
+                Attach PDF
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  accept="application/pdf,image/*"
+                  onChange={handleAttachFiles}
+                />
               </Button>
 
-              <Box sx={{ flex: 1 }} />
+              {/* Show file chips */}
+              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {attachedFiles.map((file, index) => (
+                  <Chip
+                    key={index}
+                    label={file.name}
+                    onDelete={() => removeAttachedFile(index)}
+                    sx={{
+                      bgcolor: "white",
+                      border: `1px solid ${COLORS.border}`,
+                      fontSize: "0.8rem"
+                    }}
+                  />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        </Box>
-      )}
-    </Box>
-  );
-};
 
-export default MouldingTable;
+
+
+
+            {/* Actions */}
+            <Box display="flex" justifyContent="flex-end" gap={2}>
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                sx={{
+                  color: 'black',
+                  borderColor: 'black',
+                  borderWidth: '1.5px',
+                  '&:hover': { borderColor: 'black', borderWidth: '1.5px', bgcolor: '#f3f4f6' }
+                }}
+              >
+                Reset Form
+              </Button>
+              <Button
+                variant="contained"
+                sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: '#c2410c' } }}
+                startIcon={<SaveIcon />}
+                onClick={handleSaveAndContinue}
+              >
+                Save & Continue
+              </Button>
+            </Box>
+
+          </Paper>
+
+          {/* ---------------- MODAL / PREVIEW ---------------- */}
+          {previewMode && (
+            <Box sx={{
+              position: "fixed", inset: 0, zIndex: 1300,
+              bgcolor: "rgba(15, 23, 42, 0.8)",
+              display: "flex", alignItems: "center", justifyContent: "center", p: 2
+            }}>
+              <Paper sx={{ width: "100%", maxWidth: 850, borderRadius: 3, overflow: "hidden" }}>
+
+                {/* Modal Header */}
+                <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Moulding Details</Typography>
+                  <IconButton size="small" onClick={() => navigate('/metallurgical-inspection')} sx={{ color: '#ef4444' }}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+
+                {/* Modal Content */}
+                <Box sx={{ p: 4 }}>
+
+                  {/* Section 1: Parameters */}
+                  <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
+                  <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
+                  </Grid>
+
+                  {/* Section 2: Remarks/Type */}
+                  <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
+                  <Box sx={{
+                    p: 3,
+                    bgcolor: '#f8fafc',
+                    borderRadius: 2,
+                    border: `1px solid ${COLORS.border}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 3
+                  }}>
+                    <Box flex={2}>
+                      <Typography variant="caption" color="textSecondary" display="block">REMARKS</Typography>
+                      <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
+                    </Box>
+                  </Box>
+                  {/* Attached Files in Preview */}
+                  {attachedFiles.length > 0 && (
+                    <Box
+                      sx={{
+                        mt: 3,
+                        p: 2,
+                        bgcolor: "white",
+                        borderRadius: 2,
+                        border: `1px solid ${COLORS.border}`,
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                        ATTACHED FILES
+                      </Typography>
+
+                      {attachedFiles.map((file, i) => (
+                        <Typography key={i} variant="body2">• {file.name}</Typography>
+                      ))}
+                    </Box>
+                  )}
+
+
+                  {/* Success Message */}
+                  {submitted && (
+                    <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
+                      <CheckCircleIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Moulding Specification Registered Successfully</Typography>
+                    </Box>
+                  )}
+
+                </Box>
+
+                {/* Modal Footer */}
+                <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setPreviewMode(false)}
+                    sx={{
+                      borderColor: "#e2e8f0",
+                      color: COLORS.textSecondary,
+                      '&:hover': { borderColor: COLORS.textSecondary }
+                    }}
+                  >
+                    Back to Edit
+                  </Button>
+                  {submitted ? (
+                    <Button
+                      variant="contained"
+                      sx={{ bgcolor: COLORS.primary, color: 'white' }}
+                      startIcon={<PrintIcon />}
+                      onClick={handleExportPDF}
+                    >
+                      Download PDF
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      sx={{ bgcolor: COLORS.secondary }}
+                      onClick={handleFinalSubmit}
+                    >
+                      Confirm & Submit
+                    </Button>
+                  )}
+                </Box>
+
+              </Paper>
+            </Box>
+          )}
+
+          {/* PRINT LAYOUT */}
+          <Box className="print-section" sx={{ display: 'none', fontFamily: theme.typography.fontFamily }}>
+            <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY SAMPLE CARD</Typography>
+                <Typography variant="body1">Moulding Correction Report</Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                <Typography variant="body2">IP: {userIP}</Typography>
+              </Box>
+            </Box>
+
+            <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Moulding Details</Typography>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+              <thead>
+                <tr>
+                  <th colSpan={4} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Moulding Parameters</th>
+                  <th colSpan={1} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Log Data</th>
+                </tr>
+                <tr style={{ backgroundColor: '#f9f9f9' }}>
+                  <th style={{ border: '1px solid #999', padding: '6px' }}>Thickness</th>
+                  <th style={{ border: '1px solid #999', padding: '6px' }}>Compressability</th>
+                  <th style={{ border: '1px solid #999', padding: '6px' }}>Pressure</th>
+                  <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness</th>
+                  <th style={{ border: '1px solid #999', padding: '6px' }}>Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.thickness}</td>
+                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.compressability}</td>
+                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.pressure}</td>
+                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.hardness}</td>
+                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.remarks || "-"}</td>
+                </tr>
+              </tbody>
+            </table>
+            {/* Attached Files - Print Version */}
+            {attachedFiles.length > 0 && (
+              <div style={{ marginTop: "20px" }}>
+                <h3 style={{
+                  margin: 0,
+                  paddingBottom: "5px",
+                  borderBottom: "1px solid #999"
+                }}>
+                  Attached Files
+                </h3>
+
+                <ul style={{ marginTop: "5px" }}>
+                  {attachedFiles.map((file, index) => (
+                    <li key={index} style={{ fontSize: "14px" }}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          </Box>
+
+        </Container>
+      </Box>
+    </ThemeProvider>
+  );
+}
+
+export default FoundrySampleCard;

@@ -59,6 +59,8 @@ export default router;
 //     no_of_moulds INT,
 //     reason_for_sampling TEXT,
 //     status VARCHAR(30),
+//     tooling_modification TEXT,
+//     remarks TEXT,
 //     current_department_id INT REFERENCES departments(department_id),
 //     disa VARCHAR(50),
 //     sample_traceability VARCHAR(50),

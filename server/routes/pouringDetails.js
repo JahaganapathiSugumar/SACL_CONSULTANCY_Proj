@@ -5,14 +5,15 @@ import Client from '../config/connection.js';
 import CustomError from '../utils/customError.js';
 
 router.post('/', asyncErrorHandler(async (req, res, next) => {
-    const { trial_id, pour_date, heat_code, composition, pouring_temp_c, pouring_time_sec, other_remarks } = req.body || {};
-    if (!trial_id || !pour_date || !heat_code || !composition || !pouring_temp_c || !pouring_time_sec || !other_remarks) {
+    const { trial_id, pour_date, heat_code, composition, pouring_temp_c, pouring_time_sec, inoculation, other_remarks, remarks } = req.body || {};
+    if (!trial_id || !pour_date || !heat_code || !composition || !pouring_temp_c || !pouring_time_sec || !inoculation || !other_remarks || !remarks) {
         return res.status(400).json({ message: 'Missing required fields' });
     }
     const compositionJson = JSON.stringify(composition);
     const otherRemarksJson = JSON.stringify(other_remarks);
-    const sql = 'INSERT INTO pouring_details (trial_id, pour_date, heat_code, composition, pouring_temp_c, pouring_time_sec, other_remarks) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    const [result] = await Client.query(sql, [trial_id, pour_date, heat_code, compositionJson, pouring_temp_c, pouring_time_sec, otherRemarksJson]);
+    const inoculationJson = JSON.stringify(inoculation);
+    const sql = 'INSERT INTO pouring_details (trial_id, pour_date, heat_code, composition, pouring_temp_c, pouring_time_sec, inoculation, other_remarks, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const [result] = await Client.query(sql, [trial_id, pour_date, heat_code, compositionJson, pouring_temp_c, pouring_time_sec, inoculationJson, otherRemarksJson, remarks]);
     res.status(201).json({ pouringDetailsId: result.insertId });
 }));
 
@@ -33,14 +34,17 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
 
 // CREATE TABLE pouring_details (
 //     id SERIAL PRIMARY KEY,
-//     trial_id TEXT REFERENCES trial_cards(trial_id) NOT NULL,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
 //     pour_date DATE,
 //     heat_code TEXT,
 //     composition JSON,
 //     pouring_temp_c NUMERIC(6,2),
 //     pouring_time_sec INT,
-//     other_remarks JSON
+//     inoculation JSON,
+//     other_remarks JSON,
+//     remarks TEXT
 // );
 
 // composition {"C": "", "Si": "", "Mn": "", "P": "", "S": "", "Mg": "", "Cu": "", "Cr": ""}
 // other_remarks {"F/C & Heat No." : "", "PP Code" : "", "Followed by" : "", "Username" : ""}
+// inoculation {"Stream" : "", "Inmould" : ""}

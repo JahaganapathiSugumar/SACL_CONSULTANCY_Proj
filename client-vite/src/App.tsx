@@ -16,9 +16,10 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import MetallurgicalInspection from './components/MetallurgicalInspection';
 import VisualInspection from './components/VisualInspection';
-import MouldingTable from './components/moulding';                             
-import FoundrySampleCard from './components/FoundrySampleCard';
-import FoundrySampleCard2 from './components/FoundrySampleCard2';
+import DimensionalInspection from './components/DimensionalInspection';
+import McShopInspection from './components/MCShop';
+import MouldingTable from './components/moulding';
+import FoundrySampleCard from './components/FoundrySampleCard1';
 import FoundrySampleCard3 from './components/FoundrySampleCard3';
 import PouringDetailsTable from './components/PouringDetailsTable';
 import type { PouringDetails, SubmittedData } from './components/PouringDetailsTable';
@@ -93,11 +94,20 @@ const AppRoutes: React.FC = () => {
         <ProtectedRoute><VisualInspection /></ProtectedRoute>
       } />
 
+      {/* Dimensional inspection route */}
+      <Route path="/dimensional-inspection" element={
+        <ProtectedRoute><DimensionalInspection /></ProtectedRoute>
+      } />
+
+      {/* MC Shop route */}
+      <Route path="/mc-shop" element={
+        <ProtectedRoute><McShopInspection /></ProtectedRoute>
+      } />
+
       {/* Foundry sample card route (updated path) */}
       <Route path="/foundry-sample-card" element={<ProtectedRoute><FoundrySampleCard /></ProtectedRoute>} />
 
-      {/* Secondary foundry sample card (redirect target after preview close) */}
-      <Route path="/foundry-sample-card-2" element={<ProtectedRoute><FoundrySampleCard2 /></ProtectedRoute>} />
+  
 
       {/* Tertiary foundry sample card route (preview close or navigation target) */}
       <Route path="/foundry-sample-card-3" element={<ProtectedRoute><FoundrySampleCard3 /></ProtectedRoute>} />
@@ -109,7 +119,17 @@ const AppRoutes: React.FC = () => {
 
       {/* Notifications and pending samples */}
       <Route path="/notifications" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
-      <Route path="/pending-samples" element={<ProtectedRoute><PendingSampleCardsPage /></ProtectedRoute>} />      
+      <Route path="/pending-samples" element={<ProtectedRoute><PendingSampleCardsPage /></ProtectedRoute>} />
+
+      {/* Moulding table route */}
+      <Route
+        path="/moulding"
+        element={
+          <ProtectedRoute>
+            <MouldingTable />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Pouring details table route (target after Foundry preview close) */}
       <Route
@@ -118,7 +138,7 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <PouringDetailsTable
               pouringDetails={emptyPouringDetails}
-              onPouringDetailsChange={() => {}}
+              onPouringDetailsChange={() => { }}
               submittedData={emptySubmittedData}
             />
           </ProtectedRoute>

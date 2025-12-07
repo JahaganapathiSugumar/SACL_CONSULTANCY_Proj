@@ -31,11 +31,14 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
     res.status(200).json({ materialCorrections: rows });
 }));
 
+export default router;
+
 // CREATE TABLE material_correction (
-//     id SERIAL PRIMARY KEY,
-//     trial_id INT REFERENCES trial_cards(trial_id) NOT NULL,
+//     correction_id SERIAL PRIMARY KEY,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
 //     chemical_composition JSON,
-//     process_parameters JSON
+//     process_parameters JSON,
+//     remarks TEXT
 // );
 
 // {

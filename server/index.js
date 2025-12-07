@@ -45,6 +45,7 @@ app.use('/api/material-correction', materialCorrection);
 app.use('/health', (req, res) => {
     res.status(200).json({ status: 'OK' });
 });
+
 // app.all('*', (req, res, next)=>{
 //     const err = new CustomError(`Can't find the ${req.originalUrl} on the server!`, 404);
 //     next(err);

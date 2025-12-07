@@ -6,7 +6,7 @@ import CustomError from '../utils/customError.js';
 
 router.get('/', asyncErrorHandler(async(req, res, next)=>{
     const response = await Client.query(
-        `SELECT * FROM metallurgical_specs`
+        `SELECT * FROM metallurgical_specifications`
     )
     console.log(response[0]);
     res.status(200).json(response[0]);
@@ -23,7 +23,7 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
     const microJSON = JSON.stringify(microstructure);
 
     const response = await Client.query(
-        `INSERT INTO metallurgical_specifications_final 
+        `INSERT INTO metallurgical_specifications 
          (trial_id, chemical_composition, microstructure)
          VALUES (?, ?, ?)`,
         [trial_id, chemicalJSON, microJSON]
@@ -38,3 +38,10 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
 }));
 
 export default router;
+
+// CREATE TABLE metallurgical_specifications (
+//     spec_id SERIAL PRIMARY KEY,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+//     chemical_composition JSON,
+//     microstructure JSON
+// );

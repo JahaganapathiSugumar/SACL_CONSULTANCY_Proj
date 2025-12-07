@@ -33,11 +33,11 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
 export default router;
 
 // CREATE TABLE visual_inspection (
-//     id SERIAL PRIMARY KEY,
-//     trial_id INT REFERENCES trial_cards(trial_id) NOT NULL,
+//     inspection_id SERIAL PRIMARY KEY,
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
 //     inspections JSON[],
 //     visual_ok BOOLEAN,
 //     remarks TEXT
 // );
 
-// inspections [{"Cavity number": "", "Inspected Quantity": "", "Accepted Quantity": "", "Rejected Quantity": "", "Reason for rejection:": ""}, {"Cavity number": "", "Inspected Quantity": "", "Accepted Quantity": "", "Rejected Quantity": "", "Reason for rejection:": ""}]
+// inspections [{"Cavity number": "", "Inspected Quantity": "", "Accepted Quantity": "", "Rejected Quantity": "", "Rejection Percentage": "", "Reason for rejection": ""}, {"Cavity number": "", "Inspected Quantity": "", "Accepted Quantity": "", "Rejected Quantity": "", "Rejection Percentage": "", "Reason for rejection": ""}]

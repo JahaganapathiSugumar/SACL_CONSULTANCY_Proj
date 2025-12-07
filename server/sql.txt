@@ -62,3 +62,134 @@ INSERT INTO master_card (pattern_code, part_name, material_grade, chemical_compo
 INSERT INTO master_card (pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray) VALUES ('VOL-S-070-B0-20-P-01-00','7339 BRACKET','FCD 500/7','C : 3.20-4.00% Si : 1.50-2.80% Mn : 0.05-1.00% P : 0.08% Max S : 0.02% Max Cu : 0.0 – 0.50% Mg : 0.030-0.080%','80% Min (Shape I or II As per ASTM A247-67) Pearlitic - ferritic Carbide – Not Exceed 1%','500 N/mm2 Min 320 N/mm2 Min 7% Min','--','170 - 230 HB','0.2 X Thickness');
 INSERT INTO master_card (pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray) VALUES ('VWN-S-005-B0-20-P-02-00','STEERING KNUCKLE (VOLKSWAGEN) (C - REV)','FCD 550/8','C : 3.30-4.10% Si : 2.00-3.00% Mn : 0.1-0.80% P  : 0.080% Max S  : 0.03% Max Mg : 0.010-0.060% Cu : 0.2-0.60%','Spheroidal Graphite: 80% Min Graphite form: Shape V + VI as per ISO 945-1 Ferrite - Pearlite','>550 N/mm2 >340 N/mm2 8% Min','Absorbed impact energy AV t.b.d -300c (Unnotched)','180 – 240 HBW','Area 1 (Strength –Critical areas): No flaws >1.0 mm in diameter are permissible Area 2 (Remaining areas): a) Maximum individual flaw size is 2.0mm b) Maximum permissible flaw density is 5% of the observation field');
 SELECT * FROM master_card;
+
+CREATE TABLE trial_cards (
+    trial_id TEXT PRIMARY KEY,
+    part_name VARCHAR(100),
+    pattern_code VARCHAR(50),
+    material_grade VARCHAR(50),
+    initiated_by VARCHAR(50),
+    date_of_sampling DATE,
+    no_of_moulds INT,
+    reason_for_sampling TEXT,
+    status VARCHAR(30),
+    tooling_modification TEXT,
+    remarks TEXT,
+    current_department_id INT REFERENCES departments(department_id),
+    disa VARCHAR(50),
+    sample_traceability VARCHAR(50),
+    mould_correction JSON
+);
+
+CREATE TABLE mechanical_properties (
+    prop_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    tensile_strength TEXT,
+    yield_strength TEXT,
+    elongation TEXT,
+    impact_strength_cold TEXT,
+    impact_strength_room TEXT,
+    hardness_surface TEXT,
+    hardness_core TEXT,
+    x_ray_inspection TEXT,
+    mpi TEXT
+);
+
+CREATE TABLE metallurgical_specifications (
+    spec_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    chemical_composition JSON,
+    microstructure JSON
+);
+
+CREATE TABLE material_correction (
+    correction_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    chemical_composition JSON,
+    process_parameters JSON,
+    remarks TEXT
+);
+
+CREATE TABLE pouring_details (
+    id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    pour_date DATE,
+    heat_code TEXT,
+    composition JSON,
+    pouring_temp_c NUMERIC(6,2),
+    pouring_time_sec INT,
+    inoculation JSON,
+    other_remarks JSON,
+    remarks TEXT
+);
+
+CREATE TABLE sand_properties (
+    prop_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    date DATE,
+    t_clay NUMERIC(6,3),
+    a_clay NUMERIC(6,3),
+    vcm NUMERIC(6,3),
+    loi NUMERIC(6,3),
+    afs NUMERIC(6,3),
+    gcs NUMERIC(6,3),
+    moi NUMERIC(6,3),
+    compactability NUMERIC(6,3),
+    permeability NUMERIC(6,3),
+    remarks TEXT
+);
+
+CREATE TABLE mould_correction (
+    correction_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    mould_thickness VARCHAR(30),
+    compressability VARCHAR(30),
+    squeeze_pressure VARCHAR(30),
+    mould_hardness VARCHAR(30),
+    remarks TEXT
+);
+
+CREATE TABLE metallurgical_inspection (
+    inspection_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    user_name TEXT,
+    date DATE,
+    micro_examination JSON[],
+    remarks TEXT
+);
+
+CREATE TABLE ndt_inspection (
+    inspection_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    ndt JSON[],
+    ndt_ok BOOLEAN,
+    remarks TEXT
+);
+
+CREATE TABLE visual_inspection (
+    inspection_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    inspections JSON[],
+    visual_ok BOOLEAN,
+    remarks TEXT
+);
+
+CREATE TABLE dimensional_inspection (
+    inspection_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    inspection_date DATE,
+    casting_weight INT,
+    bunch_weight INT,
+    no_of_cavities INT,
+    yields INT,
+    inspections JSON[]
+    remarks TEXT
+);
+
+CREATE TABLE machine_shop (
+    machine_shop_id SERIAL PRIMARY KEY,
+    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    inspection_date DATE,
+    inspections JSON[]
+    remarks TEXT
+);
