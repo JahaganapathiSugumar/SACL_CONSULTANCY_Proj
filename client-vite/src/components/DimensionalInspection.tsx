@@ -315,7 +315,7 @@ export default function DimensionalInspection({
         bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
         no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
         yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
-        inspections: inspections,
+        inspections: JSON.stringify(inspections),
         remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
       };
 
