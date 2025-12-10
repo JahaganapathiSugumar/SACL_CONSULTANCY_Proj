@@ -153,8 +153,8 @@ function uid(prefix = "") {
 
 /* ---------- Main Component ---------- */
 export default function VisualInspection({
-    initialRows = ["Cavity number", "Inspected Quantity", "Accpted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
-    initialCols = ["Value 1"],
+    initialRows = ["Cavity number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
+    initialCols = [""],
     onSave = async (payload: any) => {
         // Mock save
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
@@ -240,11 +240,17 @@ export default function VisualInspection({
         fetchUserIP();
     }, []);
 
-    const addColumn = () => {
-        const next = `Value ${cols.length + 1}`;
-        setCols((c) => [...c, next]);
-        setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
-    };
+   const addColumn = () => {
+    setCols((c) => [...c, ""]);   // <-- no "Value 1, Value 2" anymore
+
+    setRows((r) =>
+        r.map((row) => ({
+            ...row,
+            values: [...row.values, ""],
+        }))
+    );
+};
+
 
     const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []) as File[];
@@ -267,14 +273,26 @@ export default function VisualInspection({
     };
 
     const updateCell = (rowId: string, colIndex: number, value: string) => {
-        setRows((prev) =>
-            prev.map((r) =>
-                r.id === rowId
-                    ? { ...r, values: r.values.map((v, i) => (i === colIndex ? value : v)) }
-                    : r
-            )
+        setRows(prev =>
+            prev.map(r => {
+                if (r.id !== rowId) return r;
+
+                const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
+
+                // Only compute total for rows other than "Cavity number"
+                let total: number | undefined = undefined;
+                if (r.label !== "Cavity number") {
+                    total = newValues.reduce((sum, val) => {
+                        const n = parseFloat(String(val).trim());
+                        return sum + (isNaN(n) ? 0 : n);
+                    }, 0);
+                }
+
+                return total !== undefined ? { ...r, values: newValues, total } : { ...r, values: newValues };
+            })
         );
     };
+
 
     const updateColLabel = (index: number, label: string) => {
         setCols((prev) => prev.map((c, i) => (i === index ? label : c)));
@@ -297,10 +315,16 @@ export default function VisualInspection({
         return {
             created_at: new Date().toLocaleString(),
             cols: cols.slice(),
-            rows: rows.map((r) => ({
+            rows: rows.map(r => ({
                 label: r.label,
-                values: r.values.map((v) => (v === "" ? null : v)),
+                values: r.values,
+                // do not include a numeric total for the Cavity number row
+                total: r.label === "Cavity number" ? null : r.values.reduce((acc, v) => {
+                    const n = parseFloat(String(v).trim());
+                    return acc + (isNaN(n) ? 0 : n);
+                }, 0)
             })),
+
             group: {
                 ok: groupMeta.ok,
                 remarks: groupMeta.remarks || null,
@@ -428,6 +452,11 @@ export default function VisualInspection({
                                                 </Box>
                                             </TableCell>
                                         ))}
+                                        <TableCell
+  sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}
+>
+  Total
+</TableCell>
                                         <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
                                         <TableCell sx={{ width: 280, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                                     </TableRow>
@@ -471,6 +500,18 @@ export default function VisualInspection({
                                                     </TableCell>
                                                 );
                                             })}
+                                            {/* ⭐ NEW TOTAL CELL */}
+<TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
+    {(() => {
+        if (r.label === "Cavity number") return "-";
+        const sum = r.values.reduce((acc, v) => {
+            const n = parseFloat(String(v).trim());
+            return acc + (isNaN(n) ? 0 : n);
+        }, 0);
+        return sum || "-";
+    })()}
+</TableCell>
+
 
                                             {ri === 0 ? (
                                                 <>

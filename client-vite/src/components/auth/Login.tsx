@@ -29,6 +29,25 @@ const Login: React.FC = () => {
           navigate('/change-password');
           return;
         }
+
+        const departmentId = res.user?.department_id;
+
+        const departmentRoutes: Record<number, string> = {
+          10: '/dimensional-inspection',
+          7: '/metallurgical-inspection',
+          8: '/machine-shop',
+          6: '/moulding',
+          9: '/pouring-details',
+          4: '/sand-properties',
+          5: '/visual-inspection',
+        };
+
+        if (departmentId && departmentRoutes[departmentId]) {
+          navigate(departmentRoutes[departmentId]);
+          return;
+        }
+
+        navigate('/dashboard');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed');

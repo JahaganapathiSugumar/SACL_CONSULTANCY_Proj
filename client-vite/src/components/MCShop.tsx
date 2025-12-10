@@ -134,7 +134,7 @@ const theme = createTheme({
 });
 
 /* ---------- Types ---------- */
-type Row = { id: string; label: string; values: string[]; freeText?: string };
+type Row = { id: string; label: string; values: string[]; freeText?: string; total?: number | null };
 type GroupMeta = { remarks: string; attachment: File | null };
 
 const fileToMeta = (f: File | null) => (f ? { name: f.name, size: f.size, type: f.type } : null);
@@ -145,7 +145,7 @@ function uid(prefix = "") {
 
 /* ---------- Component ---------- */
 export default function McShopInspection({
-  initialCavities = ["Cavity 1", "Cavity 2", "Cavity 3"],
+  initialCavities = ["", "", ""],
   onSave = async (payload: any) => {
     console.log("McShopInspection default onSave", payload);
     return { ok: true };
@@ -166,10 +166,10 @@ export default function McShopInspection({
   // table rows (each row has a values array matching cavities length)
   const makeInitialRows = (cavLabels: string[]): Row[] => [
     { id: `cavity-${uid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
-    { id: `received-${uid()}`, label: "Received Quantity", values: cavLabels.map(() => "") },
-    { id: `insp-${uid()}`, label: "Inspected Quantity", values: cavLabels.map(() => "") },
-    { id: `accp-${uid()}`, label: "Accepted Quantity", values: cavLabels.map(() => "") },
-    { id: `rej-${uid()}`, label: "Rejected Quantity", values: cavLabels.map(() => "") },
+    { id: `received-${uid()}`, label: "Received Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `insp-${uid()}`, label: "Inspected Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `accp-${uid()}`, label: "Accepted Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `rej-${uid()}`, label: "Rejected Quantity", values: cavLabels.map(() => ""), total: null },
     { id: `reason-${uid()}`, label: "Reason for rejection: cavity wise", values: cavLabels.map(() => ""), freeText: "" },
   ];
 
@@ -199,10 +199,10 @@ export default function McShopInspection({
 
   // Cavities management
   const addColumn = () => {
-    const next = `Cavity ${cavities.length + 1}`;
-    setCavities((c) => [...c, next]);
-    setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
-  };
+  setCavities((c) => [...c, ""]);   // <--- NO MORE CAVITY 1,2,3
+  setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
+};
+
 
   // File handlers for additional PDF/image uploads
   const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,7 +226,25 @@ export default function McShopInspection({
 
   // cell updates
   const updateCell = (rowId: string, colIndex: number, value: string) => {
-    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, values: r.values.map((v, i) => (i === colIndex ? value : v)) } : r)));
+    setRows((prev) => prev.map((r) => {
+      if (r.id !== rowId) return r;
+      
+      const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
+      
+      // Compute total only for non-cavity-details and non-reason rows
+      const isCavityOrReason = r.label.toLowerCase().includes("cavity details") || r.label.toLowerCase().includes("reason");
+      
+      if (isCavityOrReason) {
+        return { ...r, values: newValues };
+      }
+      
+      const total = newValues.reduce((sum, val) => {
+        const n = parseFloat(String(val).trim());
+        return sum + (isNaN(n) ? 0 : n);
+      }, 0);
+      
+      return { ...r, values: newValues, total };
+    }));
   };
 
   const updateReasonFreeText = (id: string, text: string) => {
@@ -259,6 +277,7 @@ export default function McShopInspection({
         label: r.label,
         values: r.values.map((v) => (v === "" ? null : v)),
         freeText: r.freeText || null,
+        total: r.total ?? null,
       })),
       right_remarks: groupMeta.remarks || null,
       right_attachment: fileToMeta(groupMeta.attachment),
@@ -404,6 +423,28 @@ export default function McShopInspection({
             <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
               <Table size="small">
                 <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textAlign: 'center', color: COLORS.blueHeaderText, backgroundColor: COLORS.blueHeaderBg }}>Parameter</TableCell>
+                    {cavities.map((cav, i) => (
+                      <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.8rem', textAlign: 'center', color: COLORS.blueHeaderText, backgroundColor: COLORS.blueHeaderBg }}>
+                        <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                          <TextField
+                            variant="standard"
+                            value={cav}
+                            onChange={(e) => updateCavityLabel(i, e.target.value)}
+                            InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                            size="small"
+                            sx={{ input: { textAlign: 'center' } }}
+                          />
+                          <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    ))}
+                    <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>Total</TableCell>
+                    <TableCell sx={{ width: 240, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+                  </TableRow>
 
                 </TableHead>
 
@@ -416,7 +457,7 @@ export default function McShopInspection({
 
                         {isReasonRow ? (
                           // For "Reason for rejection" row we render single wide cell spanning cavities
-                          <TableCell colSpan={cavities.length}>
+                          <TableCell colSpan={cavities.length + 1}>
                             <TextField
                               size="small"
                               fullWidth
@@ -431,23 +472,29 @@ export default function McShopInspection({
                           </TableCell>
                         ) : (
                           // Normal row: one input per cavity
-                          r.values.map((val, ci) => (
-                            <TableCell key={ci}>
-                              <TextField
-                                size="small"
-                                fullWidth
-                                value={val ?? ""}
-                                onChange={(e) => updateCell(r.id, ci, e.target.value)}
-                                variant="outlined"
-                                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
-                              />
+                          <>
+                            {r.values.map((val, ci) => (
+                              <TableCell key={ci}>
+                                <TextField
+                                  size="small"
+                                  fullWidth
+                                  value={val ?? ""}
+                                  onChange={(e) => updateCell(r.id, ci, e.target.value)}
+                                  variant="outlined"
+                                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
+                                />
+                              </TableCell>
+                            ))}
+                            {/* Total cell */}
+                            <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f1f5f9' }}>
+                              {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
                             </TableCell>
-                          ))
+                          </>
                         )}
 
                         {/* Right grouped cell - spans all rows */}
                         {ri === 0 && (
-                          <TableCell rowSpan={rows.length} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2 }}>
+                          <TableCell rowSpan={rows.length} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2, minWidth: 240 }}>
                             <Box display="flex" flexDirection="column" height="100%" gap={2}>
                               <TextField
                                 size="small"
@@ -599,6 +646,7 @@ export default function McShopInspection({
                             {previewPayload.cavities.map((c: string, i: number) => (
                               <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
                             ))}
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -606,16 +654,21 @@ export default function McShopInspection({
                             <TableRow key={idx}>
                               <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
                               {r.freeText !== undefined && r.freeText !== null ? (
-                                <TableCell colSpan={previewPayload.cavities.length} sx={{ textAlign: 'left', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                                  {r.freeText}
-                                </TableCell>
-                              ) : (
-                                r.values.map((v: any, j: number) => (
-                                  <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                    {v === null ? "-" : String(v)}
+                                <TableCell colSpan={previewPayload.cavities.length + 1} sx={{ textAlign: 'left', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                   {r.freeText}
+                                 </TableCell>
+                               ) : (
+                                <>
+                                  {r.values.map((v: any, j: number) => (
+                                   <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                     {v === null ? "-" : String(v)}
+                                   </TableCell>
+                                  ))}
+                                  <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                                    {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
                                   </TableCell>
-                                ))
-                              )}
+                                </>
+                               )}
                             </TableRow>
                           ))}
                         </TableBody>
@@ -715,6 +768,7 @@ export default function McShopInspection({
                       {previewPayload.cavities.map((c: string, i: number) => (
                         <th key={i} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>{c}</th>
                       ))}
+                      <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -722,16 +776,21 @@ export default function McShopInspection({
                       <tr key={idx}>
                         <td style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{r.label}</td>
                         {r.freeText !== undefined && r.freeText !== null ? (
-                          <td colSpan={previewPayload.cavities.length} style={{ border: '1px solid black', padding: '8px' }}>
-                            {r.freeText}
-                          </td>
-                        ) : (
-                          r.values.map((v: any, j: number) => (
-                            <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
-                              {v === null ? "" : String(v)}
-                            </td>
-                          ))
-                        )}
+                          <td colSpan={previewPayload.cavities.length + 1} style={{ border: '1px solid black', padding: '8px' }}>
+                             {r.freeText}
+                           </td>
+                         ) : (
+                           <>
+                             {r.values.map((v: any, j: number) => (
+                               <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
+                                 {v === null ? "" : String(v)}
+                               </td>
+                             ))}
+                             <td style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                               {r.label.toLowerCase().includes("cavity details") ? "" : (r.total !== null && r.total !== undefined ? r.total : "")}
+                             </td>
+                           </>
+                         )}
                       </tr>
                     ))}
                   </tbody>

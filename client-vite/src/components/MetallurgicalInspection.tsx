@@ -148,6 +148,7 @@ interface Row {
   ok: boolean | null;
   remarks: string;
   value?: string;
+  total?: number | null; // added total
 }
 
 interface MicroCol {
@@ -162,6 +163,7 @@ const initialRows = (labels: string[]): Row[] =>
     attachment: null,
     ok: null,
     remarks: "",
+    total: null, // initialize total
   }));
 
 const MICRO_PARAMS = ["Cavity number", "Nodularity", "Matrix", "Carbide", "Inclusion"];
@@ -204,10 +206,14 @@ function SectionTable({
   title,
   rows,
   onChange,
+  showTotal = false, // new optional prop
+  onValidationError,
 }: {
   title: string;
   rows: Row[];
   onChange: (id: string, patch: Partial<Row>) => void;
+  showTotal?: boolean;
+  onValidationError?: (message: string) => void;
 }) {
   const [cols, setCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [cavityNumbers, setCavityNumbers] = useState<string[]>(['']);
@@ -256,9 +262,18 @@ function SectionTable({
   };
 
   const updateCell = (rowId: string, colIndex: number, val: string) => {
-    setValues((prev) => ({ ...prev, [rowId]: prev[rowId].map((v, i) => (i === colIndex ? val : v)) }));
-    const combined = (values[rowId] || []).map((v, i) => (i === colIndex ? val : v)).filter(Boolean).join(' | ');
-    onChange(rowId, { value: combined });
+    setValues((prev) => {
+      const arr = prev[rowId].map((v, i) => (i === colIndex ? val : v));
+      const copy = { ...prev, [rowId]: arr };
+      const combined = arr.filter(Boolean).join(' | ');
+      // compute numeric total: sum numeric values, ignore non-numeric
+      const total = arr.reduce((acc, s) => {
+        const n = parseFloat(String(s).trim());
+        return acc + (isNaN(n) ? 0 : n);
+      }, 0);
+      onChange(rowId, { value: combined, total });
+      return copy;
+    });
   };
 
   const updateGroupMeta = (patch: Partial<{ attachment: File | null; ok: boolean | null; remarks: string }>) => {
@@ -273,7 +288,7 @@ function SectionTable({
       </Box>
       <Divider sx={{ mb: 2, borderColor: COLORS.border }} />
 
-      <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
+        <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -295,8 +310,19 @@ function SectionTable({
                   </Box>
                 </TableCell>
               ))}
-              <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
-              <TableCell sx={{ width: 240, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks & Files</TableCell>
+
+              {/* NEW Total header if requested */}
+              {showTotal && (
+                <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>
+                  Total
+                </TableCell>
+              )}
+
+              {/* OK/NOT OK Header - empty with matching bgcolor */}
+              <TableCell sx={{ width: 140, bgcolor: COLORS.successBg, borderBottom: 'none' }}></TableCell>
+
+              {/* Remarks Header - empty with matching bgcolor */}
+              <TableCell sx={{ bgcolor: '#fff7ed', borderBottom: 'none' }}></TableCell>
             </TableRow>
           </TableHead>
 
@@ -316,75 +342,157 @@ function SectionTable({
                   />
                 </TableCell>
               ))}
-              <TableCell rowSpan={1} sx={{ bgcolor: '#f8fafc' }} />
-              <TableCell rowSpan={1} sx={{ bgcolor: '#f8fafc' }} />
+
+              {/* empty total cell in cavity row if present */}
+              {showTotal && <TableCell rowSpan={1} sx={{ bgcolor: '#f8fafc' }} />}
+
+              {/* OK/NOT OK and Remarks cells - span all rows from cavity */}
+              <TableCell rowSpan={rows.length + (title === "NDT INSPECTION ANALYSIS" ? 2 : 1)} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <RadioGroup row sx={{ justifyContent: 'center' }} value={groupMeta.ok === null ? "" : String(groupMeta.ok)} onChange={(e) => updateGroupMeta({ ok: e.target.value === "true" })}>
+                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} />
+                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} />
+                  </RadioGroup>
+                </Box>
+              </TableCell>
+
+              <TableCell rowSpan={rows.length + (title === "NDT INSPECTION ANALYSIS" ? 2 : 1)} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={groupMeta.remarks}
+                    onChange={(e) => updateGroupMeta({ remarks: e.target.value })}
+                    placeholder="Enter remarks..."
+                    variant="outlined"
+                    sx={{ bgcolor: 'white' }}
+                  />
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
+                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; updateGroupMeta({ attachment: file }); }} />
+                    <label htmlFor={`${title}-group-file`}>
+                      <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}>
+                        Attach PDF
+                      </Button>
+                    </label>
+
+                    {groupMeta.attachment && (
+                      <Chip
+                        icon={<InsertDriveFileIcon />}
+                        label={groupMeta.attachment.name}
+                        onDelete={() => updateGroupMeta({ attachment: null })}
+                        size="small"
+                        variant="outlined"
+                        sx={{ maxWidth: 120 }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              </TableCell>
             </TableRow>
 
-            {rows.map((r: Row, idx: number) => (
-              <TableRow key={r.id}>
-                <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
+            {rows.map((r: Row, idx: number) => {
+              // compute total for display from current state (fallback to r.total)
+              const rowVals = values[r.id] ?? [];
+              const displayTotal = rowVals.reduce((acc, s) => {
+                const n = parseFloat(String(s).trim());
+                return acc + (isNaN(n) ? 0 : n);
+              }, 0);
+              const totalToShow = rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null);
 
-                {cols.map((c, ci) => (
-                  <TableCell key={c.id}>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      value={values[r.id]?.[ci] ?? ""}
-                      onChange={(e) => updateCell(r.id, ci, e.target.value)}
-                      variant="outlined"
-                      sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                    />
-                  </TableCell>
-                ))}
+              return (
+                <TableRow key={r.id}>
+                  <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
 
-                {idx === 0 ? (
-                  <>
-                    <TableCell rowSpan={rows.length} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center' }}>
-                      <RadioGroup row sx={{ justifyContent: 'center' }} value={groupMeta.ok === null ? "" : String(groupMeta.ok)} onChange={(e) => updateGroupMeta({ ok: e.target.value === "true" })}>
-                        <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} />
-                        <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} />
-                      </RadioGroup>
+                  {cols.map((c, ci) => (
+                    <TableCell key={c.id} sx={{ display: r.label.toLowerCase().includes('reason') ? 'none' : 'table-cell' }}>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        value={values[r.id]?.[ci] ?? ""}
+                        onChange={(e) => updateCell(r.id, ci, e.target.value)}
+                        variant="outlined"
+                        sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                      />
                     </TableCell>
+                  ))}
 
-                    <TableCell rowSpan={rows.length} colSpan={4} sx={{ bgcolor: '#fff7ed', verticalAlign: "top" }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1 }}>
-                        <TextField
-                          size="small"
-                          fullWidth
-                          multiline
-                          rows={3}
-                          value={groupMeta.remarks}
-                          onChange={(e) => updateGroupMeta({ remarks: e.target.value })}
-                          placeholder="Enter remarks..."
-                          variant="outlined"
-                          sx={{ bgcolor: 'white' }}
-                        />
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; updateGroupMeta({ attachment: file }); }} />
-                          <label htmlFor={`${title}-group-file`}>
-                            <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}>
-                              Attach PDF
-                            </Button>
-                          </label>
-
-                          {groupMeta.attachment && (
-                            <Chip
-                              icon={<InsertDriveFileIcon />}
-                              label={groupMeta.attachment.name}
-                              onDelete={() => updateGroupMeta({ attachment: null })}
-                              size="small"
-                              variant="outlined"
-                              sx={{ maxWidth: 120 }}
-                            />
-                          )}
-                        </Box>
-                      </Box>
+                  {/* Expanded field for Reason for Rejection */}
+                  {r.label.toLowerCase().includes('reason') && (
+                    <TableCell colSpan={cols.length + (showTotal ? 1 : 0)}>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        value={values[r.id]?.[0] ?? ""}
+                        onChange={(e) => updateCell(r.id, 0, e.target.value)}
+                        placeholder="Enter reason for rejection..."
+                        variant="outlined"
+                        sx={{ "& .MuiInputBase-input": { fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                      />
                     </TableCell>
-                  </>
-                ) : null}
-              </TableRow>
-            ))}
+                  )}
+
+                  {/* Total column per row (if enabled) - skip for Reason for Rejection */}
+                  {showTotal && !r.label.toLowerCase().includes('reason') && (
+                    <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
+                      {totalToShow !== null && totalToShow !== undefined ? totalToShow : "-"}
+                    </TableCell>
+                  )}
+
+
+                </TableRow>
+              );
+            })}
+
+            {/* Rejection Percentage row for NDT: computed per-column from local values */}
+            {title === "NDT INSPECTION ANALYSIS" && (() => {
+              const inspected = rows.find(rr => rr.label.toLowerCase().includes('inspected'));
+              const rejected = rows.find(rr => rr.label.toLowerCase().includes('rejected'));
+              if (!inspected || !rejected) return null;
+              return (
+                <TableRow key="rejection-percentage">
+                  <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#fff' }}>Rejection Percentage</TableCell>
+                  {cols.map((_, ci) => {
+                    const insValRaw = values[inspected.id]?.[ci] ?? "";
+                    const rejValRaw = values[rejected.id]?.[ci] ?? "";
+                    const insNum = parseFloat(String(insValRaw).trim());
+                    const rejNum = parseFloat(String(rejValRaw).trim());
+                    
+                    let cellContent = '-';
+                    let bgColor = '#fff';
+                    
+                    // Validate: rejected must be <= inspected quantity
+                    if (!isNaN(rejNum) && !isNaN(insNum) && rejNum > insNum) {
+                      cellContent = 'Invalid';
+                      bgColor = '#fee2e2';
+                      // Trigger error notification
+                      if (onValidationError) {
+                        onValidationError(`Column ${ci + 1}: Rejected quantity (${rejNum}) cannot be greater than Inspected quantity (${insNum})`);
+                      }
+                    } else if (!isNaN(insNum) && insNum > 0 && !isNaN(rejNum)) {
+                      const percent = (rejNum / insNum) * 100;
+                      cellContent = `${percent.toFixed(2)}%`;
+                    }
+                    
+                    return (
+                      <TableCell key={`rej-${ci}`} sx={{ textAlign: 'center', bgcolor: bgColor, cursor: 'pointer' }}>
+                        {cellContent}
+                      </TableCell>
+                    );
+                  })}
+
+                  {/* if showTotal is enabled keep table structure aligned with OK and Remarks columns */}
+                  {showTotal && <TableCell sx={{ bgcolor: '#fff' }} />}
+
+                  <TableCell sx={{ bgcolor: '#fff' }} />
+                  <TableCell sx={{ bgcolor: '#fff' }} />
+                </TableRow>
+              );
+            })()}
           </TableBody>
         </Table>
       </Box>
@@ -422,9 +530,10 @@ function MicrostructureTable({
 
   const addColumn = () => {
     setCols((prev: MicroCol[]) => {
-      const nextIndex = prev.length + 1;
-      return [...prev, { id: `c${nextIndex}`, label: `Value ${nextIndex}` }];
-    });
+  const nextIndex = prev.length + 1;
+  return [...prev, { id: `c${nextIndex}`, label: '' }];   // empty column name
+});
+
     setCavityNumbers((prev) => [...prev, '']);
     setValues((prev) => {
       const copy: Record<string, string[]> = {};
@@ -496,7 +605,7 @@ function MicrostructureTable({
 
           <TableBody>
             {/* Cavity Number Row */}
-
+          
 
             {params.map((param, pIndex) => (
               <TableRow key={param}>
@@ -588,6 +697,7 @@ export default function MetallurgicalInspection() {
   const [loading, setLoading] = useState(false);
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [alert, setAlert] = useState<{ severity: "success" | "error" | "info" | "warning"; message: string } | null>(null);
+  const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
   // Preview states
   const [previewMode, setPreviewMode] = useState(false);
@@ -602,7 +712,7 @@ export default function MetallurgicalInspection() {
   }, []);
 
   // Microstructure state
-  const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: 'Value 1' }]);
+  const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [microValues, setMicroValues] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {};
     MICRO_PARAMS.forEach((p) => { init[p] = ['']; });
@@ -623,6 +733,13 @@ export default function MetallurgicalInspection() {
 
   useEffect(() => { if (alert) { const t = setTimeout(() => setAlert(null), 5000); return () => clearTimeout(t); } }, [alert]);
 
+  useEffect(() => { 
+    if (ndtValidationError) { 
+      const t = setTimeout(() => setNdtValidationError(null), 6000); 
+      return () => clearTimeout(t); 
+    } 
+  }, [ndtValidationError]);
+
   const updateRow = (setRows: Dispatch<SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
   };
@@ -632,17 +749,49 @@ export default function MetallurgicalInspection() {
       label: r.label,
       value: r.value ?? null,
       ok: r.ok === null ? null : Boolean(r.ok),
-      remarks: r.remarks ?? null,
+      remarks: r.remarks ?? "",
       attachment: fileToMeta(r.attachment),
+      total: r.total ?? null, // include total in payload
     }));
 
     const microRowsPayload = MICRO_PARAMS.map((p) => ({
       label: p,
       values: (microValues[p] || []).map((v) => (v === '' ? null : v)),
       ok: microMeta['group']?.ok ?? null,
-      remarks: microMeta['group']?.remarks ?? null,
+      remarks: microMeta['group']?.remarks ?? "",
       attachment: fileToMeta(microMeta['group']?.attachment ?? null),
     }));
+
+    // map NDT rows and append computed Rejection Percentage row (per-column)
+    const ndtMapped = mapRows(ndtRows);
+    // find inspected/rejected mapped entries (they have value strings like "10 | 9")
+    const findByLabel = (arr: any[], key: string) => arr.find((x: any) => (x.label || '').toLowerCase().includes(key));
+    const inspectedMapped = findByLabel(ndtMapped, 'inspected');
+    const rejectedMapped = findByLabel(ndtMapped, 'rejected');
+    if (inspectedMapped && rejectedMapped) {
+      const insValues = (inspectedMapped.value || '').split(' | ').map((s: string) => s.trim());
+      const rejValues = (rejectedMapped.value || '').split(' | ').map((s: string) => s.trim());
+      const maxCols = Math.max(insValues.length, rejValues.length, 1);
+      const percents: string[] = [];
+      for (let i = 0; i < maxCols; i++) {
+        const insN = parseFloat(insValues[i] ?? '');
+        const rejN = parseFloat(rejValues[i] ?? '');
+        // Validate: rejected must be <= inspected quantity
+        if (!isNaN(insN) && insN > 0 && !isNaN(rejN) && rejN <= insN) {
+          percents.push(`${((rejN / insN) * 100).toFixed(2)}%`);
+        } else {
+          percents.push(rejN > insN ? 'Invalid' : '-');
+        }
+      }
+      ndtMapped.push({
+        label: 'Rejection Percentage',
+        value: percents.join(' | '),
+        ok: null,
+        remarks: "",
+        attachment: null,
+        total: null,
+      });
+    }
 
     return {
       inspection_date: date || null,
@@ -650,7 +799,7 @@ export default function MetallurgicalInspection() {
       mechRows: mapRows(mechRows),
       impactRows: mapRows(impactRows),
       hardRows: mapRows(hardRows),
-      ndtRows: mapRows(ndtRows),
+      ndtRows: ndtMapped,
       status: "draft",
     };
   };
@@ -688,36 +837,41 @@ export default function MetallurgicalInspection() {
   };
 
   /* Preview Components */
-  const PreviewSectionTable = ({ title, rows }: { title: string, rows: any[] }) => (
-    <Box mt={2} mb={3}>
-      <Typography variant="subtitle2" sx={{ bgcolor: '#f1f5f9', p: 1, borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
-        {title}
-      </Typography>
-      <Table size="small" sx={{ border: '1px solid #e2e8f0' }}>
-        <TableHead>
-          <TableRow sx={{ bgcolor: '#f8fafc' }}>
-            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Value</TableCell>
-            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>Status</TableCell>
-            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Remarks</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((r, i) => (
-            <TableRow key={i}>
-              <TableCell sx={{ fontSize: '0.8rem' }}>{r.label}</TableCell>
-              <TableCell sx={{ fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>{r.value || '-'}</TableCell>
-              <TableCell sx={{ fontSize: '0.8rem' }}>
-                {r.ok === true ? <Chip label="OK" color="success" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} /> :
-                  r.ok === false ? <Chip label="NOT OK" color="error" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} /> : '-'}
-              </TableCell>
-              <TableCell sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{r.remarks || '-'}</TableCell>
+  const PreviewSectionTable = ({ title, rows }: { title: string, rows: any[] }) => {
+    const hasTotal = rows.some(r => typeof r.total === 'number' && !isNaN(r.total));
+    return (
+      <Box mt={2} mb={3}>
+        <Typography variant="subtitle2" sx={{ bgcolor: '#f1f5f9', p: 1, borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+          {title}
+        </Typography>
+        <Table size="small" sx={{ border: '1px solid #e2e8f0' }}>
+          <TableHead>
+            <TableRow sx={{ bgcolor: '#f8fafc' }}>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Value</TableCell>
+              {hasTotal && <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total</TableCell>}
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Remarks</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Box>
-  );
+          </TableHead>
+          <TableBody>
+            {rows.map((r, i) => (
+              <TableRow key={i}>
+                <TableCell sx={{ fontSize: '0.8rem' }}>{r.label}</TableCell>
+                <TableCell sx={{ fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>{r.value || '-'}</TableCell>
+                {hasTotal && <TableCell sx={{ fontSize: '0.8rem', textAlign: 'center' }}>{(typeof r.total === 'number') ? r.total : '-'}</TableCell>}
+                <TableCell sx={{ fontSize: '0.8rem' }}>
+                  {r.ok === true ? <Chip label="OK" color="success" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} /> :
+                    r.ok === false ? <Chip label="NOT OK" color="error" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} /> : '-'}
+                </TableCell>
+                <TableCell sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{r.remarks || '-'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
+    );
+  };
 
   const PreviewMicroTable = ({ data }: { data: any[] }) => {
     const maxCols = Math.max(...data.map(d => d.values?.length || 0), 1);
@@ -761,33 +915,38 @@ export default function MetallurgicalInspection() {
   };
 
   // Helper for print (no material styles, plain HTML table)
-  const PrintSectionTable = ({ title, rows }: { title: string, rows: any[] }) => (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ fontWeight: 'bold', borderBottom: '1px solid #ccc', marginBottom: '5px' }}>{title}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '12px' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f0f0f0' }}>
-            <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Parameter</th>
-            <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Value</th>
-            <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '50px' }}>Status</th>
-            <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              <td style={{ border: '1px solid black', padding: '5px' }}>{r.label}</td>
-              <td style={{ border: '1px solid black', padding: '5px' }}>{r.value || '-'}</td>
-              <td style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>
-                {r.ok === true ? 'OK' : r.ok === false ? 'NOT OK' : '-'}
-              </td>
-              <td style={{ border: '1px solid black', padding: '5px' }}>{r.remarks || '-'}</td>
+  const PrintSectionTable = ({ title, rows }: { title: string, rows: any[] }) => {
+    const hasTotal = rows.some(r => typeof r.total === 'number' && !isNaN(r.total));
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #ccc', marginBottom: '5px' }}>{title}</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '12px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Parameter</th>
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Value</th>
+              {hasTotal && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>Total</th>}
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '50px' }}>Status</th>
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Remarks</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td style={{ border: '1px solid black', padding: '5px' }}>{r.label}</td>
+                <td style={{ border: '1px solid black', padding: '5px' }}>{r.value || '-'}</td>
+                {hasTotal && <td style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>{(typeof r.total === 'number') ? r.total : '-'}</td>}
+                <td style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>
+                  {r.ok === true ? 'OK' : r.ok === false ? 'NOT OK' : '-'}
+                </td>
+                <td style={{ border: '1px solid black', padding: '5px' }}>{r.remarks || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   const PrintMicroTable = ({ data }: { data: any[] }) => {
     const maxCols = Math.max(...data.map(d => d.values?.length || 0), 1);
@@ -886,7 +1045,14 @@ export default function MetallurgicalInspection() {
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <SectionTable title="HARDNESS" rows={hardRows} onChange={updateRow(setHardRows)} />
-                <SectionTable title="NDT INSPECTION ANALYSIS" rows={ndtRows} onChange={updateRow(setNdtRows)} />
+                <Box>
+                  <SectionTable title="NDT INSPECTION ANALYSIS" rows={ndtRows} onChange={updateRow(setNdtRows)} showTotal={true} onValidationError={setNdtValidationError} />
+                  {ndtValidationError && (
+                    <Alert severity="error" sx={{ mt: 2 }} onClose={() => setNdtValidationError(null)}>
+                      {ndtValidationError}
+                    </Alert>
+                  )}
+                </Box>
               </Grid>
             </Grid>
 

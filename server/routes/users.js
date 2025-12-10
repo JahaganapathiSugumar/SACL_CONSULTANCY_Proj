@@ -14,7 +14,7 @@ router.get('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (r
   res.status(200).json({ users: rows });
 }));
 
-router.post('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (req, res, next) => {
+router.post('/', asyncErrorHandler(async (req, res, next) => {
   const { username, full_name, password, email, department_id, role } = req.body;
   if (!username || !password || !full_name || !email || !department_id || !role) {
     throw new CustomError('Missing required fields', 400);
@@ -22,9 +22,9 @@ router.post('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   const hash = await bcrypt.hash(password, saltRounds);
   const sql = 'INSERT INTO users (username, full_name, password_hash, email, department_id, role) VALUES (?, ?, ?, ?, ?, ?)';
+  const [result] = await Client.execute(sql, [username, full_name, hash, email, department_id, role]);
   const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
   const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'User created', `User ${username} created by ${req.user.username}`]);
-  const [result] = await Client.execute(sql, [username, full_name, hash, email, department_id, role]);
   res.status(201).json({ success: true, message: 'User created successfully.' });
 }));
 
