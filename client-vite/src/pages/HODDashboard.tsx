@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import UserManagement from '../components/admin/UserManagement';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,9 +19,32 @@ interface ActionItem {
 
 const HODDashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const handlePendingClick = () => {
+    const departmentIdRaw = user?.department_id;
+    const departmentId = typeof departmentIdRaw === 'string' ? Number(departmentIdRaw) : departmentIdRaw;
+
+    const departmentRoutes: Record<number, string> = {
+      10: '/dimensional-inspection',
+      7: '/metallurgical-inspection',
+      8: '/machine-shop',
+      6: '/moulding',
+      9: '/pouring-details',
+      4: '/sand-properties',
+      5: '/visual-inspection',
+    };
+
+    if (departmentId && departmentRoutes[departmentId]) {
+      navigate(departmentRoutes[departmentId]);
+      return;
+    }
+
+    navigate('/dashboard');
+  };
 
   // Function to get department name based on user role
   const getDepartmentInfo = () => {
@@ -28,13 +52,13 @@ const HODDashboard: React.FC = () => {
       return { displayText: user.role, showDepartment: false };
     } else {
       // Use the actual department name from your table
-      const department = user?.department_name || 
-                        user?.department || 
-                        getDepartmentName(user?.department_id);
-      
-      return { 
+      const department = user?.department_name ||
+        user?.department ||
+        getDepartmentName(user?.department_id);
+
+      return {
         displayText: department || 'Operations', // Just show the department name, no "Department" suffix
-        showDepartment: true 
+        showDepartment: true
       };
     }
   };
@@ -43,7 +67,7 @@ const HODDashboard: React.FC = () => {
   const getDepartmentName = (departmentId: number | string) => {
     const departmentMap = {
       1: 'ADMIN',
-      2: 'NPD METHODS', 
+      2: 'NPD METHODS',
       3: 'NPD QC',
       4: 'SANDPLANT',
       5: 'FETTLING & VISUAL INSPECTION',
@@ -54,7 +78,7 @@ const HODDashboard: React.FC = () => {
       10: 'QA',
       11: 'CUSTOMER'
     };
-    
+
     return departmentMap[departmentId as keyof typeof departmentMap] || null;
   };
 
@@ -132,7 +156,7 @@ const HODDashboard: React.FC = () => {
         }}>
           SAKTHI AUTO COMPONENTS LTD
         </div>
-        
+
         {/* Department and Role Info */}
         <div style={{
           padding: '8px 16px',
@@ -178,14 +202,14 @@ const HODDashboard: React.FC = () => {
         gap: '20px'
       }}>
         {/* Notification Icon */}
-        <div 
+        <div
           style={{
             position: 'relative',
             cursor: 'pointer',
             padding: '8px',
             borderRadius: '50%',
             transition: 'background-color 0.2s'
-          }} 
+          }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           onClick={() => setShowNotifications(true)}
@@ -207,7 +231,7 @@ const HODDashboard: React.FC = () => {
 
         {/* Profile Section */}
         <div style={{ position: 'relative' }}>
-          <div 
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -253,19 +277,19 @@ const HODDashboard: React.FC = () => {
                 )}
               </div>
             </div>
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="2"
               style={{
                 transform: showProfileDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.2s'
               }}
             >
-              <path d="m6 9 6 6 6-6"/>
+              <path d="m6 9 6 6 6-6" />
             </svg>
           </div>
 
@@ -297,7 +321,7 @@ const HODDashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div 
+              <div
                 style={{
                   padding: '12px 16px',
                   cursor: 'pointer',
@@ -351,7 +375,7 @@ const HODDashboard: React.FC = () => {
           paddingBottom: '15px'
         }}>
           <h3 style={{ margin: 0, color: '#333' }}>Notifications</h3>
-          <button 
+          <button
             onClick={() => setShowNotifications(false)}
             style={{
               background: 'none',
@@ -364,7 +388,7 @@ const HODDashboard: React.FC = () => {
             ×
           </button>
         </div>
-        
+
         {/* Notification Content */}
         <div style={{ marginBottom: '15px' }}>
           <div style={{
@@ -378,7 +402,7 @@ const HODDashboard: React.FC = () => {
             <div style={{ fontSize: '14px', color: '#666' }}>A team member submitted a new idea for review</div>
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>10 min ago</div>
           </div>
-          
+
           <div style={{
             padding: '12px',
             backgroundColor: '#f0f9f0',
@@ -390,7 +414,7 @@ const HODDashboard: React.FC = () => {
             <div style={{ fontSize: '14px', color: '#666' }}>Your department idea has been approved by management</div>
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>2 hours ago</div>
           </div>
-          
+
           <div style={{
             padding: '12px',
             backgroundColor: '#fffbf0',
@@ -415,8 +439,8 @@ const HODDashboard: React.FC = () => {
             <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>2 days ago</div>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => setShowNotifications(false)}
           style={{
             width: '100%',
@@ -446,34 +470,54 @@ const HODDashboard: React.FC = () => {
         ) : (
           <div className="welcome-section">
             {/* Header Section */}
-            <div className="welcome-header" style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <div className="welcome-header" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
               marginBottom: '30px'
             }}>
               <div>
-                <h2 style={{ 
-                  fontSize: '24px', 
+                <h2 style={{
+                  fontSize: '24px',
                   fontWeight: 'bold',
                   color: '#333',
                   margin: 0,
                   marginBottom: '5px'
                 }}>
-                  {user?.role === 'Admin' ? 'Admin Dashboard' : 
-                   user?.role === 'Methods' ? 'Methods Dashboard' : 'HOD Dashboard'}
+                  {user?.role === 'Admin' ? 'Admin Dashboard' :
+                    user?.role === 'Methods' ? 'Methods Dashboard' : 'HOD Dashboard'}
                 </h2>
-                <p style={{ 
+                <p style={{
                   color: '#666',
                   fontSize: '14px',
                   margin: 0
                 }}>
-                  Welcome back, {user?.username}! {user?.role === 'Admin' ? 'Manage system-wide operations.' : 
-                  user?.role === 'Methods' ? 'Oversee methods and processes.' : 'Manage your department efficiently.'}
+                  Welcome back, {user?.username}! {user?.role === 'Admin' ? 'Manage system-wide operations.' :
+                    user?.role === 'Methods' ? 'Oversee methods and processes.' : 'Manage your department efficiently.'}
                 </p>
               </div>
               <div className="button-group" style={{ display: 'flex', gap: '15px' }}>
-                <button 
+                <button
+                  className="btn-pending-cards"
+                  onClick={() => handlePendingClick()}
+                  style={{
+                    backgroundColor: '#ffc107',
+                    color: '#333',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0ac06'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffc107'}
+                >
+                  ⏳ Pending Cards
+                </button>
+
+                <button
                   className="btn-view-users"
                   onClick={() => setShowUserDetails(true)}
                   style={{
@@ -497,16 +541,16 @@ const HODDashboard: React.FC = () => {
 
             {/* Role Specific Stats Grid */}
             <div style={{ marginBottom: '30px' }}>
-              <p style={{ 
+              <p style={{
                 color: '#666',
                 fontSize: '14px',
                 marginBottom: '15px'
               }}>
                 {user?.role === 'Admin' ? 'System overview and key metrics' :
-                 user?.role === 'Methods' ? 'Methods and process metrics' :
-                 'Department overview and key metrics'}
+                  user?.role === 'Methods' ? 'Methods and process metrics' :
+                    'Department overview and key metrics'}
               </p>
-              
+
               <div className="stats-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -514,7 +558,7 @@ const HODDashboard: React.FC = () => {
                 marginBottom: '30px'
               }}>
                 {stats.map((stat, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="stat-card"
                     style={{
@@ -535,15 +579,15 @@ const HODDashboard: React.FC = () => {
                       e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                     }}
                   >
-                    <div style={{ 
-                      fontSize: '28px', 
+                    <div style={{
+                      fontSize: '28px',
                       fontWeight: 'bold',
                       color: '#333',
                       marginBottom: '5px'
                     }}>
                       {stat.value}
                     </div>
-                    <div style={{ 
+                    <div style={{
                       fontSize: '14px',
                       color: '#666',
                       fontWeight: '600',
@@ -551,7 +595,7 @@ const HODDashboard: React.FC = () => {
                     }}>
                       {stat.label}
                     </div>
-                    <div style={{ 
+                    <div style={{
                       fontSize: '12px',
                       color: '#999'
                     }}>
@@ -561,7 +605,7 @@ const HODDashboard: React.FC = () => {
                 ))}
               </div>
 
-              <hr style={{ 
+              <hr style={{
                 border: 'none',
                 borderTop: '1px solid #dee2e6',
                 margin: '30px 0'
@@ -570,7 +614,7 @@ const HODDashboard: React.FC = () => {
 
             {/* Quick Actions Section */}
             <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ 
+              <h3 style={{
                 fontSize: '18px',
                 fontWeight: 'bold',
                 color: '#333',
@@ -585,7 +629,7 @@ const HODDashboard: React.FC = () => {
                 gap: '20px'
               }}>
                 {actions.map((action, index) => (
-                  <div 
+                  <div
                     key={index}
                     style={{
                       backgroundColor: 'white',
@@ -617,10 +661,10 @@ const HODDashboard: React.FC = () => {
           </div>
         )}
         {showUserDetails && (
-          <button 
+          <button
             className="btn-back"
             onClick={() => setShowUserDetails(false)}
-            style={{ 
+            style={{
               marginTop: '20px',
               backgroundColor: '#6c757d',
               color: 'white',

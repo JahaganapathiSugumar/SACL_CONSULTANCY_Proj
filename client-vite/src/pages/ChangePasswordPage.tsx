@@ -15,7 +15,7 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { apiService } from '../services/commonService';
 import { useNavigate } from 'react-router-dom';
 
 const SAKTHI_COLORS = {
@@ -129,8 +129,8 @@ const ChangePasswordPage: React.FC = () => {
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to change password');
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 

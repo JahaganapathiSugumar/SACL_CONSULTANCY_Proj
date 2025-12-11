@@ -1,16 +1,16 @@
-import { apiService } from './api';
+import { apiService } from './commonService';
 
 export const authService = {
   async login(username: string, password: string, role?: string, department_id?: string) {
     const response = await apiService.login(username, password, role, department_id);
-    
+
     // Store token and user info
     localStorage.setItem('authToken', response.token);
     if (response.refreshToken) {
       localStorage.setItem('refreshToken', response.refreshToken);
     }
     localStorage.setItem('user', JSON.stringify(response.user));
-    
+
     return response;
   },
 

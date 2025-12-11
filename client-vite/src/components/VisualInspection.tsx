@@ -39,27 +39,24 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
-import { authService } from '../services/authService';
+import { ipService } from '../services/ipService';
+import { inspectionService } from '../services/inspectionService';
 
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-    primary: "#1e293b",    // Slate 800
-    secondary: "#ea580c",  // Orange 600
-    background: "#f1f5f9", // Light Slate Background
+    primary: "#1e293b",
+    secondary: "#ea580c",
+    background: "#f1f5f9",
     surface: "#ffffff",
-    border: "#e2e8f0",     // Slate 200
+    border: "#e2e8f0",
     textPrimary: "#0f172a",
     textSecondary: "#64748b",
-
-    // Header Colors
-    blueHeaderBg: "#eff6ff", // Light Blue
-    blueHeaderText: "#3b82f6", // Blue
-    orangeHeaderBg: "#fff7ed", // Light Orange
-    orangeHeaderText: "#c2410c", // Dark Orange
-
-    // Specific for Inspection Status
+    blueHeaderBg: "#eff6ff",
+    blueHeaderText: "#3b82f6",
+    orangeHeaderBg: "#fff7ed",
+    orangeHeaderText: "#c2410c",
     successBg: "#ecfdf5",
     successText: "#059669",
 };
@@ -227,31 +224,24 @@ export default function VisualInspection({
         }
     }, [alert]);
 
-    // Fetch IP
     useEffect(() => {
         const fetchUserIP = async () => {
-            try {
-                const res = await fetch("https://api.ipify.org?format=json");
-                if (!res.ok) throw new Error("Failed");
-                const data = await res.json();
-                setUserIP(data.ip ?? "Unavailable");
-            } catch (err) {
-                setUserIP("Unavailable");
-            }
+            const ip = await ipService.getUserIP();
+            setUserIP(ip);
         };
         fetchUserIP();
     }, []);
 
-   const addColumn = () => {
-    setCols((c) => [...c, ""]);   // <-- no "Value 1, Value 2" anymore
+    const addColumn = () => {
+        setCols((c) => [...c, ""]);
 
-    setRows((r) =>
-        r.map((row) => ({
-            ...row,
-            values: [...row.values, ""],
-        }))
-    );
-};
+        setRows((r) =>
+            r.map((row) => ({
+                ...row,
+                values: [...row.values, ""],
+            }))
+        );
+    };
 
 
     const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,7 +271,7 @@ export default function VisualInspection({
 
                 const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
 
-                // Only compute total for rows other than "Cavity number"
+
                 let total: number | undefined = undefined;
                 if (r.label !== "Cavity number") {
                     total = newValues.reduce((sum, val) => {
@@ -320,7 +310,7 @@ export default function VisualInspection({
             rows: rows.map(r => ({
                 label: r.label,
                 values: r.values,
-                // do not include a numeric total for the Cavity number row
+
                 total: r.label === "Cavity number" ? null : r.values.reduce((acc, v) => {
                     const n = parseFloat(String(v).trim());
                     return acc + (isNaN(n) ? 0 : n);
@@ -395,23 +385,9 @@ export default function VisualInspection({
                 remarks: previewPayload.additionalRemarks || previewPayload.group?.remarks || null,
             };
 
-            const token = authService.getToken();
-            const res = await fetch('http://localhost:3000/api/visual-inspection', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify(serverPayload),
-            });
-
-            const data = await res.json().catch(() => ({}));
-            if (res.ok && data?.success) {
-                setSubmitted(true);
-                setAlert({ severity: 'success', message: data?.message || 'Visual inspection created successfully.' });
-            } else {
-                setAlert({ severity: 'error', message: data?.message || 'Submission failed' });
-            }
+            await inspectionService.submitVisualInspection(serverPayload);
+            setSubmitted(true);
+            setAlert({ severity: 'success', message: 'Visual inspection created successfully.' });
         } catch (err: any) {
             setAlert({ severity: 'error', message: err?.message || 'Submission failed' });
         } finally {
@@ -512,10 +488,10 @@ export default function VisualInspection({
                                             </TableCell>
                                         ))}
                                         <TableCell
-  sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}
->
-  Total
-</TableCell>
+                                            sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}
+                                        >
+                                            Total
+                                        </TableCell>
                                         <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
                                         <TableCell sx={{ width: 280, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                                     </TableRow>
@@ -560,16 +536,16 @@ export default function VisualInspection({
                                                 );
                                             })}
                                             {/* ⭐ NEW TOTAL CELL */}
-<TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
-    {(() => {
-        if (r.label === "Cavity number") return "-";
-        const sum = r.values.reduce((acc, v) => {
-            const n = parseFloat(String(v).trim());
-            return acc + (isNaN(n) ? 0 : n);
-        }, 0);
-        return sum || "-";
-    })()}
-</TableCell>
+                                            <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
+                                                {(() => {
+                                                    if (r.label === "Cavity number") return "-";
+                                                    const sum = r.values.reduce((acc, v) => {
+                                                        const n = parseFloat(String(v).trim());
+                                                        return acc + (isNaN(n) ? 0 : n);
+                                                    }, 0);
+                                                    return sum || "-";
+                                                })()}
+                                            </TableCell>
 
 
                                             {ri === 0 ? (
@@ -595,7 +571,7 @@ export default function VisualInspection({
 
                                                     <TableCell
                                                         rowSpan={rows.length}
-                                                        colSpan={2} // Cover remarks space
+                                                        colSpan={2}
                                                         sx={{ bgcolor: '#fff7ed', verticalAlign: "top" }}
                                                     >
                                                         <Box display="flex" flexDirection="column" height="100%" gap={1}>

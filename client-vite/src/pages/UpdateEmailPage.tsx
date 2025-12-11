@@ -11,7 +11,7 @@ import {
   ThemeProvider,
   createTheme,
 } from '@mui/material';
-import { apiService } from '../services/api';
+import { apiService } from '../services/commonService';
 import { useNavigate } from 'react-router-dom';
 
 const SAKTHI_COLORS = {
@@ -90,8 +90,8 @@ const UpdateEmailPage: React.FC = () => {
       setOtpSent(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send OTP');
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,13 +114,13 @@ const UpdateEmailPage: React.FC = () => {
           parsed.email = email;
           localStorage.setItem('user', JSON.stringify(parsed));
         }
-      } catch {}
+      } catch { }
       // After verifying email, require user to change default password
       setTimeout(() => navigate('/change-password'), 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to verify OTP');
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 

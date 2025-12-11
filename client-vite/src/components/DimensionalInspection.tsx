@@ -35,26 +35,24 @@ import CloseIcon from "@mui/icons-material/Close";
 import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
+import { ipService } from '../services/ipService';
+import { inspectionService } from '../services/inspectionService';
 
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600
-  background: "#f1f5f9", // Light Slate Background
+  primary: "#1e293b",
+  secondary: "#ea580c",
+  background: "#f1f5f9",
   surface: "#ffffff",
-  border: "#e2e8f0",     // Slate 200
+  border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
-
-  // Header Colors
-  blueHeaderBg: "#eff6ff", // Light Blue
-  blueHeaderText: "#3b82f6", // Blue
-  orangeHeaderBg: "#fff7ed", // Light Orange
-  orangeHeaderText: "#c2410c", // Dark Orange
-
-  // Specific for Inspection Status
+  blueHeaderBg: "#eff6ff",
+  blueHeaderText: "#3b82f6",
+  orangeHeaderBg: "#fff7ed",
+  orangeHeaderText: "#c2410c",
   successBg: "#ecfdf5",
   successText: "#059669",
 };
@@ -206,17 +204,10 @@ export default function DimensionalInspection({
     }
   }, [alert]);
 
-  // Fetch IP
   useEffect(() => {
     const fetchUserIP = async () => {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        setUserIP(data.ip ?? "Unavailable");
-      } catch (err) {
-        setUserIP("Unavailable");
-      }
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
     };
     fetchUserIP();
   }, []);
@@ -319,25 +310,9 @@ export default function DimensionalInspection({
         remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
       };
 
-      const token = localStorage.getItem('authToken');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('http://localhost:3000/api/dimensional-inspection', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(apiPayload)
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (res.ok && data?.success) {
-        setPreviewSubmitted(true);
-        setAlert({ severity: "success", message: data.data || "Dimensional inspection created successfully." });
-      } else {
-        setAlert({ severity: "error", message: data?.message || "Failed to save dimensional inspection" });
-        console.error("Dimensional Inspection API error:", data);
-      }
+      await inspectionService.submitDimensionalInspection(apiPayload);
+      setPreviewSubmitted(true);
+      setAlert({ severity: "success", message: "Dimensional inspection created successfully." });
     } catch (err: any) {
       console.error("Error saving dimensional inspection:", err);
       setAlert({ severity: "error", message: "Failed to save dimensional inspection. Please try again." });

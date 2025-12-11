@@ -33,22 +33,24 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
+import { ipService } from '../services/ipService';
+import { inspectionService } from '../services/inspectionService';
 /* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600 (Buttons)
-  background: "#f1f5f9", // Light Slate Background
+  primary: "#1e293b",
+  secondary: "#ea580c",
+  background: "#f1f5f9",
   surface: "#ffffff",
-  border: "#e2e8f0",     // Slate 200
+  border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
-
-  // Header Colors (Material Correction Style)
-  blueHeaderBg: "#eff6ff", // Light Blue
-  blueHeaderText: "#3b82f6", // Blue
-  orangeHeaderBg: "#fff7ed", // Light Orange
-  orangeHeaderText: "#c2410c", // Dark Orange
+  blueHeaderBg: "#eff6ff",
+  blueHeaderText: "#3b82f6",
+  orangeHeaderBg: "#fff7ed",
+  orangeHeaderText: "#c2410c",
+  successBg: "#ecfdf5",
+  successText: "#059669",
 };
 
 const theme = createTheme({
@@ -161,12 +163,15 @@ function FoundrySampleCard() {
   const [mouldCorrectionLoading, setMouldCorrectionLoading] = useState(false);
   const [mouldCorrectionSubmitted, setMouldCorrectionSubmitted] = useState(false);
   const [mouldDate, setMouldDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  
+
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [userIP, setUserIP] = useState<string>("");
   useEffect(() => {
-    const fetchIP = async () => { try { const r = await fetch("https://api.ipify.org?format=json"); const d = await r.json(); setUserIP(d.ip); } catch { setUserIP("Offline"); } };
+    const fetchIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
     fetchIP();
   }, []);
 
@@ -231,29 +236,12 @@ function FoundrySampleCard() {
   }) => {
     setMouldCorrectionLoading(true);
     try {
-      const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
       const body = { ...payload, trial_id: 'Sample1', date: mouldDate };
-
-      const token = localStorage.getItem('authToken');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('http://localhost:3000/api/moulding-correction', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
-      
-      const data = await res.json().catch(() => null);
-
-      if (res.ok && data?.success) {
-        setMouldCorrectionSubmitted(true);
-        return { ok: true, data };
-      } else {
-        return { ok: false, message: data?.message || 'Failed to save mould correction', data };
-      }
+      await inspectionService.submitMouldingCorrection(body);
+      setMouldCorrectionSubmitted(true);
+      return { ok: true, data: {} };
     } catch (err) {
-      return { ok: false, message: 'Network error' };
+      return { ok: false, message: 'Failed to save mould correction' };
     } finally {
       setMouldCorrectionLoading(false);
     }

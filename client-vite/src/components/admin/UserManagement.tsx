@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { User, CreateUserRequest } from '../../types/user';
-import { apiService } from '../../services/api';
+import { apiService } from '../../services/commonService.ts';
 import UserTable from './UserTable.tsx';
 import CreateUserModal from './CreateUserModal.tsx';
 import './UserManagement.css';
@@ -45,7 +45,7 @@ const UserManagement: React.FC = () => {
     <div className="user-management">
       <div className="user-management-header">
         <h2>User Management</h2>
-        <button 
+        <button
           className="create-user-button"
           onClick={() => setShowCreateModal(true)}
         >

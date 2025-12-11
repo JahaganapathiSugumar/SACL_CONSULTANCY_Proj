@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiService } from '../../services/api';
+import { apiService } from '../../services/commonService';
 import './AddUserModal.css';
 
 interface AddUserModalProps {
@@ -50,7 +50,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // If role changes to Methods, clear department_id
     if (name === 'role' && value === 'Methods') {
       setFormData(prev => ({
@@ -225,7 +225,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
                   required
                   readOnly
                 />
-                <span 
+                <span
                   className="password-toggle"
                   onClick={togglePasswordVisibility}
                 >
@@ -247,7 +247,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
                   required
                   readOnly
                 />
-                <span 
+                <span
                   className="password-toggle"
                   onClick={toggleConfirmPasswordVisibility}
                 >

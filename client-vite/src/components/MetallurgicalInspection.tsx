@@ -27,7 +27,6 @@ import {
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 // Icons
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -42,22 +41,23 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
+import { ipService } from '../services/ipService';
 /* ---------------- 1. Theme Configuration (Matched to FoundryApp) ---------------- */
 
 const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600
-  background: "#f1f5f9", // Light Slate Background
+  primary: "#1e293b",
+  secondary: "#ea580c",
+  background: "#f1f5f9",
   surface: "#ffffff",
-  border: "#e2e8f0",     // Slate 200
+  border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
 
   // Header Colors
-  blueHeaderBg: "#eff6ff", // Light Blue
-  blueHeaderText: "#3b82f6", // Blue
-  orangeHeaderBg: "#fff7ed", // Light Orange
-  orangeHeaderText: "#c2410c", // Dark Orange
+  blueHeaderBg: "#eff6ff",
+  blueHeaderText: "#3b82f6",
+  orangeHeaderBg: "#fff7ed",
+  orangeHeaderText: "#c2410c",
 
   // Specific for Inspection Status
   successBg: "#ecfdf5",
@@ -288,7 +288,7 @@ function SectionTable({
       </Box>
       <Divider sx={{ mb: 2, borderColor: COLORS.border }} />
 
-        <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
+      <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -461,10 +461,10 @@ function SectionTable({
                     const rejValRaw = values[rejected.id]?.[ci] ?? "";
                     const insNum = parseFloat(String(insValRaw).trim());
                     const rejNum = parseFloat(String(rejValRaw).trim());
-                    
+
                     let cellContent = '-';
                     let bgColor = '#fff';
-                    
+
                     // Validate: rejected must be <= inspected quantity
                     if (!isNaN(rejNum) && !isNaN(insNum) && rejNum > insNum) {
                       cellContent = 'Invalid';
@@ -477,7 +477,7 @@ function SectionTable({
                       const percent = (rejNum / insNum) * 100;
                       cellContent = `${percent.toFixed(2)}%`;
                     }
-                    
+
                     return (
                       <TableCell key={`rej-${ci}`} sx={{ textAlign: 'center', bgcolor: bgColor, cursor: 'pointer' }}>
                         {cellContent}
@@ -530,9 +530,9 @@ function MicrostructureTable({
 
   const addColumn = () => {
     setCols((prev: MicroCol[]) => {
-  const nextIndex = prev.length + 1;
-  return [...prev, { id: `c${nextIndex}`, label: '' }];   // empty column name
-});
+      const nextIndex = prev.length + 1;
+      return [...prev, { id: `c${nextIndex}`, label: '' }];   // empty column name
+    });
 
     setCavityNumbers((prev) => [...prev, '']);
     setValues((prev) => {
@@ -605,7 +605,7 @@ function MicrostructureTable({
 
           <TableBody>
             {/* Cavity Number Row */}
-          
+
 
             {params.map((param, pIndex) => (
               <TableRow key={param}>
@@ -707,7 +707,10 @@ export default function MetallurgicalInspection() {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    const fetchIP = async () => { try { const r = await fetch("https://api.ipify.org?format=json"); const d = await r.json(); setUserIP(d.ip); } catch { setUserIP("Offline"); } };
+    const fetchIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
     fetchIP();
   }, []);
 
@@ -733,11 +736,11 @@ export default function MetallurgicalInspection() {
 
   useEffect(() => { if (alert) { const t = setTimeout(() => setAlert(null), 5000); return () => clearTimeout(t); } }, [alert]);
 
-  useEffect(() => { 
-    if (ndtValidationError) { 
-      const t = setTimeout(() => setNdtValidationError(null), 6000); 
-      return () => clearTimeout(t); 
-    } 
+  useEffect(() => {
+    if (ndtValidationError) {
+      const t = setTimeout(() => setNdtValidationError(null), 6000);
+      return () => clearTimeout(t);
+    }
   }, [ndtValidationError]);
 
   const updateRow = (setRows: Dispatch<SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {

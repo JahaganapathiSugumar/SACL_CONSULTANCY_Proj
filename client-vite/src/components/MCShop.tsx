@@ -35,26 +35,23 @@ import CloseIcon from "@mui/icons-material/Close";
 import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
-import { authService } from '../services/authService';
+import { ipService } from '../services/ipService';
+import { inspectionService } from '../services/inspectionService';
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600
-  background: "#f1f5f9", // Light Slate Background
+  primary: "#1e293b",
+  secondary: "#ea580c",
+  background: "#f1f5f9",
   surface: "#ffffff",
-  border: "#e2e8f0",     // Slate 200
+  border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
-
-  // Header Colors
-  blueHeaderBg: "#eff6ff", // Light Blue
-  blueHeaderText: "#3b82f6", // Blue
-  orangeHeaderBg: "#fff7ed", // Light Orange
-  orangeHeaderText: "#c2410c", // Dark Orange
-
-  // Specific for Inspection Status
+  blueHeaderBg: "#eff6ff",
+  blueHeaderText: "#3b82f6",
+  orangeHeaderBg: "#fff7ed",
+  orangeHeaderText: "#c2410c",
   successBg: "#ecfdf5",
   successText: "#059669",
 };
@@ -202,9 +199,9 @@ export default function McShopInspection({
 
   // Cavities management
   const addColumn = () => {
-  setCavities((c) => [...c, ""]);   // <--- NO MORE CAVITY 1,2,3
-  setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
-};
+    setCavities((c) => [...c, ""]);
+    setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
+  };
 
 
   // File handlers for additional PDF/image uploads
@@ -231,21 +228,21 @@ export default function McShopInspection({
   const updateCell = (rowId: string, colIndex: number, value: string) => {
     setRows((prev) => prev.map((r) => {
       if (r.id !== rowId) return r;
-      
+
       const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
-      
+
       // Compute total only for non-cavity-details and non-reason rows
       const isCavityOrReason = r.label.toLowerCase().includes("cavity details") || r.label.toLowerCase().includes("reason");
-      
+
       if (isCavityOrReason) {
         return { ...r, values: newValues };
       }
-      
+
       const total = newValues.reduce((sum, val) => {
         const n = parseFloat(String(val).trim());
         return sum + (isNaN(n) ? 0 : n);
       }, 0);
-      
+
       return { ...r, values: newValues, total };
     }));
   };
@@ -330,22 +327,9 @@ export default function McShopInspection({
         remarks: remarks || groupMeta.remarks || null,
       };
 
-      const token = authService.getToken();
-      const res = await fetch('http://localhost:3000/api/machine-shop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(serverPayload),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.success) {
-        setPreviewSubmitted(true);
-        setAlert({ severity: 'success', message: data?.data || 'Machine shop created successfully.' });
-      } else {
-        setAlert({ severity: 'error', message: data?.message || 'Submission failed' });
-      }
+      await inspectionService.submitMachineShopInspection(serverPayload);
+      setPreviewSubmitted(true);
+      setAlert({ severity: 'success', message: 'Machine shop created successfully.' });
     } catch (err: any) {
       setAlert({ severity: 'error', message: err?.message || 'Submission failed' });
     } finally {
@@ -357,19 +341,11 @@ export default function McShopInspection({
     window.print();
   };
 
-  // fetch public IP
-  const fetchUserIP = async () => {
-    try {
-      const res = await fetch("https://api.ipify.org?format=json");
-      if (!res.ok) throw new Error("ip fetch failed");
-      const data = await res.json();
-      setUserIP(data.ip ?? "Unavailable");
-    } catch (err) {
-      setUserIP("Unavailable");
-    }
-  };
-
   useEffect(() => {
+    const fetchUserIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
     fetchUserIP();
   }, []);
 
@@ -707,20 +683,20 @@ export default function McShopInspection({
                               <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
                               {r.freeText !== undefined && r.freeText !== null ? (
                                 <TableCell colSpan={previewPayload.cavities.length + 1} sx={{ textAlign: 'left', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                                   {r.freeText}
-                                 </TableCell>
-                               ) : (
+                                  {r.freeText}
+                                </TableCell>
+                              ) : (
                                 <>
                                   {r.values.map((v: any, j: number) => (
-                                   <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                     {v === null ? "-" : String(v)}
-                                   </TableCell>
+                                    <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                      {v === null ? "-" : String(v)}
+                                    </TableCell>
                                   ))}
                                   <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
                                     {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
                                   </TableCell>
                                 </>
-                               )}
+                              )}
                             </TableRow>
                           ))}
                         </TableBody>
@@ -829,20 +805,20 @@ export default function McShopInspection({
                         <td style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{r.label}</td>
                         {r.freeText !== undefined && r.freeText !== null ? (
                           <td colSpan={previewPayload.cavities.length + 1} style={{ border: '1px solid black', padding: '8px' }}>
-                             {r.freeText}
-                           </td>
-                         ) : (
-                           <>
-                             {r.values.map((v: any, j: number) => (
-                               <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
-                                 {v === null ? "" : String(v)}
-                               </td>
-                             ))}
-                             <td style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-                               {r.label.toLowerCase().includes("cavity details") ? "" : (r.total !== null && r.total !== undefined ? r.total : "")}
-                             </td>
-                           </>
-                         )}
+                            {r.freeText}
+                          </td>
+                        ) : (
+                          <>
+                            {r.values.map((v: any, j: number) => (
+                              <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
+                                {v === null ? "" : String(v)}
+                              </td>
+                            ))}
+                            <td style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                              {r.label.toLowerCase().includes("cavity details") ? "" : (r.total !== null && r.total !== undefined ? r.total : "")}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>

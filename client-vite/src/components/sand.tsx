@@ -31,21 +31,23 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
+import { ipService } from '../services/ipService';
+import { inspectionService } from '../services/inspectionService';
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600 (Matches "Save Details" & "Draft Mode")
-  background: "#f1f5f9", // Light Slate Background
+  primary: "#1e293b",
+  secondary: "#ea580c",
+  background: "#f1f5f9",
   surface: "#ffffff",
-  border: "#000000",     // Black border for table
+  border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
 
   // Sand Properties Colors (Grey Theme)
-  headerBg: "#d1d5db",   // Grey for Table Header
-  headerText: "#000000", // Black text
+  headerBg: "#d1d5db",
+  headerText: "#000000",
 };
 
 const theme = createTheme({
@@ -149,7 +151,23 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
 
 /* ---------------- Main Component ---------------- */
 
-function FoundrySampleCard() {
+interface FoundrySampleCardProps {
+  submittedData?: {
+    selectedPart?: any;
+    selectedPattern?: any;
+    machine?: string;
+    reason?: string;
+    trialNo?: string;
+    samplingDate?: string;
+    mouldCount?: string;
+    sampleTraceability?: string;
+  };
+  onSave?: (data: any) => void;
+  onComplete?: () => void;
+  fromPendingCards?: boolean;
+}
+
+function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards }: FoundrySampleCardProps = {}) {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -176,7 +194,10 @@ function FoundrySampleCard() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchIP = async () => { try { const r = await fetch("https://api.ipify.org?format=json"); const d = await r.json(); setUserIP(d.ip); } catch { setUserIP("Offline"); } };
+    const fetchIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
     fetchIP();
   }, []);
 
@@ -230,20 +251,10 @@ function FoundrySampleCard() {
         remarks: (sandProps as any).remarks || ""
       };
 
-      const res = await fetch("http://localhost:3000/api/sand-properties", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": localStorage.getItem("authToken") || "" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json().catch(() => null);
-
-      if (res.ok && data?.success) {
-        setSubmitted(true);
-      } else {
-        alert(data?.message || "Failed to submit sand properties");
-      }
+      await inspectionService.submitSandProperties(payload);
+      setSubmitted(true);
     } catch (err) {
-      alert("Network error while submitting sand properties");
+      alert("Failed to submit sand properties. Please try again.");
     } finally {
       setLoading(false);
     }

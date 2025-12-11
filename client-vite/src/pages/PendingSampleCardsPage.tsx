@@ -19,7 +19,7 @@ import {
   ThemeProvider,
   createTheme
 } from '@mui/material';
-import SandPropertiesTable from '../components/sand';
+import SandPropertiesTable from '../components/Sand';
 
 // Colors
 const SAKTHI_COLORS = {
@@ -147,9 +147,9 @@ const PendingSampleCardsPage: React.FC = () => {
   const handleSandComplete = () => {
     // Update the card status
     if (selectedCard) {
-      setPendingCards(prev => 
-        prev.map(card => 
-          card.id === selectedCard.id 
+      setPendingCards(prev =>
+        prev.map(card =>
+          card.id === selectedCard.id
             ? { ...card, status: 'completed' }
             : card
         )
