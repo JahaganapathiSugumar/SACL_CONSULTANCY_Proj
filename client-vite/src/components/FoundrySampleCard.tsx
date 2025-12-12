@@ -1,65 +1,91 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Chip,
-  ThemeProvider,
-  createTheme,
-  Button,
-  Alert,
-  CircularProgress,
-  InputAdornment,
-  IconButton,
+   Box,
+   Paper,
+   Typography,
+   TextField,
+   FormControl,
+   Select,
+   MenuItem,
+   Table,
+   TableHead,
+   TableRow,
+   TableCell,
+   TableBody,
+   Chip,
+   ThemeProvider,
+   createTheme,
+   Button,
+   Alert,
+   CircularProgress,
+   IconButton,
+   Grid,
+   Container,
+   Card,
+   CardContent,
+   InputAdornment,
+   useMediaQuery,
+   GlobalStyles
+  , Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 
-import PouringDetailsTable from "./PouringDetailsTable";
-import type { PouringDetails } from "./PouringDetailsTable";
-
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// Icons
 import CloseIcon from "@mui/icons-material/Close";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import ScienceIcon from '@mui/icons-material/Science';
+import ConstructionIcon from '@mui/icons-material/Construction';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import FactoryIcon from '@mui/icons-material/Factory';
+import SaveIcon from '@mui/icons-material/Save';
+import PrintIcon from '@mui/icons-material/Print';
+import EditIcon from '@mui/icons-material/Edit';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import PersonIcon from "@mui/icons-material/Person";
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaclHeader from "./common/SaclHeader";
+import { trialService } from "../services/trialService";
+import { ipService } from "../services/ipService";
 
-/* ---------------- Colors + Theme ---------------- */
+/* ---------------- 1. Theme Configuration ---------------- */
 
-const SAKTHI_COLORS = {
-  primary: "#2950bbff",
-  secondary: "#DC2626",
-  accent: "#F59E0B",
-  background: "#F8FAFC",
-  lightBlue: "#3B82F6",
-  darkGray: "#374151",
-  lightGray: "#E5E7EB",
-  white: "#FFFFFF",
-  success: "#10B981",
+const COLORS = {
+  primary: "#1e293b",    // Slate 800
+  secondary: "#ea580c",  // Orange 600
+  background: "#f8fafc", // Slate 50
+  surface: "#ffffff",
+  border: "#e2e8f0",     // Slate 200
+  textPrimary: "#0f172a",
+  textSecondary: "#64748b",
+  accentBlue: "#0ea5e9",
+  accentGreen: "#10b981",
 };
 
 const theme = createTheme({
+  breakpoints: {
+    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
+  },
   palette: {
-    primary: { main: SAKTHI_COLORS.primary },
-    secondary: { main: SAKTHI_COLORS.secondary },
-    background: { default: SAKTHI_COLORS.background },
+    primary: { main: COLORS.primary },
+    secondary: { main: COLORS.secondary },
+    background: { default: COLORS.background, paper: COLORS.surface },
+    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h5: { fontWeight: 700 },
-    h6: { fontWeight: 600 },
-    subtitle1: { fontWeight: 600 },
+    h5: { fontWeight: 800, letterSpacing: -0.5 },
+    h6: { fontWeight: 700 },
+    subtitle2: { fontWeight: 600, textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: 0.5 },
+    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: 12,
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
+          border: `1px solid ${COLORS.border}`,
         },
       },
     },
@@ -67,15 +93,14 @@ const theme = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          backgroundColor: SAKTHI_COLORS.lightBlue,
-          color: SAKTHI_COLORS.white,
-          borderRight: `1px solid ${SAKTHI_COLORS.lightGray}`,
-          padding: "12px 8px",
+          backgroundColor: "#f1f5f9",
+          color: COLORS.primary,
+          borderBottom: `2px solid ${COLORS.border}`,
+          whiteSpace: "nowrap",
         },
         body: {
-          backgroundColor: SAKTHI_COLORS.white,
-          borderRight: `1px solid ${SAKTHI_COLORS.lightGray}`,
           padding: "8px",
+          borderBottom: `1px solid ${COLORS.border}`,
         },
       },
     },
@@ -84,6 +109,10 @@ const theme = createTheme({
         root: {
           "& .MuiOutlinedInput-root": {
             borderRadius: 6,
+            backgroundColor: "#fff",
+            "& fieldset": { borderColor: "#cbd5e1" },
+            "&:hover fieldset": { borderColor: COLORS.primary },
+            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 2 },
           },
         },
       },
@@ -91,9 +120,10 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
-          textTransform: "none",
+          borderRadius: 8,
           fontWeight: 600,
+          textTransform: "none",
+          padding: "8px 24px",
         },
       },
     },
@@ -110,100 +140,26 @@ interface PartData {
   chemical_composition: any;
   micro_structure: string;
   tensile: string;
-  impact: string;
+  impact?: string;
   hardness: string;
   xray: string;
   created_at: string;
 }
 
-interface MouldCorrection {
-  id: number;
-  compressibility: string;
-  squeezePressure: string;
-  fillerSize: string;
-}
-
-/* ---------------- Error Boundary ---------------- */
-
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Box sx={{ p: 3, textAlign: "center" }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            <Typography variant="h6">Something went wrong</Typography>
-            <Typography variant="body2">
-              {this.state.error?.message}
-            </Typography>
-          </Alert>
-          <Button
-            variant="contained"
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >
-            Try Again
-          </Button>
-        </Box>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-/* ---------------- Parsing Helpers ---------------- */
+/* ---------------- Helpers ---------------- */
 
 const parseChemicalComposition = (composition: any) => {
-  const blank = {
-    c: "",
-    si: "",
-    mn: "",
-    p: "",
-    s: "",
-    mg: "",
-    cr: "",
-    cu: "",
-  };
+  const blank = { c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" };
   if (!composition) return blank;
-
   let obj: any = composition;
-
   if (typeof composition === "string") {
-    try {
-      obj = JSON.parse(composition);
-    } catch (e) {
-      console.warn(
-        "chemical_composition is string and JSON.parse failed, using raw string as C",
-        e
-      );
-      return { ...blank, c: composition };
-    }
+    try { obj = JSON.parse(composition); } catch (e) { return { ...blank, c: composition }; }
   }
-
   if (typeof obj !== "object" || obj === null) return blank;
-
   const map: Record<string, any> = {};
   Object.keys(obj).forEach((k) => {
-    if (typeof k === "string") {
-      map[k.toLowerCase().replace(/\s+/g, "")] = obj[k];
-    }
+    if (typeof k === "string") { map[k.toLowerCase().replace(/\s+/g, "")] = obj[k]; }
   });
-
   const siKeyCandidates = ["si", "silicon"];
   const getFirst = (keys: string[]) => {
     for (const k of keys) {
@@ -211,2131 +167,1121 @@ const parseChemicalComposition = (composition: any) => {
     }
     return "";
   };
-
   return {
-    c: getFirst(["c"]),
-    si: getFirst(siKeyCandidates),
-    mn: getFirst(["mn"]),
-    p: getFirst(["p"]),
-    s: getFirst(["s"]),
-    mg: getFirst(["mg"]),
-    cr: getFirst(["cr"]),
-    cu: getFirst(["cu"]),
+    c: getFirst(["c"]), si: getFirst(siKeyCandidates), mn: getFirst(["mn"]), p: getFirst(["p"]),
+    s: getFirst(["s"]), mg: getFirst(["mg"]), cr: getFirst(["cr"]), cu: getFirst(["cu"]),
   };
 };
 
 const parseTensileData = (tensile: string) => {
   const lines = tensile ? tensile.split("\n") : [];
-  let tensileStrength = "";
-  let yieldStrength = "";
-  let elongation = "";
-  let impactCold = "";
-  let impactRoom = "";
-
+  let tensileStrength = "", yieldStrength = "", elongation = "", impactCold = "", impactRoom = "";
   lines.forEach((line) => {
     const cleanLine = line.trim();
-
-    if (
-      cleanLine.match(/\d+\s*(MPa|N\/mm²|Mpa|Kgf\/mm²)/) ||
-      cleanLine.includes("Tensile Strength") ||
-      cleanLine.match(/[≥>]\s*\d+/)
-    ) {
-      if (cleanLine.includes("≥")) {
-        const numberMatch = cleanLine.match(/≥\s*(\d+)/);
-        if (numberMatch && !tensileStrength)
-          tensileStrength = `≥${numberMatch[1]}`;
-      } else if (cleanLine.includes(">")) {
-        const numberMatch = cleanLine.match(/>\s*(\d+)/);
-        if (numberMatch && !tensileStrength)
-          tensileStrength = `>${numberMatch[1]}`;
-      } else if (cleanLine.includes("Min")) {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !tensileStrength)
-          tensileStrength = `≥${numberMatch[1]}`;
-      } else {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !tensileStrength)
-          tensileStrength = numberMatch[1];
-      }
+    if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile") || cleanLine.match(/[≥>]\s*\d+/)) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
     }
-
-    if (cleanLine.includes("Yield Strength") || cleanLine.includes("Yield")) {
-      if (cleanLine.includes("≥")) {
-        const numberMatch = cleanLine.match(/≥\s*(\d+)/);
-        if (numberMatch && !yieldStrength) yieldStrength = `≥${numberMatch[1]}`;
-      } else if (cleanLine.includes(">")) {
-        const numberMatch = cleanLine.match(/>\s*(\d+)/);
-        if (numberMatch && !yieldStrength) yieldStrength = `>${numberMatch[1]}`;
-      } else if (cleanLine.includes("Min")) {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !yieldStrength) yieldStrength = `≥${numberMatch[1]}`;
-      } else {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !yieldStrength) yieldStrength = numberMatch[1];
-      }
+    if (cleanLine.includes("Yield")) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
     }
-
-    if (
-      cleanLine.includes("Elongation") ||
-      cleanLine.includes("%") ||
-      cleanLine.match(/[≥>]\s*\d+\s*%/)
-    ) {
-      if (cleanLine.includes("≥")) {
-        const numberMatch = cleanLine.match(/≥\s*(\d+)/);
-        if (numberMatch && !elongation) elongation = `≥${numberMatch[1]}`;
-      } else if (cleanLine.includes(">")) {
-        const numberMatch = cleanLine.match(/>\s*(\d+)/);
-        if (numberMatch && !elongation) elongation = `>${numberMatch[1]}`;
-      } else if (cleanLine.includes("Min")) {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !elongation) elongation = `≥${numberMatch[1]}`;
-      } else {
-        const numberMatch = cleanLine.match(/(\d+)/);
-        if (numberMatch && !elongation) elongation = numberMatch[1];
-      }
+    if (cleanLine.includes("Elongation") || cleanLine.includes("%")) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !elongation) elongation = `${match[1]}${match[2]}`;
     }
   });
-
   return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
 };
 
 const parseMicrostructureData = (microstructure: string) => {
   const lines = microstructure ? microstructure.split("\n") : [];
-  let nodularity = "";
-  let pearlite = "";
-  let carbide = "";
-
+  let nodularity = "", pearlite = "", carbide = "";
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
-
-    if (cleanLine.includes("nodularity")) {
-      if (cleanLine.includes("≥")) {
-        const match = cleanLine.match(/≥\s*(\d+)/);
-        if (match) nodularity = `≥${match[1]}`;
-      } else if (cleanLine.includes("≤")) {
-        const match = cleanLine.match(/≤\s*(\d+)/);
-        if (match) nodularity = `≤${match[1]}`;
-      } else if (cleanLine.match(/\d+/)) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) nodularity = match[1];
-      }
-    }
-
-    if (cleanLine.includes("pearlite")) {
-      if (cleanLine.includes("≥")) {
-        const match = cleanLine.match(/≥\s*(\d+)/);
-        if (match) pearlite = `≥${match[1]}`;
-      } else if (cleanLine.includes("≤")) {
-        const match = cleanLine.match(/≤\s*(\d+)/);
-        if (match) pearlite = `≤${match[1]}`;
-      } else if (cleanLine.includes("<")) {
-        const match = cleanLine.match(/<\s*(\d+)/);
-        if (match) pearlite = `<${match[1]}`;
-      } else if (cleanLine.includes(">")) {
-        const match = cleanLine.match(/>\s*(\d+)/);
-        if (match) pearlite = `>${match[1]}`;
-      } else if (cleanLine.includes("max")) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) pearlite = `≤${match[1]}`;
-      } else if (cleanLine.includes("min")) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) pearlite = `≥${match[1]}`;
-      } else if (cleanLine.match(/\d+\s*-\s*\d+/)) {
-        const match = cleanLine.match(/(\d+\s*-\s*\d+)/);
-        if (match) pearlite = match[1];
-      } else if (cleanLine.match(/\d+/)) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) pearlite = match[1];
-      }
-    }
-
-    if (cleanLine.includes("carbide") || cleanLine.includes("cementite")) {
-      if (cleanLine.includes("≤")) {
-        const match = cleanLine.match(/≤\s*(\d+)/);
-        if (match) carbide = `≤${match[1]}`;
-      } else if (cleanLine.includes("<")) {
-        const match = cleanLine.match(/<\s*(\d+)/);
-        if (match) carbide = `<${match[1]}`;
-      } else if (cleanLine.includes("≥")) {
-        const match = cleanLine.match(/≥\s*(\d+)/);
-        if (match) carbide = `≥${match[1]}`;
-      } else if (cleanLine.includes(">")) {
-        const match = cleanLine.match(/>\s*(\d+)/);
-        if (match) carbide = `>${match[1]}`;
-      } else if (cleanLine.includes("max")) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) carbide = `≤${match[1]}`;
-      } else if (cleanLine.includes("min")) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) carbide = `≥${match[1]}`;
-      } else if (cleanLine.match(/\d+/)) {
-        const match = cleanLine.match(/(\d+)/);
-        if (match) carbide = match[1];
-      }
-    }
+    if (cleanLine.includes("nodularity")) { const match = cleanLine.match(/([≥≤]?)\s*(\d+)/); if (match) nodularity = `${match[1]}${match[2]}`; }
+    if (cleanLine.includes("pearlite")) { const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/); if (match) pearlite = `${match[1]}${match[2]}`; }
+    if (cleanLine.includes("carbide")) { const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/); if (match) carbide = `${match[1]}${match[2]}`; }
   });
-
-  return {
-    nodularity: nodularity || "--",
-    pearlite: pearlite || "--",
-    carbide: carbide || "--",
-  };
+  return { nodularity: nodularity || "--", pearlite: pearlite || "--", carbide: carbide || "--" };
 };
 
 const parseHardnessData = (hardness: string) => {
   const lines = hardness ? hardness.split("\n") : [];
-  let surface = "";
-  let core = "";
-
+  let surface = "", core = "";
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
-
-    if (cleanLine.includes("surface")) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) surface = match[1];
-    } else if (cleanLine.includes("core")) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) core = match[1];
-    } else if (!surface) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) surface = match[1];
-    }
+    if (cleanLine.includes("surface")) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) surface = match[1]; }
+    else if (cleanLine.includes("core")) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) core = match[1]; }
+    else if (!surface) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) surface = match[1]; }
   });
-
   return { surface: surface || "--", core: core || "--" };
 };
+
+/* ---------------- UI Sub-components ---------------- */
+
+const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
+    <Box sx={{ color: color, display: "flex" }}>{icon}</Box>
+    <Typography variant="subtitle2" sx={{ color: COLORS.primary, flexGrow: 1 }}>
+      {title}
+    </Typography>
+  </Box>
+);
+
+const SpecInput = (props: any) => (
+  <TextField
+    {...props}
+    variant="outlined"
+    size="small"
+    fullWidth
+    inputProps={{
+      ...props.inputProps,
+      style: { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' }
+    }}
+    sx={{
+      minWidth: "70px",
+      "& .MuiOutlinedInput-root": { backgroundColor: props.readOnly ? "#f8fafc" : "#fff" }
+    }}
+  />
+);
 
 /* ---------------- Main Component ---------------- */
 
 function FoundrySampleCard() {
   const navigate = useNavigate();
-  const printRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // State
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
-  const [selectedPattern, setSelectedPattern] = useState<PartData | null>(
-    null
-  );
+  const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
   const [trialNo, setTrialNo] = useState<string>("");
   const [masterParts, setMasterParts] = useState<PartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trialLoading, setTrialLoading] = useState(false);
-  const [trialError, setTrialError] = useState<string | null>(null);
 
-  // metallurgical editable state
-  const [chemState, setChemState] = useState({
-    c: "",
-    si: "",
-    mn: "",
-    p: "",
-    s: "",
-    mg: "",
-    cr: "",
-    cu: "",
-  });
-  const [tensileState, setTensileState] = useState({
-    tensileStrength: "",
-    yieldStrength: "",
-    elongation: "",
-    impactCold: "",
-    impactRoom: "",
-  });
-  const [microState, setMicroState] = useState({
-    nodularity: "",
-    pearlite: "",
-    carbide: "",
-  });
-  const [hardnessState, setHardnessState] = useState({
-    surface: "",
-    core: "",
-  });
+  // --- moved table state (from FoundrySampleCard2) ---
+  const MACHINES = ["DISA", "FOUNDRY-A", "FOUNDRY-B", "MACHINESHOP"];
+  const SAMPLING_REASONS = ["Routine", "Customer Complaint", "Process Change", "Audit", "Other"];
+  const [samplingDate, setSamplingDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [mouldCount, setMouldCount] = useState("");
+  const [machine, setMachine] = useState("");
+  const [reason, setReason] = useState("");
+  const [sampleTraceability, setSampleTraceability] = useState("");
+  const [patternFiles, setPatternFiles] = useState<File[]>([]);
+  const handlePatternFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setPatternFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+  const removePatternFile = (index: number) => setPatternFiles(prev => prev.filter((_, i) => i !== index));
 
-  // Pouring details state
-  const [pouringDetails, setPouringDetails] = useState<PouringDetails>({
-    date: "",
-    heatCode: "",
-    cComposition: "",
-    siComposition: "",
-    mnComposition: "",
-    pComposition: "",
-    sComposition: "",
-    mgComposition: "",
-    crComposition: "",
-    cuComposition: "",
-    pouringTempDegC: "",
-    pouringTimeSec: "",
-    ficHeatNo: "",
-    ppCode: "",
-    followedBy: "",
-    userName: "",
-  });
+  // Tooling / Remarks state (moved from FoundrySampleCard2)
+  const [toolingType, setToolingType] = useState("");
+  const [toolingFiles, setToolingFiles] = useState<File[]>([]);
+  const handleToolingFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setToolingFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+  const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
+ 
+  const [remarks, setRemarks] = useState("");
 
-  const [currentView, setCurrentView] = useState<"form" | "pouring">("form");
+  const [mouldCorrections, setMouldCorrections] = useState<any[]>([
+    { id: 1, compressibility: "", squeezePressure: "", fillerSize: "" },
+  ]);
+  const handleMouldCorrectionChange = (id: number, field: string, value: string) => {
+    setMouldCorrections(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+  const addMouldCorrectionRow = () => setMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
+  const removeMouldCorrectionRow = (id: number) => setMouldCorrections(prev => prev.filter(r => r.id !== id));
+  
+  const [showMetaDialog, setShowMetaDialog] = useState(false);
+  const [tempToolingFiles, setTempToolingFiles] = useState<File[]>([]);
+  const [tempMouldCorrections, setTempMouldCorrections] = useState<any[]>([]);
+  const [tempRemarks, setTempRemarks] = useState<string>("");
+
+  const openMetaDialog = () => {
+    setTempToolingFiles(toolingFiles.slice());
+    setTempMouldCorrections(mouldCorrections.map((r) => ({ ...r })));
+    setTempRemarks(remarks || "");
+    setShowMetaDialog(true);
+  };
+
+  const handleMetaSave = () => {
+    setToolingFiles(tempToolingFiles.slice());
+    setMouldCorrections(tempMouldCorrections.map((r) => ({ ...r })));
+    setRemarks(tempRemarks);
+    setShowMetaDialog(false);
+    setPreviewMessage("Saved");
+  };
+
+  const handleTempToolingFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setTempToolingFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeTempToolingFile = (index: number) => setTempToolingFiles(prev => prev.filter((_, i) => i !== index));
+  const addTempMouldCorrectionRow = () => setTempMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
+  const removeTempMouldCorrectionRow = (id: number) => setTempMouldCorrections(prev => prev.filter(r => r.id !== id));
+  const handleTempMouldCorrectionChange = (id: number, field: string, value: string) => {
+    setTempMouldCorrections(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+
+  // Form State
+  const [chemState, setChemState] = useState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
+  const [tensileState, setTensileState] = useState({ tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" });
+  const [microState, setMicroState] = useState({ nodularity: "", pearlite: "", carbide: "" });
+  const [hardnessState, setHardnessState] = useState({ surface: "", core: "" });
+
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] = useState<boolean>(false);
 
-  // whether metallurgical cells are editable
-  const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] =
-    useState<boolean>(false);
-
-  // preview states (like VisualInspection)
+  // Preview State
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-
-  // IP state
   const [userIP, setUserIP] = useState<string>("");
 
-  /* ------- preview message auto hide ------- */
   useEffect(() => {
-    if (previewMessage) {
-      const t = setTimeout(() => setPreviewMessage(null), 4000);
-      return () => clearTimeout(t);
-    }
+    if (previewMessage) { const t = setTimeout(() => setPreviewMessage(null), 4000); return () => clearTimeout(t); }
   }, [previewMessage]);
 
-  /* ------- fetch IP once ------- */
   useEffect(() => {
-    const fetchUserIP = async () => {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        if (!res.ok) throw new Error("Failed to fetch IP");
-        const data = await res.json();
-        setUserIP(data.ip ?? "Unavailable");
-      } catch (err) {
-        console.error("IP fetch error:", err);
-        setUserIP("Unavailable");
-      }
+    const fetchIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
     };
-    fetchUserIP();
+    fetchIP();
   }, []);
 
-  /* ------- pouring details handler ------- */
-  const handlePouringDetailsChange = (details: PouringDetails) => {
-    setPouringDetails(details);
-  };
-
-  /* ------- load master parts ------- */
   useEffect(() => {
     const getMasterParts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/master-list");
-        if (!response.ok) {
-          throw new Error("Failed to fetch master list");
+        const mockData = [{ id: 1, pattern_code: "PT-2024-X", part_name: "Front Axle Housing", material_grade: "SG 450/10", chemical_composition: { c: 3.6, si: 2.3, mn: 0.3 }, micro_structure: "Ferritic >90%", tensile: "450 MPa", hardness: "160-190 HB", xray: "Level 1", created_at: "" }];
+        try {
+          const parts = await trialService.getMasterList();
+          setMasterParts(parts);
+          setError(null);
+        } catch (e) {
+          setMasterParts(mockData);
+          setError("Failed to load master parts.");
         }
-        const res = await response.json();
-        setMasterParts(res.data || []);
-        setError(null);
-      } catch (error) {
-        console.error("Error loading master parts:", error);
-        setError(
-          "Failed to load master parts. Please check your connection."
-        );
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
     getMasterParts();
   }, []);
 
-  /* ------- when part changes, init metallurgical spec ------- */
   useEffect(() => {
     if (selectedPart) {
       setSelectedPattern(selectedPart);
-      const parsedChem = parseChemicalComposition(
-        selectedPart.chemical_composition
-      );
-      setChemState(parsedChem);
+      setChemState(parseChemicalComposition(selectedPart.chemical_composition));
       setTensileState(parseTensileData(selectedPart.tensile));
       setMicroState(parseMicrostructureData(selectedPart.micro_structure));
       setHardnessState(parseHardnessData(selectedPart.hardness));
-    } else {
-      setSelectedPattern(null);
-    }
+    } else { setSelectedPattern(null); }
   }, [selectedPart]);
 
-  /* ------- generate trial id (optional, backend commented) ------- */
-  const generateTrialId = async (partName?: string) => {
-    const name = partName || selectedPart?.part_name;
-    if (!name) {
-      setTrialNo("");
-      setTrialError(null);
-      return;
-    }
-
+  // --- UPDATED TRIAL ID LOGIC ---
+  const generateTrialId = async () => {
+    if (!selectedPart) return;
     setTrialLoading(true);
-    setTrialError(null);
     try {
-      // call your backend here if you want
-      // for now just simulate
-      const fakeId = `TR-${Math.floor(Math.random() * 9000 + 1000)}`;
-      setTrialNo(fakeId);
-    } catch (err) {
-      console.error("Error generating trial id:", err);
-      setTrialError("Failed to generate trial number");
+      const json = await trialService.getTrialByPartName(selectedPart.part_name);
+      const trialId = (json && (json.trialId || json.data)) as string | undefined;
+      if (trialId) {
+        const formattedTrialId = trialId.includes('-') ? trialId.split('-').pop() : trialId;
+        setTrialNo(formattedTrialId || "");
+      } else {
+        throw new Error("Invalid response");
+      }
+    } catch (error) {
+      console.warn("Using fallback trial ID", error);
+      setTrialNo(`TR-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`);
     } finally {
       setTrialLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!selectedPart) {
-      setTrialNo("");
-      setTrialError(null);
-      return;
-    }
-    generateTrialId(selectedPart.part_name);
-  }, [selectedPart]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (selectedPart) generateTrialId(); else setTrialNo(""); }, [selectedPart]);
 
-  const chemicalData = chemState;
-  const tensileData = tensileState;
-  const microData = microState;
-  const hardnessData = hardnessState;
+  const handlePartChange = (v: PartData | null) => { setSelectedPart(v); };
+  const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
 
-  const handlePartChange = (newValue: PartData | null) => {
-    setSelectedPart(newValue);
-  };
-
-  const handlePatternChange = (newValue: PartData | null) => {
-    setSelectedPattern(newValue);
-    if (newValue) {
-      setSelectedPart(newValue);
-    }
-  };
-
-  /* ------- submit to backend (kept, but NOT used by new Save) ------- */
-  const submitToApi = async (payload: any) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch("http://localhost:3000/api/trial-november", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        try {
-          const errorJson = JSON.parse(errorText);
-          throw new Error(
-            errorJson.message ||
-            `Failed to submit trial data: ${response.status}`
-          );
-        } catch {
-          throw new Error(
-            `Failed to submit trial data: ${response.status} - ${errorText}`
-          );
-        }
-      }
-
-      const responseData = await response.json();
-
-      const dataToSubmit = {
-        selectedPart,
-        selectedPattern,
-        trialNo,
-        chemical_composition: chemState,
-        tensile: tensileState,
-        micro_structure: microState,
-        hardness: hardnessState,
-        apiResponse: responseData,
-      };
-
-      setSubmittedData(dataToSubmit);
-    } catch (err: any) {
-      console.error("❌ Error submitting trial:", err);
-      setError(err?.message || "Failed to submit trial data.");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ------- Export PDF (VisualInspection-style: print dialog, NO direct download) ------- */
+  // --- MODIFIED PRINT FUNCTIONALITY ---
   const handleExportPDF = () => {
-    if (!submitted) {
-      alert('Please click Save before exporting.');
-      return;
-    }
-
-    if (!previewPayload) {
-      alert("Nothing to export");
-      return;
-    }
-
-    const popup = window.open("", "_blank", "width=1000,height=800");
-    if (!popup) {
-      alert("Unable to open print window. Please disable popup blocker.");
-      return;
-    }
-
-    const html = `
-      <html>
-        <head>
-          <title>Foundry Sample Card Preview</title>
-          <style>
-            body {
-              font-family: Inter, Roboto, Arial, sans-serif;
-              margin: 20px;
-              color: ${SAKTHI_COLORS.darkGray};
-              background: #f3f4f6;
-            }
-            .glass {
-              background: rgba(255,255,255,0.95);
-              border-radius: 16px;
-              padding: 24px;
-              box-shadow: 0 18px 45px rgba(15,23,42,0.18);
-              border: 1px solid rgba(229,231,235,0.9);
-            }
-            h2 {
-              margin: 0 0 4px 0;
-              font-size: 20px;
-            }
-            h3 {
-              margin: 18px 0 8px 0;
-              font-size: 16px;
-            }
-            .meta {
-              margin-top: 8px;
-              font-size: 12px;
-            }
-            .meta div {
-              margin-bottom: 2px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 10px;
-              font-size: 12px;
-            }
-            th, td {
-              border: 1px solid #e5e7eb;
-              padding: 6px 8px;
-              text-align: center;
-            }
-            th {
-              background: ${SAKTHI_COLORS.lightBlue};
-              color: white;
-              font-weight: 700;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="glass">
-            <h2>Foundry Sample Card</h2>
-            <div class="meta">
-              <div><strong>IP:</strong> ${userIP || ""}</div>
-              <div><strong>Pattern Code:</strong> ${previewPayload.pattern_code || "--"}</div>
-              <div><strong>Part Name:</strong> ${previewPayload.part_name || "--"}</div>
-              <div><strong>TRIAL No:</strong> ${previewPayload.trial_no || "--"}</div>
-              <div><strong>Created:</strong> ${new Date(previewPayload.created_at).toLocaleString()}</div>
-            </div>
-
-            <h3>Chemical Composition</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>C%</th>
-                  <th>Si%</th>
-                  <th>Mn%</th>
-                  <th>P%</th>
-                  <th>S%</th>
-                  <th>Mg%</th>
-                  <th>Cr%</th>
-                  <th>Cu%</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${previewPayload.chemical_composition?.c || ""}</td>
-                  <td>${previewPayload.chemical_composition?.si || ""}</td>
-                  <td>${previewPayload.chemical_composition?.mn || ""}</td>
-                  <td>${previewPayload.chemical_composition?.p || ""}</td>
-                  <td>${previewPayload.chemical_composition?.s || ""}</td>
-                  <td>${previewPayload.chemical_composition?.mg || ""}</td>
-                  <td>${previewPayload.chemical_composition?.cr || ""}</td>
-                  <td>${previewPayload.chemical_composition?.cu || ""}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3>Mechanical Properties & NDT</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Tensile Strength</th>
-                  <th>Yield Strength</th>
-                  <th>Elongation%</th>
-                  <th>Impact @ Cold</th>
-                  <th>Impact @ Room</th>
-                  <th>Hardness Surface</th>
-                  <th>Hardness Core</th>
-                  <th>X-Ray</th>
-                  <th>MPI</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${previewPayload.tensile?.tensileStrength || tensileState.tensileStrength || ""}</td>
-                  <td>${previewPayload.tensile?.yieldStrength || tensileState.yieldStrength || ""}</td>
-                  <td>${previewPayload.tensile?.elongation || tensileState.elongation || ""}</td>
-                  <td>${previewPayload.tensile?.impactCold || tensileState.impactCold || ""}</td>
-                  <td>${previewPayload.tensile?.impactRoom || tensileState.impactRoom || ""}</td>
-                  <td>${previewPayload.hardness?.surface || hardnessState.surface || ""}</td>
-                  <td>${previewPayload.hardness?.core || hardnessState.core || ""}</td>
-                  <td>${selectedPart?.xray || ""}</td>
-                  <td>--</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </body>
-      </html>
-    `;
-
-    popup.document.write(html);
-    popup.document.close();
-    popup.focus();
-    popup.print();
+    if (!submitted) return;
+    window.print(); // Triggers the browser's print dialog (Save as PDF)
   };
 
-  /* ------- Save & Continue -> open overlay preview ------- */
   const handleSaveAndContinue = () => {
-    if (!selectedPart) {
-      setError("Please select a Part Name before continuing.");
-      return;
-    }
-
+    if (!selectedPart) { setError("Please select a Part Name first."); return; }
     const payload = {
-      trial_no: trialNo || null,
-      pattern_code: selectedPart.pattern_code || null,
-      part_name: selectedPart.part_name || null,
-      material_grade: selectedPart.material_grade || null,
+      trial_no: trialNo,
+      pattern_code: selectedPart.pattern_code,
+      part_name: selectedPart.part_name,
       chemical_composition: chemState,
       tensile: tensileState,
       micro_structure: microState,
       hardness: hardnessState,
-      current_department: "methods",
-      status: "draft",
-      created_at: new Date().toISOString(),
+      // moved fields
+      samplingDate,
+      mouldCount,
+      machine,
+      reason,
+      sampleTraceability,
+      patternFiles,
+      toolingType,
+      toolingFiles,
+      remarks,
+      mouldCorrections,
     };
-
     setPreviewPayload(payload);
     setPreviewMode(true);
-    setSubmitted(false);
-    setPreviewMessage(null);
   };
 
-  /* ------- Final Save from preview overlay (VisualInspection-like) ------- */
-  const handleFinalSave = async () => {
-    if (!previewPayload) return;
-    try {
-      // Frontend-only save behaviour (like VisualInspection)
-      const dataToSubmit = {
-        selectedPart,
-        selectedPattern,
-        trialNo,
-        chemical_composition: chemState,
-        tensile: tensileState,
-        micro_structure: microState,
-        hardness: hardnessState,
-      };
-      setSubmittedData(dataToSubmit);
-      setSubmitted(true);
-      setPreviewMessage("Successfully submitted");
-    } catch (err) {
-      console.error("Save failed:", err);
-      setPreviewMessage("Save failed");
-    }
+  const handleFinalSave = () => {
+    setSubmittedData({ ...previewPayload });
+    setSubmitted(true);
+    setPreviewMessage("Trial Specification Registered Successfully");
   };
-
-  /* ------- routing to pouring ------- */
-  if (currentView === "pouring" && submittedData) {
-    return (
-      <PouringDetailsTable
-        pouringDetails={pouringDetails}
-        onPouringDetailsChange={handlePouringDetailsChange}
-        submittedData={submittedData}
-      />
-    );
-  }
-
-  /* ---------------- Main Form UI ---------------- */
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", pt: "80px" }}>
-        <Box sx={{ p: { xs: 2, md: 4 } }}>
-          {loading && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "400px",
-              }}
-            >
-              <CircularProgress size={60} />
+      {/* GlobalStyles for Printing */}
+      <GlobalStyles styles={{
+        "@media print": {
+          "html, body": {
+            height: "initial !important",
+            overflow: "initial !important",
+            backgroundColor: "white !important",
+          },
+          "body *": {
+            visibility: "hidden",
+          },
+          ".print-section, .print-section *": {
+            visibility: "visible",
+          },
+          ".print-section": {
+            display: "block !important",
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "100%",
+            color: "black",
+            backgroundColor: "white",
+            padding: "20px",
+          },
+          ".MuiModal-root": {
+            display: "none !important",
+          }
+        }
+      }} />
+
+      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
+        <Container maxWidth="xl" disableGutters>
+
+          <SaclHeader />
+          {/* Header Bar */}
+          <Paper sx={{
+            p: { xs: 1.5, md: 2 },
+            mb: 3,
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", md: "center" },
+            gap: 2,
+            borderLeft: `6px solid ${COLORS.secondary}`
+          }}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <FactoryIcon sx={{ fontSize: { xs: 32, md: 40 }, color: COLORS.primary }} />
+              <Box>
+                <Typography variant="h5" sx={{ color: COLORS.primary }}>
+                  FOUNDRY METHODS
+                </Typography>
+                <Typography variant="subtitle2" sx={{ color: COLORS.textSecondary }}>
+                  Automotive Component Specification
+                </Typography>
+              </Box>
             </Box>
-          )}
+            <Box display="flex" gap={2} alignItems="center" width={isMobile ? "100%" : "auto"} justifyContent="space-between">
+              <Chip label={userIP} size="small" variant="outlined" />
+              <Chip label="USER NAME" color="warning" size="small" icon={<PersonIcon />} />
+            </Box>
+          </Paper>
 
-          {error && (
-            <Alert
-              severity="error"
-              sx={{ mb: 3 }}
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
-          )}
+          {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>}
 
-          {!loading && !error && (
-            <Paper
-              ref={printRef}
-              variant="outlined"
-              sx={{
-                overflow: "hidden",
-                border: `2px solid ${SAKTHI_COLORS.primary}`,
-                bgcolor: SAKTHI_COLORS.white,
-              }}
-            >
-              {/* Header Section */}
-              <Box
-                sx={{
-                  p: 3,
-                  borderBottom: `3px solid ${SAKTHI_COLORS.primary}`,
-                  background: `linear-gradient(135deg, ${SAKTHI_COLORS.primary} 0%, ${SAKTHI_COLORS.lightBlue} 100%)`,
-                  color: SAKTHI_COLORS.white,
-                }}
-              >
-                {/* Title + IP */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    FOUNDRY SAMPLE CARD
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 700, color: "#ffb4b4" }}
-                  >
-                    IP:{" "}
-                    <span style={{ color: "#ffebee", fontWeight: 700 }}>
-                      {userIP || "Fetching..."}
-                    </span>
-                  </Typography>
-                </Box>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}><CircularProgress /></Box>
+          ) : (
+            <Grid container spacing={3}>
 
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      md: "1fr 1fr 1fr",
-                    },
-                    gap: 3,
-                    alignItems: "start",
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}
-                    >
-                      Pattern Code
-                    </Typography>
-                    <Autocomplete
-                      options={masterParts}
-                      value={selectedPattern}
-                      onChange={(_, newValue) => handlePatternChange(newValue)}
-                      getOptionLabel={(option) => option.pattern_code}
-                      renderOption={(props, option) => (
-                        <li
-                          {...props}
-                          key={option.id}
-                          style={{
-                            whiteSpace: "normal",
-                            lineHeight: "1.5",
-                            padding: "8px 16px",
+              {/* 1. Identification Section */}
+              <Grid size={12}>
+                <Card elevation={0} sx={{ border: `1px solid ${COLORS.border}` }}>
+                  <CardContent>
+                    <SectionHeader icon={<PrecisionManufacturingIcon />} title="Part Identification" color={COLORS.primary} />
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>PATTERN CODE</Typography>
+                        <Autocomplete
+                          options={masterParts}
+                          value={selectedPattern}
+                          onChange={(_, v) => handlePatternChange(v)}
+                          getOptionLabel={(o) => o.pattern_code}
+                          renderInput={(params) => <TextField {...params} placeholder="Select Pattern" />}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6, md: 5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>COMPONENT NAME</Typography>
+                        <Autocomplete
+                          options={masterParts}
+                          value={selectedPart}
+                          onChange={(_, v) => handlePartChange(v)}
+                          getOptionLabel={(o) => o.part_name}
+                          renderInput={(params) => <TextField {...params} placeholder="Select Part" />}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>TRIAL REFERENCE</Typography>
+                        <TextField
+                          fullWidth
+                          value={trialNo}
+                          placeholder="Generating..."
+                          InputProps={{
+                            readOnly: true,
+                            sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={() => generateTrialId()} disabled={!selectedPart || trialLoading} size="small">
+                                  {trialLoading ? <CircularProgress size={20} /> : <RefreshIcon fontSize="small" />}
+                                </IconButton>
+                              </InputAdornment>
+                            )
                           }}
-                        >
-                          <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 600 }}
-                            >
-                              {option.pattern_code}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {option.part_name}
-                            </Typography>
-                          </Box>
-                        </li>
-                      )}
-                      renderInput={(params) => {
-                        const { InputProps, ...other } = params;
-                        return (
-                          <TextField
-                            {...other}
-                            placeholder="Select pattern code"
-                            size="small"
-                            required
-                            InputProps={{
-                              ...(InputProps as any),
-                              sx: {
-                                bgcolor: SAKTHI_COLORS.white,
-                                borderRadius: 2,
-                              },
-                            }}
-                          />
-                        );
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            width: "auto",
-                            minWidth: "400px",
-                            maxWidth: "90vw",
-                          },
-                        },
-                      }}
-                    />
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* 2. Chemical Spec Section */}
+              <Grid size={12}>
+                <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                    <SectionHeader icon={<ScienceIcon />} title="Metallurgical Composition" color={COLORS.accentBlue} />
+                    {!isMobile && <Chip label="Auto-Populated" size="small" variant="outlined" sx={{ opacity: 0.7 }} />}
                   </Box>
 
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}
-                    >
-                      Part Name
-                    </Typography>
-                    <Autocomplete
-                      options={masterParts}
-                      value={selectedPart}
-                      onChange={(_, newValue) => handlePartChange(newValue)}
-                      getOptionLabel={(option) => option.part_name}
-                      renderOption={(props, option) => (
-                        <li
-                          {...props}
-                          key={option.id}
-                          style={{
-                            whiteSpace: "normal",
-                            lineHeight: "1.5",
-                            padding: "8px 16px",
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 600 }}
-                            >
-                              {option.part_name}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {option.pattern_code}
-                            </Typography>
-                          </Box>
-                        </li>
-                      )}
-                      renderInput={(params) => {
-                        const { InputProps, ...other } = params;
-                        return (
-                          <TextField
-                            {...other}
-                            placeholder="Select from Master list"
-                            size="small"
-                            required
-                            InputProps={{
-                              ...(InputProps as any),
-                              sx: {
-                                bgcolor: SAKTHI_COLORS.white,
-                                borderRadius: 2,
-                              },
-                            }}
-                          />
-                        );
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            width: "auto",
-                            minWidth: "400px",
-                            maxWidth: "90vw",
-                          },
-                        },
-                      }}
-                    />
+                  <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                    <Table size="small" sx={{ minWidth: 800 }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell colSpan={8} align="center" sx={{ bgcolor: "#f0f9ff", color: COLORS.accentBlue }}>Chemical Elements (%)</TableCell>
+                          <TableCell sx={{ width: 20, border: 'none', bgcolor: 'transparent' }}></TableCell>
+                          <TableCell colSpan={3} align="center" sx={{ bgcolor: "#fff7ed", color: COLORS.secondary }}>Microstructure</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
+                            <TableCell key={h} align="center">{h}</TableCell>
+                          ))}
+                          <TableCell sx={{ border: 'none' }}></TableCell>
+                          {["Nodularity", "Pearlite", "Carbide"].map(h => (
+                            <TableCell key={h} align="center">{h}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+                          {Object.keys(chemState).map((key) => (
+                            <TableCell key={key}>
+                              <SpecInput
+                                value={(chemState as any)[key]}
+                                onChange={(e: any) => setChemState({ ...chemState, [key]: e.target.value })}
+                                readOnly={!editingOnlyMetallurgical}
+                              />
+                            </TableCell>
+                          ))}
+                          <TableCell sx={{ border: 'none' }}></TableCell>
+                          {Object.keys(microState).map((key) => (
+                            <TableCell key={key}>
+                              <SpecInput
+                                value={(microState as any)[key]}
+                                onChange={(e: any) => setMicroState({ ...microState, [key]: e.target.value })}
+                                readOnly={!editingOnlyMetallurgical}
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </Box>
-
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{ mb: 1, fontWeight: 600, opacity: 0.9 }}
-                    >
-                      TRIAL No
-                    </Typography>
-                    <Box
-                      sx={{ display: "flex", gap: 1, alignItems: "center" }}
-                    >
-                      <TextField
-                        fullWidth
-                        value={trialNo}
-                        placeholder="Auto-generated"
-                        size="small"
-                        InputProps={{
-                          readOnly: true,
-                          sx: {
-                            bgcolor: SAKTHI_COLORS.white,
-                            borderRadius: 2,
-                          },
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              {trialLoading ? (
-                                <CircularProgress size={18} />
-                              ) : null}
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      <IconButton
-                        color="primary"
-                        onClick={() =>
-                          generateTrialId(selectedPart?.part_name)
-                        }
-                        disabled={!selectedPart || trialLoading}
-                        size="large"
-                        title="Regenerate trial number"
-                        sx={{
-                          bgcolor: SAKTHI_COLORS.white,
-                          borderRadius: 2,
-                          "&:hover": { bgcolor: "#f0f4ff" },
-                        }}
-                      >
-                        <span style={{ fontSize: 18 }}>⟳</span>
-                      </IconButton>
-                    </Box>
-                    {trialError && (
-                      <Typography color="error" variant="caption">
-                        {trialError}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-
-              {/* Info Chip */}
-              <Box sx={{ px: 3, pt: 3, pb: 2 }}>
-                <Chip
-                  icon={<span style={{ fontSize: "1.2rem" }}>💡</span>}
-                  label="Auto retrieval of spec once part name is selected (Metallurgical Spec)"
-                  sx={{
-                    bgcolor: selectedPart
-                      ? SAKTHI_COLORS.success + "20"
-                      : SAKTHI_COLORS.accent + "20",
-                    color: SAKTHI_COLORS.darkGray,
-                    border: `1px dashed ${selectedPart ? SAKTHI_COLORS.success : SAKTHI_COLORS.accent
-                      }`,
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    py: 2.5,
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ p: 3 }}>
-                {/* METALLURGICAL SPECIFICATION Section */}
-                <Paper
-                  id="metallurgical-section"
-                  variant="outlined"
-                  sx={{
-                    border: `2px solid ${SAKTHI_COLORS.primary}`,
-                    overflow: "hidden",
-                    mb: 3,
-                  }}
-                >
-                  {/* Header */}
-                  <Box
-                    sx={{
-                      bgcolor: SAKTHI_COLORS.accent,
-                      p: 1.5,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontWeight: 800,
-                        color: SAKTHI_COLORS.white,
-                        fontSize: "1rem",
-                      }}
-                    >
-                      METALLURGICAL SPECIFICATION
-                    </Typography>
-                  </Box>
-
-                  {/* Chemical Composition + Microstructure */}
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell
-                          colSpan={8}
-                          align="center"
-                          sx={{
-                            bgcolor: SAKTHI_COLORS.primary,
-                            fontWeight: 700,
-                            borderRight: `2px solid ${SAKTHI_COLORS.primary}`,
-                            fontSize: "0.95rem",
-                            py: 1.5,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Chemical Composition
-                        </TableCell>
-                        <TableCell
-                          colSpan={3}
-                          align="center"
-                          sx={{
-                            bgcolor: SAKTHI_COLORS.primary,
-                            fontWeight: 700,
-                            fontSize: "0.95rem",
-                            py: 1.5,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Microstructure
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          C%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Si%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Mn%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          P%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          S%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Mg%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Cr%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "80px",
-                            fontSize: "0.85rem",
-                            borderRight: `2px solid ${SAKTHI_COLORS.primary}`,
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Cu%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Nodularity%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Pearlite%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Carbide%
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.c}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                c: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.c
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.c ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.si}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                si: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.si
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.si ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.mn}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                mn: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.mn
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.mn ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.p}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                p: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.p
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.p ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.s}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                s: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.s
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.s ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.mg}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                mg: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.mg
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.mg ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.cr}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                cr: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.cr
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.cr ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ borderRight: `2px solid ${SAKTHI_COLORS.primary}` }}>
-                          <TextField
-                            fullWidth
-                            value={chemicalData.cu}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setChemState((s) => ({
-                                ...s,
-                                cu: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: chemicalData.cu
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: chemicalData.cu ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={microData.nodularity}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setMicroState((s) => ({
-                                ...s,
-                                nodularity: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor:
-                                  microData.nodularity !== "--"
-                                    ? SAKTHI_COLORS.background
-                                    : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight:
-                                  microData.nodularity !== "--" ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={microData.pearlite}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setMicroState((s) => ({
-                                ...s,
-                                pearlite: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor:
-                                  microData.pearlite !== "--"
-                                    ? SAKTHI_COLORS.background
-                                    : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight:
-                                  microData.pearlite !== "--" ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={microData.carbide}
-                            placeholder="--"
-                            size="small"
-                            onChange={(e) =>
-                              setMicroState((s) => ({
-                                ...s,
-                                carbide: e.target.value,
-                              }))
-                            }
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor:
-                                  microData.carbide !== "--"
-                                    ? SAKTHI_COLORS.background
-                                    : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight:
-                                  microData.carbide !== "--" ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-
-                  {/* Mechanical Properties + NDT */}
-                  <Table size="small" sx={{ mt: 2 }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          align="center"
-                          sx={{
-                            bgcolor: SAKTHI_COLORS.primary,
-                            fontWeight: 700,
-                            borderRight: `2px solid ${SAKTHI_COLORS.primary}`,
-                            fontSize: "0.95rem",
-                            py: 1.5,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Mechanical Properties
-                        </TableCell>
-                        <TableCell
-                          colSpan={4}
-                          align="center"
-                          sx={{
-                            bgcolor: SAKTHI_COLORS.primary,
-                            fontWeight: 700,
-                            fontSize: "0.95rem",
-                            py: 1.5,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          NDT Inspection
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "120px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Tensile Strength (Min)
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "120px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Yield Strength (Min)
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Elongation%
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Impact strength@ Cold Temp °c
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          Impact strength@ Room Temp °c
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          colSpan={2}
-                          sx={{
-                            fontSize: "0.85rem",
-                            borderRight: `2px solid ${SAKTHI_COLORS.primary}`,
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              sx={{
-                                fontWeight: 700,
-                                fontSize: "0.85rem",
-                                mb: 0.5,
-                                color: SAKTHI_COLORS.white,
-                              }}
-                            >
-                              Hardness (BHN)
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                borderTop: `1px solid ${SAKTHI_COLORS.lightGray}`,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  flex: 1,
-                                  py: 0.5,
-                                  borderRight: `1px solid ${SAKTHI_COLORS.lightGray}`,
-                                  color: SAKTHI_COLORS.white,
-                                }}
-                              >
-                                Surface
-                              </Box>
-                              <Box
-                                sx={{
-                                  flex: 1,
-                                  py: 0.5,
-                                  color: SAKTHI_COLORS.white,
-                                }}
-                              >
-                                Core
-                              </Box>
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "120px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          X-Ray Inspection
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{
-                            minWidth: "100px",
-                            fontSize: "0.85rem",
-                            bgcolor: SAKTHI_COLORS.lightBlue,
-                            color: SAKTHI_COLORS.white,
-                          }}
-                        >
-                          MPI
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={tensileData.tensileStrength}
-                            onChange={(e) =>
-                              setTensileState((s) => ({
-                                ...s,
-                                tensileStrength: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: tensileData.tensileStrength
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: tensileData.tensileStrength
-                                  ? 600
-                                  : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={tensileData.yieldStrength}
-                            onChange={(e) =>
-                              setTensileState((s) => ({
-                                ...s,
-                                yieldStrength: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: tensileData.yieldStrength
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: tensileData.yieldStrength
-                                  ? 600
-                                  : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={tensileData.elongation}
-                            onChange={(e) =>
-                              setTensileState((s) => ({
-                                ...s,
-                                elongation: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: tensileData.elongation
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: tensileData.elongation ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={
-                              tensileData.impactCold ||
-                              (selectedPart?.impact
-                                ? `${selectedPart.impact} (Cold)`
-                                : "--")
-                            }
-                            onChange={(e) =>
-                              setTensileState((s) => ({
-                                ...s,
-                                impactCold: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: selectedPart?.impact
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: selectedPart?.impact ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={
-                              tensileData.impactRoom ||
-                              (selectedPart?.impact
-                                ? `${selectedPart.impact} (Room)`
-                                : "--")
-                            }
-                            onChange={(e) =>
-                              setTensileState((s) => ({
-                                ...s,
-                                impactRoom: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor: selectedPart?.impact
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: selectedPart?.impact ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={hardnessData.surface}
-                            onChange={(e) =>
-                              setHardnessState((s) => ({
-                                ...s,
-                                surface: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor:
-                                  hardnessData.surface !== "--"
-                                    ? SAKTHI_COLORS.background
-                                    : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight:
-                                  hardnessData.surface !== "--" ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={hardnessData.core}
-                            onChange={(e) =>
-                              setHardnessState((s) => ({
-                                ...s,
-                                core: e.target.value,
-                              }))
-                            }
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: !editingOnlyMetallurgical,
-                              sx: {
-                                bgcolor:
-                                  hardnessData.core !== "--"
-                                    ? SAKTHI_COLORS.background
-                                    : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight:
-                                  hardnessData.core !== "--" ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={selectedPart?.xray || "--"}
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              readOnly: true,
-                              sx: {
-                                bgcolor: selectedPart?.xray
-                                  ? SAKTHI_COLORS.background
-                                  : SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                                fontWeight: selectedPart?.xray ? 600 : 400,
-                              },
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            placeholder="--"
-                            size="small"
-                            InputProps={{
-                              sx: {
-                                bgcolor: SAKTHI_COLORS.white,
-                                borderRadius: 1,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
                 </Paper>
+              </Grid>
 
-                {/* Save & Continue (opens preview overlay) */}
-                <Box
-                  sx={{
-                    mt: 3,
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 2,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleSaveAndContinue}
+              {/* 3. Mechanical Spec Section */}
+              <Grid size={12}>
+                <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                  <SectionHeader icon={<ConstructionIcon />} title="Mechanical Properties & NDT" color={COLORS.secondary} />
+
+                  <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                    <Table size="small" sx={{ minWidth: 900 }}>
+                      <TableHead>
+                        <TableRow>
+                          {["Tensile (MPa)", "Yield (MPa)", "Elongation (%)", "Impact Cold", "Impact Room", "Hardness (Surf)", "Hardness (Core)", "X-Ray Grade", "MPI"].map(h => (
+                            <TableCell key={h} align="center">{h}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell><SpecInput value={tensileState.tensileStrength} onChange={(e: any) => setTensileState({ ...tensileState, tensileStrength: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={tensileState.yieldStrength} onChange={(e: any) => setTensileState({ ...tensileState, yieldStrength: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={tensileState.elongation} onChange={(e: any) => setTensileState({ ...tensileState, elongation: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={tensileState.impactCold} onChange={(e: any) => setTensileState({ ...tensileState, impactCold: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={tensileState.impactRoom} onChange={(e: any) => setTensileState({ ...tensileState, impactRoom: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={hardnessState.surface} onChange={(e: any) => setHardnessState({ ...hardnessState, surface: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={hardnessState.core} onChange={(e: any) => setHardnessState({ ...hardnessState, core: e.target.value })} /></TableCell>
+                          <TableCell><SpecInput value={selectedPart?.xray || "--"} readOnly /></TableCell>
+                          <TableCell><SpecInput placeholder="--" /></TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Box>
+                </Paper>
+              </Grid>
+
+              {/* Action buttons were moved to bottom of the page */}
+
+            </Grid>
+          )}
+
+          {/* ---------------- Preview Overlay ---------------- */}
+          {previewMode && previewPayload && (
+            <Box sx={{
+              position: "fixed", inset: 0, zIndex: 1300,
+              bgcolor: "rgba(15, 23, 42, 0.75)", backdropFilter: "blur(6px)",
+              display: "flex", alignItems: "center", justifyContent: "center", p: 2
+            }}>
+              <Paper sx={{
+                width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "hidden",
+                display: 'flex', flexDirection: 'column', borderRadius: 3, position: 'relative'
+              }}>
+                <Box sx={{ p: 2, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: "#fff" }}>
+                  <Typography variant="h6" sx={{ color: COLORS.primary }}>Verify Specification</Typography>
+                  <IconButton
+                    onClick={() => {
+                      setPreviewMode(false);
+                      navigate('/foundry-sample-card-3');
+                    }}
                     sx={{
-                      minWidth: 250,
-                      height: 56,
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      background: `linear-gradient(135deg, ${SAKTHI_COLORS.primary} 0%, ${SAKTHI_COLORS.lightBlue} 100%)`,
-                      "&:hover": {
-                        background: `linear-gradient(135deg, ${SAKTHI_COLORS.lightBlue} 0%, ${SAKTHI_COLORS.primary} 100%)`,
-                      },
-                      "&:disabled": {
-                        bgcolor: SAKTHI_COLORS.lightGray,
-                        color: SAKTHI_COLORS.darkGray,
-                      },
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      color: "#DC2626",
+                      "&:hover": { backgroundColor: "rgba(220,38,38,0.08)" },
                     }}
                   >
-                    {loading ? (
-                      <CircularProgress size={24} />
-                    ) : (
-                      "Save and Continue"
-                    )}
-                  </Button>
-                </Box>
-              </Box>
-            </Paper>
-          )}
-        </Box>
-
-        {/* Floating Apple-style preview like VisualInspection */}
-        {previewMode && previewPayload && (
-          <Box
-            sx={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 1300,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: "rgba(15,23,42,0.5)",
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            <Box
-              sx={{
-                width: "90%",
-                maxWidth: 980,
-                maxHeight: "80vh",
-                overflow: "auto",
-                borderRadius: 4,
-                p: 3,
-                background:
-                  "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(248,250,252,0.9))",
-                boxShadow: "0 25px 80px rgba(15,23,42,0.45)",
-                border: "1px solid rgba(255,255,255,0.8)",
-                position: "relative",
-              }}
-            >
-              {/* Top-right red cross */}
-              <IconButton
-                onClick={() => {
-                  // route to the next Foundry sample card page
-                  navigate('/foundry-sample-card-2');
-                }}
-                sx={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  color: "#DC2626",
-                  "&:hover": { backgroundColor: "rgba(220,38,38,0.08)" },
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-
-              {/* Header inside overlay */}
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={1}
-                pr={5}
-              >
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Sample Card – Preview
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    Review your data before final submission
-                  </Typography>
+                    <CloseIcon />
+                  </IconButton>
                 </Box>
 
-                {/* IP display in preview */}
-                <Typography
-                  variant="body2"
-                  sx={{ fontWeight: 700, color: "#DC2626" }}
-                >
-                  IP: {userIP || "Fetching..."}
-                </Typography>
-              </Box>
+                <Box sx={{ p: { xs: 2, md: 4 }, overflowY: "auto", bgcolor: COLORS.background }}>
+                  {/* 1. Part Identification */}
+                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Part Identification</Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">PATTERN CODE</Typography>
+                        <Typography variant="subtitle1">{previewPayload.pattern_code}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">PART NAME</Typography>
+                        <Typography variant="subtitle1">{previewPayload.part_name}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.accentGreen}`, bgcolor: "#ecfdf5" }}>
+                        <Typography variant="caption" color="success.main">TRIAL ID</Typography>
+                        <Typography variant="subtitle1" color="success.main">{previewPayload.trial_no}</Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
 
-              {/* Basic info */}
-              <Box sx={{ mt: 1, mb: 2 }}>
-                <Typography variant="body2">
-                  <strong>Pattern Code:</strong>{" "}
-                  {selectedPart?.pattern_code || "--"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Part Name:</strong> {selectedPart?.part_name || "--"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>TRIAL No:</strong> {trialNo || "--"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Created:</strong>{" "}
-                  {new Date(previewPayload.created_at).toLocaleString()}
-                </Typography>
-              </Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.accentBlue }}>Chemical Composition</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: 1, mb: 3 }}>
+                    {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(k => (
+                      <Box key={k} sx={{ textAlign: "center", p: 1, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">{k}</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.chemical_composition[k.toLowerCase()] || "-"}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
 
-              {/* Metallurgical Spec preview (read-only) */}
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  mb: 2,
-                  bgcolor: "rgba(255,255,255,0.9)",
-                  borderRadius: 3,
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: 700, mb: 1.5 }}
-                >
-                  METALLURGICAL SPECIFICATION
-                </Typography>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.secondary }}>Microstructure</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
+                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                      <Typography variant="caption" color="text.secondary">Nodularity</Typography>
+                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.nodularity || "-"}</Typography>
+                    </Box>
+                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                      <Typography variant="caption" color="text.secondary">Pearlite</Typography>
+                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.pearlite || "-"}</Typography>
+                    </Box>
+                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                      <Typography variant="caption" color="text.secondary">Carbide</Typography>
+                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.carbide || "-"}</Typography>
+                    </Box>
+                  </Box>
 
-                {/* Chemical + Micro */}
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        align="center"
-                        sx={{
-                          bgcolor: SAKTHI_COLORS.primary,
-                          color: SAKTHI_COLORS.white,
-                          fontWeight: 700,
-                        }}
-                      >
-                        Chemical Composition
-                      </TableCell>
-                      <TableCell
-                        colSpan={3}
-                        align="center"
-                        sx={{
-                          bgcolor: SAKTHI_COLORS.primary,
-                          color: SAKTHI_COLORS.white,
-                          fontWeight: 700,
-                        }}
-                      >
-                        Microstructure
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>C%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Si%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Mn%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>P%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>S%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Mg%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Cr%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Cu%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Nodularity%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Pearlite%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Carbide%</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>{chemState.c || "--"}</TableCell>
-                      <TableCell>{chemState.si || "--"}</TableCell>
-                      <TableCell>{chemState.mn || "--"}</TableCell>
-                      <TableCell>{chemState.p || "--"}</TableCell>
-                      <TableCell>{chemState.s || "--"}</TableCell>
-                      <TableCell>{chemState.mg || "--"}</TableCell>
-                      <TableCell>{chemState.cr || "--"}</TableCell>
-                      <TableCell>{chemState.cu || "--"}</TableCell>
-                      <TableCell>{microState.nodularity || "--"}</TableCell>
-                      <TableCell>{microState.pearlite || "--"}</TableCell>
-                      <TableCell>{microState.carbide || "--"}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Mechanical Properties & NDT</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, bgcolor: "white", mb: 3 }}>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Tensile</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.tensileStrength || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Yield</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.yieldStrength || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Elongation</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.elongation || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Impact (Cold)</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.impactCold || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Impact (Room)</Typography>
+                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.impactRoom || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary">Hardness (Surf/Core)</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          {previewPayload.hardness.surface || "-"} / {previewPayload.hardness.core || "-"}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
 
-                {/* Mechanical + NDT */}
-                <Table size="small" sx={{ mt: 2 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        align="center"
-                        sx={{
-                          bgcolor: SAKTHI_COLORS.primary,
-                          color: SAKTHI_COLORS.white,
-                          fontWeight: 700,
-                        }}
-                      >
-                        Mechanical Properties
-                      </TableCell>
-                      <TableCell
-                        colSpan={4}
-                        align="center"
-                        sx={{
-                          bgcolor: SAKTHI_COLORS.primary,
-                          color: SAKTHI_COLORS.white,
-                          fontWeight: 700,
-                        }}
-                      >
-                        NDT Inspection
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Tensile Strength</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Yield Strength</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Elongation%</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Impact @ Cold</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Impact @ Room</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Hardness Surface</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>Hardness Core</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>X-Ray</TableCell>
-                      <TableCell align="center" sx={{ bgcolor: SAKTHI_COLORS.lightBlue, color: SAKTHI_COLORS.white }}>MPI</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>{tensileState.tensileStrength || "--"}</TableCell>
-                      <TableCell>{tensileState.yieldStrength || "--"}</TableCell>
-                      <TableCell>{tensileState.elongation || "--"}</TableCell>
-                      <TableCell>{tensileState.impactCold || "--"}</TableCell>
-                      <TableCell>{tensileState.impactRoom || "--"}</TableCell>
-                      <TableCell>{hardnessState.surface || "--"}</TableCell>
-                      <TableCell>{hardnessState.core || "--"}</TableCell>
-                      <TableCell>{selectedPart?.xray || "--"}</TableCell>
-                      <TableCell>--</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                  {/* 2. Sampling Details */}
+                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Sampling Details</Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Sampling Date</Typography>
+                        <Typography variant="subtitle1">{previewPayload.samplingDate || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
+                        <Typography variant="subtitle1">{previewPayload.mouldCount || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Machine</Typography>
+                        <Typography variant="subtitle1">{previewPayload.machine || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Reason</Typography>
+                        <Typography variant="subtitle1">{previewPayload.reason || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Traceability</Typography>
+                        <Typography variant="subtitle1">{previewPayload.sampleTraceability || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Pattern Files</Typography>
+                        <Typography variant="subtitle1">{(previewPayload.patternFiles?.length) ? `${previewPayload.patternFiles.length} file(s)` : "0"}</Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+
+                  {/* 3. Tooling Modification */}
+                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Modification</Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary"></Typography>
+                        <Typography variant="subtitle1">{previewPayload.toolingType || "-"}</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                        <Typography variant="caption" color="text.secondary">Tooling Files</Typography>
+                        <Typography variant="subtitle1">{(previewPayload.toolingFiles?.length) ? `${previewPayload.toolingFiles.length} file(s)` : "0"}</Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+
+                  {/* 4. Remarks */}
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}`, mb: 3 }}>
+                    <Typography variant="body2">{previewPayload.remarks || "-"}</Typography>
+                  </Paper>
+
+                  {/* 5. Mould Corrections */}
+                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Mould Corrections</Typography>
+                  <Table size="small" sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1, mb: 3 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell align="center">Compressibility</TableCell>
+                        <TableCell align="center">Squeeze Pressure</TableCell>
+                        <TableCell align="center">Filler Size</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(previewPayload.mouldCorrections || []).map((r: any, i: number) => (
+                        <TableRow key={i}>
+                          <TableCell sx={{ textAlign: 'center' }}>{r.compressibility || "-"}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>{r.squeezePressure || "-"}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>{r.fillerSize || "-"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  {previewMessage && <Alert severity="success" sx={{ mt: 2 }}>{previewMessage}</Alert>}
+                </Box>
+
+                <Box sx={{ p: 2, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <Button variant="outlined" fullWidth={isMobile} onClick={() => setPreviewMode(false)} disabled={submitted}>Back to Edit</Button>
+                  {submitted ? (
+                    <Button variant="contained" fullWidth={isMobile} color="primary" onClick={handleExportPDF} startIcon={<PrintIcon />}>Download PDF</Button>
+                  ) : (
+                    <Button variant="contained" fullWidth={isMobile} color="secondary" onClick={handleFinalSave} startIcon={<UploadFileIcon />}>Confirm & Submit</Button>
+                  )}
+                </Box>
               </Paper>
+            </Box>
+          )}
 
-              {/* Messages inside preview */}
-              {previewMessage && (
-                <Box mt={2}>
-                  <Alert
-                    severity={submitted ? "success" : "info"}
-                    sx={{ borderRadius: 3 }}
-                  >
-                    {previewMessage}
-                  </Alert>
-                </Box>
-              )}
+          {/* ---------------- HIDDEN PRINT CONTENT ---------------- */}
 
-              {/* Actions */}
-              <Box
-                mt={3}
-                display="flex"
-                alignItems="center"
-                gap={2}
-              >
-                {/* Edit button: disabled after Save */}
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setPreviewMode(false);
-                    setPreviewPayload(null);
-                  }}
-                  disabled={submitted}
-                >
-                  Edit
-                </Button>
+          {/* --- Moved: Sampling Details Table (from FoundrySampleCard2) --- */}
+          <Paper sx={{ overflowX: "auto", mb: 3, p: 2 }}>
+            <Table size="small" sx={{ minWidth: 900 }}>
+              <TableHead>
+                <TableRow>
+                  {[
+                    "Date of Sampling",
+                    "No. of Moulds",
+                    "DISA / FOUNDRY-A",
+                    "Reason For Sampling",
+                    "Sample Traceability",
+                    "Pattern Data Sheet",
+                  ].map((head) => (
+                    <TableCell key={head} align="center">
+                      {head}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <TextField
+                      type="date"
+                      fullWidth
+                      value={samplingDate}
+                      onChange={(e) => setSamplingDate(e.target.value)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      value={mouldCount}
+                      onChange={(e) => setMouldCount(e.target.value)}
+                      size="small"
+                      placeholder="10"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <FormControl fullWidth size="small">
+                      <Select
+                        value={machine}
+                        onChange={(e) => setMachine(e.target.value)}
+                        displayEmpty
+                      >
+                        <MenuItem value="" disabled>
+                          Select
+                        </MenuItem>
+                        {MACHINES.map((m) => (
+                          <MenuItem key={m} value={m}>
+                            {m}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </TableCell>
+                  <TableCell>
+                    <FormControl fullWidth size="small">
+                      <Select
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        displayEmpty
+                      >
+                        <MenuItem value="" disabled>
+                          Select
+                        </MenuItem>
+                        {SAMPLING_REASONS.map((r) => (
+                          <MenuItem key={r} value={r}>
+                            {r}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      fullWidth
+                      value={sampleTraceability}
+                      onChange={(e) => setSampleTraceability(e.target.value)}
+                      size="small"
+                      placeholder="Enter option"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      fullWidth
+                      sx={{ borderStyle: "dashed" }}
+                    >
+                      Upload
+                      <input
+                        type="file"
+                        hidden
+                        multiple
+                        onChange={handlePatternFilesChange}
+                      />
+                    </Button>
+                    {patternFiles.length > 0 && (
+                      <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {patternFiles.map((f, i) => (
+                          <Chip
+                            key={i}
+                            label={f.name}
+                            onDelete={() => removePatternFile(i)}
+                            size="small"
+                            sx={{ maxWidth: '100%' }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </TableCell>
 
-                {submitted && (
-                  <Button
-                    variant="contained"
-                    onClick={handleExportPDF}
-                    sx={{ backgroundColor: SAKTHI_COLORS.primary }}
-                  >
-                    Export PDF
-                  </Button>
-                )}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Paper>
 
-                <Button
-                  variant="contained"
-                  disabled={submitted}
-                  onClick={handleFinalSave}
-                  sx={{ backgroundColor: SAKTHI_COLORS.accent }}
-                >
-                  {submitted ? "Submitted" : "Submit"}
-                </Button>
-
-                <Box sx={{ flex: 1 }} />
+          <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Tooling / Mould Corrections / Remarks</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip label={`${toolingFiles.length} file(s)`} size="small" />
+                <Chip label={`${mouldCorrections.length} correction(s)`} size="small" />
+                <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
+                  {remarks ? `${remarks.slice(0, 80)}${remarks.length > 80 ? "..." : ""}` : "No remarks"}
+                </Typography>
               </Box>
             </Box>
+            <Button variant="outlined" onClick={openMetaDialog} startIcon={<EditIcon />}>Edit Material / Attach / Remarks</Button>
+          </Paper>
+
+          {/* ---------------- Dialogs ---------------- */}
+
+          {/* Meta Data Dialog */}
+          <Dialog open={showMetaDialog} onClose={() => setShowMetaDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ bgcolor: COLORS.primary, color: "#fff" }}>
+              <Typography variant="h6">Edit Tooling / Remarks</Typography>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3, bgcolor: COLORS.background }}>
+              {/* Tooling Files */}
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Files</Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                sx={{ borderStyle: "dashed", mb: 2 }}
+              >
+                Upload Tooling Files
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={handleTempToolingFilesChange}
+                />
+              </Button>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {tempToolingFiles.map((f, i) => (
+                  <Chip
+                    key={i}
+                    label={f.name}
+                    onDelete={() => removeTempToolingFile(i)}
+                    size="small"
+                    sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}` }}
+                  />
+                ))}
+              </Box>
+
+              {/* Mould Corrections */}
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary, mt: 3 }}>Mould Corrections</Typography>
+              {tempMouldCorrections.map((row, index) => (
+                <Box key={row.id} sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Compressibility"
+                    value={row.compressibility}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'compressibility', e.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Squeeze Pressure"
+                    value={row.squeezePressure}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Filler Size"
+                    value={row.fillerSize}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'fillerSize', e.target.value)}
+                  />
+                  {tempMouldCorrections.length > 1 && (
+                    <IconButton size="small" onClick={() => removeTempMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </Box>
+              ))}
+              <Button
+                variant="outlined"
+                onClick={addTempMouldCorrectionRow}
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                Add Mould Correction
+              </Button>
+
+              {/* Remarks */}
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                variant="outlined"
+                placeholder="Enter remarks..."
+                value={tempRemarks}
+                onChange={(e) => setTempRemarks(e.target.value)}
+                sx={{ bgcolor: "#fff" }}
+              />
+            </DialogContent>
+            <DialogActions sx={{ p: 2, bgcolor: COLORS.background }}>
+              <Button variant="outlined" onClick={() => setShowMetaDialog(false)} color="inherit">
+                Cancel
+              </Button>
+              <Button variant="contained" onClick={handleMetaSave} color="secondary">
+                Save Changes
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* ---------------- Action Buttons (moved to bottom) ---------------- */}
+          <Box display="flex" justifyContent="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
+            <Button variant="outlined" color="inherit" fullWidth={isMobile} onClick={() => window.location.reload()}>
+              Reset Form
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth={isMobile}
+              onClick={handleSaveAndContinue}
+              startIcon={<SaveIcon />}
+            >
+              Save & Continue
+            </Button>
           </Box>
-        )}
+          {previewPayload && (
+            <Box className="print-section" sx={{ display: 'none' }}>
+              <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY SAMPLE CARD</Typography>
+                  <Typography variant="body1">Trial Report & Specification Sheet</Typography>
+                </Box>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                  <Typography variant="body2">IP: {userIP}</Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 4, display: 'flex', gap: 4 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'grey.700' }}>PATTERN:</Typography>
+                  <Typography variant="h6">{previewPayload.pattern_code}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'grey.700' }}>PART NAME:</Typography>
+                  <Typography variant="h6">{previewPayload.part_name}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'grey.700' }}>TRIAL NO:</Typography>
+                  <Typography variant="h6">{previewPayload.trial_no}</Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Sampling Details</Typography>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
+                  <div>
+                    <strong>Date:</strong> {previewPayload.samplingDate || '-'}
+                  </div>
+                  <div>
+                    <strong>No. of Moulds:</strong> {previewPayload.mouldCount || '-'}
+                  </div>
+                  <div>
+                    <strong>Machine:</strong> {previewPayload.machine || '-'}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
+                  <div>
+                    <strong>Reason:</strong> {previewPayload.reason || '-'}
+                  </div>
+                  <div>
+                    <strong>Traceability:</strong> {previewPayload.sampleTraceability || '-'}
+                  </div>
+                </div>
+              </Box>
+
+              <h3 style={{ borderBottom: "1px solid #ccc", marginBottom: "10px" }}>Pattern Data Sheet</h3>
+              <p>
+                <strong>Files:</strong> {previewPayload.patternFiles?.map((f: any) => f.name).join(", ") || "None"}
+              </p>
+
+              <h3 style={{ borderBottom: "1px solid #ccc", marginBottom: "10px", marginTop: "20px" }}>Tooling Modification</h3>
+              <p>
+                <strong>Type:</strong> {previewPayload.toolingType || "-"}
+              </p>
+              <p>
+                <strong>Files attached:</strong> {previewPayload.toolingFiles?.map((f: any) => f.name).join(", ") || "None"}
+              </p>
+
+              <h3 style={{ borderBottom: "1px solid #ccc", marginBottom: "10px", marginTop: "20px" }}>Mould Corrections</h3>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", marginBottom: 16 }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f0f0f0" }}>
+                    <th style={{ border: "1px solid black", padding: "5px" }}>#</th>
+                    <th style={{ border: "1px solid black", padding: "5px" }}>Compressibility</th>
+                    <th style={{ border: "1px solid black", padding: "5px" }}>Squeeze Pressure</th>
+                    <th style={{ border: "1px solid black", padding: "5px" }}>Filler Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(previewPayload.mouldCorrections || []).map((row: any, i: number) => (
+                    <tr key={i}>
+                      <td style={{ border: "1px solid black", padding: "5px", textAlign: "center" }}>{i + 1}</td>
+                      <td style={{ border: "1px solid black", padding: "5px", textAlign: "center" }}>{row.compressibility}</td>
+                      <td style={{ border: "1px solid black", padding: "5px", textAlign: "center" }}>{row.squeezePressure}</td>
+                      <td style={{ border: "1px solid black", padding: "5px", textAlign: "center" }}>{row.fillerSize}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Chemical Composition</Typography>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f0f0f0' }}>
+                    {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
+                      <th key={h} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {["c", "si", "mn", "p", "s", "mg", "cr", "cu"].map(k => (
+                      <td key={k} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>
+                        {previewPayload.chemical_composition[k] || "-"}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+
+              <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Microstructure</Typography>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f0f0f0' }}>
+                    <th style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>Nodularity</th>
+                    <th style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>Pearlite</th>
+                    <th style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>Carbide</th>
+                  </tr>
+                </thead>
+              </table>
+
+              <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1, mt: 3 }}>Mechanical Properties</Typography>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f0f0f0' }}>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Tensile</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Yield</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Elongation</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Impact (Cold)</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Impact (Room)</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness (Surf)</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness (Core)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.tensileStrength}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.yieldStrength}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.elongation}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.impactCold}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.impactRoom}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.hardness.surface}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.hardness.core}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </Box>
+          )}
+
+        </Container>
       </Box>
     </ThemeProvider>
   );
 }
 
-/* ---------------- Wrapper with ErrorBoundary ---------------- */
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() { if (this.state.hasError) return <Alert severity="error">System Error. Please refresh.</Alert>; return this.props.children; }
+}
 
-export default function FoundrySampleCardWithErrorBoundary() {
+export default function FoundrySampleCardApp() {
   return (
     <ErrorBoundary>
       <FoundrySampleCard />

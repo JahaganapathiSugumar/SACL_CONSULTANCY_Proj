@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AddUserModal from '../components/admin/AddUserModal';
 import UserManagement from '../components/admin/UserManagement';
 import { useAuth } from '../context/AuthContext';
+import { masterListService } from '../services/masterListService';
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -198,14 +199,7 @@ const DashboardPage: React.FC = () => {
       console.log('🔧 EXACT SQL Payload:', JSON.stringify(exactSQLPayload, null, 2));
 
       try {
-        const response = await fetch('http://localhost:3000/api/master-list', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(exactSQLPayload),
-        });
-
+        const response = await masterListService.submitMasterListJson(exactSQLPayload);
         const responseText = await response.text();
         console.log('📡 Response status:', response.status);
         console.log('📡 Response text:', responseText);
@@ -280,28 +274,10 @@ const DashboardPage: React.FC = () => {
         let response: Response;
         // If attachments present, send as FormData
         if (attachments.length > 0) {
-          const fd = new FormData();
-          // append payload as JSON string to keep backend parsing simple
-          fd.append('payload', JSON.stringify(payloadObj));
-          attachments.forEach((file, idx) => {
-            // multiple files under same key 'attachments'
-            fd.append('attachments', file, file.name);
-          });
-
-          response = await fetch('http://localhost:3000/api/master-list', {
-            method: 'POST',
-            // DO NOT set Content-Type header when sending FormData; the browser will set the boundary
-            body: fd,
-          });
+          response = await masterListService.submitMasterListFormData(payloadObj, attachments);
         } else {
           // No attachments -> send JSON as before
-          response = await fetch('http://localhost:3000/api/master-list', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payloadObj),
-          });
+          response = await masterListService.submitMasterListJson(payloadObj);
         }
 
         const responseText = await response.text();

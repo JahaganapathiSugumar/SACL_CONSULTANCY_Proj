@@ -4,7 +4,6 @@ import { authService } from '../services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ✅ Use normal function component (not React.FC)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -13,7 +12,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken = authService.getToken();
     const storedUser = authService.getStoredUser();
-    
+
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(storedUser);
@@ -55,7 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ✅ Keep hook as a named export
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

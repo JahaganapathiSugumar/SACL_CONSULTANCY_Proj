@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -157,7 +157,7 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
 
 /* ---------------- Main Component ---------------- */
 
-interface FoundrySampleCardProps {
+interface SandTableProps {
   submittedData?: {
     selectedPart?: any;
     selectedPattern?: any;
@@ -173,7 +173,7 @@ interface FoundrySampleCardProps {
   fromPendingCards?: boolean;
 }
 
-function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards }: FoundrySampleCardProps = {}) {
+function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: SandTableProps = {}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -688,4 +688,4 @@ function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards
   );
 }
 
-export default FoundrySampleCard;
+export default SandTable;

@@ -22,6 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import SaclHeader from "./SaclHeader";
+import { trialService } from "../../services/trialService";
 
 type MouldCorrection = { compressibility?: string; squeeze_pressure?: string; filler_size?: string };
 
@@ -106,12 +107,9 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(`http://localhost:3000/api/trial/trial_id?trial_id=${encodeURIComponent(id)}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
-      console.log("Fetched trial data:", json);
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        setData(json.data[0]);
+      const trial = await trialService.getTrialByTrialId(id);
+      if (trial) {
+        setData(trial);
       } else {
         setData(null);
         setError('No trial found');

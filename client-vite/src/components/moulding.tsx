@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -26,12 +26,11 @@ import {
   Divider
 } from "@mui/material";
 
-// Icons
 import FactoryIcon from '@mui/icons-material/Factory';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from "@mui/icons-material/Close";
-import ScienceIcon from '@mui/icons-material/Science'; // Kept as generic icon or swap to Engineering
+import ScienceIcon from '@mui/icons-material/Science';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
@@ -41,8 +40,6 @@ import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
-/* ---------------- 1. Theme Configuration ---------------- */
-
 const COLORS = {
   primary: "#1e293b",
   secondary: "#ea580c",
@@ -129,8 +126,6 @@ const theme = createTheme({
   },
 });
 
-/* ---------------- UI Sub-components ---------------- */
-
 const SpecInput = ({ inputStyle, ...props }: any) => (
   <TextField
     {...props}
@@ -148,15 +143,11 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
   />
 );
 
-/* ---------------- Main Component ---------------- */
-
-function FoundrySampleCard() {
+function MouldingTable() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [assigned, setAssigned] = useState<boolean | null>(null);
-
-  // State - Swapped to Moulding Fields
   const [mouldState, setMouldState] = useState({
     thickness: "",
     compressability: "",
@@ -164,10 +155,8 @@ function FoundrySampleCard() {
     hardness: "",
     remarks: ""
   });
-  // Attach PDF / Images
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-  // Add these states near other useState declarations
   const [mouldCorrectionLoading, setMouldCorrectionLoading] = useState(false);
   const [mouldCorrectionSubmitted, setMouldCorrectionSubmitted] = useState(false);
   const [mouldDate, setMouldDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -185,7 +174,7 @@ function FoundrySampleCard() {
         const found = data.some(
           (p) =>
             p.username === uname &&
-            p.department_id === 6 && // moulding dept id
+            p.department_id === 6 &&
             (p.approval_status === "pending" || p.approval_status === "assigned")
         );
         if (mounted) setAssigned(found);
@@ -205,7 +194,6 @@ function FoundrySampleCard() {
     fetchIP();
   }, []);
 
-  // Early exits after all hooks are declared
   if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
   if (!assigned) return <NoPendingWorks />;
 
@@ -220,7 +208,6 @@ function FoundrySampleCard() {
     });
     setSubmitted(false);
   };
-  // Handle file uploads
   const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList) return;
@@ -228,7 +215,6 @@ function FoundrySampleCard() {
     setAttachedFiles(prev => [...prev, ...files]);
   };
 
-  // Remove uploaded file chip
   const removeAttachedFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
@@ -240,7 +226,6 @@ function FoundrySampleCard() {
 
   const handleExportPDF = () => { window.print(); };
 
-  // Helper grid box for preview
   const GridValueBox = ({ label, value }: { label: string, value: string }) => (
     <Box sx={{
       p: 2,
@@ -255,11 +240,6 @@ function FoundrySampleCard() {
     </Box>
   );
 
-  /**
-   * Post mould correction to server
-   * payload must include: mould_thickness, compressability, squeeze_pressure, mould_hardness, remarks
-   * trial_id will be taken from URL query or localStorage fallback.
-   */
   const postMouldCorrection = async (payload: {
     mould_thickness: string;
     compressability: string;
@@ -281,12 +261,10 @@ function FoundrySampleCard() {
     }
   };
 
-  // Example: call postMouldCorrection when user clicks Confirm (adjust to your component fields)
   const handleFinalSubmit = async () => {
-    // replace these with your component state variables
     const payload = {
-      mould_thickness: mouldState.thickness,        // string state in your component
-      compressability: mouldState.compressability, // string state in your component
+      mould_thickness: mouldState.thickness,
+      compressability: mouldState.compressability,
       squeeze_pressure: mouldState.pressure,
       mould_hardness: mouldState.hardness,
       remarks: mouldState.remarks
@@ -294,29 +272,13 @@ function FoundrySampleCard() {
 
     const result = await postMouldCorrection(payload);
     if (!result.ok) {
-      // minimal feedback - replace with your toast/snackbar
       alert(result.message || 'Failed to submit mould correction');
     } else {
-      // success handling
       alert('Mould correction created successfully.');
       setSubmitted(true);
 
-      // Upload attached files after successful form submission
       if (attachedFiles.length > 0) {
         try {
-          // const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
-          // const uploadResults = await uploadFiles(
-          //   attachedFiles,
-          //   trialId,
-          //   "MOULDING",
-          //   user?.username || "system",
-          //   mouldState.remarks || ""
-          // );
-
-          // const failures = uploadResults.filter(r => !r.success);
-          // if (failures.length > 0) {
-          //   console.error("Some files failed to upload:", failures);
-          // }
         } catch (uploadError) {
           console.error("File upload error:", uploadError);
         }
@@ -340,7 +302,6 @@ function FoundrySampleCard() {
         <Container maxWidth="xl" disableGutters>
 
           <SaclHeader />
-          {/* Header Bar */}
           <Paper sx={{
             p: 1.5, mb: 3,
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -373,24 +334,17 @@ function FoundrySampleCard() {
             </Box>
           </Paper>
 
-          {/* Main Content Card */}
           <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
 
-            {/* Inner Header */}
             <Box display="flex" alignItems="center" gap={1} mb={1}>
               <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
               <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
             </Box>
             <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
 
-            {/* <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Chip label="Input Required" size="small" variant="outlined" sx={{ color: COLORS.textSecondary }} />
-            </Box> */}
-
             <Box sx={{ overflowX: "auto", mb: 4 }}>
               <Table size="small" sx={{ minWidth: 1000 }}>
                 <TableHead>
-                  {/* Split Group Headers (Material UI Style) */}
                   <TableRow>
                     <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
                       <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
@@ -399,7 +353,6 @@ function FoundrySampleCard() {
                     </TableCell>
                   </TableRow>
 
-                  {/* Column Headers */}
                   <TableRow>
                     <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
                     <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
@@ -411,7 +364,6 @@ function FoundrySampleCard() {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    {/* Blue Section Inputs */}
                     <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} /></TableCell>
                     <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} /></TableCell>
                     <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} /></TableCell>
@@ -419,7 +371,6 @@ function FoundrySampleCard() {
                       <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} />
                     </TableCell>
 
-                    {/* Orange Section Inputs */}
                     <TableCell>
                       <SpecInput
                         value={mouldState.remarks}
@@ -431,7 +382,6 @@ function FoundrySampleCard() {
                 </TableBody>
               </Table>
             </Box>
-            {/* Attach PDF / Image Section */}
             <Box sx={{ mt: 3, mb: 3 }}>
               <Typography
                 variant="subtitle2"
@@ -461,7 +411,6 @@ function FoundrySampleCard() {
                 />
               </Button>
 
-              {/* Show file chips */}
               <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {attachedFiles.map((file, index) => (
                   <Chip
@@ -481,7 +430,6 @@ function FoundrySampleCard() {
 
 
 
-            {/* Actions */}
             <Box display="flex" justifyContent="flex-end" gap={2}>
               <Button
                 variant="outlined"
@@ -507,7 +455,6 @@ function FoundrySampleCard() {
 
           </Paper>
 
-          {/* ---------------- MODAL / PREVIEW ---------------- */}
           {previewMode && (
             <Box sx={{
               position: "fixed", inset: 0, zIndex: 1300,
@@ -516,7 +463,6 @@ function FoundrySampleCard() {
             }}>
               <Paper sx={{ width: "100%", maxWidth: 850, borderRadius: 3, overflow: "hidden" }}>
 
-                {/* Modal Header */}
                 <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Moulding Details</Typography>
                   <IconButton size="small" onClick={() => navigate('/metallurgical-inspection')} sx={{ color: '#ef4444' }}>
@@ -524,10 +470,8 @@ function FoundrySampleCard() {
                   </IconButton>
                 </Box>
 
-                {/* Modal Content */}
                 <Box sx={{ p: 4 }}>
 
-                  {/* Section 1: Parameters */}
                   <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
                   <Grid container spacing={2} sx={{ mb: 4 }}>
                     <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
@@ -536,7 +480,6 @@ function FoundrySampleCard() {
                     <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
                   </Grid>
 
-                  {/* Section 2: Remarks/Type */}
                   <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
                   <Box sx={{
                     p: 3,
@@ -553,7 +496,6 @@ function FoundrySampleCard() {
                       <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
                     </Box>
                   </Box>
-                  {/* Attached Files in Preview */}
                   {attachedFiles.length > 0 && (
                     <Box
                       sx={{
@@ -574,8 +516,6 @@ function FoundrySampleCard() {
                     </Box>
                   )}
 
-
-                  {/* Success Message */}
                   {submitted && (
                     <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
                       <CheckCircleIcon fontSize="small" />
@@ -585,7 +525,6 @@ function FoundrySampleCard() {
 
                 </Box>
 
-                {/* Modal Footer */}
                 <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2 }}>
                   <Button
                     variant="outlined"
@@ -621,8 +560,6 @@ function FoundrySampleCard() {
               </Paper>
             </Box>
           )}
-
-          {/* PRINT LAYOUT */}
           <Box className="print-section" sx={{ display: 'none', fontFamily: theme.typography.fontFamily }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
@@ -687,4 +624,4 @@ function FoundrySampleCard() {
   );
 }
 
-export default FoundrySampleCard;
+export default MouldingTable;

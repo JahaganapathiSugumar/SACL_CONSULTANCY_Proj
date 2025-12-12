@@ -1,4 +1,4 @@
-import { documentService } from './documentServices';
+import { documentService } from './documentService';
 
 /**
  * Result of a single file upload attempt
@@ -20,7 +20,6 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
 
         reader.onload = () => {
             if (typeof reader.result === 'string') {
-                // Extract base64 part from data URL (remove "data:image/png;base64," prefix)
                 const base64String = reader.result.split(',')[1] || reader.result;
                 resolve(base64String);
             } else {
@@ -56,10 +55,8 @@ export const uploadFiles = async (
 
     for (const file of files) {
         try {
-            // Convert file to base64
             const base64String = await convertFileToBase64(file);
 
-            // Upload using documentService
             const response = await documentService.uploadDocument(
                 trialId,
                 documentType,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import {
     Paper,
     Typography,
@@ -45,9 +45,6 @@ import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
 import { useNavigate } from "react-router-dom";
-
-
-/* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
     primary: "#1e293b",
@@ -140,7 +137,6 @@ const theme = createTheme({
     },
 });
 
-/* ---------- Types & Helpers ---------- */
 type Row = { id: string; label: string; values: string[] };
 type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
 
@@ -160,12 +156,10 @@ const buildRows = (labels: string[], initialCols: string[]): Row[] =>
         values: initialCols.map(() => ""),
     }));
 
-/* ---------- Main Component ---------- */
 export default function VisualInspection({
     initialRows = ["Cavity number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
     initialCols = [""],
     onSave = async (payload: any) => {
-        // Mock save
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
     },
 }: {
@@ -188,14 +182,11 @@ export default function VisualInspection({
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
-    // Additional PDF files and remarks (new)
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
     const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-    // Preview state
     const [previewMode, setPreviewMode] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
     const [submitted, setSubmitted] = useState(false);
-    // IP state
     const [userIP, setUserIP] = useState<string>("Loading...");
 
     useEffect(() => {
@@ -219,7 +210,6 @@ export default function VisualInspection({
         return () => { mounted = false; };
     }, [user]);
 
-    // Calculate rejection percentage for a specific column
     const calculateRejectionPercentage = (colIndex: number): string => {
         const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
         const rejectedRow = rows.find(r => r.label === "Rejected Quantity");
@@ -237,7 +227,6 @@ export default function VisualInspection({
         return percentage.toFixed(2);
     };
 
-    // Auto-hide messages
     useEffect(() => {
         if (alert) {
             const t = setTimeout(() => setAlert(null), 4000);
@@ -253,7 +242,6 @@ export default function VisualInspection({
         fetchUserIP();
     }, []);
 
-    // Early exits after all hooks are registered
     if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
     if (!assigned) return <NoPendingWorks />;
 
@@ -352,7 +340,6 @@ export default function VisualInspection({
         };
     };
 
-    // Save & Continue -> Open Preview
     const handleSaveAndContinue = () => {
         setSaving(true);
         setMessage(null);
@@ -368,13 +355,11 @@ export default function VisualInspection({
         }
     };
 
-    // Final save from preview
     const handleFinalSave = async () => {
         if (!previewPayload) return;
         setSaving(true);
         setMessage(null);
         try {
-            // Map rows to fields per column
             const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
             const cavityRow = findRow('cavity number');
             const inspectedRow = findRow('inspected quantity');
@@ -414,7 +399,6 @@ export default function VisualInspection({
             setSubmitted(true);
             setAlert({ severity: 'success', message: 'Visual inspection created successfully.' });
 
-            // Upload attached files after successful form submission
             if (attachedFiles.length > 0) {
                 try {
                     // const uploadResults = await uploadFiles(
@@ -459,10 +443,8 @@ export default function VisualInspection({
             <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
                 <Container maxWidth="xl" disableGutters>
 
-                    {/* SACL HEADER */}
                     <SaclHeader />
 
-                    {/* HEADER */}
                     <Paper sx={{
                         p: 1.5, mb: 3,
                         display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -488,7 +470,6 @@ export default function VisualInspection({
                         </Box>
                     </Paper>
 
-                    {/* MAIN CONTENT */}
                     <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -580,7 +561,6 @@ export default function VisualInspection({
                                                     </TableCell>
                                                 );
                                             })}
-                                            {/* ⭐ NEW TOTAL CELL */}
                                             <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
                                                 {(() => {
                                                     if (r.label === "Cavity number") return "-";
@@ -689,13 +669,6 @@ export default function VisualInspection({
                             Add Column
                         </Button>
 
-                        {/* Attach PDF / Image Section */}
-
-
-                        {/* Additional Remarks Section */}
-
-
-                        {/* ACTIONS */}
                         <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
                             <Button
                                 variant="outlined"
@@ -718,7 +691,6 @@ export default function VisualInspection({
 
                     </Paper>
 
-                    {/* PREVIEW MODAL */}
                     {previewMode && previewPayload && (
                         <Box
                             sx={{
@@ -749,7 +721,6 @@ export default function VisualInspection({
                                         </Box>
                                         <Divider sx={{ mb: 3 }} />
 
-                                        {/* Preview Table */}
                                         <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                                             <Table size="small">
                                                 <TableHead>
@@ -775,7 +746,6 @@ export default function VisualInspection({
                                             </Table>
                                         </Box>
 
-                                        {/* Group Result Preview */}
                                         <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                                             <Typography variant="subtitle2" mb={1} color="textSecondary">FINAL STATUS & REMARKS</Typography>
                                             <Grid container spacing={2}>

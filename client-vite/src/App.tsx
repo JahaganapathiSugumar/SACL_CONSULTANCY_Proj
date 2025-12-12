@@ -19,8 +19,7 @@ import VisualInspection from './components/VisualInspection';
 import DimensionalInspection from './components/DimensionalInspection';
 import McShopInspection from './components/MCShop';
 import MouldingTable from './components/Moulding';
-import FoundrySampleCard from './components/FoundrySampleCard1';
-import FoundrySampleCard3 from './components/FoundrySampleCard3';
+import FoundrySampleCard from './components/FoundrySampleCard';
 import PouringDetailsTable from './components/PouringDetailsTable';
 import type { PouringDetails, SubmittedData } from './components/PouringDetailsTable';
 import SandTable from './components/Sand';
@@ -42,7 +41,6 @@ const AppRoutes: React.FC = () => {
     }
   };
 
-  // Provide empty defaults for pouring route (used when navigating directly from preview)
   const emptyPouringDetails: PouringDetails = {
     date: '',
     heatCode: '',
@@ -78,10 +76,6 @@ const AppRoutes: React.FC = () => {
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute>{getDashboardByRole()}</ProtectedRoute>} />
 
-      <Route path="/common" element={
-        <Common trialId={'trial_id'}/>
-      } />
-
       <Route path="/update-email" element={<ProtectedRoute><UpdateEmailPage /></ProtectedRoute>} />
       <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
 
@@ -89,44 +83,29 @@ const AppRoutes: React.FC = () => {
         <ProtectedRoute requiredRole="Admin"><UsersPage /></ProtectedRoute>
       } />
 
-      {/* ⭐ NEW ROUTE */}
       <Route path="/metallurgical-inspection" element={
         <ProtectedRoute><MetallurgicalInspection /></ProtectedRoute>
       } />
 
-      {/* Visual inspection route */}
       <Route path="/visual-inspection" element={
         <ProtectedRoute><VisualInspection /></ProtectedRoute>
       } />
 
-      {/* Dimensional inspection route */}
       <Route path="/dimensional-inspection" element={
         <ProtectedRoute><DimensionalInspection /></ProtectedRoute>
       } />
 
-      {/* MC Shop route */}
       <Route path="/mc-shop" element={
         <ProtectedRoute><McShopInspection /></ProtectedRoute>
       } />
 
-      {/* Foundry sample card route (updated path) */}
       <Route path="/foundry-sample-card" element={<ProtectedRoute><FoundrySampleCard /></ProtectedRoute>} />
 
-  
-
-      {/* Tertiary foundry sample card route (preview close or navigation target) */}
-      <Route path="/foundry-sample-card-3" element={<ProtectedRoute><FoundrySampleCard3 /></ProtectedRoute>} />
-
-      {/* Tertiary foundry sample card route (preview close target) */}
-
-      {/* Redirect old path to new path for backwards-compatibility */}
       <Route path="/foundry-sample" element={<Navigate to="/foundry-sample-card" replace />} />
 
-      {/* Notifications and pending samples */}
       <Route path="/notifications" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
       <Route path="/pending-samples" element={<ProtectedRoute><PendingSampleCardsPage /></ProtectedRoute>} />
 
-      {/* Moulding table route */}
       <Route
         path="/moulding"
         element={
@@ -136,7 +115,6 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Pouring details table route (target after Foundry preview close) */}
       <Route
         path="/pouring"
         element={
@@ -150,7 +128,6 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Sand table route (target after pouring preview close) */}
       <Route
         path="/sand"
         element={

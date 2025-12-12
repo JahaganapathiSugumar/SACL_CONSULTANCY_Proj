@@ -17,7 +17,6 @@ class ApiService {
     try {
       let response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
-      // If unauthorized, attempt to refresh token once
       if (response.status === 401) {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
@@ -31,7 +30,6 @@ class ApiService {
               const refreshData = await refreshRes.json();
               if (refreshData.token) {
                 localStorage.setItem('authToken', refreshData.token);
-                // retry original request with new token
                 const retryConfig = {
                   ...config,
                   headers: {
@@ -43,7 +41,6 @@ class ApiService {
               }
             }
           } catch (err) {
-            // ignore and fall through to error handling
           }
         }
       }
@@ -69,7 +66,6 @@ class ApiService {
   }
 
   async login(username: string, password: string, role?: string, department_id?: string): Promise<AuthResponse> {
-    // Only send username and password - backend will determine role and department
     const body = { username, password };
     return this.request('/login', {
       method: 'POST',

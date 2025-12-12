@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import { useNavigate } from 'react-router-dom';
 import {
     Paper,

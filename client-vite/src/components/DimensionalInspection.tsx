@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -26,7 +26,6 @@ import {
   GlobalStyles,
 } from "@mui/material";
 
-// Icons
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -43,9 +42,6 @@ import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
-
-
-/* ---------------- 1. Theme Configuration ---------------- */
 
 const COLORS = {
   primary: "#1e293b",
@@ -138,7 +134,6 @@ const theme = createTheme({
   },
 });
 
-/* ---------- Types ---------- */
 type CavRow = { id: string; label: string; values: string[] };
 type GroupMeta = { remarks: string; attachment: File | null };
 
@@ -148,7 +143,6 @@ function uid(prefix = "") {
   return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
 }
 
-/* ---------- Component ---------- */
 export default function DimensionalInspection({
   initialCavities = ["Value 1"],
   onSave = async (payload: any) => {
@@ -161,8 +155,7 @@ export default function DimensionalInspection({
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
-  // ✅ ALL useState HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
+
   const [assigned, setAssigned] = useState<boolean | null>(null);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [weightTarget, setWeightTarget] = useState<string>("");
@@ -187,7 +180,6 @@ export default function DimensionalInspection({
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
 
-  // ✅ NOW useEffect hooks (these are fine anywhere, but keeping them organized)
   useEffect(() => {
     let mounted = true;
     const check = async () => {
@@ -224,7 +216,6 @@ export default function DimensionalInspection({
     fetchUserIP();
   }, []);
 
-  // ✅ NOW conditional returns (after all hooks)
   if (assigned === null) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
@@ -232,12 +223,11 @@ export default function DimensionalInspection({
       </Box>
     );
   }
-  
+
   if (!assigned) {
     return <NoPendingWorks />;
   }
 
-  // ✅ Helper functions
   const makeCavRows = (cavLabels: string[]) => [
     { id: `cavity-${uid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
     { id: `avg-${uid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,

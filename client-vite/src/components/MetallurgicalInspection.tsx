@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgress";
+import { getProgress } from "../services/departmentProgressService";
 import type { Dispatch, SetStateAction } from "react";
 import {
   Paper,
@@ -46,7 +46,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
-/* ---------------- 1. Theme Configuration (Matched to FoundryApp) ---------------- */
 
 const COLORS = {
   primary: "#1e293b",
@@ -56,14 +55,10 @@ const COLORS = {
   border: "#e2e8f0",
   textPrimary: "#0f172a",
   textSecondary: "#64748b",
-
-  // Header Colors
   blueHeaderBg: "#eff6ff",
   blueHeaderText: "#3b82f6",
   orangeHeaderBg: "#fff7ed",
   orangeHeaderText: "#c2410c",
-
-  // Specific for Inspection Status
   successBg: "#ecfdf5",
   successText: "#059669",
 };
@@ -143,8 +138,6 @@ const theme = createTheme({
   },
 });
 
-/* ---------------- Types & Helpers ---------------- */
-
 interface Row {
   id: string;
   label: string;
@@ -152,7 +145,7 @@ interface Row {
   ok: boolean | null;
   remarks: string;
   value?: string;
-  total?: number | null; // added total
+  total?: number | null;
 }
 
 interface MicroCol {
@@ -167,7 +160,7 @@ const initialRows = (labels: string[]): Row[] =>
     attachment: null,
     ok: null,
     remarks: "",
-    total: null, // initialize total
+    total: null,
   }));
 
 const MICRO_PARAMS = ["Cavity number", "Nodularity", "Matrix", "Carbide", "Inclusion"];
@@ -176,8 +169,6 @@ const fileToMeta = (f: File | null) => {
   if (!f) return null;
   return { name: f.name, size: f.size, type: f.type };
 };
-
-/* ---------------- UI Sub-components ---------------- */
 
 const HeaderSection = ({ title, userIP }: { title: string, userIP: string }) => (
   <Paper sx={{
@@ -210,7 +201,7 @@ function SectionTable({
   title,
   rows,
   onChange,
-  showTotal = false, // new optional prop
+  showTotal = false,
   onValidationError,
 }: {
   title: string;
@@ -270,7 +261,6 @@ function SectionTable({
       const arr = prev[rowId].map((v, i) => (i === colIndex ? val : v));
       const copy = { ...prev, [rowId]: arr };
       const combined = arr.filter(Boolean).join(' | ');
-      // compute numeric total: sum numeric values, ignore non-numeric
       const total = arr.reduce((acc, s) => {
         const n = parseFloat(String(s).trim());
         return acc + (isNaN(n) ? 0 : n);
@@ -315,23 +305,18 @@ function SectionTable({
                 </TableCell>
               ))}
 
-              {/* NEW Total header if requested */}
               {showTotal && (
                 <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>
                   Total
                 </TableCell>
               )}
 
-              {/* OK/NOT OK Header - empty with matching bgcolor */}
               <TableCell sx={{ width: 140, bgcolor: COLORS.successBg, borderBottom: 'none' }}></TableCell>
-
-              {/* Remarks Header - empty with matching bgcolor */}
               <TableCell sx={{ bgcolor: '#fff7ed', borderBottom: 'none' }}></TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {/* Cavity Number Row */}
             <TableRow>
               <TableCell sx={{ fontWeight: 700, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>Cavity number</TableCell>
               {cols.map((c, ci) => (
@@ -347,10 +332,8 @@ function SectionTable({
                 </TableCell>
               ))}
 
-              {/* empty total cell in cavity row if present */}
               {showTotal && <TableCell rowSpan={1} sx={{ bgcolor: '#f8fafc' }} />}
 
-              {/* OK/NOT OK and Remarks cells - span all rows from cavity */}
               <TableCell rowSpan={rows.length + (title === "NDT INSPECTION ANALYSIS" ? 2 : 1)} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <RadioGroup row sx={{ justifyContent: 'center' }} value={groupMeta.ok === null ? "" : String(groupMeta.ok)} onChange={(e) => updateGroupMeta({ ok: e.target.value === "true" })}>
@@ -398,7 +381,6 @@ function SectionTable({
             </TableRow>
 
             {rows.map((r: Row, idx: number) => {
-              // compute total for display from current state (fallback to r.total)
               const rowVals = values[r.id] ?? [];
               const displayTotal = rowVals.reduce((acc, s) => {
                 const n = parseFloat(String(s).trim());
@@ -423,7 +405,6 @@ function SectionTable({
                     </TableCell>
                   ))}
 
-                  {/* Expanded field for Reason for Rejection */}
                   {r.label.toLowerCase().includes('reason') && (
                     <TableCell colSpan={cols.length + (showTotal ? 1 : 0)}>
                       <TextField
@@ -440,7 +421,6 @@ function SectionTable({
                     </TableCell>
                   )}
 
-                  {/* Total column per row (if enabled) - skip for Reason for Rejection */}
                   {showTotal && !r.label.toLowerCase().includes('reason') && (
                     <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
                       {totalToShow !== null && totalToShow !== undefined ? totalToShow : "-"}
@@ -452,7 +432,6 @@ function SectionTable({
               );
             })}
 
-            {/* Rejection Percentage row for NDT: computed per-column from local values */}
             {title === "NDT INSPECTION ANALYSIS" && (() => {
               const inspected = rows.find(rr => rr.label.toLowerCase().includes('inspected'));
               const rejected = rows.find(rr => rr.label.toLowerCase().includes('rejected'));
@@ -469,11 +448,9 @@ function SectionTable({
                     let cellContent = '-';
                     let bgColor = '#fff';
 
-                    // Validate: rejected must be <= inspected quantity
                     if (!isNaN(rejNum) && !isNaN(insNum) && rejNum > insNum) {
                       cellContent = 'Invalid';
                       bgColor = '#fee2e2';
-                      // Trigger error notification
                       if (onValidationError) {
                         onValidationError(`Column ${ci + 1}: Rejected quantity (${rejNum}) cannot be greater than Inspected quantity (${insNum})`);
                       }
@@ -489,7 +466,6 @@ function SectionTable({
                     );
                   })}
 
-                  {/* if showTotal is enabled keep table structure aligned with OK and Remarks columns */}
                   {showTotal && <TableCell sx={{ bgcolor: '#fff' }} />}
 
                   <TableCell sx={{ bgcolor: '#fff' }} />
@@ -535,7 +511,7 @@ function MicrostructureTable({
   const addColumn = () => {
     setCols((prev: MicroCol[]) => {
       const nextIndex = prev.length + 1;
-      return [...prev, { id: `c${nextIndex}`, label: '' }];   // empty column name
+      return [...prev, { id: `c${nextIndex}`, label: '' }];
     });
 
     setCavityNumbers((prev) => [...prev, '']);
@@ -608,9 +584,6 @@ function MicrostructureTable({
           </TableHead>
 
           <TableBody>
-            {/* Cavity Number Row */}
-
-
             {params.map((param, pIndex) => (
               <TableRow key={param}>
                 <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
@@ -690,14 +663,11 @@ function MicrostructureTable({
   );
 }
 
-/* ---------------- Main Component ---------------- */
-
 export default function MetallurgicalInspection() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement | null>(null);
 
-  // --- All hooks are declared upfront to avoid conditional hook calls ---
   const [assigned, setAssigned] = useState<boolean | null>(null);
   const [, setUserName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -713,7 +683,6 @@ export default function MetallurgicalInspection() {
   const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
-  // Microstructure state
   const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [microValues, setMicroValues] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {};
@@ -727,7 +696,6 @@ export default function MetallurgicalInspection() {
     return init;
   });
 
-  // Other sections state
   const [mechRows, setMechRows] = useState<Row[]>(initialRows(["Tensile strength", "Yield strength", "Elongation"]));
   const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cold Temp °C", "Room Temp °C"]));
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Surface", "Core"]));
@@ -762,7 +730,6 @@ export default function MetallurgicalInspection() {
     return () => { mounted = false; };
   }, [user]);
 
-  // --- Conditional rendering after all hooks are registered ---
   if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
   if (!assigned) return <NoPendingWorks />;
 
@@ -777,7 +744,7 @@ export default function MetallurgicalInspection() {
       ok: r.ok === null ? null : Boolean(r.ok),
       remarks: r.remarks ?? "",
       attachment: fileToMeta(r.attachment),
-      total: r.total ?? null, // include total in payload
+      total: r.total ?? null,
     }));
 
     const microRowsPayload = MICRO_PARAMS.map((p) => ({
@@ -788,9 +755,7 @@ export default function MetallurgicalInspection() {
       attachment: fileToMeta(microMeta['group']?.attachment ?? null),
     }));
 
-    // map NDT rows and append computed Rejection Percentage row (per-column)
     const ndtMapped = mapRows(ndtRows);
-    // find inspected/rejected mapped entries (they have value strings like "10 | 9")
     const findByLabel = (arr: any[], key: string) => arr.find((x: any) => (x.label || '').toLowerCase().includes(key));
     const inspectedMapped = findByLabel(ndtMapped, 'inspected');
     const rejectedMapped = findByLabel(ndtMapped, 'rejected');

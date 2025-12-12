@@ -20,6 +20,7 @@ import {
   createTheme
 } from '@mui/material';
 import SandPropertiesTable from '../components/Sand';
+import { trialService } from '../services/trialService';
 
 // Colors
 const SAKTHI_COLORS = {
@@ -80,17 +81,11 @@ const PendingSampleCardsPage: React.FC = () => {
   const fetchPendingCards = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API endpoint
-      const response = await fetch('http://localhost:3000/api/pending-sample-cards');
-      if (!response.ok) {
-        throw new Error('Failed to fetch pending cards');
-      }
-      const data = await response.json();
+      const data = await trialService.getPendingSampleCards();
       setPendingCards(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching pending cards:', err);
-      // Mock data for testing
       const mockData: PendingCard[] = [
         {
           id: '1',

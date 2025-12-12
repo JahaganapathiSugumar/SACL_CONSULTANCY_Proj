@@ -1,0 +1,25 @@
+const API_BASE_URL = 'http://localhost:3000/api';
+
+export const masterListService = {
+  submitMasterListJson(payload: Record<string, unknown>) {
+    return fetch(`${API_BASE_URL}/master-list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  submitMasterListFormData(payload: Record<string, unknown>, attachments: File[]) {
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(payload));
+    attachments.forEach((file) => {
+      formData.append('attachments', file, file.name);
+    });
+
+    return fetch(`${API_BASE_URL}/master-list`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+};
+
