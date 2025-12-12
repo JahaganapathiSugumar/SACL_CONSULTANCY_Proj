@@ -34,7 +34,7 @@ const HODDashboard: React.FC = () => {
       8: '/machine-shop',
       6: '/moulding',
       9: '/pouring-details',
-      4: '/sand-properties',
+      4: '/sand',
       5: '/visual-inspection',
     };
 

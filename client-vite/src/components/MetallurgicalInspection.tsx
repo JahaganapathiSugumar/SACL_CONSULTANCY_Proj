@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
 import { getProgress } from "../services/departmentProgress";
-import { useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   Paper,

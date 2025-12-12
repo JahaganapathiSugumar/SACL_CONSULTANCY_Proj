@@ -1,32 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  FormControl,
-  Select,
-  MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Chip,
-  ThemeProvider,
-  createTheme,
-  Button,
-  Alert,
-  CircularProgress,
-  IconButton,
-  Grid,
-  Container,
-  Card,
-  CardContent,
-  InputAdornment,
-  useMediaQuery,
-  GlobalStyles
+   Box,
+   Paper,
+   Typography,
+   TextField,
+   FormControl,
+   Select,
+   MenuItem,
+   Table,
+   TableHead,
+   TableRow,
+   TableCell,
+   TableBody,
+   Chip,
+   ThemeProvider,
+   createTheme,
+   Button,
+   Alert,
+   CircularProgress,
+   IconButton,
+   Grid,
+   Container,
+   Card,
+   CardContent,
+   InputAdornment,
+   useMediaQuery,
+   GlobalStyles
+  , Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 
@@ -280,7 +281,7 @@ function FoundrySampleCard() {
     }
   };
   const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
-
+ 
   const [remarks, setRemarks] = useState("");
 
   const [mouldCorrections, setMouldCorrections] = useState<any[]>([
@@ -291,6 +292,39 @@ function FoundrySampleCard() {
   };
   const addMouldCorrectionRow = () => setMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
   const removeMouldCorrectionRow = (id: number) => setMouldCorrections(prev => prev.filter(r => r.id !== id));
+  
+  const [showMetaDialog, setShowMetaDialog] = useState(false);
+  const [tempToolingFiles, setTempToolingFiles] = useState<File[]>([]);
+  const [tempMouldCorrections, setTempMouldCorrections] = useState<any[]>([]);
+  const [tempRemarks, setTempRemarks] = useState<string>("");
+
+  const openMetaDialog = () => {
+    setTempToolingFiles(toolingFiles.slice());
+    setTempMouldCorrections(mouldCorrections.map((r) => ({ ...r })));
+    setTempRemarks(remarks || "");
+    setShowMetaDialog(true);
+  };
+
+  const handleMetaSave = () => {
+    setToolingFiles(tempToolingFiles.slice());
+    setMouldCorrections(tempMouldCorrections.map((r) => ({ ...r })));
+    setRemarks(tempRemarks);
+    setShowMetaDialog(false);
+    setPreviewMessage("Saved");
+  };
+
+  const handleTempToolingFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setTempToolingFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeTempToolingFile = (index: number) => setTempToolingFiles(prev => prev.filter((_, i) => i !== index));
+  const addTempMouldCorrectionRow = () => setTempMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
+  const removeTempMouldCorrectionRow = (id: number) => setTempMouldCorrections(prev => prev.filter(r => r.id !== id));
+  const handleTempMouldCorrectionChange = (id: number, field: string, value: string) => {
+    setTempMouldCorrections(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+  };
 
   // Form State
   const [chemState, setChemState] = useState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
@@ -355,15 +389,15 @@ function FoundrySampleCard() {
       const response = await fetch(`http://localhost:3000/api/trial/id?part_name=${encodeURIComponent(selectedPart.part_name)}`);
       if (response.ok) {
         const json = await response.json();
-        if (json.trialId) {
-          const formattedTrialId = json.trialId.split('-').pop();
-          setTrialNo(formattedTrialId);
-        } else {
-          throw new Error("Invalid response");
-        }
-      } else {
-        throw new Error("API failed");
-      }
+              if (json.success && json.data) {
+                const formattedTrialId = json.data.split('-').pop();
+                setTrialNo(formattedTrialId);
+              } else {  
+                throw new Error("Invalid response");
+              }
+            } else {
+              throw new Error("API failed");
+            }
     } catch (error) {
       console.warn("Using fallback trial ID", error);
       setTrialNo(`TR-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`);
@@ -961,117 +995,119 @@ function FoundrySampleCard() {
             </Table>
           </Paper>
 
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <SectionHeader
-              icon={<ConstructionIcon />}
-              title="Tooling Modification Done"
-              color={COLORS.secondary}
-            />
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 600, color: COLORS.textSecondary }}
-                />
-                <TextField
-                  fullWidth
-                  value={toolingType}
-                  onChange={(e) => setToolingType(e.target.value)}
-                  size="small"
-                  sx={{ bgcolor: "white" }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }} />
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{ bgcolor: "white", borderStyle: "dashed" }}
-                >
-                  ATTACH PHOTO/PDF
-                  <input
-                    type="file"
-                    hidden
-                    multiple
-                    onChange={handleToolingFilesChange}
-                  />
-                </Button>
-                <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {toolingFiles.map((f, i) => (
-                    <Chip
-                      key={i}
-                      label={f.name}
-                      onDelete={() => removeToolingFile(i)}
-                      size="small"
-                      sx={{
-                        bgcolor: "white",
-                        border: `1px solid ${COLORS.border}`,
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-
-          {/* Section: Remarks (same as Sand Properties page) */}
-
-
-
-          {/* --- Moved: Mould Corrections Table (from FoundrySampleCard2) --- */}
-          <Paper sx={{ p: 3, mb: 3, overflowX: "auto" }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <SectionHeader icon={<EditIcon />} title="Mould Correction Details" color={COLORS.primary} />
+          <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Tooling / Mould Corrections / Remarks</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip label={`${toolingFiles.length} file(s)`} size="small" />
+                <Chip label={`${mouldCorrections.length} correction(s)`} size="small" />
+                <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
+                  {remarks ? `${remarks.slice(0, 80)}${remarks.length > 80 ? "..." : ""}` : "No remarks"}
+                </Typography>
+              </Box>
             </Box>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {["Compressibility", "Squeeze Pressure", "Filler Size"].map(h => (
-                    <TableCell key={h} align="center">{h}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {mouldCorrections.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>
-                      <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} />
-                    </TableCell>
-                    <TableCell>
-                      <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} />
-                    </TableCell>
-                    <TableCell>
-                      <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} />
-                    </TableCell>
-                    <TableCell align="center">
-                      {mouldCorrections.length > 1 && (
-                        <IconButton size="small" onClick={() => removeMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
-                          <DeleteIcon />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                  </TableRow>
+            <Button variant="outlined" onClick={openMetaDialog} startIcon={<EditIcon />}>Edit Material / Attach / Remarks</Button>
+          </Paper>
+
+          {/* ---------------- Dialogs ---------------- */}
+
+          {/* Meta Data Dialog */}
+          <Dialog open={showMetaDialog} onClose={() => setShowMetaDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ bgcolor: COLORS.primary, color: "#fff" }}>
+              <Typography variant="h6">Edit Tooling / Remarks</Typography>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3, bgcolor: COLORS.background }}>
+              {/* Tooling Files */}
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Files</Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                sx={{ borderStyle: "dashed", mb: 2 }}
+              >
+                Upload Tooling Files
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={handleTempToolingFilesChange}
+                />
+              </Button>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {tempToolingFiles.map((f, i) => (
+                  <Chip
+                    key={i}
+                    label={f.name}
+                    onDelete={() => removeTempToolingFile(i)}
+                    size="small"
+                    sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}` }}
+                  />
                 ))}
-              </TableBody>
-            </Table>
-          </Paper>
+              </Box>
 
+              {/* Mould Corrections */}
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary, mt: 3 }}>Mould Corrections</Typography>
+              {tempMouldCorrections.map((row, index) => (
+                <Box key={row.id} sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Compressibility"
+                    value={row.compressibility}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'compressibility', e.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Squeeze Pressure"
+                    value={row.squeezePressure}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Filler Size"
+                    value={row.fillerSize}
+                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'fillerSize', e.target.value)}
+                  />
+                  {tempMouldCorrections.length > 1 && (
+                    <IconButton size="small" onClick={() => removeTempMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </Box>
+              ))}
+              <Button
+                variant="outlined"
+                onClick={addTempMouldCorrectionRow}
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                Add Mould Correction
+              </Button>
 
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <SectionHeader icon={<EditIcon />} title="Remarks" color={COLORS.primary} />
-
-            <TextField
-              multiline
-              rows={3}
-              fullWidth
-              variant="outlined"
-              placeholder="Enter remarks..."
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              sx={{ bgcolor: "#fff" }}
-            />
-          </Paper>
+              {/* Remarks */}
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                variant="outlined"
+                placeholder="Enter remarks..."
+                value={tempRemarks}
+                onChange={(e) => setTempRemarks(e.target.value)}
+                sx={{ bgcolor: "#fff" }}
+              />
+            </DialogContent>
+            <DialogActions sx={{ p: 2, bgcolor: COLORS.background }}>
+              <Button variant="outlined" onClick={() => setShowMetaDialog(false)} color="inherit">
+                Cancel
+              </Button>
+              <Button variant="contained" onClick={handleMetaSave} color="secondary">
+                Save Changes
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* ---------------- Action Buttons (moved to bottom) ---------------- */}
           <Box display="flex" justifyContent="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
@@ -1204,13 +1240,6 @@ function FoundrySampleCard() {
                     <th style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>Carbide</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.nodularity || "-"}</td>
-                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.pearlite || "-"}</td>
-                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.carbide || "-"}</td>
-                  </tr>
-                </tbody>
               </table>
 
               <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1, mt: 3 }}>Mechanical Properties</Typography>

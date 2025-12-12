@@ -113,12 +113,12 @@ router.put('/approve', asyncErrorHandler(async (req, res, next) => {
 router.get('/get-progress', asyncErrorHandler(async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT * FROM department_progress WHERE username = ? LIMIT 1`,
+        `SELECT * FROM department_progress WHERE username = ?`,
         [username]
     );
     res.status(200).json({
         success: true,
-        data: result[0]
+        data: result
     });
 }));
 export default router;
