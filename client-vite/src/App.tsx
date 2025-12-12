@@ -25,7 +25,7 @@ import type { PouringDetails, SubmittedData } from './components/PouringDetailsT
 import SandTable from './components/Sand';
 import NotificationPage from './pages/NotificationPage';
 import PendingSampleCardsPage from './pages/PendingSampleCardsPage';
-import Common from './components/common/Common';
+import Common from '../src/components/common/Common';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -82,6 +82,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/users" element={
         <ProtectedRoute requiredRole="Admin"><UsersPage /></ProtectedRoute>
       } />
+
+      <Route path="/common" element={<Common trialId='trial_id' /> } />
 
       <Route path="/metallurgical-inspection" element={
         <ProtectedRoute><MetallurgicalInspection /></ProtectedRoute>

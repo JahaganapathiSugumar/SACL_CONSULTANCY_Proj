@@ -7,7 +7,7 @@ import CustomError from '../utils/customError.js';
 router.post('/', asyncErrorHandler(async (req, res, next) => {
     const { trial_id, ndt, ndt_ok, remarks } = req.body || {};
     if (!trial_id || !ndt || !ndt_ok || !remarks) {
-        return res.status(400).json({ message: 'Missing required fields' });
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const ndtJson = JSON.stringify(ndt);
     const sql = 'INSERT INTO ndt_inspection (trial_id, ndt, ndt_ok, remarks) VALUES (?, ?, ?, ?)';
@@ -25,7 +25,7 @@ router.get('/', asyncErrorHandler(async (req, res, next) => {
 router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
     let trial_id = req.query.trial_id;
     if (!trial_id) {
-        return res.status(400).json({ message: 'trial_id query parameter is required' });
+        return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
     trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM ndt_inspection WHERE trial_id = ?', [trial_id]);

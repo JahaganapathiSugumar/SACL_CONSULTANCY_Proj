@@ -9,7 +9,7 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks } = req.body || {};
     console.log(req.body);
     if (!trial_id || !inspection_date || !casting_weight || !bunch_weight || !no_of_cavities || !yields || !inspections || !remarks) {
-        return res.status(400).json({ message: 'Missing required fields' });
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const sql = 'INSERT INTO dimensional_inspection (trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
     const [result] = await Client.query(sql, [trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks]);
@@ -34,7 +34,7 @@ router.get('/', asyncErrorHandler(async (req, res, next) => {
 router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
     let trial_id = req.query.trial_id;
     if (!trial_id) {
-        return res.status(400).json({ message: 'trial_id query parameter is required' });
+        return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
     trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM dimensional_inspection WHERE trial_id = ?', [trial_id]);

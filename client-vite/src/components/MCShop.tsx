@@ -43,111 +43,16 @@ import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
+import { COLORS, appTheme } from '../theme/appTheme';
+import { useAlert } from '../hooks/useAlert';
+import { AlertMessage } from './common/AlertMessage';
+import { fileToMeta, generateUid } from '../utils';
+import type { InspectionRow, GroupMetadata } from '../types/inspection';
 
-/* ---------------- 1. Theme Configuration ---------------- */
+type Row = InspectionRow;
+type GroupMeta = GroupMetadata;
 
-const COLORS = {
-  primary: "#1e293b",
-  secondary: "#ea580c",
-  background: "#f1f5f9",
-  surface: "#ffffff",
-  border: "#e2e8f0",
-  textPrimary: "#0f172a",
-  textSecondary: "#64748b",
-  blueHeaderBg: "#eff6ff",
-  blueHeaderText: "#3b82f6",
-  orangeHeaderBg: "#fff7ed",
-  orangeHeaderText: "#c2410c",
-  successBg: "#ecfdf5",
-  successText: "#059669",
-};
 
-const theme = createTheme({
-  breakpoints: {
-    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
-  },
-  palette: {
-    primary: { main: COLORS.primary },
-    secondary: { main: COLORS.secondary },
-    background: { default: COLORS.background, paper: COLORS.surface },
-    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h6: { fontWeight: 700, color: COLORS.primary },
-    subtitle1: { fontWeight: 600, color: COLORS.primary },
-    subtitle2: { fontWeight: 600, fontSize: "0.75rem", letterSpacing: 0.5, textTransform: 'uppercase' },
-    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
-    caption: { fontWeight: 600, color: COLORS.textSecondary, textTransform: 'uppercase' }
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)",
-          border: `1px solid ${COLORS.border}`,
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          borderBottom: `1px solid ${COLORS.border}`,
-          borderRight: `1px solid ${COLORS.border}`,
-          padding: "8px 12px",
-        },
-        head: {
-          fontWeight: 700,
-          fontSize: "0.8rem",
-          textAlign: "center",
-          color: COLORS.blueHeaderText,
-          backgroundColor: COLORS.blueHeaderBg,
-        },
-        body: {
-          color: COLORS.textPrimary,
-        }
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 8,
-            backgroundColor: "#fff",
-            "& fieldset": { borderColor: "#cbd5e1" },
-            "&:hover fieldset": { borderColor: COLORS.primary },
-            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
-          },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          fontWeight: 600,
-          textTransform: "none",
-          padding: "8px 24px",
-          boxShadow: "none",
-          "&:hover": { boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }
-        },
-      },
-    },
-  },
-});
-
-/* ---------- Types ---------- */
-type Row = { id: string; label: string; values: string[]; freeText?: string; total?: number | null };
-type GroupMeta = { remarks: string; attachment: File | null };
-
-const fileToMeta = (f: File | null) => (f ? { name: f.name, size: f.size, type: f.type } : null);
-
-function uid(prefix = "") {
-  return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
-}
-
-/* ---------- Component ---------- */
 export default function McShopInspection({
   initialCavities = ["", "", ""],
   onSave = async (payload: any) => {
@@ -170,14 +75,14 @@ export default function McShopInspection({
   const [trialId, setTrialId] = useState<string>("");
   const [remarks, setRemarks] = useState<string>("");
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
-  
+
   const makeInitialRows = (cavLabels: string[]): Row[] => [
-    { id: `cavity-${uid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
-    { id: `received-${uid()}`, label: "Received Quantity", values: cavLabels.map(() => ""), total: null },
-    { id: `insp-${uid()}`, label: "Inspected Quantity", values: cavLabels.map(() => ""), total: null },
-    { id: `accp-${uid()}`, label: "Accepted Quantity", values: cavLabels.map(() => ""), total: null },
-    { id: `rej-${uid()}`, label: "Rejected Quantity", values: cavLabels.map(() => ""), total: null },
-    { id: `reason-${uid()}`, label: "Reason for rejection: cavity wise", values: cavLabels.map(() => ""), freeText: "" },
+    { id: `cavity-${generateUid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
+    { id: `received-${generateUid()}`, label: "Received Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `insp-${generateUid()}`, label: "Inspected Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `accp-${generateUid()}`, label: "Accepted Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `rej-${generateUid()}`, label: "Rejected Quantity", values: cavLabels.map(() => ""), total: null },
+    { id: `reason-${generateUid()}`, label: "Reason for rejection: cavity wise", values: cavLabels.map(() => ""), freeText: "" },
   ];
 
   const [rows, setRows] = useState<Row[]>(() => makeInitialRows(initialCavities));
@@ -187,7 +92,7 @@ export default function McShopInspection({
   const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
+  const { alert, showAlert } = useAlert();
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
@@ -214,12 +119,7 @@ export default function McShopInspection({
     return () => { mounted = false; };
   }, [user]);
 
-  useEffect(() => {
-    if (alert) {
-      const t = setTimeout(() => setAlert(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [alert]);
+
 
   useEffect(() => {
     const fetchUserIP = async () => {
@@ -301,7 +201,7 @@ export default function McShopInspection({
     setDimensionalRemarks("");
     setAttachedFiles([]);
     setAdditionalRemarks("");
-    setAlert(null);
+
     setPreviewSubmitted(false);
   };
 
@@ -341,7 +241,7 @@ export default function McShopInspection({
     setSaving(true);
     try {
       const trialIdParam = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
-      
+
       const payload = buildPayload();
       const rowsByLabel = (labelSnippet: string) => rows.find(r => (r.label || '').toLowerCase().includes(labelSnippet));
       const receivedRow = rowsByLabel('received');
@@ -370,7 +270,7 @@ export default function McShopInspection({
 
       await inspectionService.submitMachineShopInspection(serverPayload);
       setPreviewSubmitted(true);
-      setAlert({ severity: 'success', message: 'Machine shop inspection created successfully.' });
+      showAlert('success', 'Machine shop inspection created successfully.');
 
       if (attachedFiles.length > 0) {
         try {
@@ -388,7 +288,7 @@ export default function McShopInspection({
       }
     } catch (err: any) {
       console.error("Error saving machine shop inspection:", err);
-      setAlert({ severity: 'error', message: 'Failed to save machine shop inspection. Please try again.' });
+      showAlert('error', 'Failed to save machine shop inspection. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -415,9 +315,9 @@ export default function McShopInspection({
     }
   };
 
-  /* ---------- Render ---------- */
+
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <GlobalStyles styles={{
         "@media print": {
           "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
@@ -440,7 +340,7 @@ export default function McShopInspection({
           }}>
             <Box display="flex" alignItems="center" gap={2}>
               <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-              <Typography variant="h6">M/C SHOP INSPECTION</Typography>
+              <Typography variant="h6">MACHINE SHOP INSPECTION</Typography>
             </Box>
             <Box display="flex" gap={1} alignItems="center">
               <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
@@ -466,7 +366,7 @@ export default function McShopInspection({
             </Box>
             <Divider sx={{ mb: 3, borderColor: COLORS.border }} />
 
-            {alert && <Alert severity={alert.severity} sx={{ mb: 3 }}>{alert.message}</Alert>}
+            <AlertMessage alert={alert} />
 
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid size={{ xs: 12, md: 3 }}>
@@ -646,7 +546,7 @@ export default function McShopInspection({
                 startIcon={<SaveIcon />}
                 sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: COLORS.orangeHeaderText } }}
               >
-                {saving ? "Processing..." : "Save Details"}
+                {saving ? "Processing..." : "Save & Continue"}
               </Button>
             </Box>
 
@@ -669,7 +569,7 @@ export default function McShopInspection({
               >
                 <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
                   <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
-                  <IconButton size="small" onClick={() => navigate('/mc-shop')} sx={{ color: '#ef4444' }}>
+                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
                     <CloseIcon />
                   </IconButton>
                 </Box>
@@ -677,7 +577,7 @@ export default function McShopInspection({
                 <Box sx={{ p: 4, overflowY: "auto", bgcolor: COLORS.background }}>
                   <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>M/C Shop Inspection Report</Typography>
+                      <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Machine Shop Inspection Report</Typography>
                       <Typography variant="body2" color="textSecondary">Date: {previewPayload.inspection_date}</Typography>
                     </Box>
                     <Divider sx={{ mb: 3 }} />
@@ -763,7 +663,7 @@ export default function McShopInspection({
                 <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: 'white' }}>
                   <Button
                     variant="outlined"
-                    onClick={() => setPreviewMode(false)}
+                    onClick={() => navigate('/dashboard')}
                     disabled={saving || previewSubmitted}
                     sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
                   >
@@ -797,7 +697,7 @@ export default function McShopInspection({
           <Box className="print-section" sx={{ display: 'none' }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>M/C SHOP INSPECTION REPORT</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>MACHINE SHOP INSPECTION REPORT</Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography variant="body2">IP: {userIP}</Typography>

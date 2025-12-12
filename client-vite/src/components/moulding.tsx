@@ -40,92 +40,10 @@ import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
-const COLORS = {
-  primary: "#1e293b",
-  secondary: "#ea580c",
-  background: "#f1f5f9",
-  surface: "#ffffff",
-  border: "#e2e8f0",
-  textPrimary: "#0f172a",
-  textSecondary: "#64748b",
-  blueHeaderBg: "#eff6ff",
-  blueHeaderText: "#3b82f6",
-  orangeHeaderBg: "#fff7ed",
-  orangeHeaderText: "#c2410c",
-  successBg: "#ecfdf5",
-  successText: "#059669",
-};
-
-const theme = createTheme({
-  breakpoints: {
-    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
-  },
-  palette: {
-    primary: { main: COLORS.primary },
-    secondary: { main: COLORS.secondary },
-    background: { default: COLORS.background, paper: COLORS.surface },
-    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h6: { fontWeight: 700, color: COLORS.primary },
-    subtitle1: { fontWeight: 600 },
-    subtitle2: { fontWeight: 600, fontSize: "0.75rem", letterSpacing: 0.5, textTransform: 'uppercase' },
-    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
-    caption: { fontWeight: 600, color: COLORS.textSecondary, textTransform: 'uppercase' }
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)",
-          border: `1px solid ${COLORS.border}`,
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          borderBottom: `1px solid ${COLORS.border}`,
-          borderRight: `1px solid ${COLORS.border}`,
-          padding: "12px 8px",
-        },
-        head: {
-          fontWeight: 700,
-          fontSize: "0.8rem",
-          textAlign: "center",
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 8,
-            backgroundColor: "#fff",
-            "& fieldset": { borderColor: "#cbd5e1" },
-            "&:hover fieldset": { borderColor: COLORS.primary },
-            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
-          },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          fontWeight: 600,
-          textTransform: "none",
-          padding: "10px 24px",
-          boxShadow: "none",
-          "&:hover": { boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }
-        },
-      },
-    },
-  },
-});
-
+import { COLORS, appTheme } from '../theme/appTheme';
+import { useAlert } from '../hooks/useAlert';
+import { AlertMessage } from './common/AlertMessage';
+import { fileToMeta } from '../utils';
 const SpecInput = ({ inputStyle, ...props }: any) => (
   <TextField
     {...props}
@@ -146,7 +64,8 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
 function MouldingTable() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
+  const { alert, showAlert } = useAlert();
   const [assigned, setAssigned] = useState<boolean | null>(null);
   const [mouldState, setMouldState] = useState({
     thickness: "",
@@ -255,6 +174,7 @@ function MouldingTable() {
       setMouldCorrectionSubmitted(true);
       return { ok: true, data: {} };
     } catch (err) {
+      showAlert('error', 'Failed to save moulding details. Please try again.');
       return { ok: false, message: 'Failed to save mould correction' };
     } finally {
       setMouldCorrectionLoading(false);
@@ -272,9 +192,9 @@ function MouldingTable() {
 
     const result = await postMouldCorrection(payload);
     if (!result.ok) {
-      alert(result.message || 'Failed to submit mould correction');
+      // alert(result.message || 'Failed to submit mould correction'); // Removed as per instruction
     } else {
-      alert('Mould correction created successfully.');
+      showAlert('success', 'Moulding details created successfully.');
       setSubmitted(true);
 
       if (attachedFiles.length > 0) {
@@ -287,7 +207,7 @@ function MouldingTable() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <GlobalStyles styles={{
         "@media print": {
           "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
@@ -465,7 +385,7 @@ function MouldingTable() {
 
                 <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Moulding Details</Typography>
-                  <IconButton size="small" onClick={() => navigate('/metallurgical-inspection')} sx={{ color: '#ef4444' }}>
+                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
                     <CloseIcon />
                   </IconButton>
                 </Box>
@@ -473,11 +393,12 @@ function MouldingTable() {
                 <Box sx={{ p: 4 }}>
 
                   <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
+                  <AlertMessage alert={alert} />
                   <Grid container spacing={2} sx={{ mb: 4 }}>
-                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
-                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
+                    <Grid item xs={6} sm={3}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
+                    <Grid item xs={6} sm={3}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
+                    <Grid item xs={6} sm={3}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
+                    <Grid item xs={6} sm={3}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
                   </Grid>
 
                   <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
@@ -528,7 +449,7 @@ function MouldingTable() {
                 <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2 }}>
                   <Button
                     variant="outlined"
-                    onClick={() => setPreviewMode(false)}
+                    onClick={() => navigate('/dashboard')}
                     sx={{
                       borderColor: "#e2e8f0",
                       color: COLORS.textSecondary,
@@ -560,7 +481,7 @@ function MouldingTable() {
               </Paper>
             </Box>
           )}
-          <Box className="print-section" sx={{ display: 'none', fontFamily: theme.typography.fontFamily }}>
+          <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY SAMPLE CARD</Typography>

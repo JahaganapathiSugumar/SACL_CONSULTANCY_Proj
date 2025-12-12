@@ -39,105 +39,12 @@ import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
+import { COLORS, appTheme } from '../theme/appTheme';
+import { useAlert } from '../hooks/useAlert';
+import { AlertMessage } from './common/AlertMessage';
+import { fileToMeta } from '../utils';
 
-/* ---------------- 1. Theme Configuration ---------------- */
 
-const COLORS = {
-    primary: "#1e293b", // Slate 800
-    secondary: "#ea580c", // Orange 600
-    background: "#f8fafc", // Slate 50
-    surface: "#ffffff",
-    border: "#cbd5e1", // Slate 300 - darkened for table visibility
-    textPrimary: "#0f172a",
-    textSecondary: "#64748b",
-    accentBlue: "#0ea5e9",
-    accentGreen: "#10b981",
-    headerBg: "#FDE68A", // Darker Yellow for Table Header
-    bodyBg: "#ffffff", // White for Table Body
-    headerText: "#854d0e"
-};
-
-const theme = createTheme({
-    breakpoints: {
-        values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
-    },
-    palette: {
-        primary: { main: COLORS.primary },
-        secondary: { main: COLORS.secondary },
-        background: { default: COLORS.background, paper: COLORS.surface },
-        text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
-    },
-    typography: {
-        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-        h5: { fontWeight: 800, letterSpacing: -0.5 },
-        h6: { fontWeight: 700 },
-        subtitle2: { fontWeight: 600, textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: 0.5 },
-        body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
-    },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    borderRadius: 12,
-                    boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
-                    border: `1px solid ${COLORS.border}`,
-                },
-            },
-        },
-        MuiTableCell: {
-            styleOverrides: {
-                root: {
-                    borderBottom: `1px solid ${COLORS.border}`,
-                    borderRight: `1px solid ${COLORS.border}`,
-                    padding: "8px",
-                },
-                head: {
-                    fontWeight: 800,
-                    backgroundColor: COLORS.headerBg,
-                    color: COLORS.headerText,
-                    whiteSpace: "normal",
-                    textAlign: "center",
-                    fontSize: "0.85rem",
-                    verticalAlign: "middle",
-                    lineHeight: 1.2
-                },
-                body: {
-                    backgroundColor: COLORS.bodyBg,
-                    verticalAlign: "top",
-                }
-            },
-        },
-        MuiTextField: {
-            styleOverrides: {
-                root: {
-                    "& .MuiOutlinedInput-root": {
-                        borderRadius: 4,
-                        backgroundColor: "#fff",
-                        fontSize: "0.85rem",
-                        "& fieldset": { borderColor: "#cbd5e1" },
-                        "&:hover fieldset": { borderColor: COLORS.primary },
-                        "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
-                    },
-                    "& .MuiInputBase-input": {
-                        padding: "6px 8px",
-                    }
-                },
-            },
-        },
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    borderRadius: 8,
-                    fontWeight: 600,
-                    textTransform: "none",
-                    padding: "8px 24px",
-                },
-            },
-        },
-    },
-});
-
-/* ---------------- UI Sub-components ---------------- */
 
 const SpecInput = ({ inputStyle, ...props }: any) => (
     <TextField
@@ -162,7 +69,7 @@ const LabelText = ({ children }: { children: React.ReactNode }) => (
     </Typography>
 );
 
-/* ---------------- Types ---------------- */
+
 
 export interface PouringDetails {
     date: string;
@@ -200,74 +107,74 @@ interface PouringDetailsTableProps {
     submittedData?: SubmittedData;
 }
 
-/* ---------------- Main Component ---------------- */
+
 
 function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submittedData }: PouringDetailsTableProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [assigned, setAssigned] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [trialId, setTrialId] = useState<string>("");
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
+    const [assigned, setAssigned] = useState<boolean | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [trialId, setTrialId] = useState<string>("");
 
-  // Pouring Details State
-  const [pouringDate, setPouringDate] = useState<string>(pouringDetails?.date || new Date().toISOString().split('T')[0]);
-  const [heatCode, setHeatCode] = useState<string>(pouringDetails?.heatCode || "");
-  const [chemState, setChemState] = useState({
-    c: pouringDetails?.cComposition || "",
-    si: pouringDetails?.siComposition || "",
-    mn: pouringDetails?.mnComposition || "",
-    p: pouringDetails?.pComposition || "",
-    s: pouringDetails?.sComposition || "",
-    mg: pouringDetails?.mgComposition || "",
-    cr: pouringDetails?.crComposition || "",
-    cu: pouringDetails?.cuComposition || ""
-  });
-  const [pouringTemp, setPouringTemp] = useState<string>(pouringDetails?.pouringTempDegC || "");
-  const [pouringTime, setPouringTime] = useState<string>(pouringDetails?.pouringTimeSec || "");
-  const [inoculationStream, setInoculationStream] = useState<string>("");
-  const [inoculationInmould, setInoculationInmould] = useState<string>("");
+    // Pouring Details State
+    const [pouringDate, setPouringDate] = useState<string>(pouringDetails?.date || new Date().toISOString().split('T')[0]);
+    const [heatCode, setHeatCode] = useState<string>(pouringDetails?.heatCode || "");
+    const [chemState, setChemState] = useState({
+        c: pouringDetails?.cComposition || "",
+        si: pouringDetails?.siComposition || "",
+        mn: pouringDetails?.mnComposition || "",
+        p: pouringDetails?.pComposition || "",
+        s: pouringDetails?.sComposition || "",
+        mg: pouringDetails?.mgComposition || "",
+        cr: pouringDetails?.crComposition || "",
+        cu: pouringDetails?.cuComposition || ""
+    });
+    const [pouringTemp, setPouringTemp] = useState<string>(pouringDetails?.pouringTempDegC || "");
+    const [pouringTime, setPouringTime] = useState<string>(pouringDetails?.pouringTimeSec || "");
+    const [inoculationStream, setInoculationStream] = useState<string>("");
+    const [inoculationInmould, setInoculationInmould] = useState<string>("");
 
-  // Remarks State
-  const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
-  const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
-  const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
-  const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
-  const [remarksText, setRemarksText] = useState<string>("");
-  // Attach PDF / Images
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    // Remarks State
+    const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
+    const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
+    const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
+    const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
+    const [remarksText, setRemarksText] = useState<string>("");
+    // Attach PDF / Images
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-  const [previewMode, setPreviewMode] = useState(false);
-  const [previewPayload, setPreviewPayload] = useState<any | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-  const [userIP, setUserIP] = useState<string>("");
+    const [previewMode, setPreviewMode] = useState(false);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [submitted, setSubmitted] = useState(false);
+    const { alert, showAlert } = useAlert();
+    const [userIP, setUserIP] = useState<string>("");
 
-  useEffect(() => {
-    let mounted = true;
-    const check = async () => {
-      try {
-        const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 9 && // pouring dept id
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
-      } catch {
-        if (mounted) setAssigned(false);
-      }
-    };
-    if (user) check();
-    return () => { mounted = false; };
-  }, [user]);
+    useEffect(() => {
+        let mounted = true;
+        const check = async () => {
+            try {
+                const uname = user?.username ?? "";
+                const data = await getProgress(uname);
+                const found = data.some(
+                    (p) =>
+                        p.username === uname &&
+                        p.department_id === 9 && // pouring dept id
+                        (p.approval_status === "pending" || p.approval_status === "assigned")
+                );
+                if (mounted) setAssigned(found);
+            } catch {
+                if (mounted) setAssigned(false);
+            }
+        };
+        if (user) check();
+        return () => { mounted = false; };
+    }, [user]);
 
-  // Check if user has access to this page
-  // if (user?.department_id !== 9) {
-  //     return <NoAccess />;
-  // }
+    // Check if user has access to this page
+    // if (user?.department_id !== 9) {
+    //     return <NoAccess />;
+    // }
 
     useEffect(() => {
         if (onPouringDetailsChange) {
@@ -291,10 +198,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
             });
         }
     }, [pouringDate, heatCode, chemState, pouringTemp, pouringTime, ficHeatNo, ppCode, followedBy, userName, onPouringDetailsChange]);
-
-    useEffect(() => {
-        if (previewMessage) { const t = setTimeout(() => setPreviewMessage(null), 4000); return () => clearTimeout(t); }
-    }, [previewMessage]);
 
     useEffect(() => {
         const fetchIP = async () => {
@@ -371,10 +274,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
             const data = await inspectionService.submitPouringDetails(apiPayload);
             setSubmitted(true);
-            setPreviewMessage("Pouring Details Registered Successfully");
+            showAlert('success', 'Pouring details created successfully.');
         } catch (error) {
             console.error("Error saving pouring details:", error);
-            setPreviewMessage("Failed to save pouring details. Please try again.");
+            showAlert('error', 'Failed to save pouring details. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -386,7 +289,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     const dataFontStyle = { fontFamily: '"Roboto Mono", monospace', fontWeight: 500 };
 
     return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={appTheme}>
             <GlobalStyles styles={{
                 "@media print": {
                     "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
@@ -421,11 +324,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         </Box>
                     </Paper>
 
-                    {/* Success/Error Message */}
-                    {previewMessage && (
-                        <Paper sx={{ p: 2, mb: 3, bgcolor: submitted ? COLORS.accentGreen : '#fee2e2', borderLeft: `6px solid ${submitted ? COLORS.accentGreen : '#dc2626'}` }}>
-                            <Typography variant="body1" sx={{ color: submitted ? 'white' : '#991b1b', fontWeight: 600 }}>
-                                {previewMessage}
+                    {alert && (
+                        <Paper sx={{ p: 2, mb: 3, bgcolor: alert.severity === 'success' ? COLORS.accentGreen : '#fee2e2', borderLeft: `6px solid ${alert.severity === 'success' ? COLORS.accentGreen : '#dc2626'}` }}>
+                            <Typography variant="body1" sx={{ color: alert.severity === 'success' ? 'white' : '#991b1b', fontWeight: 600 }}>
+                                {alert.message}
                             </Typography>
                         </Paper>
                     )}
@@ -435,7 +337,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     ) : (
                         <Grid container spacing={3}>
 
-                            {/* ---------------- POURING DETAILS TABLE ---------------- */}
+
                             <Grid size={{ xs: 12 }}>
                                 <Paper sx={{ p: { xs: 1, md: 2 }, overflow: "hidden" }}>
                                     {/* Updated Heading Color (No longer Red) */}
@@ -497,6 +399,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                             ))}
                                                             {/* Spacer Row */}
                                                             <Grid size={{ xs: 12 }} sx={{ my: 0.5 }}><Divider /></Grid>
+                                                            <AlertMessage alert={alert} />
 
                                                             {["S", "Mg", "Cu", "Cr"].map((el) => (
                                                                 <Grid size={{ xs: 6, sm: 3 }} key={el}>
@@ -675,7 +578,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         </Grid>
                     )}
 
-                    {/* ---------------- PREVIEW MODAL & PRINT LAYOUT ---------------- */}
                     {previewPayload && (
                         <>
                             {/* PREVIEW OVERLAY */}
@@ -684,7 +586,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                     <Paper sx={{ width: "100%", maxWidth: 1000, maxHeight: "95vh", overflowY: "auto", p: 4, bgcolor: "white", position: 'relative' }}>
 
                                         <IconButton
-                                            onClick={() => navigate('/sand')}
+                                            onClick={() => setPreviewMode(false)}
                                             sx={{
                                                 position: 'absolute',
                                                 top: 8,
@@ -699,7 +601,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                         <Typography variant="h6" sx={{ textDecoration: 'underline', color: 'black', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>POURING DETAILS:</Typography>
 
                                         {/* Table with Main Font for Headers, Mono for Data */}
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: theme.typography.fontFamily }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: appTheme.typography.fontFamily }}>
                                             <thead>
                                                 <tr style={{ backgroundColor: '#FDE68A', color: '#854d0e' }}>
                                                     <th style={{ border: '1px solid black', padding: '10px' }}>Date & Heat code</th>
@@ -768,7 +670,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
 
                                         <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-                                            <Button variant="outlined" onClick={() => setPreviewMode(false)} sx={{ borderColor: 'black', color: 'black' }}>Back to Edit</Button>
+                                            <Button variant="outlined" onClick={() => navigate('/dashboard')} sx={{ borderColor: 'black', color: 'black' }}>Back to Edit</Button>
                                             {submitted ?
                                                 /* Updated Button Text to be clearer about functionality */
                                                 <Button variant="contained" onClick={handleExportPDF} startIcon={<PrintIcon />} sx={{ bgcolor: COLORS.primary }}>Print / Save as PDF</Button> :
@@ -780,7 +682,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                             )}
 
                             {/* PRINT SECTION (Exact replica of preview with fonts applied) */}
-                            <Box className="print-section" sx={{ display: 'none', fontFamily: theme.typography.fontFamily }}>
+                            <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
                                 {/* Updated Header Color (No longer Red) */}
                                 <Typography variant="h5" sx={{ textDecoration: 'underline', color: 'black', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>POURING DETAILS:</Typography>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', border: '2px solid black' }}>

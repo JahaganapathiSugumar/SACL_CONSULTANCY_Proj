@@ -39,104 +39,12 @@ import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
+import { COLORS, appTheme } from '../theme/appTheme';
+import { useAlert } from '../hooks/useAlert';
+import { AlertMessage } from './common/AlertMessage';
+import { fileToMeta } from '../utils';
 
-/* ---------------- 1. Theme Configuration ---------------- */
 
-const COLORS = {
-  primary: "#1e293b",
-  secondary: "#ea580c",
-  background: "#f1f5f9",
-  surface: "#ffffff",
-  border: "#e2e8f0",
-  textPrimary: "#0f172a",
-  textSecondary: "#64748b",
-
-  // Sand Properties Colors (Grey Theme)
-  headerBg: "#d1d5db",
-  headerText: "#000000",
-};
-
-const theme = createTheme({
-  breakpoints: {
-    values: { xs: 0, sm: 600, md: 1100, lg: 1280, xl: 1920 },
-  },
-  palette: {
-    primary: { main: COLORS.primary },
-    secondary: { main: COLORS.secondary },
-    background: { default: COLORS.background, paper: COLORS.surface },
-    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h6: { fontWeight: 700, color: COLORS.primary },
-    subtitle1: { fontWeight: 600 },
-    subtitle2: { fontWeight: 600, fontSize: "0.75rem", letterSpacing: 0.5, textTransform: 'uppercase' },
-    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
-    caption: { fontWeight: 600, color: COLORS.textSecondary, textTransform: 'uppercase' }
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-          border: `1px solid ${COLORS.border}`,
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          border: `1px solid ${COLORS.border}`,
-          padding: "8px",
-        },
-        head: {
-          fontWeight: 800,
-          backgroundColor: COLORS.headerBg,
-          color: COLORS.headerText,
-          textAlign: "center",
-          fontSize: "0.85rem",
-          verticalAlign: "middle",
-        },
-        body: {
-          backgroundColor: "#ffffff",
-          verticalAlign: "top",
-        }
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 8, // More rounded inputs
-            backgroundColor: "#fff",
-            fontSize: "0.9rem",
-            "& fieldset": { borderColor: "#9ca3af" },
-            "&:hover fieldset": { borderColor: COLORS.primary },
-            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 1 },
-          },
-          "& .MuiInputBase-input": {
-            padding: "8px",
-          }
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          fontWeight: 700,
-          textTransform: "none", // Capitalize like in image
-          fontSize: "1rem",
-          padding: "10px 32px",
-          boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        },
-      },
-    },
-  },
-});
-
-/* ---------------- UI Sub-components ---------------- */
 
 const SpecInput = ({ inputStyle, ...props }: any) => (
   <TextField
@@ -155,7 +63,7 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
   />
 );
 
-/* ---------------- Main Component ---------------- */
+
 
 interface SandTableProps {
   submittedData?: {
@@ -176,7 +84,7 @@ interface SandTableProps {
 function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: SandTableProps = {}) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
 
   // All state hooks declared up front to avoid conditional hook order issues
   const [assigned, setAssigned] = useState<boolean | null>(null);
@@ -197,6 +105,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { alert, showAlert } = useAlert();
   const [userIP, setUserIP] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
@@ -261,6 +170,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
   const handleSubmit = () => {
     setPreviewMode(true);
+    navigate('/dashboard');
   };
 
   const handleConfirm = async () => {
@@ -286,6 +196,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
       await inspectionService.submitSandProperties(payload);
       setSubmitted(true);
+      showAlert('success', 'Sand properties created successfully.');
 
       // Upload attached files after successful form submission
       if (attachedFiles.length > 0) {
@@ -308,7 +219,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         }
       }
     } catch (err) {
-      alert("Failed to submit sand properties. Please try again.");
+      showAlert('error', 'Failed to save sand properties. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -317,7 +228,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   const handleExportPDF = () => { window.print(); };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <GlobalStyles styles={{
         "@media print": {
           "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
@@ -359,6 +270,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               />
             </Box>
           </Paper>
+
+          <AlertMessage alert={alert} />
 
           {/* Main Content Card */}
           <Paper sx={{ overflow: 'hidden', border: `2px solid ${COLORS.border}` }}>
@@ -514,7 +427,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
           </Paper>
 
-          {/* ---------------- MODAL / PREVIEW ---------------- */}
+
           {previewMode && (
             <Box sx={{
               position: "fixed", inset: 0, zIndex: 1300,
@@ -525,13 +438,13 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
                 <Box sx={{ p: 2, px: 3, borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Sand Properties</Typography>
-                  <IconButton size="small" onClick={() => navigate('/moulding')} sx={{ color: '#ef4444' }}>
+                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
                     <CloseIcon />
                   </IconButton>
                 </Box>
 
                 <Box sx={{ p: 4, overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: theme.typography.fontFamily, fontSize: '14px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>
                     <thead>
                       <tr style={{ backgroundColor: COLORS.headerBg }}>
                         <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black' }}>SAND PROPERTIES:</th>
@@ -624,7 +537,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           )}
 
           {/* PRINT LAYOUT */}
-          <Box className="print-section" sx={{ display: 'none', fontFamily: theme.typography.fontFamily }}>
+          <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY LAB REPORT</Typography>

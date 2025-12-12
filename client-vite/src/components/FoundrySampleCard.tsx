@@ -1,32 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
-   Box,
-   Paper,
-   Typography,
-   TextField,
-   FormControl,
-   Select,
-   MenuItem,
-   Table,
-   TableHead,
-   TableRow,
-   TableCell,
-   TableBody,
-   Chip,
-   ThemeProvider,
-   createTheme,
-   Button,
-   Alert,
-   CircularProgress,
-   IconButton,
-   Grid,
-   Container,
-   Card,
-   CardContent,
-   InputAdornment,
-   useMediaQuery,
-   GlobalStyles
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  FormControl,
+  Select,
+  MenuItem,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Chip,
+  ThemeProvider,
+  createTheme,
+  Button,
+  Alert,
+  CircularProgress,
+  IconButton,
+  Grid,
+  Container,
+  Card,
+  CardContent,
+  InputAdornment,
+  useMediaQuery,
+  GlobalStyles
   , Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -47,90 +47,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaclHeader from "./common/SaclHeader";
 import { trialService } from "../services/trialService";
 import { ipService } from "../services/ipService";
+import { COLORS, appTheme } from '../theme/appTheme';
+import { useAlert } from '../hooks/useAlert';
+import { AlertMessage } from './common/AlertMessage';
 
-/* ---------------- 1. Theme Configuration ---------------- */
 
-const COLORS = {
-  primary: "#1e293b",    // Slate 800
-  secondary: "#ea580c",  // Orange 600
-  background: "#f8fafc", // Slate 50
-  surface: "#ffffff",
-  border: "#e2e8f0",     // Slate 200
-  textPrimary: "#0f172a",
-  textSecondary: "#64748b",
-  accentBlue: "#0ea5e9",
-  accentGreen: "#10b981",
-};
-
-const theme = createTheme({
-  breakpoints: {
-    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 },
-  },
-  palette: {
-    primary: { main: COLORS.primary },
-    secondary: { main: COLORS.secondary },
-    background: { default: COLORS.background, paper: COLORS.surface },
-    text: { primary: COLORS.textPrimary, secondary: COLORS.textSecondary },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h5: { fontWeight: 800, letterSpacing: -0.5 },
-    h6: { fontWeight: 700 },
-    subtitle2: { fontWeight: 600, textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: 0.5 },
-    body2: { fontFamily: '"Roboto Mono", monospace', fontSize: '0.875rem' },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
-          border: `1px solid ${COLORS.border}`,
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        head: {
-          fontWeight: 700,
-          backgroundColor: "#f1f5f9",
-          color: COLORS.primary,
-          borderBottom: `2px solid ${COLORS.border}`,
-          whiteSpace: "nowrap",
-        },
-        body: {
-          padding: "8px",
-          borderBottom: `1px solid ${COLORS.border}`,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 6,
-            backgroundColor: "#fff",
-            "& fieldset": { borderColor: "#cbd5e1" },
-            "&:hover fieldset": { borderColor: COLORS.primary },
-            "&.Mui-focused fieldset": { borderColor: COLORS.secondary, borderWidth: 2 },
-          },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          fontWeight: 600,
-          textTransform: "none",
-          padding: "8px 24px",
-        },
-      },
-    },
-  },
-});
-
-/* ---------------- Types ---------------- */
 
 interface PartData {
   id: number;
@@ -146,7 +67,7 @@ interface PartData {
   created_at: string;
 }
 
-/* ---------------- Helpers ---------------- */
+
 
 const parseChemicalComposition = (composition: any) => {
   const blank = { c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" };
@@ -215,7 +136,7 @@ const parseHardnessData = (hardness: string) => {
   return { surface: surface || "--", core: core || "--" };
 };
 
-/* ---------------- UI Sub-components ---------------- */
+
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
@@ -243,11 +164,11 @@ const SpecInput = (props: any) => (
   />
 );
 
-/* ---------------- Main Component ---------------- */
+
 
 function FoundrySampleCard() {
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
 
   // State
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
@@ -283,7 +204,7 @@ function FoundrySampleCard() {
     }
   };
   const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
- 
+
   const [remarks, setRemarks] = useState("");
 
   const [mouldCorrections, setMouldCorrections] = useState<any[]>([
@@ -294,7 +215,7 @@ function FoundrySampleCard() {
   };
   const addMouldCorrectionRow = () => setMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
   const removeMouldCorrectionRow = (id: number) => setMouldCorrections(prev => prev.filter(r => r.id !== id));
-  
+
   const [showMetaDialog, setShowMetaDialog] = useState(false);
   const [tempToolingFiles, setTempToolingFiles] = useState<File[]>([]);
   const [tempMouldCorrections, setTempMouldCorrections] = useState<any[]>([]);
@@ -449,7 +370,7 @@ function FoundrySampleCard() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       {/* GlobalStyles for Printing */}
       <GlobalStyles styles={{
         "@media print": {
@@ -660,7 +581,7 @@ function FoundrySampleCard() {
             </Grid>
           )}
 
-          {/* ---------------- Preview Overlay ---------------- */}
+
           {previewMode && previewPayload && (
             <Box sx={{
               position: "fixed", inset: 0, zIndex: 1300,
@@ -676,7 +597,7 @@ function FoundrySampleCard() {
                   <IconButton
                     onClick={() => {
                       setPreviewMode(false);
-                      navigate('/foundry-sample-card-3');
+                      setPreviewMode(false);
                     }}
                     sx={{
                       position: "absolute",
@@ -861,7 +782,7 @@ function FoundrySampleCard() {
                 </Box>
 
                 <Box sx={{ p: 2, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", flexDirection: { xs: 'column', sm: 'row' } }}>
-                  <Button variant="outlined" fullWidth={isMobile} onClick={() => setPreviewMode(false)} disabled={submitted}>Back to Edit</Button>
+                  <Button variant="outlined" fullWidth={isMobile} onClick={() => navigate('/dashboard')} disabled={submitted}>Back to Edit</Button>
                   {submitted ? (
                     <Button variant="contained" fullWidth={isMobile} color="primary" onClick={handleExportPDF} startIcon={<PrintIcon />}>Download PDF</Button>
                   ) : (
@@ -872,9 +793,9 @@ function FoundrySampleCard() {
             </Box>
           )}
 
-          {/* ---------------- HIDDEN PRINT CONTENT ---------------- */}
 
-          {/* --- Moved: Sampling Details Table (from FoundrySampleCard2) --- */}
+
+
           <Paper sx={{ overflowX: "auto", mb: 3, p: 2 }}>
             <Table size="small" sx={{ minWidth: 900 }}>
               <TableHead>
@@ -1008,7 +929,7 @@ function FoundrySampleCard() {
             <Button variant="outlined" onClick={openMetaDialog} startIcon={<EditIcon />}>Edit Material / Attach / Remarks</Button>
           </Paper>
 
-          {/* ---------------- Dialogs ---------------- */}
+
 
           {/* Meta Data Dialog */}
           <Dialog open={showMetaDialog} onClose={() => setShowMetaDialog(false)} maxWidth="md" fullWidth>
@@ -1108,7 +1029,7 @@ function FoundrySampleCard() {
             </DialogActions>
           </Dialog>
 
-          {/* ---------------- Action Buttons (moved to bottom) ---------------- */}
+
           <Box display="flex" justifyContent="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
             <Button variant="outlined" color="inherit" fullWidth={isMobile} onClick={() => window.location.reload()}>
               Reset Form
