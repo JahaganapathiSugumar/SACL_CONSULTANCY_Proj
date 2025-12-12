@@ -1,7 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
+import { useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
-  Box,
   Paper,
   Typography,
   TextField,
@@ -14,7 +19,6 @@ import {
   createTheme,
   Button,
   Alert,
-  CircularProgress,
   Radio,
   RadioGroup,
   FormControlLabel,
@@ -42,7 +46,6 @@ import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 /* ---------------- 1. Theme Configuration (Matched to FoundryApp) ---------------- */
 
@@ -692,11 +695,31 @@ function MicrostructureTable({
 
 export default function MetallurgicalInspection() {
   const { user } = useAuth();
+  const [assigned, setAssigned] = useState<boolean | null>(null);
 
-  // Check if user has access to this page
-  // if (user?.department_id !== 7) {
-  //   return <NoAccess />;
-  // }
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 7 && // metallurgical dept id used earlier
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
+
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
 
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement | null>(null);

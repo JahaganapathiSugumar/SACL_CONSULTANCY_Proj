@@ -1,0 +1,28 @@
+const API_BASE_URL = "http://localhost:3000/api";
+
+export const documentService = {
+    async uploadDocument(trial_id: string, document_type: string, file_name: string, file_base64: string, uploaded_by: string, uploaded_at: string, remarks: string) {
+        const body = {
+            "trial_id": trial_id,
+            "document_type": document_type,
+            "file_name": file_name,
+            "file_base64": file_base64,
+            "uploaded_by": uploaded_by,
+            "uploaded_at": uploaded_at,
+            "remarks": remarks
+        };
+        const response = await fetch(`${API_BASE_URL}/documents`, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        return response;
+    },
+
+    async getDocument(trial_id: string) {
+        const response = await fetch(`${API_BASE_URL}/documents?trial_id=${trial_id}`);
+        return response;
+    }
+};

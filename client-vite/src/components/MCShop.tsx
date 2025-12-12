@@ -1,6 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
+import { useNavigate } from "react-router-dom";
 import {
-  Box,
   Paper,
   Typography,
   Table,
@@ -11,7 +16,6 @@ import {
   TextField,
   IconButton,
   Button,
-  Autocomplete,
   Alert,
   ThemeProvider,
   createTheme,
@@ -36,9 +40,9 @@ import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
+import { uploadFiles } from '../services/fileUploadHelper';
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
@@ -155,24 +159,18 @@ export default function McShopInspection({
   onSave?: (payload: any) => Promise<any> | any;
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // Check if user has access to this page
-  // if (user?.department_id !== 8) {
-  //   return <NoAccess />;
-  // }
-
-  // header fields
+  // ✅ ALL useState HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
+  const [assigned, setAssigned] = useState<boolean | null>(null);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [userName, setUserName] = useState<string>("");
   const [userTime, setUserTime] = useState<string>("");
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [trialId, setTrialId] = useState<string>("");
   const [remarks, setRemarks] = useState<string>("");
-
-  // dynamic columns
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
-
-  // table rows (each row has a values array matching cavities length)
+  
   const makeInitialRows = (cavLabels: string[]): Row[] => [
     { id: `cavity-${uid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
     { id: `received-${uid()}`, label: "Received Quantity", values: cavLabels.map(() => ""), total: null },
@@ -185,19 +183,36 @@ export default function McShopInspection({
   const [rows, setRows] = useState<Row[]>(() => makeInitialRows(initialCavities));
   const [groupMeta, setGroupMeta] = useState<GroupMeta>({ remarks: "", attachment: null });
   const [dimensionalRemarks, setDimensionalRemarks] = useState<string>("");
-
-  // Additional files & remarks (new)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
-
-  // Preview State
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
+
+  // ✅ NOW useEffect hooks
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 8 &&
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
 
   useEffect(() => {
     if (alert) {
@@ -206,14 +221,33 @@ export default function McShopInspection({
     }
   }, [alert]);
 
-  // Cavities management
+  useEffect(() => {
+    const fetchUserIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
+    fetchUserIP();
+  }, []);
+
+  // ✅ NOW conditional returns (after all hooks)
+  if (assigned === null) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!assigned) {
+    return <NoPendingWorks />;
+  }
+
+  // ✅ Helper functions
   const addColumn = () => {
     setCavities((c) => [...c, ""]);
     setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
   };
 
-
-  // File handlers for additional PDF/image uploads
   const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []) as File[];
     setAttachedFiles(prev => [...prev, ...files]);
@@ -233,14 +267,11 @@ export default function McShopInspection({
     setCavities((prev) => prev.map((c, i) => (i === index ? label : c)));
   };
 
-  // cell updates
   const updateCell = (rowId: string, colIndex: number, value: string) => {
     setRows((prev) => prev.map((r) => {
       if (r.id !== rowId) return r;
 
       const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
-
-      // Compute total only for non-cavity-details and non-reason rows
       const isCavityOrReason = r.label.toLowerCase().includes("cavity details") || r.label.toLowerCase().includes("reason");
 
       if (isCavityOrReason) {
@@ -309,7 +340,8 @@ export default function McShopInspection({
     if (!previewPayload) return;
     setSaving(true);
     try {
-      // build server payload according to API spec
+      const trialIdParam = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+      
       const payload = buildPayload();
       const rowsByLabel = (labelSnippet: string) => rows.find(r => (r.label || '').toLowerCase().includes(labelSnippet));
       const receivedRow = rowsByLabel('received');
@@ -330,17 +362,33 @@ export default function McShopInspection({
       });
 
       const serverPayload = {
-        trial_id: trialId || null,
+        trial_id: trialIdParam,
         inspection_date: payload.inspection_date,
-        inspections,
+        inspections: JSON.stringify(inspections),
         remarks: remarks || groupMeta.remarks || null,
       };
 
       await inspectionService.submitMachineShopInspection(serverPayload);
       setPreviewSubmitted(true);
-      setAlert({ severity: 'success', message: 'Machine shop created successfully.' });
+      setAlert({ severity: 'success', message: 'Machine shop inspection created successfully.' });
+
+      if (attachedFiles.length > 0) {
+        try {
+          // Uncomment when ready
+          // const uploadResults = await uploadFiles(
+          //   attachedFiles,
+          //   trialIdParam,
+          //   "MC_SHOP_INSPECTION",
+          //   user?.username || "system",
+          //   additionalRemarks || ""
+          // );
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+        }
+      }
     } catch (err: any) {
-      setAlert({ severity: 'error', message: err?.message || 'Submission failed' });
+      console.error("Error saving machine shop inspection:", err);
+      setAlert({ severity: 'error', message: 'Failed to save machine shop inspection. Please try again.' });
     } finally {
       setSaving(false);
     }
@@ -350,15 +398,6 @@ export default function McShopInspection({
     window.print();
   };
 
-  useEffect(() => {
-    const fetchUserIP = async () => {
-      const ip = await ipService.getUserIP();
-      setUserIP(ip);
-    };
-    fetchUserIP();
-  }, []);
-
-  // When user enters/selects a name → capture current time
   const handleUserNameChange = async (value: string | null) => {
     const v = value ?? "";
     setUserName(v);
@@ -393,7 +432,7 @@ export default function McShopInspection({
         <Container maxWidth="xl" disableGutters>
 
           <SaclHeader />
-          {/* HEADER */}
+
           <Paper sx={{
             p: 1.5, mb: 3,
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -419,7 +458,6 @@ export default function McShopInspection({
             </Box>
           </Paper>
 
-          {/* MAIN CONTENT */}
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
             <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -430,7 +468,6 @@ export default function McShopInspection({
 
             {alert && <Alert severity={alert.severity} sx={{ mb: 3 }}>{alert.message}</Alert>}
 
-            {/* Top Inputs */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid size={{ xs: 12, md: 3 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
@@ -447,16 +484,12 @@ export default function McShopInspection({
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Trial ID</Typography>
                 <TextField size="small" value={trialId} onChange={(e) => setTrialId(e.target.value)} fullWidth sx={{ bgcolor: 'white' }} />
               </Grid>
-
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Remarks</Typography>
                 <TextField size="small" value={remarks} onChange={(e) => setRemarks(e.target.value)} fullWidth multiline rows={2} sx={{ bgcolor: 'white' }} />
               </Grid>
-
             </Grid>
 
-
-            {/* Table with dynamic cavities and right-hand Remarks column */}
             <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
               <Table size="small">
                 <TableHead>
@@ -482,7 +515,6 @@ export default function McShopInspection({
                     <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>Total</TableCell>
                     <TableCell sx={{ width: 240, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                   </TableRow>
-
                 </TableHead>
 
                 <TableBody>
@@ -493,7 +525,6 @@ export default function McShopInspection({
                         <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
 
                         {isReasonRow ? (
-                          // For "Reason for rejection" row we render single wide cell spanning cavities
                           <TableCell colSpan={cavities.length + 1}>
                             <TextField
                               size="small"
@@ -508,7 +539,6 @@ export default function McShopInspection({
                             />
                           </TableCell>
                         ) : (
-                          // Normal row: one input per cavity
                           <>
                             {r.values.map((val, ci) => (
                               <TableCell key={ci}>
@@ -522,14 +552,12 @@ export default function McShopInspection({
                                 />
                               </TableCell>
                             ))}
-                            {/* Total cell */}
                             <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f1f5f9' }}>
                               {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
                             </TableCell>
                           </>
                         )}
 
-                        {/* Right grouped cell - spans all rows */}
                         {ri === 0 && (
                           <TableCell rowSpan={rows.length} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2, minWidth: 240 }}>
                             <Box display="flex" flexDirection="column" height="100%" gap={2}>
@@ -602,10 +630,6 @@ export default function McShopInspection({
               Add Column
             </Button>
 
-            {/* Attach PDF / Image Section */}
-
-
-            {/* Actions */}
             <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
               <Button
                 variant="outlined"
@@ -628,7 +652,6 @@ export default function McShopInspection({
 
           </Paper>
 
-          {/* PREVIEW MODAL */}
           {previewMode && previewPayload && (
             <Box
               sx={{
@@ -646,7 +669,7 @@ export default function McShopInspection({
               >
                 <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
                   <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
-                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
+                  <IconButton size="small" onClick={() => navigate('/mc-shop')} sx={{ color: '#ef4444' }}>
                     <CloseIcon />
                   </IconButton>
                 </Box>
@@ -661,10 +684,6 @@ export default function McShopInspection({
 
                     <Grid container spacing={2} sx={{ mb: 3 }}>
                       <Grid size={{ xs: 12, md: 4 }}>
-                        <Typography variant="caption" color="textSecondary">INSPECTOR</Typography>
-                        <Typography variant="body1" fontWeight="bold">{previewPayload.user_name || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 4 }}>
                         <Typography variant="caption" color="textSecondary">LOG TIME</Typography>
                         <Typography variant="body1" fontWeight="bold">{previewPayload.user_time || "-"}</Typography>
                       </Grid>
@@ -674,7 +693,6 @@ export default function McShopInspection({
                       </Grid>
                     </Grid>
 
-                    {/* Preview Table */}
                     <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                       <Table size="small">
                         <TableHead>
@@ -712,8 +730,6 @@ export default function McShopInspection({
                       </Table>
                     </Box>
 
-
-                    {/* Attached PDF Files Preview */}
                     {previewPayload.attachedFiles && previewPayload.attachedFiles.length > 0 && (
                       <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                         <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
@@ -731,7 +747,6 @@ export default function McShopInspection({
                       </Box>
                     )}
 
-                    {/* Additional Remarks Preview */}
                     {previewPayload.additionalRemarks && (
                       <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                         <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
@@ -779,7 +794,6 @@ export default function McShopInspection({
             </Box>
           )}
 
-          {/* PRINT SECTION */}
           <Box className="print-section" sx={{ display: 'none' }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
@@ -836,23 +850,6 @@ export default function McShopInspection({
                 <div style={{ marginTop: '20px', padding: '10px', border: '1px solid black' }}>
                   <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Side Remarks</div>
                   <div>{previewPayload.right_remarks || '-'}</div>
-                </div>
-                <div style={{ marginTop: '20px' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Attached Files</div>
-                  {(previewPayload.attachedFiles || []).length ? (
-                    <ul>
-                      {previewPayload.attachedFiles.map((f: string, i: number) => (
-                        <li key={i}>{f}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div>-</div>
-                  )}
-                </div>
-
-                <div style={{ marginTop: '10px' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Additional Remarks</div>
-                  <div>{previewPayload.additionalRemarks || '-'}</div>
                 </div>
               </>
             )}

@@ -124,6 +124,8 @@ router.get('/get-progress', asyncErrorHandler(async (req, res, next) => {
 
 export default router;
 
+// INSERT INTO department_progress (trial_id, department_id, username, completed_at, approval_status, remarks) VALUES (1, 10, 'methods', '2022-01-01', 'pending', 'remarks');
+
 // CREATE TABLE department_progress (
 //     progress_id SERIAL PRIMARY KEY,
 //     trial_id INT REFERENCES trial_cards(trial_id),

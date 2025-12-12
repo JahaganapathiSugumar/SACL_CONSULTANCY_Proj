@@ -26,7 +26,7 @@ import type { PouringDetails, SubmittedData } from './components/PouringDetailsT
 import SandTable from './components/Sand';
 import NotificationPage from './pages/NotificationPage';
 import PendingSampleCardsPage from './pages/PendingSampleCardsPage';
-import PartIdentification from './components/common/Common';
+import Common from './components/common/Common';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -79,7 +79,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/dashboard" element={<ProtectedRoute>{getDashboardByRole()}</ProtectedRoute>} />
 
       <Route path="/common" element={
-        <PartIdentification trialId={'trial_id'}/>
+        <Common trialId={'trial_id'}/>
       } />
 
       <Route path="/update-email" element={<ProtectedRoute><UpdateEmailPage /></ProtectedRoute>} />

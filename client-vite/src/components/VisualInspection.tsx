@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
 import {
-    Box,
     Paper,
     Typography,
     Table,
@@ -22,8 +24,7 @@ import {
     Grid,
     Chip,
     Divider,
-    GlobalStyles,
-    CircularProgress
+    GlobalStyles
 } from "@mui/material";
 
 // Icons
@@ -40,9 +41,10 @@ import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
+import { uploadFiles } from '../services/fileUploadHelper';
+import { useNavigate } from "react-router-dom";
 
 
 /* ---------------- 1. Theme Configuration ---------------- */
@@ -165,11 +167,32 @@ export default function VisualInspection({
     onSave?: (payload: any) => Promise<any> | any;
 }) {
     const { user } = useAuth();
+    const [assigned, setAssigned] = useState<boolean | null>(null);
 
-    // Check if user has access to this page
-    // if (user?.department_id !== 5) {
-    //     return <NoAccess />;
-    // }
+    useEffect(() => {
+        let mounted = true;
+        const check = async () => {
+            try {
+                const uname = user?.username ?? "";
+                const data = await getProgress(uname);
+                const found = data.some(
+                    (p) =>
+                        p.username === uname &&
+                        p.department_id === 5 && // adjust department id for this component if needed
+                        (p.approval_status === "pending" || p.approval_status === "assigned")
+                );
+                if (mounted) setAssigned(found);
+            } catch {
+                if (mounted) setAssigned(false);
+            }
+        };
+        if (user) check();
+        return () => { mounted = false; };
+    }, [user]);
+
+    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+    if (!assigned) return <NoPendingWorks />;
+
 
     const navigate = useNavigate();
 
@@ -397,6 +420,26 @@ export default function VisualInspection({
             await inspectionService.submitVisualInspection(serverPayload);
             setSubmitted(true);
             setAlert({ severity: 'success', message: 'Visual inspection created successfully.' });
+
+            // Upload attached files after successful form submission
+            if (attachedFiles.length > 0) {
+                try {
+                    // const uploadResults = await uploadFiles(
+                    //     attachedFiles,
+                    //     trialId || "trial_id",
+                    //     "VISUAL_INSPECTION",
+                    //     user?.username || "system",
+                    //     additionalRemarks || ""
+                    // );
+
+                    // const failures = uploadResults.filter(r => !r.success);
+                    // if (failures.length > 0) {
+                    //     console.error("Some files failed to upload:", failures);
+                    // }
+                } catch (uploadError) {
+                    console.error("File upload error:", uploadError);
+                }
+            }
         } catch (err: any) {
             setAlert({ severity: 'error', message: err?.message || 'Submission failed' });
         } finally {

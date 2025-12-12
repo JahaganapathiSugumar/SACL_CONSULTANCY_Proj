@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
 import { useNavigate } from 'react-router-dom';
 import {
-    Box,
     Paper,
     Typography,
     TextField,
@@ -14,7 +18,6 @@ import {
     ThemeProvider,
     createTheme,
     Button,
-    CircularProgress,
     Grid,
     Container,
     InputAdornment,
@@ -34,7 +37,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 
@@ -201,7 +203,33 @@ interface PouringDetailsTableProps {
 /* ---------------- Main Component ---------------- */
 
 function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submittedData }: PouringDetailsTableProps) {
-    const { user } = useAuth();
+  const { user } = useAuth();
+  const [assigned, setAssigned] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 9 && // keep the department id used earlier for pouring
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
+
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
+
 
     // Check if user has access to this page
     // if (user?.department_id !== 9) {

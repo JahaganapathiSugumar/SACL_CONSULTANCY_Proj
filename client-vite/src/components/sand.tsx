@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
 import { useNavigate } from "react-router-dom";
 import {
-  Box,
   Paper,
   Typography,
   TextField,
@@ -32,9 +36,9 @@ import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
+import { uploadFiles } from '../services/fileUploadHelper';
 
 /* ---------------- 1. Theme Configuration ---------------- */
 
@@ -171,11 +175,32 @@ interface FoundrySampleCardProps {
 
 function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards }: FoundrySampleCardProps = {}) {
   const { user } = useAuth();
+  const [assigned, setAssigned] = useState<boolean | null>(null);
 
-  // Check if user has access to this page
-  // if (user?.department_id !== 4) {
-  //   return <NoAccess />;
-  // }
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 4 && // sand / foundry department id used earlier
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
+
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
+
 
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -262,6 +287,27 @@ function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards
 
       await inspectionService.submitSandProperties(payload);
       setSubmitted(true);
+
+      // Upload attached files after successful form submission
+      if (attachedFiles.length > 0) {
+        try {
+          // const uploadResults = await uploadFiles(
+          //   attachedFiles,
+          //   trialId,
+          //   "SAND_PROPERTIES",
+          //   user?.username || "system",
+          //   additionalRemarks || ""
+          // );
+
+          // const failures = uploadResults.filter(r => !r.success);
+          // if (failures.length > 0) {
+          //   console.error("Some files failed to upload:", failures);
+          // }
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+          // Non-blocking: form submission already succeeded
+        }
+      }
     } catch (err) {
       alert("Failed to submit sand properties. Please try again.");
     } finally {

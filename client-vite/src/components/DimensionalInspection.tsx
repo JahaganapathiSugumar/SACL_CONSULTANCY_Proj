@@ -1,7 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import NoPendingWorks from "./common/NoPendingWorks";
+import { useAuth } from "../context/AuthContext";
+import { getProgress } from "../services/departmentProgress";
 import { useNavigate } from "react-router-dom";
 import {
-  Box,
   Paper,
   Typography,
   Table,
@@ -36,9 +40,9 @@ import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
-import { useAuth } from '../context/AuthContext';
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
+import { uploadFiles } from '../services/fileUploadHelper';
 
 
 /* ---------------- 1. Theme Configuration ---------------- */
@@ -157,49 +161,54 @@ export default function DimensionalInspection({
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // top-level fields
+  
+  // ✅ ALL useState HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
+  const [assigned, setAssigned] = useState<boolean | null>(null);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [weightTarget, setWeightTarget] = useState<string>("");
-  const makeCavRows = (cavLabels: string[]) => [
-    { id: `cavity-${uid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
-    { id: `avg-${uid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
-  ];
-
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
-  const [cavRows, setCavRows] = useState<CavRow[]>(() => makeCavRows(initialCavities));
+  const [cavRows, setCavRows] = useState<CavRow[]>(() => {
+    const makeCavRows = (cavLabels: string[]) => [
+      { id: `cavity-${uid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
+      { id: `avg-${uid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+    ];
+    return makeCavRows(initialCavities);
+  });
   const [bunchWeight, setBunchWeight] = useState<string>("");
   const [numberOfCavity, setNumberOfCavity] = useState<string>("");
   const [groupMeta, setGroupMeta] = useState<GroupMeta>({ remarks: "", attachment: null });
-
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
   const [userIP, setUserIP] = useState<string>("Loading...");
-
-  // Additional PDF files and remarks (new)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-
-  // Preview State
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
 
-  // Calculate Yield automatically
-  const calculateYield = () => {
-    const castingWeight = parseFloat(weightTarget);
-    const numCavity = parseFloat(numberOfCavity);
-    const bunch = parseFloat(bunchWeight);
+  // ✅ NOW useEffect hooks (these are fine anywhere, but keeping them organized)
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 10 &&
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
 
-    if (isNaN(castingWeight) || isNaN(numCavity) || isNaN(bunch) || bunch === 0) {
-      return "";
-    }
-
-    const yieldValue = ((castingWeight * numCavity) / bunch) * 100;
-    return yieldValue.toFixed(2);
-  };
-
-  // Auto-hide messages
   useEffect(() => {
     if (alert) {
       const t = setTimeout(() => setAlert(null), 4000);
@@ -215,7 +224,38 @@ export default function DimensionalInspection({
     fetchUserIP();
   }, []);
 
-  // Cavities management (dynamic columns)
+  // ✅ NOW conditional returns (after all hooks)
+  if (assigned === null) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
+  if (!assigned) {
+    return <NoPendingWorks />;
+  }
+
+  // ✅ Helper functions
+  const makeCavRows = (cavLabels: string[]) => [
+    { id: `cavity-${uid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
+    { id: `avg-${uid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+  ];
+
+  const calculateYield = () => {
+    const castingWeight = parseFloat(weightTarget);
+    const numCavity = parseFloat(numberOfCavity);
+    const bunch = parseFloat(bunchWeight);
+
+    if (isNaN(castingWeight) || isNaN(numCavity) || isNaN(bunch) || bunch === 0) {
+      return "";
+    }
+
+    const yieldValue = ((castingWeight * numCavity) / bunch) * 100;
+    return yieldValue.toFixed(2);
+  };
+
   const addCavity = () => {
     const next = `Value ${cavities.length + 1}`;
     setCavities((c) => [...c, next]);
@@ -245,7 +285,6 @@ export default function DimensionalInspection({
     setCavRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, values: r.values.map((v, i) => (i === colIndex ? value : v)) } : r)));
   };
 
-  // reset
   const resetAll = () => {
     setDate(new Date().toISOString().slice(0, 10));
     setWeightTarget("");
@@ -260,7 +299,6 @@ export default function DimensionalInspection({
     setPreviewSubmitted(false);
   };
 
-  // payload builder
   const buildPayload = () => {
     return {
       inspection_date: date || null,
@@ -290,10 +328,8 @@ export default function DimensionalInspection({
     if (!previewPayload) return;
     setSaving(true);
     try {
-      // Build API payload according to provided spec
       const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
 
-      // find rows
       const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
       const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
 
@@ -316,6 +352,21 @@ export default function DimensionalInspection({
       await inspectionService.submitDimensionalInspection(apiPayload);
       setPreviewSubmitted(true);
       setAlert({ severity: "success", message: "Dimensional inspection created successfully." });
+
+      if (attachedFiles.length > 0) {
+        try {
+          // Uncomment when ready
+          // const uploadResults = await uploadFiles(
+          //   attachedFiles,
+          //   trialId,
+          //   "DIMENSIONAL_INSPECTION",
+          //   user?.username || "system",
+          //   additionalRemarks || ""
+          // );
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+        }
+      }
     } catch (err: any) {
       console.error("Error saving dimensional inspection:", err);
       setAlert({ severity: "error", message: "Failed to save dimensional inspection. Please try again." });
@@ -327,14 +378,6 @@ export default function DimensionalInspection({
   const handleExportPDF = () => {
     window.print();
   };
-
-  // Font style for data values to match inputs
-  const dataFontStyle = { fontFamily: '"Roboto Mono", monospace', fontWeight: 500 };
-
-  // Check if user has access to this page
-  // if (user?.department_id !== 10) {
-  //   return <NoAccess />;
-  // }
 
   return (
     <ThemeProvider theme={theme}>
@@ -351,10 +394,8 @@ export default function DimensionalInspection({
       <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
         <Container maxWidth="xl" disableGutters>
 
-          {/* SACL HEADER */}
           <SaclHeader />
 
-          {/* HEADER */}
           <Paper sx={{
             p: 1.5, mb: 3,
             display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -380,7 +421,6 @@ export default function DimensionalInspection({
             </Box>
           </Paper>
 
-          {/* MAIN CONTENT */}
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
             <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -391,7 +431,6 @@ export default function DimensionalInspection({
 
             {alert && <Alert severity={alert.severity} sx={{ mb: 3 }}>{alert.message}</Alert>}
 
-            {/* Top Inputs */}
             <Grid container spacing={3} sx={{ mb: 3 }}>
               <Grid size={{ xs: 12, md: 3 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
@@ -450,7 +489,6 @@ export default function DimensionalInspection({
               </Grid>
             </Grid>
 
-            {/* Cavity Table */}
             <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
               <Table size="small">
                 <TableHead>
@@ -509,7 +547,6 @@ export default function DimensionalInspection({
               Add Column
             </Button>
 
-            {/* Attach PDF / Image Section */}
             <Paper sx={{ p: 3, my: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
                 <UploadFileIcon sx={{ color: COLORS.primary }} />
@@ -544,7 +581,6 @@ export default function DimensionalInspection({
                 />
               </Button>
 
-              {/* Attached file chips */}
               <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {attachedFiles.map((file, i) => (
                   <Chip
@@ -561,7 +597,6 @@ export default function DimensionalInspection({
               </Box>
             </Paper>
 
-            {/* Additional Remarks Section */}
             <Paper sx={{ p: 3, mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
                 <EditIcon sx={{ color: COLORS.primary }} />
@@ -581,7 +616,6 @@ export default function DimensionalInspection({
               />
             </Paper>
 
-            {/* Actions */}
             <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
               <Button
                 variant="outlined"
@@ -604,7 +638,6 @@ export default function DimensionalInspection({
 
           </Paper>
 
-          {/* PREVIEW MODAL */}
           {previewMode && previewPayload && (
             <Box
               sx={{
@@ -646,7 +679,6 @@ export default function DimensionalInspection({
                       </Grid>
                     </Grid>
 
-                    {/* Preview Table */}
                     <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                       <Table size="small">
                         <TableHead>
@@ -673,7 +705,6 @@ export default function DimensionalInspection({
                     </Box>
 
                     <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-
                       {previewPayload.attachment && (
                         <Typography variant="caption" display="block" mt={1} color="primary">
                           Attachment: {previewPayload.attachment.name}
@@ -681,7 +712,6 @@ export default function DimensionalInspection({
                       )}
                     </Box>
 
-                    {/* Attached PDF Files Preview */}
                     {previewPayload.attachedFiles && previewPayload.attachedFiles.length > 0 && (
                       <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                         <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
@@ -699,7 +729,6 @@ export default function DimensionalInspection({
                       </Box>
                     )}
 
-                    {/* Additional Remarks Preview */}
                     {previewPayload.additionalRemarks && (
                       <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                         <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
@@ -747,7 +776,6 @@ export default function DimensionalInspection({
             </Box>
           )}
 
-          {/* PRINT SECTION */}
           <Box className="print-section" sx={{ display: 'none' }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
               <Box>
