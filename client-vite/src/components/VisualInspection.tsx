@@ -153,6 +153,13 @@ function uid(prefix = "") {
     return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
 }
 
+const buildRows = (labels: string[], initialCols: string[]): Row[] =>
+    labels.map((lab, i) => ({
+        id: `${lab}-${i}-${uid()}`,
+        label: lab,
+        values: initialCols.map(() => ""),
+    }));
+
 /* ---------- Main Component ---------- */
 export default function VisualInspection({
     initialRows = ["Cavity number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
@@ -167,7 +174,29 @@ export default function VisualInspection({
     onSave?: (payload: any) => Promise<any> | any;
 }) {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [assigned, setAssigned] = useState<boolean | null>(null);
+    const [cols, setCols] = useState<string[]>([...initialCols]);
+    const [rows, setRows] = useState<Row[]>(() => buildRows(initialRows, initialCols));
+    const [trialId, setTrialId] = useState<string>("");
+    const [groupMeta, setGroupMeta] = useState<GroupMeta>({
+        ok: null,
+        remarks: "",
+        attachment: null,
+    });
+    // Status states
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+    const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
+    // Additional PDF files and remarks (new)
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
+    // Preview state
+    const [previewMode, setPreviewMode] = useState(false);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [submitted, setSubmitted] = useState(false);
+    // IP state
+    const [userIP, setUserIP] = useState<string>("Loading...");
 
     useEffect(() => {
         let mounted = true;
@@ -178,7 +207,7 @@ export default function VisualInspection({
                 const found = data.some(
                     (p) =>
                         p.username === uname &&
-                        p.department_id === 5 && // adjust department id for this component if needed
+                        p.department_id === 5 &&
                         (p.approval_status === "pending" || p.approval_status === "assigned")
                 );
                 if (mounted) setAssigned(found);
@@ -189,23 +218,6 @@ export default function VisualInspection({
         if (user) check();
         return () => { mounted = false; };
     }, [user]);
-
-    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-    if (!assigned) return <NoPendingWorks />;
-
-
-    const navigate = useNavigate();
-
-    const makeRows = (labels: string[]): Row[] =>
-        labels.map((lab, i) => ({
-            id: `${lab}-${i}-${uid()}`,
-            label: lab,
-            values: initialCols.map(() => ""),
-        }));
-
-    const [cols, setCols] = useState<string[]>([...initialCols]);
-    const [rows, setRows] = useState<Row[]>(() => makeRows(initialRows));
-    const [trialId, setTrialId] = useState<string>("");
 
     // Calculate rejection percentage for a specific column
     const calculateRejectionPercentage = (colIndex: number): string => {
@@ -225,29 +237,6 @@ export default function VisualInspection({
         return percentage.toFixed(2);
     };
 
-    const [groupMeta, setGroupMeta] = useState<GroupMeta>({
-        ok: null,
-        remarks: "",
-        attachment: null,
-    });
-
-    // Status states
-    const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
-    const [alert, setAlert] = useState<{ severity: "success" | "error" | "info"; message: string } | null>(null);
-
-    // Additional PDF files and remarks (new)
-    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-    const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-
-    // Preview state
-    const [previewMode, setPreviewMode] = useState(false);
-    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
-    const [submitted, setSubmitted] = useState(false);
-
-    // IP state
-    const [userIP, setUserIP] = useState<string>("Loading...");
-
     // Auto-hide messages
     useEffect(() => {
         if (alert) {
@@ -263,6 +252,10 @@ export default function VisualInspection({
         };
         fetchUserIP();
     }, []);
+
+    // Early exits after all hooks are registered
+    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+    if (!assigned) return <NoPendingWorks />;
 
     const addColumn = () => {
         setCols((c) => [...c, ""]);
@@ -324,7 +317,7 @@ export default function VisualInspection({
 
     const reset = () => {
         setCols([...initialCols]);
-        setRows(makeRows(initialRows));
+        setRows(buildRows(initialRows, initialCols));
         setGroupMeta({ ok: null, remarks: "", attachment: null });
         setAttachedFiles([]);
         setAdditionalRemarks("");

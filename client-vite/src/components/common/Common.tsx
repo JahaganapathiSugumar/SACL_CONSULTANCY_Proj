@@ -21,6 +21,7 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import SaclHeader from "./SaclHeader";
 
 type MouldCorrection = { compressibility?: string; squeeze_pressure?: string; filler_size?: string };
 
@@ -133,7 +134,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: COLORS.background, minHeight: "100vh" }}>
-
+        <SaclHeader />
         <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto' }}>
           <Card elevation={4} sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: COLORS.primary, color: 'white' }}>

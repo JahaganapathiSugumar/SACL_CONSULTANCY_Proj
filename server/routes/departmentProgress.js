@@ -113,15 +113,14 @@ router.put('/approve', asyncErrorHandler(async (req, res, next) => {
 router.get('/get-progress', asyncErrorHandler(async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT * FROM department_progress WHERE username = ?`,
+        `SELECT * FROM department_progress WHERE username = ? LIMIT 1`,
         [username]
     );
     res.status(200).json({
         success: true,
-        data: result
+        data: result[0]
     });
 }));
-
 export default router;
 
 // INSERT INTO department_progress (trial_id, department_id, username, completed_at, approval_status, remarks) VALUES (1, 10, 'methods', '2022-01-01', 'pending', 'remarks');

@@ -204,7 +204,44 @@ interface PouringDetailsTableProps {
 
 function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submittedData }: PouringDetailsTableProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [assigned, setAssigned] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [trialId, setTrialId] = useState<string>("");
+
+  // Pouring Details State
+  const [pouringDate, setPouringDate] = useState<string>(pouringDetails?.date || new Date().toISOString().split('T')[0]);
+  const [heatCode, setHeatCode] = useState<string>(pouringDetails?.heatCode || "");
+  const [chemState, setChemState] = useState({
+    c: pouringDetails?.cComposition || "",
+    si: pouringDetails?.siComposition || "",
+    mn: pouringDetails?.mnComposition || "",
+    p: pouringDetails?.pComposition || "",
+    s: pouringDetails?.sComposition || "",
+    mg: pouringDetails?.mgComposition || "",
+    cr: pouringDetails?.crComposition || "",
+    cu: pouringDetails?.cuComposition || ""
+  });
+  const [pouringTemp, setPouringTemp] = useState<string>(pouringDetails?.pouringTempDegC || "");
+  const [pouringTime, setPouringTime] = useState<string>(pouringDetails?.pouringTimeSec || "");
+  const [inoculationStream, setInoculationStream] = useState<string>("");
+  const [inoculationInmould, setInoculationInmould] = useState<string>("");
+
+  // Remarks State
+  const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
+  const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
+  const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
+  const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
+  const [remarksText, setRemarksText] = useState<string>("");
+  // Attach PDF / Images
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+
+  const [previewMode, setPreviewMode] = useState(false);
+  const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
+  const [userIP, setUserIP] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
@@ -215,7 +252,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         const found = data.some(
           (p) =>
             p.username === uname &&
-            p.department_id === 9 && // keep the department id used earlier for pouring
+            p.department_id === 9 && // pouring dept id
             (p.approval_status === "pending" || p.approval_status === "assigned")
         );
         if (mounted) setAssigned(found);
@@ -227,52 +264,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     return () => { mounted = false; };
   }, [user]);
 
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <NoPendingWorks />;
-
-
-    // Check if user has access to this page
-    // if (user?.department_id !== 9) {
-    //     return <NoAccess />;
-    // }
-
-    const navigate = useNavigate();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-    // State
-    const [loading, setLoading] = useState(false);
-    const [trialId, setTrialId] = useState<string>("");
-
-    // Pouring Details State
-    // Pouring Details State
-    const [pouringDate, setPouringDate] = useState<string>(pouringDetails?.date || new Date().toISOString().split('T')[0]);
-    const [heatCode, setHeatCode] = useState<string>(pouringDetails?.heatCode || "");
-    const [chemState, setChemState] = useState({
-        c: pouringDetails?.cComposition || "",
-        si: pouringDetails?.siComposition || "",
-        mn: pouringDetails?.mnComposition || "",
-        p: pouringDetails?.pComposition || "",
-        s: pouringDetails?.sComposition || "",
-        mg: pouringDetails?.mgComposition || "",
-        cr: pouringDetails?.crComposition || "",
-        cu: pouringDetails?.cuComposition || ""
-    });
-    const [pouringTemp, setPouringTemp] = useState<string>(pouringDetails?.pouringTempDegC || "");
-    const [pouringTime, setPouringTime] = useState<string>(pouringDetails?.pouringTimeSec || "");
-    const [inoculationStream, setInoculationStream] = useState<string>("");
-    const [inoculationInmould, setInoculationInmould] = useState<string>("");
-
-    // Remarks State
-    const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
-    const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
-    const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
-    const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
-    const [remarksText, setRemarksText] = useState<string>("");
-    // Attach PDF / Images
-    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-
-
-
+  // Check if user has access to this page
+  // if (user?.department_id !== 9) {
+  //     return <NoAccess />;
+  // }
 
     useEffect(() => {
         if (onPouringDetailsChange) {
@@ -297,12 +292,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         }
     }, [pouringDate, heatCode, chemState, pouringTemp, pouringTime, ficHeatNo, ppCode, followedBy, userName, onPouringDetailsChange]);
 
-    const [previewMode, setPreviewMode] = useState(false);
-    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
-    const [submitted, setSubmitted] = useState(false);
-    const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-    const [userIP, setUserIP] = useState<string>("");
-
     useEffect(() => {
         if (previewMessage) { const t = setTimeout(() => setPreviewMessage(null), 4000); return () => clearTimeout(t); }
     }, [previewMessage]);
@@ -314,6 +303,9 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         };
         fetchIP();
     }, []);
+    // Early exits after all hooks registered
+    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+    if (!assigned) return <NoPendingWorks />;
     // Handle PDF/Image Upload
     const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
         const fileList = e.target.files;

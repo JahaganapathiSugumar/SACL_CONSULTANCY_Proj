@@ -152,40 +152,9 @@ const SpecInput = ({ inputStyle, ...props }: any) => (
 
 function FoundrySampleCard() {
   const { user } = useAuth();
-  const [assigned, setAssigned] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const check = async () => {
-      try {
-        const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 6 && // moulding dept id used earlier
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
-      } catch {
-        if (mounted) setAssigned(false);
-      }
-    };
-    if (user) check();
-    return () => { mounted = false; };
-  }, [user]);
-
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <NoPendingWorks />;
-
-
-  // Check if user has access to this page
-  // if (user?.department_id !== 6) {
-  //   return <NoAccess />;
-  // }
-
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [assigned, setAssigned] = useState<boolean | null>(null);
 
   // State - Swapped to Moulding Fields
   const [mouldState, setMouldState] = useState({
@@ -206,6 +175,28 @@ function FoundrySampleCard() {
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [userIP, setUserIP] = useState<string>("");
+
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 6 && // moulding dept id
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
+
   useEffect(() => {
     const fetchIP = async () => {
       const ip = await ipService.getUserIP();
@@ -213,6 +204,10 @@ function FoundrySampleCard() {
     };
     fetchIP();
   }, []);
+
+  // Early exits after all hooks are declared
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
 
   const handleChange = (field: string, value: string) => {
     setMouldState(prev => ({ ...prev, [field]: value }));

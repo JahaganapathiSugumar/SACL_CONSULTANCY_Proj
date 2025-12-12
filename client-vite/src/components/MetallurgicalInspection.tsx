@@ -695,35 +695,11 @@ function MicrostructureTable({
 
 export default function MetallurgicalInspection() {
   const { user } = useAuth();
-  const [assigned, setAssigned] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const check = async () => {
-      try {
-        const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 7 && // metallurgical dept id used earlier
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
-      } catch {
-        if (mounted) setAssigned(false);
-      }
-    };
-    if (user) check();
-    return () => { mounted = false; };
-  }, [user]);
-
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <NoPendingWorks />;
-
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement | null>(null);
 
+  // --- All hooks are declared upfront to avoid conditional hook calls ---
+  const [assigned, setAssigned] = useState<boolean | null>(null);
   const [, setUserName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
@@ -737,14 +713,6 @@ export default function MetallurgicalInspection() {
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-
-  useEffect(() => {
-    const fetchIP = async () => {
-      const ip = await ipService.getUserIP();
-      setUserIP(ip);
-    };
-    fetchIP();
-  }, []);
 
   // Microstructure state
   const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
@@ -766,14 +734,38 @@ export default function MetallurgicalInspection() {
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Surface", "Core"]));
   const [ndtRows, setNdtRows] = useState<Row[]>(initialRows(["Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
 
-  useEffect(() => { if (alert) { const t = setTimeout(() => setAlert(null), 5000); return () => clearTimeout(t); } }, [alert]);
+  useEffect(() => {
+    const fetchIP = async () => {
+      const ip = await ipService.getUserIP();
+      setUserIP(ip);
+    };
+    fetchIP();
+  }, []);
 
   useEffect(() => {
-    if (ndtValidationError) {
-      const t = setTimeout(() => setNdtValidationError(null), 6000);
-      return () => clearTimeout(t);
-    }
-  }, [ndtValidationError]);
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 7 && // metallurgical dept id
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
+
+  // --- Conditional rendering after all hooks are registered ---
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
 
   const updateRow = (setRows: Dispatch<SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));

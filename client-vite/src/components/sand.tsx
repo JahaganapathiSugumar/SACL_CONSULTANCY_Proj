@@ -175,37 +175,11 @@ interface FoundrySampleCardProps {
 
 function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards }: FoundrySampleCardProps = {}) {
   const { user } = useAuth();
-  const [assigned, setAssigned] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const check = async () => {
-      try {
-        const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 4 && // sand / foundry department id used earlier
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
-      } catch {
-        if (mounted) setAssigned(false);
-      }
-    };
-    if (user) check();
-    return () => { mounted = false; };
-  }, [user]);
-
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <NoPendingWorks />;
-
-
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // State
+  // All state hooks declared up front to avoid conditional hook order issues
+  const [assigned, setAssigned] = useState<boolean | null>(null);
   const [sandDate, setSandDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [sandProps, setSandProps] = useState({
     tClay: "",
@@ -220,12 +194,32 @@ function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards
     remarks: ""
   });
   const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-  // File Upload (PDF / Images)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [userIP, setUserIP] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const uname = user?.username ?? "";
+        const data = await getProgress(uname);
+        const found = data.some(
+          (p) =>
+            p.username === uname &&
+            p.department_id === 4 && // sand / foundry department
+            (p.approval_status === "pending" || p.approval_status === "assigned")
+        );
+        if (mounted) setAssigned(found);
+      } catch {
+        if (mounted) setAssigned(false);
+      }
+    };
+    if (user) check();
+    return () => { mounted = false; };
+  }, [user]);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -234,6 +228,11 @@ function FoundrySampleCard({ submittedData, onSave, onComplete, fromPendingCards
     };
     fetchIP();
   }, []);
+
+  // Early exits now occur after all hooks have been registered
+  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
+  if (!assigned) return <NoPendingWorks />;
+
 
   const handleChange = (field: string, value: string) => {
     setSandProps(prev => ({ ...prev, [field]: value }));
