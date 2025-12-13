@@ -211,5 +211,160 @@ export const inspectionService = {
             console.error('Error submitting moulding correction:', error);
             throw error;
         }
+    },
+
+    // Sand Properties
+    async getSandProperties(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/sand-properties/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching sand properties:', error); throw error; }
+    },
+    async updateSandProperties(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/sand-properties`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update sand properties');
+            return data;
+        } catch (error) { console.error('Error updating sand properties:', error); throw error; }
+    },
+
+    // Moulding Correction
+    async getMouldingCorrection(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/moulding-correction/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching moulding correction:', error); throw error; }
+    },
+    async updateMouldingCorrection(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/moulding-correction`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update moulding correction');
+            return data;
+        } catch (error) { console.error('Error updating moulding correction:', error); throw error; }
+    },
+
+    // Visual Inspection
+    async getVisualInspection(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/visual-inspection/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching visual inspection:', error); throw error; }
+    },
+    async updateVisualInspection(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/visual-inspection`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update visual inspection');
+            return data;
+        } catch (error) { console.error('Error updating visual inspection:', error); throw error; }
+    },
+
+    // Dimensional Inspection
+    async getDimensionalInspection(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/dimensional-inspection/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching dimensional inspection:', error); throw error; }
+    },
+    async updateDimensionalInspection(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/dimensional-inspection`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update dimensional inspection');
+            return data;
+        } catch (error) { console.error('Error updating dimensional inspection:', error); throw error; }
+    },
+
+    // Metallurgical Inspection
+    async getMetallurgicalInspection(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/metallurgical-inspection/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching metallurgical inspection:', error); throw error; }
+    },
+    async updateMetallurgicalInspection(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/metallurgical-inspection`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update metallurgical inspection');
+            return data;
+        } catch (error) { console.error('Error updating metallurgical inspection:', error); throw error; }
+    },
+
+    // Pouring Details
+    async getPouringDetails(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/pouring-details/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching pouring details:', error); throw error; }
+    },
+    async updatePouringDetails(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/pouring-details`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update pouring details');
+            return data;
+        } catch (error) { console.error('Error updating pouring details:', error); throw error; }
+    },
+
+    // Machine Shop
+    async getMachineShopInspection(trialId: string): Promise<any> {
+        try {
+            // Machine shop might not have specific route in list, deducing from post route
+            const response = await fetch(`${API_BASE_URL}/machine-shop/trial_id?trial_id=${trialId}`, {
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            return await response.json();
+        } catch (error) { console.error('Error fetching machine shop inspection:', error); throw error; }
+    },
+    async updateMachineShopInspection(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/machine-shop`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to update machine shop inspection');
+            return data;
+        } catch (error) { console.error('Error updating machine shop inspection:', error); throw error; }
     }
 };

@@ -19,6 +19,22 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     res.status(201).json({ success: true, message: 'Sand properties created successfully.' });
 }));
 
+router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, date, t_clay, a_clay, vcm, loi, afs, gcs, moi, compactability, permeability, remarks } = req.body || {};
+    if (!trial_id || !date || !t_clay || !a_clay || !vcm || !loi || !afs || !gcs || !moi || !compactability || !permeability || !remarks) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    const sql = 'UPDATE sand_properties SET date = ?, t_clay = ?, a_clay = ?, vcm = ?, loi = ?, afs = ?, gcs = ?, moi = ?, compactability = ?, permeability = ?, remarks = ? WHERE trial_id = ?';
+    const [result] = await Client.query(sql, [date, t_clay, a_clay, vcm, loi, afs, gcs, moi, compactability, permeability, remarks, trial_id]);
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Sand properties updated', `Sand properties ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
+    const insertId = result.insertId;
+    res.status(201).json({
+        success: true,
+        message: "Sand properties updated successfully."
+    });
+}));
+
 router.get('/', asyncErrorHandler(async (req, res, next) => {
     const [rows] = await Client.query('SELECT * FROM sand_properties');
     res.status(200).json({ success: true, data: rows });

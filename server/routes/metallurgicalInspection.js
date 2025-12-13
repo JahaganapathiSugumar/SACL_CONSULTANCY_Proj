@@ -3,8 +3,9 @@ const router = express.Router();
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 import Client from '../config/connection.js';
 import CustomError from '../utils/customError.js';
+import verifyToken from '../utils/verifyToken.js';
 
-router.post('/', asyncErrorHandler(async (req, res, next) => {
+router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { trial_id, user_name, dates, micro_examination, remarks } = req.body || {};
     if (!trial_id || !user_name || !dates || !micro_examination || !remarks) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -15,6 +16,24 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Metallurgical inspection created', `Metallurgical inspection ${trial_id} created by ${req.user.username} with trial id ${trial_id}`]);
     res.status(201).json({ success: true, message: 'Metallurgical inspection created successfully.', id: result.insertId });
+}));
+
+router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, user_name, dates, micro_examination, remarks } = req.body || {};
+    if (!trial_id || !user_name || !dates || !micro_examination || !remarks) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    const microExaminationJson = JSON.stringify(micro_examination);
+    const sql = 'UPDATE metallurgical_inspection SET user_name = ?, dates = ?, micro_examination = ?, remarks = ? WHERE trial_id = ?';
+    const [result] = await Client.query(sql, [user_name, dates, microExaminationJson, remarks, trial_id]);
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Metallurgical inspection updated', `Metallurgical inspection ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
+    const insertId = result.insertId;
+    res.status(201).json({
+        success: true,
+        message: "Metallurgical inspection updated successfully.",
+        id: insertId
+    });
 }));
 
 router.get('/', asyncErrorHandler(async (req, res, next) => {

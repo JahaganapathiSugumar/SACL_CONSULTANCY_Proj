@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -37,6 +37,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import CloseIcon from "@mui/icons-material/Close";
 import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
@@ -48,7 +49,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common } from './common';
 
 type CavRow = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -89,6 +90,8 @@ export default function DimensionalInspection({
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
+  const [progressData, setProgressData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
 
   useEffect(() => {
     let mounted = true;
@@ -96,7 +99,10 @@ export default function DimensionalInspection({
       try {
         const uname = user?.username ?? "";
         const res = await getProgress(uname);
-        if (mounted) setAssigned(res.length > 0);
+        if (mounted) {
+          setAssigned(res.length > 0);
+          if (res.length > 0) setProgressData(res[0]);
+        }
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -104,6 +110,53 @@ export default function DimensionalInspection({
     if (user) check();
     return () => { mounted = false; };
   }, [user]);
+
+  // Fetch Logic for HOD
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.role === 'HOD' && progressData?.trial_id) {
+        try {
+          const response = await inspectionService.getDimensionalInspection(progressData.trial_id);
+          console.log("DimensionalInspection fetchData", response);
+          if (response.success && response.data && response.data.length > 0) {
+            const data = response.data[0];
+            setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
+            setWeightTarget(String(data.casting_weight || ""));
+            setBunchWeight(String(data.bunch_weight || ""));
+            setNumberOfCavity(String(data.no_of_cavities || ""));
+            setGroupMeta({ remarks: data.remarks || "", attachment: null });
+            console.log("DimensionalInspection fetchData", data);
+            if (data.inspections) {
+              try {
+                const parsed = JSON.parse(data.inspections);
+                if (Array.isArray(parsed)) {
+                  // Restore columns (Headers lost, using generic)
+                  setCavities(parsed.map((_, i) => `Cavity ${i + 1}`));
+
+                  // Restore Rows
+                  setCavRows(prev => prev.map(row => {
+                    if (row.label === "Cavity number") {
+                      return { ...row, values: parsed.map(p => String(p["Cavity Number"] || "")) };
+                    }
+                    if (row.label === "Casting weight") {
+                      return { ...row, values: parsed.map(p => String(p["Casting Weight"] || "")) };
+                    }
+                    return row;
+                  }));
+                }
+              } catch (e) {
+                console.error("Error parsing inspections JSON", e);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch dimensional data:", error);
+          showAlert('error', 'Failed to load existing data.');
+        }
+      }
+    };
+    if (progressData) fetchData();
+  }, [user, progressData]);
 
 
 
@@ -116,7 +169,7 @@ export default function DimensionalInspection({
   }, []);
 
   if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
+  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
 
   const makeCavRows = (cavLabels: string[]) => [
     { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
@@ -206,6 +259,56 @@ export default function DimensionalInspection({
   const handleFinalSave = async () => {
     if (!previewPayload) return;
     setSaving(true);
+
+    // HOD Approval Logic
+    if (user?.role === 'HOD' && progressData) {
+      try {
+        // 1. Update Data if Edited
+        if (isEditing) {
+          const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
+          const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
+
+          const inspections = (previewPayload.cavities || []).map((_: any, i: number) => ({
+            "Cavity Number": (cavityRow?.values?.[i] ?? previewPayload.cavities[i] ?? null),
+            "Casting Weight": (castingRow?.values?.[i] ?? null)
+          }));
+
+          const updatePayload = {
+            trial_id: progressData.trial_id,
+            inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
+            casting_weight: parseFloat(previewPayload.weight_target) || 0,
+            bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
+            no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
+            yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
+            inspections: JSON.stringify(inspections),
+            remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
+          };
+
+          await inspectionService.updateDimensionalInspection(updatePayload);
+        }
+
+        // 2. Approve
+        const approvalPayload = {
+          progress_id: progressData.progress_id,
+          next_department_id: progressData.department_id + 1,
+          username: user.username,
+          role: user.role,
+          remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Approved by HOD"
+        };
+
+        await updateDepartment(approvalPayload);
+        setPreviewSubmitted(true);
+        showAlert('success', 'Department progress approved successfully.');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } catch (err) {
+        showAlert('error', 'Failed to approve. Please try again.');
+        console.error("Approval error:", err);
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     try {
       const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
 
@@ -246,6 +349,22 @@ export default function DimensionalInspection({
           console.error("File upload error:", uploadError);
         }
       }
+
+      if (progressData) {
+        try {
+          await updateDepartmentRole({
+            progress_id: progressData.progress_id,
+            current_department_id: progressData.department_id,
+            username: user?.username || "user",
+            role: "user",
+            remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Completed by user"
+          });
+        } catch (roleError) {
+          console.error("Failed to update role progress:", roleError);
+        }
+      }
+
+      navigate('/dashboard');
     } catch (err: any) {
       console.error("Error saving dimensional inspection:", err);
       showAlert('error', 'Failed to save dimensional inspection. Please try again.');
@@ -277,6 +396,8 @@ export default function DimensionalInspection({
 
           <DepartmentHeader title="DIMENSIONAL INSPECTION" userIP={userIP} user={user} />
 
+          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
             <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -297,6 +418,7 @@ export default function DimensionalInspection({
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   sx={{ bgcolor: 'white' }}
+                  disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
@@ -308,6 +430,7 @@ export default function DimensionalInspection({
                   value={weightTarget}
                   onChange={(e) => setWeightTarget(e.target.value)}
                   sx={{ bgcolor: 'white' }}
+                  disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 2 }}>
@@ -319,6 +442,7 @@ export default function DimensionalInspection({
                   value={bunchWeight}
                   onChange={(e) => setBunchWeight(e.target.value)}
                   sx={{ bgcolor: 'white' }}
+                  disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 2 }}>
@@ -331,6 +455,7 @@ export default function DimensionalInspection({
                   value={numberOfCavity}
                   onChange={(e) => setNumberOfCavity(e.target.value)}
                   sx={{ bgcolor: 'white' }}
+                  disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 2 }}>
@@ -360,8 +485,9 @@ export default function DimensionalInspection({
                             onChange={(e) => updateCavityLabel(ci, e.target.value)}
                             InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                             sx={{ input: { textAlign: 'center' } }}
+                            disabled={user?.role === 'HOD' && !isEditing}
                           />
-                          <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}>
+                          <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -385,6 +511,7 @@ export default function DimensionalInspection({
                             onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
                             variant="outlined"
                             sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                            disabled={user?.role === 'HOD' && !isEditing}
                           />
                         </TableCell>
                       ))}
@@ -399,6 +526,7 @@ export default function DimensionalInspection({
               onClick={addCavity}
               startIcon={<AddCircleIcon />}
               sx={{ mt: 1, color: COLORS.secondary }}
+              disabled={user?.role === 'HOD' && !isEditing}
             >
               Add Column
             </Button>
@@ -433,6 +561,7 @@ export default function DimensionalInspection({
               value={additionalRemarks}
               onChange={(e) => setAdditionalRemarks(e.target.value)}
               sx={{ bgcolor: '#fff' }}
+              disabled={user?.role === 'HOD' && !isEditing}
             />
           </Paper>
 
@@ -440,7 +569,19 @@ export default function DimensionalInspection({
             onReset={resetAll}
             onSave={handleSaveAndContinue}
             showSubmit={false}
-          />
+            saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+            saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+          >
+            {user?.role === 'HOD' && (
+              <Button
+                variant="outlined"
+                onClick={() => setIsEditing(!isEditing)}
+                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+              >
+                {isEditing ? "Cancel Edit" : "Edit Details"}
+              </Button>
+            )}
+          </ActionButtons>
 
           <PreviewModal
             open={previewMode && previewPayload}

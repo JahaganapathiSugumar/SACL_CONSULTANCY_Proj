@@ -187,6 +187,11 @@ function FoundrySampleCard() {
   const handleToolingFilesChange = (newFiles: File[]) => {
     setToolingFiles(prev => [...prev, ...newFiles]);
   };
+  const [patternDataSheetFiles, setPatternDataSheetFiles] = useState<File[]>([]);
+  const handlePatternDataSheetFilesChange = (newFiles: File[]) => {
+    setPatternDataSheetFiles(prev => [...prev, ...newFiles]);
+  };
+  const removePatternDataSheetFile = (index: number) => setPatternDataSheetFiles(prev => prev.filter((_, i) => i !== index));
   const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
 
   const [remarks, setRemarks] = useState("");
@@ -705,7 +710,7 @@ function FoundrySampleCard() {
                     "DISA / FOUNDRY-A",
                     "Reason For Sampling",
                     "Sample Traceability",
-                    "Upload",
+                    "Pattern Data Sheet",
                   ].map((head) => (
                     <TableCell
                       key={head}
@@ -788,7 +793,15 @@ function FoundrySampleCard() {
                       placeholder="Enter option"
                     />
                   </TableCell>
-
+                  <TableCell>
+                    <FileUploadSection
+                      files={patternDataSheetFiles}
+                      onFilesChange={handlePatternDataSheetFilesChange}
+                      onFileRemove={removePatternDataSheetFile}
+                      showAlert={showAlert}
+                      label="Attach Pattern Data Sheet"
+                    />
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>

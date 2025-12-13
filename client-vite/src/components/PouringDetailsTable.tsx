@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from 'react-router-dom';
 import {
     Paper,
@@ -30,6 +30,7 @@ import {
 
 import FactoryIcon from '@mui/icons-material/Factory';
 import SaveIcon from '@mui/icons-material/Save';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -42,7 +43,7 @@ import { inspectionService } from '../services/inspectionService';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { FileUploadSection, PreviewModal, SpecInput, FormSection } from './common';
+import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, Common } from './common';
 
 
 
@@ -228,6 +229,8 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     const [submitted, setSubmitted] = useState(false);
     const [userIP, setUserIP] = useState<string>("");
     const { alert, showAlert } = useAlert();
+    const [progressData, setProgressData] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
 
     useEffect(() => {
         let mounted = true;
@@ -235,7 +238,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
             try {
                 const uname = user?.username ?? "";
                 const res = await getProgress(uname);
-                if (mounted) setAssigned(res.length > 0);
+                if (mounted) {
+                    setAssigned(res.length > 0);
+                    if (res.length > 0) setProgressData(res[0]);
+                }
             } catch {
                 if (mounted) setAssigned(false);
             }
@@ -243,6 +249,53 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         if (user) check();
         return () => { mounted = false; };
     }, [user]);
+
+    // Fetch Logic for HOD
+    useEffect(() => {
+        const fetchData = async () => {
+            if (user?.role === 'HOD' && progressData?.trial_id) {
+                try {
+                    const response = await inspectionService.getPouringDetails(progressData.trial_id);
+                    if (response.success && response.data && response.data.length > 0) {
+                        const data = response.data[0];
+                        setPouringDate(data.pour_date || "");
+                        setHeatCode(data.heat_code || "");
+
+                        const comp = typeof data.composition === 'string' ? JSON.parse(data.composition) : data.composition || {};
+                        setChemState({
+                            c: comp.C || "",
+                            si: comp.Si || "",
+                            mn: comp.Mn || "",
+                            p: comp.P || "",
+                            s: comp.S || "",
+                            mg: comp.Mg || "",
+                            cr: comp.Cr || "",
+                            cu: comp.Cu || ""
+                        });
+
+                        setPouringTemp(String(data.pouring_temp_c || ""));
+                        setPouringTime(String(data.pouring_time_sec || ""));
+
+                        const inoc = typeof data.inoculation === 'string' ? JSON.parse(data.inoculation) : data.inoculation || {};
+                        setInoculationStream(inoc.Stream || "");
+                        setInoculationInmould(inoc.Inmould || "");
+
+                        const rem = typeof data.other_remarks === 'string' ? JSON.parse(data.other_remarks) : data.other_remarks || {};
+                        setFicHeatNo(rem["F/C & Heat No."] || "");
+                        setPpCode(rem["PP Code"] || "");
+                        setFollowedBy(rem["Followed by"] || "");
+                        // userName handled by state init or override? keeping existing or override if saved
+
+                        setRemarksText(data.remarks || "");
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch pouring data:", error);
+                    showAlert('error', 'Failed to load existing data.');
+                }
+            }
+        };
+        if (progressData) fetchData();
+    }, [user, progressData]);
 
     useEffect(() => {
         if (onPouringDetailsChange) {
@@ -298,6 +351,63 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         try {
             setLoading(true);
 
+            // HOD Approval Logic
+            if (user?.role === 'HOD' && progressData) {
+                try {
+                    // 1. Update Data if Edited
+                    if (isEditing) {
+                        const updatePayload = {
+                            trial_id: progressData.trial_id,
+                            pour_date: previewPayload.pouringDate,
+                            heat_code: previewPayload.heatCode,
+                            composition: {
+                                C: chemState.c,
+                                Si: chemState.si,
+                                Mn: chemState.mn,
+                                P: chemState.p,
+                                S: chemState.s,
+                                Mg: chemState.mg,
+                                Cu: chemState.cu,
+                                Cr: chemState.cr
+                            },
+                            pouring_temp_c: parseFloat(previewPayload.pouringTemp) || 0,
+                            pouring_time_sec: parseInt(previewPayload.pouringTime) || 0,
+                            inoculation: {
+                                Stream: inoculationStream,
+                                Inmould: inoculationInmould
+                            },
+                            other_remarks: {
+                                "F/C & Heat No.": ficHeatNo,
+                                "PP Code": ppCode,
+                                "Followed by": followedBy,
+                                "Username": userName
+                            },
+                            remarks: previewPayload.remarksText
+                        };
+
+                        await inspectionService.updatePouringDetails(updatePayload);
+                    }
+
+                    // 2. Approve
+                    const approvalPayload = {
+                        progress_id: progressData.progress_id,
+                        next_department_id: progressData.department_id + 1,
+                        username: user.username,
+                        role: user.role,
+                        remarks: remarksText || "Approved by HOD"
+                    };
+
+                    await updateDepartment(approvalPayload);
+                    setSubmitted(true);
+                    showAlert('success', 'Department progress approved successfully.');
+                    setTimeout(() => navigate('/dashboard'), 1500);
+                } catch (err) {
+                    showAlert('error', 'Failed to approve. Please try again.');
+                    console.error(err);
+                }
+                return;
+            }
+
             const apiPayload = {
                 trial_id: 'sample',
                 pour_date: pouringDate,
@@ -331,7 +441,24 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
             const data = await inspectionService.submitPouringDetails(apiPayload);
             setSubmitted(true);
+            setSubmitted(true);
             showAlert('success', 'Pouring Details Registered Successfully');
+
+            if (progressData) {
+                try {
+                    await updateDepartmentRole({
+                        progress_id: progressData.progress_id,
+                        current_department_id: progressData.department_id,
+                        username: user?.username || "user",
+                        role: "user",
+                        remarks: remarksText || "Completed by user"
+                    });
+                } catch (roleError) {
+                    console.error("Failed to update role progress:", roleError);
+                }
+            }
+
+            navigate('/dashboard');
         } catch (error) {
             console.error("Error saving pouring details:", error);
             showAlert('error', 'Failed to save pouring details. Please try again.');
@@ -377,6 +504,8 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         )}
                     />
 
+                    <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
 
                     <AlertMessage alert={alert} />
 
@@ -415,6 +544,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     value={pouringDate}
                                                                     onChange={(e: any) => setPouringDate(e.target.value)}
                                                                     inputStyle={{ textAlign: 'left' }}
+                                                                    disabled={user?.role === 'HOD' && !isEditing}
                                                                 />
                                                             </Box>
                                                             <Box>
@@ -423,6 +553,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     placeholder="Code"
                                                                     value={heatCode}
                                                                     onChange={(e: any) => setHeatCode(e.target.value)}
+                                                                    disabled={user?.role === 'HOD' && !isEditing}
                                                                 />
                                                             </Box>
                                                         </Box>
@@ -438,6 +569,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                         <SpecInput
                                                                             value={(chemState as any)[el.toLowerCase()]}
                                                                             onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                            disabled={user?.role === 'HOD' && !isEditing}
                                                                         />
                                                                     </Box>
                                                                 </Grid>
@@ -451,6 +583,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                         <SpecInput
                                                                             value={(chemState as any)[el.toLowerCase()]}
                                                                             onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                            disabled={user?.role === 'HOD' && !isEditing}
                                                                         />
                                                                     </Box>
                                                                 </Grid>
@@ -469,6 +602,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     InputProps={{
                                                                         endAdornment: <InputAdornment position="end">°C</InputAdornment>,
                                                                     }}
+                                                                    disabled={user?.role === 'HOD' && !isEditing}
                                                                 />
                                                             </Box>
                                                             <Divider sx={{ borderStyle: 'dashed' }} />
@@ -483,6 +617,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                                 placeholder="gms"
                                                                                 value={inoculationStream}
                                                                                 onChange={(e: any) => setInoculationStream(e.target.value)}
+                                                                                disabled={user?.role === 'HOD' && !isEditing}
                                                                             />
                                                                         </Box>
                                                                     </Grid>
@@ -494,6 +629,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                                 placeholder="gms"
                                                                                 value={inoculationInmould}
                                                                                 onChange={(e: any) => setInoculationInmould(e.target.value)}
+                                                                                disabled={user?.role === 'HOD' && !isEditing}
                                                                             />
                                                                         </Box>
                                                                     </Grid>
@@ -508,6 +644,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                             placeholder="Sec"
                                                             value={pouringTime}
                                                             onChange={(e: any) => setPouringTime(e.target.value)}
+                                                            disabled={user?.role === 'HOD' && !isEditing}
                                                         />
                                                     </TableCell>
 
@@ -517,19 +654,19 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                             <Grid size={{ xs: 12 }}>
                                                                 <Box display="flex" alignItems="center" gap={1}>
                                                                     <Typography variant="caption" noWrap minWidth={90}>F/C & Heat No:</Typography>
-                                                                    <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} />
+                                                                    <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
                                                                 </Box>
                                                             </Grid>
                                                             <Grid size={{ xs: 12 }}>
                                                                 <Box display="flex" alignItems="center" gap={1}>
                                                                     <Typography variant="caption" noWrap minWidth={90}>PP Code :</Typography>
-                                                                    <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} />
+                                                                    <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
                                                                 </Box>
                                                             </Grid>
                                                             <Grid size={{ xs: 12 }}>
                                                                 <Box display="flex" alignItems="center" gap={1}>
                                                                     <Typography variant="caption" noWrap minWidth={90}>Followed by :</Typography>
-                                                                    <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} />
+                                                                    <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
                                                                 </Box>
                                                             </Grid>
                                                             <Grid size={{ xs: 12 }}>
@@ -558,6 +695,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                         value={remarksText}
                                         onChange={(e) => setRemarksText(e.target.value)}
                                         sx={{ bgcolor: "white" }}
+                                        disabled={user?.role === 'HOD' && !isEditing}
                                     />
                                 </FormSection>
                             </Grid>
@@ -581,8 +719,23 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                             <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
                                 <Box display="flex" justifyContent="flex-end" gap={2}>
-                                    <Button variant="outlined" color="inherit" onClick={() => window.location.reload()}>Reset Form</Button>
-                                    <Button variant="contained" color="secondary" onClick={handleSaveAndContinue} startIcon={<SaveIcon />}>Save & Continue</Button>
+                                    <ActionButtons
+                                        onReset={() => window.location.reload()}
+                                        onSave={handleSaveAndContinue}
+                                        showSubmit={false}
+                                        saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                                        saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                                    >
+                                        {user?.role === 'HOD' && (
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => setIsEditing(!isEditing)}
+                                                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                            >
+                                                {isEditing ? "Cancel Edit" : "Edit Details"}
+                                            </Button>
+                                        )}
+                                    </ActionButtons>
                                 </Box>
                             </Grid>
                         </Grid>

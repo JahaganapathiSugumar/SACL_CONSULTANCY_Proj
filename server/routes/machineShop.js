@@ -23,6 +23,24 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     });
 }));
 
+router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, inspection_date, inspections, remarks } = req.body || {};
+    if (!trial_id || !inspection_date || !inspections || !remarks) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    const inspectionsJson = JSON.stringify(inspections);
+    const sql = 'UPDATE machine_shop SET inspection_date = ?, inspections = ?, remarks = ? WHERE trial_id = ?';
+    const [result] = await Client.query(sql, [inspection_date, inspectionsJson, remarks, trial_id]);
+    // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Machine shop updated', `Machine shop ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
+    const insertId = result.insertId;
+    res.status(201).json({
+        success: true,
+        message: "Machine shop updated successfully.",
+        id: insertId
+    });
+}));
+
 router.get('/', asyncErrorHandler(async (req, res, next) => {
     const [rows] = await Client.query('SELECT * FROM machine_shop');
     res.status(200).json({ success: true, data: rows });

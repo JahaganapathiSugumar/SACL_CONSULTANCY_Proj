@@ -3,6 +3,7 @@ const router = express.Router();
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 import Client from '../config/connection.js';
 import CustomError from '../utils/customError.js';
+import verifyToken from '../utils/verifyToken.js';
 
 router.post('/', asyncErrorHandler(async (req, res, next) => {
     const { trial_id, inspections, visual_ok, remarks } = req.body || {};
@@ -15,6 +16,23 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
     // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Visual inspection created', `Visual inspection ${trial_id} created by ${req.user.username}`]);
     res.status(201).json({ success: true, message: 'Visual inspection created successfully.' });
+}));
+
+router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, inspections, visual_ok, remarks } = req.body || {};
+    if (!trial_id || !inspections || !visual_ok || !remarks) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    const inspectionsJson = JSON.stringify(inspections);
+    const sql = 'UPDATE visual_inspection SET inspections = ?, visual_ok = ?, remarks = ? WHERE trial_id = ?';
+    const [result] = await Client.query(sql, [inspectionsJson, visual_ok, remarks, trial_id]);
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Visual inspection updated', `Visual inspection ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
+    const insertId = result.insertId;
+    res.status(201).json({
+        success: true,
+        message: "Visual inspection updated successfully."
+    });
 }));
 
 router.get('/', asyncErrorHandler(async (req, res, next) => {

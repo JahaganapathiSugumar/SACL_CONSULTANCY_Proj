@@ -3,6 +3,7 @@ import { Box, Button, CircularProgress } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface ActionButtonsProps {
     onReset?: () => void;
@@ -16,6 +17,8 @@ interface ActionButtonsProps {
     showReset?: boolean;
     showSave?: boolean;
     showSubmit?: boolean;
+    saveIcon?: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -29,10 +32,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     resetLabel = "Reset Form",
     showReset = true,
     showSave = true,
-    showSubmit = true
+    showSubmit = true,
+    saveIcon = <SaveIcon />,
+    children
 }) => {
     return (
         <Box display="flex" gap={2} justifyContent="flex-end" flexWrap="wrap">
+            {children}
             {showReset && onReset && (
                 <Button
                     onClick={onReset}
@@ -47,12 +53,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {showSave && onSave && (
                 <Button
                     onClick={onSave}
-                    startIcon={<SaveIcon />}
+                    startIcon={saveIcon}
                     variant="contained"
                     color="secondary"
                     disabled={disabled || loading}
                 >
-                    {saveLabel}
+                    {loading ? (
+                        <>
+                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                            Processing...
+                        </>
+                    ) : (
+                        saveLabel
+                    )}
                 </Button>
             )}
 

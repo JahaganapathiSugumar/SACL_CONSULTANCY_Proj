@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import {
     Paper,
     Typography,
@@ -39,6 +39,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
@@ -51,7 +52,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common } from './common';
 
 type Row = InspectionRow;
 type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
@@ -95,6 +96,8 @@ export default function VisualInspection({
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [userIP, setUserIP] = useState<string>("Loading...");
+    const [progressData, setProgressData] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
 
     useEffect(() => {
         let mounted = true;
@@ -102,7 +105,10 @@ export default function VisualInspection({
             try {
                 const uname = user?.username ?? "";
                 const res = await getProgress(uname);
-                if (mounted) setAssigned(res.length > 0);
+                if (mounted) {
+                    setAssigned(res.length > 0);
+                    if (res.length > 0) setProgressData(res[0]);
+                }
             } catch {
                 if (mounted) setAssigned(false);
             }
@@ -110,6 +116,43 @@ export default function VisualInspection({
         if (user) check();
         return () => { mounted = false; };
     }, [user]);
+
+    // Fetch and Populate Data for HOD
+    useEffect(() => {
+        const fetchData = async () => {
+            if (user?.role === 'HOD' && progressData?.trial_id) {
+                try {
+                    const response = await inspectionService.getVisualInspection(progressData.trial_id);
+                    if (response.success && response.data && response.data.length > 0) {
+                        const data = response.data[0];
+
+                        // Restore Columns and Rows from stored JSON
+                        if (data.inspections && Array.isArray(data.inspections)) {
+                            const loadedCols = data.inspections.map((item: any) => item['Cavity number'] || '');
+
+                            setCols(loadedCols);
+                            setRows(prevRows => prevRows.map(row => ({
+                                ...row,
+                                values: data.inspections.map((item: any) => String(item[row.label] || ''))
+                            })));
+                        }
+
+                        // Restore Meta
+                        setGroupMeta({
+                            ok: data.visual_ok,
+                            remarks: data.remarks || "",
+                            attachment: null // Files not currently fetched
+                        });
+                        setTrialId(data.trial_id || "");
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch visual inspection:", error);
+                    showAlert('error', 'Failed to load existing data.');
+                }
+            }
+        };
+        if (progressData) fetchData();
+    }, [user, progressData]);
 
     const calculateRejectionPercentage = (colIndex: number): string => {
         const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
@@ -138,7 +181,7 @@ export default function VisualInspection({
     }, []);
 
     if (assigned === null) return <LoadingState />;
-    if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
+    if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
 
     const addColumn = () => {
         setCols((c) => [...c, ""]);
@@ -252,6 +295,72 @@ export default function VisualInspection({
         if (!previewPayload) return;
         setSaving(true);
         setMessage(null);
+
+        // HOD Approval Logic
+        // HOD Approval Logic
+        if (user?.role === 'HOD' && progressData) {
+            try {
+                // 1. Update Data if Edited
+                if (isEditing) {
+                    const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
+                    const cavityRow = findRow('cavity number');
+                    const inspectedRow = findRow('inspected quantity');
+                    const acceptedRow = findRow('accepted quantity');
+                    const rejectedRow = findRow('rejected quantity');
+                    const reasonRow = findRow('reason for rejection');
+
+                    const inspections = cols.map((col, idx) => {
+                        const inspected = inspectedRow?.values?.[idx] ?? null;
+                        const accepted = acceptedRow?.values?.[idx] ?? null;
+                        const rejected = rejectedRow?.values?.[idx] ?? null;
+                        const rejectionPercentage = (() => {
+                            const ins = parseFloat(String(inspected ?? '0'));
+                            const rej = parseFloat(String(rejected ?? '0'));
+                            if (isNaN(ins) || isNaN(rej) || ins === 0) return null;
+                            return ((rej / ins) * 100).toFixed(2);
+                        })();
+
+                        return {
+                            'Cavity number': cavityRow?.values?.[idx] ?? col ?? null,
+                            'Inspected Quantity': inspected ?? null,
+                            'Accepted Quantity': accepted ?? null,
+                            'Rejected Quantity': rejected ?? null,
+                            'Rejection Percentage': rejectionPercentage ?? null,
+                            'Reason for rejection': reasonRow?.values?.[idx] ?? null,
+                        };
+                    });
+
+                    const updatePayload = {
+                        trial_id: progressData.trial_id,
+                        inspections,
+                        visual_ok: groupMeta.ok, // Use groupMeta directly as previewPayload might be stale
+                        remarks: groupMeta.remarks || null,
+                    };
+                    await inspectionService.updateVisualInspection(updatePayload);
+                }
+
+                // 2. Approve
+                const approvalPayload = {
+                    progress_id: progressData.progress_id,
+                    next_department_id: progressData.department_id + 1,
+                    username: user.username,
+                    role: user.role,
+                    remarks: groupMeta.remarks || "Approved by HOD"
+                };
+
+                await updateDepartment(approvalPayload);
+                setSubmitted(true);
+                showAlert('success', 'Department progress approved successfully.');
+                setTimeout(() => navigate('/dashboard'), 1500);
+            } catch (err) {
+                console.error(err);
+                showAlert('error', 'Failed to approve. Please try again.');
+            } finally {
+                setSaving(false);
+            }
+            return;
+        }
+
         try {
             const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
             const cavityRow = findRow('cavity number');
@@ -310,6 +419,22 @@ export default function VisualInspection({
                     console.error("File upload error:", uploadError);
                 }
             }
+
+            if (progressData) {
+                try {
+                    await updateDepartmentRole({
+                        progress_id: progressData.progress_id,
+                        current_department_id: progressData.department_id,
+                        username: user?.username || "user",
+                        role: "user",
+                        remarks: previewPayload.additionalRemarks || previewPayload.group?.remarks || "Completed by user"
+                    });
+                } catch (roleError) {
+                    console.error("Failed to update role progress:", roleError);
+                }
+            }
+
+            navigate('/dashboard');
         } catch (err: any) {
             showAlert('error', err?.message || 'Failed to save visual inspection. Please try again.');
         } finally {
@@ -340,6 +465,8 @@ export default function VisualInspection({
 
                     <DepartmentHeader title="VISUAL INSPECTION" userIP={userIP} user={user} />
 
+                    <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
                     <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -351,7 +478,14 @@ export default function VisualInspection({
                         <Grid container spacing={2} sx={{ mb: 2 }}>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Trial ID</Typography>
-                                <TextField size="small" value={trialId} onChange={(e) => setTrialId(e.target.value)} fullWidth sx={{ bgcolor: 'white' }} />
+                                <TextField
+                                    size="small"
+                                    value={trialId}
+                                    onChange={(e) => setTrialId(e.target.value)}
+                                    fullWidth
+                                    sx={{ bgcolor: 'white' }}
+                                    disabled={user?.role === 'HOD'} // Always disabled for HOD (should match fetched ID)
+                                />
                             </Grid>
                         </Grid>
 
@@ -372,11 +506,13 @@ export default function VisualInspection({
                                                         InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                         size="small"
                                                         sx={{ input: { textAlign: 'center' } }}
+                                                        disabled={user?.role === 'HOD' && !isEditing}
                                                     />
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => removeColumn(ci)}
                                                         sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}
+                                                        disabled={user?.role === 'HOD' && !isEditing}
                                                     >
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
@@ -413,7 +549,7 @@ export default function VisualInspection({
                                                             onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                                             variant="outlined"
                                                             InputProps={{
-                                                                readOnly: isRejectionPercentage,
+                                                                readOnly: isRejectionPercentage || (user?.role === 'HOD' && !isEditing),
                                                             }}
                                                             sx={{
                                                                 "& .MuiInputBase-input": {
@@ -543,6 +679,7 @@ export default function VisualInspection({
                             onClick={addColumn}
                             startIcon={<AddCircleIcon />}
                             sx={{ mt: 1, color: COLORS.secondary }}
+                            disabled={user?.role === 'HOD' && !isEditing}
                         >
                             Add Column
                         </Button>
@@ -565,7 +702,19 @@ export default function VisualInspection({
                             onSave={handleSaveAndContinue}
                             loading={saving}
                             showSubmit={false}
-                        />
+                            saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                            saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                        >
+                            {user?.role === 'HOD' && (
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                >
+                                    {isEditing ? "Cancel Edit" : "Edit Details"}
+                                </Button>
+                            )}
+                        </ActionButtons>
 
                     </Paper>
 

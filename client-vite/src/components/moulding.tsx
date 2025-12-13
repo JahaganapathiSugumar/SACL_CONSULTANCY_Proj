@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -46,7 +46,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, SpecInput, PreviewModal } from './common';
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, Common } from './common';
 
 function MouldingTable() {
   const { user } = useAuth();
@@ -70,6 +70,8 @@ function MouldingTable() {
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [userIP, setUserIP] = useState<string>("");
+  const [progressData, setProgressData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false); // New state for HOD edit mode
 
   useEffect(() => {
     let mounted = true;
@@ -77,7 +79,10 @@ function MouldingTable() {
       try {
         const uname = user?.username ?? "";
         const res = await getProgress(uname);
-        if (mounted) setAssigned(res.length > 0);
+        if (mounted) {
+          setAssigned(res.length > 0);
+          if (res.length > 0) setProgressData(res[0]);
+        }
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -85,6 +90,31 @@ function MouldingTable() {
     if (user) check();
     return () => { mounted = false; };
   }, [user]);
+
+  // Fetch data for HOD if progressData exists
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.role === 'HOD' && progressData?.trial_id) {
+        try {
+          const response = await inspectionService.getMouldingCorrection(progressData.trial_id);
+          if (response.success && response.data && response.data.length > 0) {
+            const data = response.data[0];
+            setMouldState({
+              thickness: String(data.mould_thickness || ""),
+              compressability: String(data.compressability || ""),
+              pressure: String(data.squeeze_pressure || ""),
+              hardness: String(data.mould_hardness || ""),
+              remarks: data.remarks || ""
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch moulding data:", error);
+          showAlert('error', 'Failed to load existing data.');
+        }
+      }
+    };
+    if (progressData) fetchData();
+  }, [user, progressData]);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -95,7 +125,7 @@ function MouldingTable() {
   }, []);
 
   if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
+  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
   const handleChange = (field: string, value: string) => {
     setMouldState(prev => ({ ...prev, [field]: value }));
   };
@@ -168,6 +198,43 @@ function MouldingTable() {
   };
 
   const handleFinalSave = async () => {
+    // Check if user is HOD
+    if (user?.role === 'HOD' && progressData) {
+      try {
+        // HOD Approval flow
+        // 1. Update data first (if edited)
+        if (isEditing) {
+          const payload = {
+            mould_thickness: mouldState.thickness,
+            compressability: mouldState.compressability,
+            squeeze_pressure: mouldState.pressure,
+            mould_hardness: mouldState.hardness,
+            remarks: mouldState.remarks,
+            trial_id: progressData.trial_id
+          };
+          await inspectionService.updateMouldingCorrection(payload);
+        }
+
+        // 2. Approve - update department progress
+        const approvalPayload = {
+          progress_id: progressData.progress_id,
+          next_department_id: progressData.department_id + 1, // Move to next department
+          username: user.username,
+          role: user.role,
+          remarks: mouldState.remarks || "Approved by HOD"
+        };
+
+        await updateDepartment(approvalPayload);
+        showAlert('success', 'Department progress approved successfully.');
+        setSubmitted(true);
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } catch (err) {
+        showAlert('error', 'Failed to approve. Please try again.');
+        console.error("Approval error:", err);
+      }
+      return;
+    }
+
     const payload = {
       mould_thickness: mouldState.thickness,
       compressability: mouldState.compressability,
@@ -178,14 +245,13 @@ function MouldingTable() {
 
     const result = await postMouldCorrection(payload);
     if (!result.ok) {
-      // alert(result.message || 'Failed to submit mould correction'); // Removed as per instruction
+      showAlert('error', 'Failed to submit mould correction');
     } else {
       showAlert('success', 'Moulding details created successfully.');
       setSubmitted(true);
 
       if (attachedFiles.length > 0) {
         try {
-          // Upload attached files after successful form submission
           // const uploadResults = await uploadFiles(
           //   attachedFiles,
           //   trialId,
@@ -203,6 +269,22 @@ function MouldingTable() {
           // Non-blocking: form submission already succeeded
         }
       }
+
+      if (progressData) {
+        try {
+          await updateDepartmentRole({
+            progress_id: progressData.progress_id,
+            current_department_id: progressData.department_id,
+            username: user?.username || "user",
+            role: "user",
+            remarks: mouldState.remarks || "Completed by user"
+          });
+        } catch (roleError) {
+          console.error("Failed to update role progress:", roleError);
+        }
+      }
+
+      navigate('/dashboard');
     }
   };
 
@@ -223,6 +305,9 @@ function MouldingTable() {
 
           <SaclHeader />
           <DepartmentHeader title="MOULDING DETAILS" userIP={userIP} user={user} />
+
+          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
 
           <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
             {/* Initial table headers removed since not used in current implementation */}
@@ -255,11 +340,11 @@ function MouldingTable() {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
                     <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} />
+                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
                     </TableCell>
 
                     <TableCell>
@@ -267,6 +352,7 @@ function MouldingTable() {
                         value={mouldState.remarks}
                         onChange={(e: any) => handleChange('remarks', e.target.value)}
                         placeholder="--"
+                        disabled={user?.role === 'HOD' && !isEditing}
                       />
                     </TableCell>
                   </TableRow>
@@ -325,7 +411,19 @@ function MouldingTable() {
               onReset={handleReset}
               onSave={handleSaveAndContinue}
               showSubmit={false}
-            />
+              saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+              saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+            >
+              {user?.role === 'HOD' && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
+                >
+                  {isEditing ? "Cancel Edit" : "Edit Details"}
+                </Button>
+              )}
+            </ActionButtons>
 
           </Paper>
 

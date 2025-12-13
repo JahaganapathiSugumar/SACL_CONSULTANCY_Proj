@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -44,7 +44,7 @@ import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, validateFileSizes } from '../utils';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal } from './common';
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, Common } from './common';
 
 
 
@@ -91,6 +91,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   const { alert, showAlert } = useAlert();
   const [userIP, setUserIP] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [progressData, setProgressData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false); // New state for HOD edit mode
 
   useEffect(() => {
     let mounted = true;
@@ -98,7 +100,10 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       try {
         const uname = user?.username ?? "";
         const res = await getProgress(uname);
-        if (mounted) setAssigned(res.length > 0);
+        if (mounted) {
+          setAssigned(res.length > 0);
+          if (res.length > 0) setProgressData(res[0]);
+        }
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -106,6 +111,38 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     if (user) check();
     return () => { mounted = false; };
   }, [user]);
+
+  // Fetch data for HOD if progressData exists
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.role === 'HOD' && progressData?.trial_id) {
+        try {
+          const response = await inspectionService.getSandProperties(progressData.trial_id);
+          if (response.success && response.data && response.data.length > 0) {
+            const data = response.data[0];
+            setSandDate(data.date ? new Date(data.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+            setSandProps({
+              tClay: String(data.t_clay || ""),
+              aClay: String(data.a_clay || ""),
+              vcm: String(data.vcm || ""),
+              loi: String(data.loi || ""),
+              afs: String(data.afs || ""),
+              gcs: String(data.gcs || ""),
+              moi: String(data.moi || ""),
+              compactability: String(data.compactability || ""),
+              perm: String(data.permeability || ""),
+              remarks: data.remarks || ""
+            });
+            // Note: Attached files fetching logic would be needed here if backend supports it
+          }
+        } catch (error) {
+          console.error("Failed to fetch sand data:", error);
+          showAlert('error', 'Failed to load existing data.');
+        }
+      }
+    };
+    if (progressData) fetchData();
+  }, [user, progressData]);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -117,7 +154,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
   // Early exits now occur after all hooks have been registered
   if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
+  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
 
   const handleChange = (field: string, value: string) => {
     setSandProps(prev => ({ ...prev, [field]: value }));
@@ -152,48 +189,104 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     try {
       const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
 
-      const payload = {
-        trial_id: trialId,
-        date: sandDate,
-        t_clay: Number((sandProps as any).tClay) || 0,
-        a_clay: Number((sandProps as any).aClay) || 0,
-        vcm: Number((sandProps as any).vcm) || 0,
-        loi: Number((sandProps as any).loi) || 0,
-        afs: Number((sandProps as any).afs) || 0,
-        gcs: Number((sandProps as any).gcs) || 0,
-        moi: Number((sandProps as any).moi) || 0,
-        compactability: Number((sandProps as any).compactability) || 0,
-        permeability: Number((sandProps as any).perm) || 0,
-        remarks: (sandProps as any).remarks || ""
-      };
+      // Check if user is HOD
+      // Check if user is HOD
+      if (user?.role === 'HOD' && progressData) {
+        // HOD Approval flow
+        // 1. Update data first (if edited)
+        const payload = {
+          trial_id: progressData.trial_id, // Use trial_id from progressData
+          date: sandDate,
+          t_clay: Number((sandProps as any).tClay) || 0,
+          a_clay: Number((sandProps as any).aClay) || 0,
+          vcm: Number((sandProps as any).vcm) || 0,
+          loi: Number((sandProps as any).loi) || 0,
+          afs: Number((sandProps as any).afs) || 0,
+          gcs: Number((sandProps as any).gcs) || 0,
+          moi: Number((sandProps as any).moi) || 0,
+          compactability: Number((sandProps as any).compactability) || 0,
+          permeability: Number((sandProps as any).perm) || 0,
+          remarks: (sandProps as any).remarks || ""
+        };
 
-      await inspectionService.submitSandProperties(payload);
-      setSubmitted(true);
-      showAlert('success', 'Sand properties created successfully.');
-
-      // Upload attached files after successful form submission
-      if (attachedFiles.length > 0) {
-        try {
-          // const uploadResults = await uploadFiles(
-          //   attachedFiles,
-          //   trialId,
-          //   "SAND_PROPERTIES",
-          //   user?.username || "system",
-          //   additionalRemarks || ""
-          // );
-
-          // const failures = uploadResults.filter(r => !r.success);
-          // if (failures.length > 0) {
-          //   console.error("Some files failed to upload:", failures);
-          // }
-          navigate('/dashboard');
-        } catch (uploadError) {
-          console.error("File upload error:", uploadError);
-          // Non-blocking: form submission already succeeded
+        if (isEditing) {
+          await inspectionService.updateSandProperties(payload);
         }
+
+        // 2. Approve
+        const approvalPayload = {
+          progress_id: progressData.progress_id,
+          next_department_id: progressData.department_id + 1, // Move to next department
+          username: user.username,
+          role: user.role,
+          remarks: additionalRemarks || sandProps.remarks || "Approved by HOD"
+        };
+
+        await updateDepartment(approvalPayload);
+        setSubmitted(true);
+        showAlert('success', 'Department progress approved successfully.');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        // Regular user flow - submit inspection data
+        const payload = {
+          trial_id: trialId,
+          date: sandDate,
+          t_clay: Number((sandProps as any).tClay) || 0,
+          a_clay: Number((sandProps as any).aClay) || 0,
+          vcm: Number((sandProps as any).vcm) || 0,
+          loi: Number((sandProps as any).loi) || 0,
+          afs: Number((sandProps as any).afs) || 0,
+          gcs: Number((sandProps as any).gcs) || 0,
+          moi: Number((sandProps as any).moi) || 0,
+          compactability: Number((sandProps as any).compactability) || 0,
+          permeability: Number((sandProps as any).perm) || 0,
+          remarks: (sandProps as any).remarks || ""
+        };
+
+        await inspectionService.submitSandProperties(payload);
+        setSubmitted(true);
+        showAlert('success', 'Sand properties created successfully.');
+
+        // Upload attached files after successful form submission
+        if (attachedFiles.length > 0) {
+          try {
+            // const uploadResults = await uploadFiles(
+            //   attachedFiles,
+            //   trialId,
+            //   "SAND_PROPERTIES",
+            //   user?.username || "system",
+            //   additionalRemarks || ""
+            // );
+
+            // const failures = uploadResults.filter(r => !r.success);
+            // if (failures.length > 0) {
+            //   console.error("Some files failed to upload:", failures);
+            // }
+          } catch (uploadError) {
+            console.error("File upload error:", uploadError);
+            // Non-blocking: form submission already succeeded
+          }
+        }
+
+        if (progressData) {
+          try {
+            await updateDepartmentRole({
+              progress_id: progressData.progress_id,
+              current_department_id: progressData.department_id,
+              username: user?.username || "user",
+              role: "user",
+              remarks: sandProps.remarks || "Completed by user"
+            });
+          } catch (roleError) {
+            console.error("Failed to update role progress:", roleError);
+            // Optional: show a separate alert or just log it, as main submission succeeded
+          }
+        }
+
+        navigate('/dashboard');
       }
     } catch (err) {
-      showAlert('error', 'Failed to save sand properties. Please try again.');
+      showAlert('error', user?.role === 'HOD' ? 'Failed to approve. Please try again.' : 'Failed to save sand properties. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -220,6 +313,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           {/* Header Bar */}
 
           <DepartmentHeader title="SAND PROPERTIES" userIP={userIP} user={user} />
+
+          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
 
           <AlertMessage alert={alert} />
@@ -300,6 +395,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                         <SpecInput
                           value={(sandProps as any)[key]}
                           onChange={(e: any) => handleChange(key, e.target.value)}
+                          disabled={user?.role === 'HOD' && !isEditing}
                         />
                       </TableCell>
                     ))}
@@ -312,6 +408,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                         placeholder="Enter remarks..."
                         value={sandProps.remarks}
                         onChange={(e) => handleChange("remarks", e.target.value)}
+                        disabled={user?.role === 'HOD' && !isEditing}
                         sx={{ bgcolor: '#fff' }}
                       />
                     </TableCell>
@@ -370,18 +467,29 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               >
                 Reset Form
               </Button>
+
+              {user?.role === 'HOD' && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                >
+                  {isEditing ? "Cancel Edit" : "Edit Details"}
+                </Button>
+              )}
+
               <Button
                 variant="contained"
                 onClick={handleSaveAndContinue}
                 fullWidth={isMobile}
-                startIcon={<SaveIcon />}
+                startIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
                 sx={{
                   bgcolor: COLORS.secondary,
                   color: 'white',
                   '&:hover': { bgcolor: '#c2410c' }
                 }}
               >
-                Save & Continue
+                {user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
               </Button>
             </Box>
 

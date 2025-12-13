@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import type { Dispatch, SetStateAction } from "react";
 import {
   Paper,
@@ -43,6 +43,8 @@ import PrintIcon from '@mui/icons-material/Print';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { inspectionService } from '../services/inspectionService';
 import { uploadFiles } from '../services/fileUploadHelper';
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
@@ -50,7 +52,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import SaclHeader from "./common/SaclHeader";
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, PreviewModal } from './common';
+import { LoadingState, EmptyState, ActionButtons, PreviewModal, Common } from './common';
 
 interface Row {
   id: string;
@@ -94,11 +96,19 @@ function SectionTable({
   onValidationError?: (message: string) => void;
   showAlert?: (severity: 'success' | 'error', message: string) => void;
 }) {
-  const [cols, setCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
-  const [cavityNumbers, setCavityNumbers] = useState<string[]>(['']);
+  const [cols, setCols] = useState<MicroCol[]>(() => {
+    // Initialize columns based on max values length
+    const maxLen = Math.max(...rows.map(r => (r.value ? r.value.split('|').length : 1)), 1);
+    return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' })); // Labels lost in string storage
+  });
+
+  const [cavityNumbers, setCavityNumbers] = useState<string[]>(() => Array(cols.length).fill('')); // Cavity nums not stored in row value string
+
   const [values, setValues] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {};
-    rows.forEach((r) => { init[r.id] = ['']; });
+    rows.forEach((r) => {
+      init[r.id] = r.value ? r.value.split('|').map(s => s.trim()) : Array(cols.length).fill('');
+    });
     return init;
   });
 
@@ -559,6 +569,8 @@ export default function MetallurgicalInspection() {
   const [loading, setLoading] = useState(false);
   const [userIP, setUserIP] = useState<string>("Loading...");
   const { alert, showAlert } = useAlert();
+  const [loadKey, setLoadKey] = useState(0); // Key to force re-render of tables on fetch
+  const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
   const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
   // Preview states
@@ -585,6 +597,7 @@ export default function MetallurgicalInspection() {
   const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cold Temp °C", "Room Temp °C"]));
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Surface", "Core"]));
   const [ndtRows, setNdtRows] = useState<Row[]>(initialRows(["Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
+  const [progressData, setProgressData] = useState<any>(null);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -601,7 +614,10 @@ export default function MetallurgicalInspection() {
       try {
         const uname = user?.username ?? "";
         const res = await getProgress(uname);
-        if (mounted) setAssigned(res.length > 0);
+        if (mounted) {
+          setAssigned(res.length > 0);
+          if (res.length > 0) setProgressData(res[0]);
+        }
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -610,8 +626,88 @@ export default function MetallurgicalInspection() {
     return () => { mounted = false; };
   }, [user]);
 
+  // Fetch Logic for HOD
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.role === 'HOD' && progressData?.trial_id) {
+        try {
+          const response = await inspectionService.getMetallurgicalInspection(progressData.trial_id);
+          if (response.success && response.data && response.data.length > 0) {
+            const data = response.data[0];
+            setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
+
+            // Helper to parsing rows
+            const parseRows = (jsonStr: string | object) => {
+              if (!jsonStr) return [];
+              const arr = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+              return Array.isArray(arr) ? arr : [];
+            };
+
+            // Restore Microstructure
+            if (data.micro_structure) {
+              const microData = parseRows(data.micro_structure);
+              if (microData.length > 0) {
+                const colsCount = Math.max(...microData.map((m: any) => m.values ? m.values.length : 0), 1);
+                setMicroCols(Array.from({ length: colsCount }, (_, i) => ({ id: `c${i + 1}`, label: '' })));
+
+                const newValues: any = {};
+                microData.forEach((row: any) => {
+                  newValues[row.label] = row.values || [];
+                  if (row.label === 'Cavity number' || row.label === 'Nodularity') { /* etc can set metas */ }
+                });
+                setMicroValues(prev => ({ ...prev, ...newValues }));
+
+                // Restore Group meta if available check specific rows or logic
+                // Since microstructure in DB is Row[] similar structure
+                const groupRow = microData.find((r: any) => r.label === 'Cavity number'); // Or any
+                if (groupRow) {
+                  setMicroMeta(prev => ({
+                    ...prev,
+                    'group': {
+                      ok: groupRow.ok,
+                      remarks: groupRow.remarks || "",
+                      attachment: null
+                    }
+                  }));
+                }
+              }
+            }
+
+            // Restore Section Tables (Mech, Impact, Hard, NDT)
+            // Note: SectionTable initializes from 'value' string. The DB stores Arrays.
+            // We need to map DB Row Objects back to UI Row Objects with 'value' string joined by '|'
+
+            const restoreSection = (source: any) => {
+              const arr = parseRows(source);
+              return arr.map((r: any) => ({
+                id: r.label + "-" + generateUid(), // Regenerate ID or use existing if stored?
+                label: r.label,
+                value: Array.isArray(r.values) ? r.values.join(' | ') : r.value, // Handle both formats if schema varied
+                ok: r.ok,
+                remarks: r.remarks,
+                total: r.total,
+                attachment: null
+              }));
+            }
+
+            if (data.mech_properties) setMechRows(restoreSection(data.mech_properties));
+            if (data.impact_strength) setImpactRows(restoreSection(data.impact_strength));
+            if (data.hardness) setHardRows(restoreSection(data.hardness));
+            if (data.ndt_inspection) setNdtRows(restoreSection(data.ndt_inspection));
+
+            setLoadKey(prev => prev + 1); // Force re-render of SectionTables
+          }
+        } catch (error) {
+          console.error("Failed to fetch metallurgical data:", error);
+          showAlert('error', 'Failed to load existing data.');
+        }
+      }
+    };
+    if (progressData) fetchData();
+  }, [user, progressData]);
+
   if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />; // Replaced NoPendingWorks
+  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
 
   const updateRow = (setRows: React.Dispatch<React.SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
@@ -690,11 +786,65 @@ export default function MetallurgicalInspection() {
 
   const handleFinalSave = async () => {
     if (!previewPayload) return;
+
+    // HOD Approval Logic
+    if (user?.role === 'HOD' && progressData) {
+      try {
+        // 1. Update Data if Edited
+        if (isEditing) {
+          const serverPayload = {
+            trial_id: progressData.trial_id,
+            inspection_date: previewPayload.inspection_date,
+            micro_structure: JSON.stringify(previewPayload.microRows),
+            mech_properties: JSON.stringify(previewPayload.mechRows),
+            impact_strength: JSON.stringify(previewPayload.impactRows),
+            hardness: JSON.stringify(previewPayload.hardRows),
+            ndt_inspection: JSON.stringify(previewPayload.ndtRows),
+            remarks: previewPayload.ndtRows?.[0]?.remarks || null
+          }
+          await inspectionService.updateMetallurgicalInspection(serverPayload);
+        }
+
+        // 2. Approve
+        const approvalPayload = {
+          progress_id: progressData.progress_id,
+          next_department_id: progressData.department_id + 1,
+          username: user.username,
+          role: user.role,
+          remarks: previewPayload.ndtRows?.[0]?.remarks || "Approved by HOD"
+        };
+        await updateDepartment(approvalPayload);
+        setPreviewSubmitted(true);
+        showAlert('success', 'Department progress approved successfully.');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } catch (err) {
+        showAlert('error', 'Failed to approve. Please try again.');
+        console.error(err);
+      }
+      return;
+    }
+
     try {
       setSending(true);
       await sendToServer(previewPayload);
       setPreviewSubmitted(true);
       showAlert('success', 'Metallurgical inspection created successfully.');
+
+      if (progressData) {
+        try {
+          await updateDepartmentRole({
+            progress_id: progressData.progress_id,
+            current_department_id: progressData.department_id,
+            username: user?.username || "user",
+            role: "user",
+            remarks: previewPayload.ndtRows?.[0]?.remarks || "Completed by user"
+          });
+        } catch (roleError) {
+          console.error("Failed to update role progress:", roleError);
+        }
+      }
+
+      navigate('/dashboard');
     } catch (err: any) {
       setMessage('Failed to submit inspection data');
     } finally {
@@ -871,6 +1021,8 @@ export default function MetallurgicalInspection() {
           <SaclHeader />
           <DepartmentHeader title="METALLURGICAL INSPECTION" userIP={userIP} user={user} />
 
+          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
             {/* Input Controls */}
@@ -909,31 +1061,65 @@ export default function MetallurgicalInspection() {
               showAlert={showAlert}
             />
 
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable title="MECHANICAL PROPERTIES" rows={mechRows} onChange={updateRow(setMechRows)} showAlert={showAlert} />
-                <SectionTable title="IMPACT STRENGTH" rows={impactRows} onChange={updateRow(setImpactRows)} showAlert={showAlert} />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable title="HARDNESS" rows={hardRows} onChange={updateRow(setHardRows)} showAlert={showAlert} />
-                <Box>
-                  <SectionTable title="NDT INSPECTION ANALYSIS" rows={ndtRows} onChange={updateRow(setNdtRows)} showTotal={true} onValidationError={setNdtValidationError} showAlert={showAlert} />
-                  {ndtValidationError && (
-                    <Alert severity="error" sx={{ mt: 2 }} onClose={() => setNdtValidationError(null)}>
-                      {ndtValidationError}
-                    </Alert>
-                  )}
-                </Box>
-              </Grid>
-            </Grid>
+            <SectionTable
+              key={`mech-${loadKey}`}
+              title="MECHANICAL PROPERTIES"
+              rows={mechRows}
+              onChange={updateRow(setMechRows)}
+              showAlert={showAlert}
+            />
+            <SectionTable
+              key={`impact-${loadKey}`}
+              title="IMPACT STRENGTH"
+              rows={impactRows}
+              onChange={updateRow(setImpactRows)}
+              showAlert={showAlert}
+            />
+            <SectionTable
+              key={`hard-${loadKey}`}
+              title="HARDNESS"
+              rows={hardRows}
+              onChange={updateRow(setHardRows)}
+              showAlert={showAlert}
+            />
+            <MicrostructureTable
+              params={MICRO_PARAMS}
+              cols={microCols}
+              values={microValues}
+              meta={microMeta}
+              setCols={setMicroCols}
+              setValues={setMicroValues}
+              setMeta={setMicroMeta}
+              showAlert={showAlert}
+            />
+            <SectionTable
+              key={`ndt-${loadKey}`}
+              title="NDT INSPECTION ANALYSIS"
+              rows={ndtRows}
+              onChange={updateRow(setNdtRows)}
+              showTotal={true}
+              onValidationError={setNdtValidationError}
+              showAlert={showAlert}
+            />
 
-            {/* Actions */}
             <ActionButtons
               onReset={() => window.location.reload()}
               onSave={handleSaveAndContinue}
-              loading={loading}
+              loading={sending}
               showSubmit={false}
-            />
+              saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+              saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+            >
+              {user?.role === 'HOD' && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                >
+                  {isEditing ? "Cancel Edit" : "Edit Details"}
+                </Button>
+              )}
+            </ActionButtons>
 
           </Paper>
 

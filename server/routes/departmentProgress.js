@@ -4,32 +4,33 @@ import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 import Client from '../config/connection.js';
 import CustomError from '../utils/customError.js';
 import transporter from '../utils/mailSender.js';
+import verifyToken from '../utils/verifyToken.js';
 
-router.post('/', asyncErrorHandler(async (req, res, next) => {
+router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { trial_id, department_id, completed_at, approval_status, remarks, username } = req.body;
     const [result] = await Client.query(
         `INSERT INTO department_progress (trial_id, department_id, completed_at, approval_status, remarks, username) VALUES (?, ?, ?, ?, ?, ?)`,
         [trial_id, department_id, completed_at, approval_status, remarks, username]
     );
-    const user = await Client.query(
-        `SELECT * FROM users WHERE username = ?`,
-        [username]
-    );
-    const mailOptions = {
-        to: user[0].email,
-        subject: 'Department Progress Added',
-        text: `Department progress ${result.insertId} added by ${username} with trial id ${trial_id} to department ${department_id}. Please check the progress by logging into the application.`
-    };
-    await transporter.sendMail(mailOptions);
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
-    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress added', `Department progress ${result.insertId} added by ${username} with trial id ${trial_id} to department ${department_id}`]);
+    // const user = await Client.query(
+    //     `SELECT * FROM users WHERE username = ?`,
+    //     [username]
+    // );
+    // const mailOptions = {
+    //     to: user[0].email,
+    //     subject: 'Department Progress Added',
+    //     text: `Department progress ${result.insertId} added by ${username} with trial id ${trial_id} to department ${department_id}. Please check the progress by logging into the application.`
+    // };
+    // await transporter.sendMail(mailOptions);
+    // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress added', `Department progress ${result.insertId} added by ${username} with trial id ${trial_id} to department ${department_id}`]);
     res.status(201).json({
         success: true,
         data: "Department progress added successfully"
     });
 }));
 
-router.put('/update-department', asyncErrorHandler(async (req, res, next) => {
+router.put('/update-department', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { progress_id, next_department_id, username, role, remarks } = req.body;
         const next_department_user = await Client.query(
             `SELECT * FROM users WHERE department_id = ? AND role = 'User' LIMIT 1`,
@@ -47,16 +48,16 @@ router.put('/update-department', asyncErrorHandler(async (req, res, next) => {
         );
         // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
         // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress updated', `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${next_department_id} for ${role}`]);
-        const user = await Client.query(
-            `SELECT * FROM users WHERE username = ?`,
-            [next_department_username]
-        );
-        const mailOptions = {
-            to: user[0].email,
-            subject: 'Department Progress Updated',
-            text: `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${next_department_id} for ${role}. Please check the progress by logging into the application.`
-        };
-        await transporter.sendMail(mailOptions);
+        // const user = await Client.query(
+        //     `SELECT * FROM users WHERE username = ?`,
+        //     [next_department_username]
+        // );
+        // const mailOptions = {
+        //     to: user[0].email,
+        //     subject: 'Department Progress Updated',
+        //     text: `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${next_department_id} for ${role}. Please check the progress by logging into the application.`
+        // };
+        // await transporter.sendMail(mailOptions);
         res.status(200).json({
             success: true,
             data: "Department progress updated successfully"
@@ -64,7 +65,7 @@ router.put('/update-department', asyncErrorHandler(async (req, res, next) => {
     }
 ));
 
-router.put('/update-role', asyncErrorHandler(async (req, res, next) => {
+router.put('/update-role', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { progress_id, current_department_id, username, role, remarks } = req.body;
     const current_department_hod = await Client.query(
         `SELECT * FROM users WHERE department_id = ? AND role = 'HOD' LIMIT 1`,
@@ -78,32 +79,32 @@ router.put('/update-role', asyncErrorHandler(async (req, res, next) => {
         `UPDATE department_progress SET username = ?, remarks = ? WHERE progress_id = ?`,
         [current_department_hod_username, remarks, progress_id]
     );
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
-    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress updated', `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${current_department_hod_username} for ${role}`]);
-    const user = await Client.query(
-        `SELECT * FROM users WHERE username = ?`,
-        [current_department_hod_username]
-    );
-    const mailOptions = {
-        to: user[0].email,
-        subject: 'Department Progress Updated',
-        text: `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${current_department_hod_username} for ${role}. Please check the progress by logging into the application.`
-    };
-    await transporter.sendMail(mailOptions);
+    // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress updated', `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${current_department_hod_username} for ${role}`]);
+    // const user = await Client.query(
+    //     `SELECT * FROM users WHERE username = ?`,
+    //     [current_department_hod_username]
+    // );
+    // const mailOptions = {
+    //     to: user[0].email,
+    //     subject: 'Department Progress Updated',
+    //     text: `Department progress ${progress_id} updated by ${req.user.username} with trial id ${trial_id} to department ${current_department_hod_username} for ${role}. Please check the progress by logging into the application.`
+    // };
+    // await transporter.sendMail(mailOptions);
     res.status(200).json({
         success: true,
         data: "Department progress updated successfully"
     });
 }));
 
-router.put('/approve', asyncErrorHandler(async (req, res, next) => {
+router.put('/approve', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { progress_id, remarks } = req.body;
     const [result] = await Client.query(
         `UPDATE department_progress SET approval_status = 'approved', remarks = ? WHERE progress_id = ?`,
         [remarks, progress_id]
     );
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
-    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress approved', `Department progress ${progress_id} approved by ${req.user.username} with trial id ${trial_id}`]);
+    // const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    // const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress approved', `Department progress ${progress_id} approved by ${req.user.username} with trial id ${trial_id}`]);
     res.status(200).json({
         success: true,
         data: "Department progress approved successfully"
@@ -127,7 +128,7 @@ export default router;
 
 // CREATE TABLE department_progress (
 //     progress_id SERIAL PRIMARY KEY,
-//     trial_id INT REFERENCES trial_cards(trial_id),
+//     trial_id VARCHAR(255) REFERENCES trial_cards(trial_id),
 //     department_id INT REFERENCES departments(department_id),
 //     username VARCHAR(50) REFERENCES users(username),
 //     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -139,7 +140,7 @@ export default router;
 // Method: POST
 // Sample data: 
 // {
-//     "trial_id": 1,
+//     "trial_id": "1",
 //     "department_id": 1,
 //     "username": "user1",
 //     "completed_at": "2022-01-01",
@@ -196,7 +197,7 @@ export default router;
 // Method: GET
 // Sample data: 
 // {
-//     "trial_id": 1
+//     "trial_id": "1"
 // }
 // Response: 
 // {
@@ -204,7 +205,7 @@ export default router;
 //     "data": [
 //         {
 //             "progress_id": 1,
-//             "trial_id": 1,
+//             "trial_id": "1",
 //             "department_id": 1,
 //             "username": "user1",
 //             "completed_at": "2022-01-01",
@@ -213,7 +214,7 @@ export default router;
 //         },
 //         {
 //             "progress_id": 2,
-//             "trial_id": 1,
+//             "trial_id": "1",
 //             "department_id": 2,
 //             "username": "user2",
 //             "completed_at": "2022-01-02",
@@ -222,3 +223,5 @@ export default router;
 //         }
 //     ]
 // }
+
+//ALTER TABLE department_progress MODIFY COLUMN trial_id VARCHAR(255);

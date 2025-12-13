@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -38,6 +38,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import CloseIcon from "@mui/icons-material/Close";
 import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaclHeader from "./common/SaclHeader";
 import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
@@ -49,7 +50,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common } from './common';
 
 type Row = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -97,6 +98,8 @@ export default function McShopInspection({
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
+  const [progressData, setProgressData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
 
   useEffect(() => {
     let mounted = true;
@@ -104,7 +107,10 @@ export default function McShopInspection({
       try {
         const uname = user?.username ?? "";
         const res = await getProgress(uname);
-        if (mounted) setAssigned(res.length > 0);
+        if (mounted) {
+          setAssigned(res.length > 0);
+          if (res.length > 0) setProgressData(res[0]);
+        }
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -123,9 +129,72 @@ export default function McShopInspection({
     fetchUserIP();
   }, []);
 
+  // Fetch Logic for HOD
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.role === 'HOD' && progressData?.trial_id) {
+        try {
+          const response = await inspectionService.getMachineShopInspection(progressData.trial_id);
+          if (response.success && response.data && response.data.length > 0) {
+            const data = response.data[0];
+            setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
+
+            // Reconstruct Table
+            if (data.inspections) {
+              const inspections = typeof data.inspections === 'string' ? JSON.parse(data.inspections) : data.inspections;
+              if (Array.isArray(inspections) && inspections.length > 0) {
+                // 1. Reconstruct Cavities
+                const newCavities = inspections.map((item: any) => item['Cavity Details'] || "");
+                setCavities(newCavities);
+
+                // 2. Reconstruct Rows
+                const getVals = (key: string) => inspections.map((item: any) => item[key] ?? "");
+
+                setRows(prevRows => {
+                  const newRows = [...prevRows]; // Assuming structure hasn't changed from initial
+                  // We need to map back to the correct IDs or indices. Since we reset structure, we can map by label or index.
+                  // Ideally we map by label.
+
+                  // Helper to update a row by label snippet
+                  const updateRowVals = (labelSnippet: string, values: any[]) => {
+                    const rIndex = newRows.findIndex(r => r.label.toLowerCase().includes(labelSnippet));
+                    if (rIndex !== -1) {
+                      newRows[rIndex] = {
+                        ...newRows[rIndex],
+                        values: values.map(String),
+                        // Recalculate total if needed
+                        total: labelSnippet === 'cavity details' ? null : values.reduce((acc, v) => acc + (parseFloat(String(v)) || 0), 0)
+                      };
+                    }
+                  };
+
+                  updateRowVals('cavity details', newCavities);
+                  updateRowVals('received', getVals('Received Quantity'));
+                  updateRowVals('inspected', getVals('Inspected Quantity'));
+                  updateRowVals('accepted', getVals('Accepted Quantity'));
+                  updateRowVals('rejected', getVals('Rejected Quantity'));
+                  updateRowVals('reason', getVals('Reason for rejection'));
+
+                  return newRows;
+                });
+              }
+            }
+
+            setGroupMeta(prev => ({ ...prev, remarks: data.remarks || "" }));
+            // Additional fields if mapped
+          }
+        } catch (error) {
+          console.error("Failed to fetch machine shop data:", error);
+          showAlert('error', 'Failed to load existing data.');
+        }
+      }
+    };
+    if (progressData) fetchData();
+  }, [user, progressData]);
+
   // ✅ NOW conditional returns (after all hooks)
   if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
+  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
 
   // ✅ Helper functions
   const addColumn = () => {
@@ -222,6 +291,64 @@ export default function McShopInspection({
   const handleFinalSave = async () => {
     if (!previewPayload) return;
     setSaving(true);
+
+    // HOD Approval Logic
+    if (user?.role === 'HOD' && progressData) {
+      try {
+        // 1. Update Data if Edited
+        if (isEditing) {
+          const trialIdParam = progressData.trial_id;
+          const payload = buildPayload();
+          const rowsByLabel = (labelSnippet: string) => rows.find(r => (r.label || '').toLowerCase().includes(labelSnippet));
+          const receivedRow = rowsByLabel('received');
+          const inspectedRow = rowsByLabel('inspected');
+          const acceptedRow = rowsByLabel('accepted');
+          const rejectedRow = rowsByLabel('rejected');
+          const reasonRow = rowsByLabel('reason');
+
+          const inspections: any[] = cavities.map((cav, idx) => {
+            return {
+              'Cavity Details': cav || (rows[0]?.values?.[idx] ?? ''),
+              'Received Quantity': receivedRow?.values?.[idx] ?? null,
+              'Inspected Quantity': inspectedRow?.values?.[idx] ?? null,
+              'Accepted Quantity': acceptedRow?.values?.[idx] ?? null,
+              'Rejected Quantity': rejectedRow?.values?.[idx] ?? null,
+              'Reason for rejection': reasonRow?.values?.[idx] ?? null,
+            };
+          });
+
+          const serverPayload = {
+            trial_id: trialIdParam,
+            inspection_date: payload.inspection_date,
+            inspections: JSON.stringify(inspections),
+            remarks: remarks || groupMeta.remarks || null,
+          };
+
+          await inspectionService.updateMachineShopInspection(serverPayload);
+        }
+
+        // 2. Approve
+        const approvalPayload = {
+          progress_id: progressData.progress_id,
+          next_department_id: progressData.department_id + 1,
+          username: user.username,
+          role: user.role,
+          remarks: remarks || groupMeta.remarks || "Approved by HOD"
+        };
+
+        await updateDepartment(approvalPayload);
+        setPreviewSubmitted(true);
+        showAlert('success', 'Department progress approved successfully.');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } catch (err) {
+        showAlert('error', 'Failed to approve. Please try again.');
+        console.error(err);
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     try {
       const trialIdParam = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
 
@@ -269,6 +396,22 @@ export default function McShopInspection({
           console.error("File upload error:", uploadError);
         }
       }
+
+      if (progressData) {
+        try {
+          await updateDepartmentRole({
+            progress_id: progressData.progress_id,
+            current_department_id: progressData.department_id,
+            username: user?.username || "user",
+            role: "user",
+            remarks: remarks || groupMeta.remarks || "Completed by user"
+          });
+        } catch (roleError) {
+          console.error("Failed to update role progress:", roleError);
+        }
+      }
+
+      navigate('/dashboard');
     } catch (err: any) {
       console.error("Error saving machine shop inspection:", err);
       showAlert('error', 'Failed to save machine shop inspection. Please try again.');
@@ -300,6 +443,8 @@ export default function McShopInspection({
 
           <DepartmentHeader title="MACHINE SHOP INSPECTION" userIP={userIP} user={user} />
 
+          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
             <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -320,15 +465,16 @@ export default function McShopInspection({
                   onChange={(e) => setDate(e.target.value)}
                   fullWidth
                   sx={{ bgcolor: 'white' }}
+                  disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Trial ID</Typography>
-                <TextField size="small" value={trialId} onChange={(e) => setTrialId(e.target.value)} fullWidth sx={{ bgcolor: 'white' }} />
+                <TextField size="small" value={trialId} onChange={(e) => setTrialId(e.target.value)} fullWidth sx={{ bgcolor: 'white' }} disabled={user?.role === 'HOD' && !isEditing} />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Remarks</Typography>
-                <TextField size="small" value={remarks} onChange={(e) => setRemarks(e.target.value)} fullWidth multiline rows={2} sx={{ bgcolor: 'white' }} />
+                <TextField size="small" value={remarks} onChange={(e) => setRemarks(e.target.value)} fullWidth multiline rows={2} sx={{ bgcolor: 'white' }} disabled={user?.role === 'HOD' && !isEditing} />
               </Grid>
             </Grid>
 
@@ -347,8 +493,9 @@ export default function McShopInspection({
                             InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                             size="small"
                             sx={{ input: { textAlign: 'center' } }}
+                            disabled={user?.role === 'HOD' && !isEditing}
                           />
-                          <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}>
+                          <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing} >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -391,6 +538,7 @@ export default function McShopInspection({
                                   onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                   variant="outlined"
                                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
+                                  disabled={user?.role === 'HOD' && !isEditing}
                                 />
                               </TableCell>
                             ))}
@@ -413,6 +561,7 @@ export default function McShopInspection({
                                 onChange={(e) => setGroupMeta((g) => ({ ...g, remarks: e.target.value }))}
                                 variant="outlined"
                                 sx={{ bgcolor: 'white' }}
+                                disabled={user?.role === 'HOD' && !isEditing}
                               />
 
                               <Box display="flex" alignItems="center" gap={1} mt="auto">
@@ -476,6 +625,7 @@ export default function McShopInspection({
               onClick={addColumn}
               startIcon={<AddCircleIcon />}
               sx={{ mt: 1, color: COLORS.secondary }}
+              disabled={user?.role === 'HOD' && !isEditing}
             >
               Add Column
             </Button>
@@ -498,7 +648,19 @@ export default function McShopInspection({
               onSave={handleSaveAndContinue}
               loading={saving}
               showSubmit={false}
-            />
+              saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+              saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+            >
+              {user?.role === 'HOD' && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                >
+                  {isEditing ? "Cancel Edit" : "Edit Details"}
+                </Button>
+              )}
+            </ActionButtons>
 
           </Paper>
 

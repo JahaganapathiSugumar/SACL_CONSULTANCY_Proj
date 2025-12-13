@@ -36,11 +36,45 @@ export async function updateProgress(progressId: number | string, payload: any) 
   const url = `${API_BASE}/department-progress/update/${encodeURIComponent(String(progressId))}`;
   const res = await fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
     credentials: "include",
     body: JSON.stringify(payload),
   });
   return handleResponse(res);
 }
 
-export default { getProgress, updateProgress };
+export async function updateDepartment(payload: {
+  progress_id: number;
+  next_department_id: number;
+  username: string;
+  role: string;
+  remarks: string;
+}) {
+  const url = `${API_BASE}/department-progress/update-department`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function updateDepartmentRole(payload: {
+  progress_id: number;
+  current_department_id: number;
+  username: string;
+  role: string;
+  remarks: string;
+}) {
+  const url = `${API_BASE}/department-progress/update-role`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export default { getProgress, updateProgress, updateDepartment, updateDepartmentRole };

@@ -23,11 +23,29 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     });
 }));
 
+router.put('/', asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks } = req.body || {};
+    console.log(req.body);
+    if (!trial_id || !inspection_date || !casting_weight || !bunch_weight || !no_of_cavities || !yields || !inspections || !remarks) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    const sql = 'INSERT INTO dimensional_inspection (trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    const [result] = await Client.query(sql, [trial_id, inspection_date, casting_weight, bunch_weight, no_of_cavities, yields, inspections, remarks]);
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Dimensional inspection updated', `Dimensional inspection ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
+    const insertId = result.insertId;
+    res.status(201).json({
+        message: "Dimensional inspection updated successfully.",
+        success: true,
+        id: insertId
+    });
+}));
+
 router.get('/', asyncErrorHandler(async (req, res, next) => {
     const [rows] = await Client.query('SELECT * FROM dimensional_inspection');
     res.status(200).json({
         success: true,
-        inspections: rows
+        data: rows
     });
 }));
 
@@ -37,10 +55,10 @@ router.get('/trial_id', asyncErrorHandler(async (req, res, next) => {
         return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
     trial_id = trial_id.replace(/['"]+/g, '');
-    const [rows] = await Client.query('SELECT * FROM dimensional_inspection WHERE trial_id = ?', [trial_id]);
+    const [rows] = await Client.query('SELECT * FROM dimensional_inspection WHERE trial_id = ? LIMIT 1', [trial_id]);
     res.status(200).json({
         success: true,
-        inspections: rows
+        data: rows
     });
 }));
 
