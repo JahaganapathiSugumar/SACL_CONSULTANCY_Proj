@@ -42,26 +42,9 @@ import { uploadFiles } from '../services/fileUploadHelper';
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta } from '../utils';
-
-
-
-const SpecInput = ({ inputStyle, ...props }: any) => (
-  <TextField
-    {...props}
-    variant="outlined"
-    size="small"
-    fullWidth
-    inputProps={{
-      ...props.inputProps,
-      style: { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.9rem', ...inputStyle }
-    }}
-    sx={{
-      "& .MuiOutlinedInput-root": { backgroundColor: props.readOnly ? "#f8fafc" : "#fff" },
-      ...props.sx
-    }}
-  />
-);
+import { fileToMeta, validateFileSizes } from '../utils';
+import DepartmentHeader from "./common/DepartmentHeader";
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal } from './common';
 
 
 
@@ -114,14 +97,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     const check = async () => {
       try {
         const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 4 && // sand / foundry department
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
+        const res = await getProgress(uname);
+        if (mounted) setAssigned(res.length > 0);
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -139,9 +116,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   }, []);
 
   // Early exits now occur after all hooks have been registered
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <NoPendingWorks />;
-
+  if (assigned === null) return <LoadingState />;
+  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
 
   const handleChange = (field: string, value: string) => {
     setSandProps(prev => ({ ...prev, [field]: value }));
@@ -157,9 +133,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     setSubmitted(false);
   };
   // Handle file uploads
-  const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []) as File[];
-    setAttachedFiles(prev => [...prev, ...files]);
+  const handleAttachFiles = (newFiles: File[]) => {
+    setAttachedFiles(prev => [...prev, ...newFiles]);
   };
 
   // Remove a selected file
@@ -167,13 +142,11 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-
-  const handleSubmit = () => {
+  const handleSaveAndContinue = () => {
     setPreviewMode(true);
-    navigate('/dashboard');
   };
 
-  const handleConfirm = async () => {
+  const handleFinalSave = async () => {
     console.log(localStorage.getItem("authToken"));
     setLoading(true);
     try {
@@ -213,6 +186,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           // if (failures.length > 0) {
           //   console.error("Some files failed to upload:", failures);
           // }
+          navigate('/dashboard');
         } catch (uploadError) {
           console.error("File upload error:", uploadError);
           // Non-blocking: form submission already succeeded
@@ -244,32 +218,9 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
           <SaclHeader />
           {/* Header Bar */}
-          <Paper sx={{
-            p: 1.5, mb: 3,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            borderLeft: `6px solid ${COLORS.secondary}`,
-            border: `1px solid #e2e8f0`
-          }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-              <Typography variant="h6">SAND PROPERTIES</Typography>
-            </Box>
-            <Box display="flex" gap={1} alignItems="center">
-              <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
-              {/* Updated Chip Style */}
-              <Chip
-                label="USER NAME"
-                sx={{
-                  bgcolor: COLORS.secondary,
-                  color: 'white',
-                  fontWeight: 700,
-                  fontSize: '0.75rem'
-                }}
-                size="small"
-                icon={<PersonIcon style={{ color: 'white' }} />}
-              />
-            </Box>
-          </Paper>
+
+          <DepartmentHeader title="SAND PROPERTIES" userIP={userIP} user={user} />
+
 
           <AlertMessage alert={alert} />
 
@@ -287,9 +238,18 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
                   <TableRow>
                     <TableCell colSpan={9} sx={{ borderRight: 'none', backgroundColor: '#fff' }}></TableCell>
-                    <TableCell colSpan={1} sx={{ backgroundColor: COLORS.headerBg, borderLeft: `1px solid ${COLORS.border}`, minWidth: 250, p: 1 }}>
+                    <TableCell
+                      colSpan={1}
+                      sx={{
+                        backgroundColor: '#f1f5f9',
+                        borderLeft: `1px solid ${COLORS.border}`,
+                        minWidth: 250,
+                        p: 1,
+                        borderBottom: `1px solid ${COLORS.headerBg}`
+                      }}
+                    >
                       <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="body2" fontWeight="bold">Date </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'black' }}>Date</Typography>
                         <TextField
                           type="date"
                           size="small"
@@ -304,9 +264,32 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
                   <TableRow>
                     {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Compactability", "Perm"].map((header) => (
-                      <TableCell key={header} width="9%">{header}</TableCell>
+                      <TableCell
+                        key={header}
+                        width="9%"
+                        sx={{
+                          backgroundColor: '#f1f5f9',
+                          color: 'black',
+                          fontWeight: 600,
+                          textAlign: 'center',
+                          borderBottom: `1px solid ${COLORS.headerBg}`
+                        }}
+                      >
+                        {header}
+                      </TableCell>
                     ))}
-                    <TableCell width="19%">Remarks</TableCell>
+                    <TableCell
+                      width="19%"
+                      sx={{
+                        backgroundColor: '#f1f5f9',
+                        color: 'black',
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        borderBottom: `1px solid ${COLORS.headerBg}`
+                      }}
+                    >
+                      Remarks
+                    </TableCell>
                   </TableRow>
                 </TableHead>
 
@@ -337,55 +320,32 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               </Table>
             </Box>
 
+            <FormSection title="General Remarks" icon={<EditIcon />}>
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                variant="outlined"
+                placeholder="Enter general remarks..."
+                value={additionalRemarks}
+                onChange={(e) => setAdditionalRemarks(e.target.value)}
+                sx={{ bgcolor: '#fff' }}
+              />
+            </FormSection>
 
 
-            {/* Attach PDF / Image Section */}
-            <Box sx={{ p: 3, bgColor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+            {/* File Upload Section */}
+            <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                 Attach PDF / Image Files
               </Typography>
-
-              <Button
-                variant="outlined"
-                component="label"
-                sx={{
-                  bgcolor: "white",
-                  border: `2px dashed ${COLORS.border}`,
-                  py: 1.5,
-                  px: 3,
-                  fontWeight: 600,
-                  color: COLORS.primary,
-                  '&:hover': {
-                    bgcolor: '#f3f4f6',
-                    borderColor: COLORS.primary
-                  }
-                }}
-              >
-                Attach PDF
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="application/pdf,image/*"
-                  onChange={handleAttachFiles}
-                />
-              </Button>
-
-              {/* Attached file chips */}
-              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {attachedFiles.map((file, i) => (
-                  <Chip
-                    key={i}
-                    label={file.name}
-                    onDelete={() => removeAttachedFile(i)}
-                    sx={{
-                      bgcolor: "white",
-                      border: `1px solid ${COLORS.border}`,
-                      fontSize: "0.8rem"
-                    }}
-                  />
-                ))}
-              </Box>
+              <FileUploadSection
+                files={attachedFiles}
+                onFilesChange={handleAttachFiles}
+                onFileRemove={removeAttachedFile}
+                showAlert={showAlert}
+                label="Attach PDF"
+              />
             </Box>
 
 
@@ -412,7 +372,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               </Button>
               <Button
                 variant="contained"
-                onClick={handleSubmit}
+                onClick={handleSaveAndContinue}
                 fullWidth={isMobile}
                 startIcon={<SaveIcon />}
                 sx={{
@@ -428,174 +388,132 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           </Paper>
 
 
-          {previewMode && (
-            <Box sx={{
-              position: "fixed", inset: 0, zIndex: 1300,
-              bgcolor: "rgba(15, 23, 42, 0.8)",
-              display: "flex", alignItems: "center", justifyContent: "center", p: 2
-            }}>
-              <Paper sx={{ width: "100%", maxWidth: 1000, borderRadius: 3, overflow: "hidden" }}>
-
-                <Box sx={{ p: 2, px: 3, borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Sand Properties</Typography>
-                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-
-                <Box sx={{ p: 4, overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: COLORS.headerBg }}>
-                        <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black' }}>SAND PROPERTIES:</th>
-                      </tr>
-                      <tr>
-                        <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
-                        <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
-                          <strong>Date:</strong> {sandDate}
-                        </td>
-                      </tr>
-                      <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
-                        {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Comp.", "Perm", "Remarks"].map((h, i) => (
-                          <th key={i} style={{ border: '1px solid black', padding: '8px' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ textAlign: 'center' }}>
-                        {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
-                          <td key={k} style={{ border: '1px solid black', padding: '12px' }}>
-                            {(sandProps as any)[k] || "-"}
-                          </td>
-                        ))}
-                        <td style={{ border: '1px solid black', padding: '12px', textAlign: 'left' }}>
-                          {sandProps.remarks || "-"}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  {/* Attached Files in Preview */}
-                  {attachedFiles.length > 0 && (
-                    <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                        ATTACHED FILES
-                      </Typography>
-
-                      {attachedFiles.map((file, i) => (
-                        <Typography key={i} variant="body2">• {file.name}</Typography>
-                      ))}
-                    </Box>
-                  )}
-
-
-                  {submitted && (
-                    <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
-                      <CheckCircleIcon fontSize="small" />
-                      <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Sand Properties Registered Successfully</Typography>
-                    </Box>
-                  )}
-
-                </Box>
-
-                {/* Modal Footer - Updated Styles */}
-                <Box sx={{ p: 2, px: 3, borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setPreviewMode(false)}
-                    sx={{
-                      color: 'black',
-                      borderColor: 'black',
-                      borderWidth: '1.5px',
-                      '&:hover': { borderColor: 'black', borderWidth: '1.5px', bgcolor: '#f3f4f6' }
-                    }}
-                  >
-                    Back to Edit
-                  </Button>
-                  {submitted ? (
-                    <Button
-                      variant="contained"
-                      sx={{ bgcolor: COLORS.primary, color: 'white' }}
-                      startIcon={<PrintIcon />}
-                      onClick={handleExportPDF}
-                    >
-                      Download PDF
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      sx={{ bgcolor: COLORS.secondary }}
-                      onClick={handleConfirm}
-                      disabled={loading}
-                    >
-                      {loading ? "Submitting..." : "Confirm & Submit"}
-                    </Button>
-                  )}
-                </Box>
-
-              </Paper>
-            </Box>
-          )}
-
-          {/* PRINT LAYOUT */}
-          <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
-            <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY LAB REPORT</Typography>
-                <Typography variant="body1">Sand Properties Specification Sheet</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">Report Date: {new Date().toLocaleDateString()}</Typography>
-                <Typography variant="body2">IP: {userIP}</Typography>
-              </Box>
-            </Box>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontSize: '12px' }}>
-              <thead>
-                <tr style={{ backgroundColor: COLORS.headerBg }}>
-                  <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black', fontWeight: 'bold' }}>SAND PROPERTIES:</th>
-                </tr>
-                <tr>
-                  <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
-                  <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
-                    <strong>Date:</strong> {sandDate}
-                  </td>
-                </tr>
-                <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
-                  {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Compactability", "Perm", "Other Remarks"].map((h, i) => (
-                    <th key={i} style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ textAlign: 'center', height: '60px', verticalAlign: 'middle' }}>
-                  {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
-                    <td key={k} style={{ border: '1px solid black', padding: '8px' }}>
-                      {(sandProps as any)[k]}
+          <PreviewModal
+            open={previewMode}
+            onClose={() => setPreviewMode(false)}
+            onSubmit={handleFinalSave}
+            onExport={handleExportPDF}
+            title="Verify Sand Properties"
+            subtitle="Review your sand test data"
+            submitted={submitted}
+          >
+            <Box sx={{ p: 4 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: COLORS.headerBg }}>
+                    <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black' }}>SAND PROPERTIES:</th>
+                  </tr>
+                  <tr>
+                    <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
+                    <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
+                      <strong>Date:</strong> {sandDate}
                     </td>
-                  ))}
-                  <td style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>
-                    {sandProps.remarks}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            {/* Attached Files in Print */}
-            {attachedFiles.length > 0 && (
-              <div style={{ marginTop: "25px" }}>
-                <h3 style={{ margin: 0, paddingBottom: "5px", borderBottom: "1px solid #ccc" }}>
-                  Attached Files
-                </h3>
-                <ul style={{ marginTop: "5px" }}>
-                  {attachedFiles.map((file, i) => (
-                    <li key={i} style={{ fontSize: "14px" }}>{file.name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                  </tr>
+                  <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
+                    {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Comp.", "Perm", "Remarks"].map((h, i) => (
+                      <th key={i} style={{ border: '1px solid black', padding: '8px' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style={{ textAlign: 'center' }}>
+                    {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
+                      <td key={k} style={{ border: '1px solid black', padding: '12px' }}>
+                        {(sandProps as any)[k] || "-"}
+                      </td>
+                    ))}
+                    <td style={{ border: '1px solid black', padding: '12px', textAlign: 'left' }}>
+                      {sandProps.remarks || "-"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              {/* Attached Files in Preview */}
+              {attachedFiles.length > 0 && (
+                <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                    ATTACHED FILES
+                  </Typography>
 
-          </Box>
+                  {attachedFiles.map((file, i) => (
+                    <Typography key={i} variant="body2">• {file.name}</Typography>
+                  ))}
+                </Box>
+              )}
+
+
+              {submitted && (
+                <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
+                  <CheckCircleIcon fontSize="small" />
+                  <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Sand Properties Registered Successfully</Typography>
+                </Box>
+              )}
+
+            </Box>
+
+          </PreviewModal>
 
         </Container>
+
+        {/* PRINT LAYOUT */}
+        <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
+          <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY LAB REPORT</Typography>
+              <Typography variant="body1">Sand Properties Specification Sheet</Typography>
+            </Box>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body2">Report Date: {new Date().toLocaleDateString()}</Typography>
+              <Typography variant="body2">IP: {userIP}</Typography>
+            </Box>
+          </Box>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ backgroundColor: COLORS.headerBg }}>
+                <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black', fontWeight: 'bold' }}>SAND PROPERTIES:</th>
+              </tr>
+              <tr>
+                <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
+                <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
+                  <strong>Date:</strong> {sandDate}
+                </td>
+              </tr>
+              <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
+                {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Compactability", "Perm", "Other Remarks"].map((h, i) => (
+                  <th key={i} style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ textAlign: 'center', height: '60px', verticalAlign: 'middle' }}>
+                {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
+                  <td key={k} style={{ border: '1px solid black', padding: '8px' }}>
+                    {(sandProps as any)[k]}
+                  </td>
+                ))}
+                <td style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>
+                  {sandProps.remarks}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {/* Attached Files in Print */}
+          {attachedFiles.length > 0 && (
+            <div style={{ marginTop: "25px" }}>
+              <h3 style={{ margin: 0, paddingBottom: "5px", borderBottom: "1px solid #ccc" }}>
+                Attached Files
+              </h3>
+              <ul style={{ marginTop: "5px" }}>
+                {attachedFiles.map((file, i) => (
+                  <li key={i} style={{ fontSize: "14px" }}>{file.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+        </Box>
+
       </Box>
     </ThemeProvider>
   );

@@ -27,11 +27,9 @@ import {
   InputAdornment,
   useMediaQuery,
   GlobalStyles
-  , Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 
-// Icons
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ScienceIcon from '@mui/icons-material/Science';
@@ -45,13 +43,15 @@ import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturi
 import PersonIcon from "@mui/icons-material/Person";
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaclHeader from "./common/SaclHeader";
+import { appTheme, COLORS } from "../theme/appTheme";
 import { trialService } from "../services/trialService";
 import { ipService } from "../services/ipService";
-import { COLORS, appTheme } from '../theme/appTheme';
+import { validateFileSizes } from '../utils/fileHelpers';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-
-
+import { useAuth } from '../context/AuthContext';
+import DepartmentHeader from "./common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
 
 interface PartData {
   id: number;
@@ -66,8 +66,6 @@ interface PartData {
   xray: string;
   created_at: string;
 }
-
-
 
 const parseChemicalComposition = (composition: any) => {
   const blank = { c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" };
@@ -136,8 +134,6 @@ const parseHardnessData = (hardness: string) => {
   return { surface: surface || "--", core: core || "--" };
 };
 
-
-
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
     <Box sx={{ color: color, display: "flex" }}>{icon}</Box>
@@ -164,13 +160,10 @@ const SpecInput = (props: any) => (
   />
 );
 
-
-
 function FoundrySampleCard() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
 
-  // State
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
   const [trialNo, setTrialNo] = useState<string>("");
@@ -179,7 +172,9 @@ function FoundrySampleCard() {
   const [error, setError] = useState<string | null>(null);
   const [trialLoading, setTrialLoading] = useState(false);
 
-  // --- moved table state (from FoundrySampleCard2) ---
+  const { user } = useAuth();
+  const { alert, showAlert } = useAlert();
+
   const MACHINES = ["DISA", "FOUNDRY-A", "FOUNDRY-B", "MACHINESHOP"];
   const SAMPLING_REASONS = ["Routine", "Customer Complaint", "Process Change", "Audit", "Other"];
   const [samplingDate, setSamplingDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -188,20 +183,15 @@ function FoundrySampleCard() {
   const [reason, setReason] = useState("");
   const [sampleTraceability, setSampleTraceability] = useState("");
   const [patternFiles, setPatternFiles] = useState<File[]>([]);
-  const handlePatternFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setPatternFiles(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
+  const handlePatternFilesChange = (newFiles: File[]) => {
+    setPatternFiles(prev => [...prev, ...newFiles]);
   };
   const removePatternFile = (index: number) => setPatternFiles(prev => prev.filter((_, i) => i !== index));
 
-  // Tooling / Remarks state (moved from FoundrySampleCard2)
   const [toolingType, setToolingType] = useState("");
   const [toolingFiles, setToolingFiles] = useState<File[]>([]);
-  const handleToolingFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setToolingFiles(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
+  const handleToolingFilesChange = (newFiles: File[]) => {
+    setToolingFiles(prev => [...prev, ...newFiles]);
   };
   const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
 
@@ -216,39 +206,6 @@ function FoundrySampleCard() {
   const addMouldCorrectionRow = () => setMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
   const removeMouldCorrectionRow = (id: number) => setMouldCorrections(prev => prev.filter(r => r.id !== id));
 
-  const [showMetaDialog, setShowMetaDialog] = useState(false);
-  const [tempToolingFiles, setTempToolingFiles] = useState<File[]>([]);
-  const [tempMouldCorrections, setTempMouldCorrections] = useState<any[]>([]);
-  const [tempRemarks, setTempRemarks] = useState<string>("");
-
-  const openMetaDialog = () => {
-    setTempToolingFiles(toolingFiles.slice());
-    setTempMouldCorrections(mouldCorrections.map((r) => ({ ...r })));
-    setTempRemarks(remarks || "");
-    setShowMetaDialog(true);
-  };
-
-  const handleMetaSave = () => {
-    setToolingFiles(tempToolingFiles.slice());
-    setMouldCorrections(tempMouldCorrections.map((r) => ({ ...r })));
-    setRemarks(tempRemarks);
-    setShowMetaDialog(false);
-    setPreviewMessage("Saved");
-  };
-
-  const handleTempToolingFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setTempToolingFiles(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
-  };
-
-  const removeTempToolingFile = (index: number) => setTempToolingFiles(prev => prev.filter((_, i) => i !== index));
-  const addTempMouldCorrectionRow = () => setTempMouldCorrections(prev => [...prev, { id: Date.now(), compressibility: "", squeezePressure: "", fillerSize: "" }]);
-  const removeTempMouldCorrectionRow = (id: number) => setTempMouldCorrections(prev => prev.filter(r => r.id !== id));
-  const handleTempMouldCorrectionChange = (id: number, field: string, value: string) => {
-    setTempMouldCorrections(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)));
-  };
-
   // Form State
   const [chemState, setChemState] = useState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
   const [tensileState, setTensileState] = useState({ tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" });
@@ -258,7 +215,6 @@ function FoundrySampleCard() {
   const [submittedData, setSubmittedData] = useState<any>(null);
   const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] = useState<boolean>(false);
 
-  // Preview State
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -281,16 +237,16 @@ function FoundrySampleCard() {
     const getMasterParts = async () => {
       try {
         setLoading(true);
+        const parts = await trialService.getMasterList();
+        setMasterParts(parts);
+        setError(null);
+      } catch (e) {
         const mockData = [{ id: 1, pattern_code: "PT-2024-X", part_name: "Front Axle Housing", material_grade: "SG 450/10", chemical_composition: { c: 3.6, si: 2.3, mn: 0.3 }, micro_structure: "Ferritic >90%", tensile: "450 MPa", hardness: "160-190 HB", xray: "Level 1", created_at: "" }];
-        try {
-          const parts = await trialService.getMasterList();
-          setMasterParts(parts);
-          setError(null);
-        } catch (e) {
-          setMasterParts(mockData);
-          setError("Failed to load master parts.");
-        }
-      } finally { setLoading(false); }
+        setMasterParts(mockData);
+        setError("Failed to load master parts.");
+      } finally {
+        setLoading(false);
+      }
     };
     getMasterParts();
   }, []);
@@ -305,8 +261,7 @@ function FoundrySampleCard() {
     } else { setSelectedPattern(null); }
   }, [selectedPart]);
 
-  // --- UPDATED TRIAL ID LOGIC ---
-  const generateTrialId = async () => {
+  const fetchTrialId = async () => {
     if (!selectedPart) return;
     setTrialLoading(true);
     try {
@@ -320,21 +275,20 @@ function FoundrySampleCard() {
       }
     } catch (error) {
       console.warn("Using fallback trial ID", error);
-      setTrialNo(`TR-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`);
+      setTrialNo(`${Date.now()}`);
     } finally {
       setTrialLoading(false);
     }
   };
 
-  useEffect(() => { if (selectedPart) generateTrialId(); else setTrialNo(""); }, [selectedPart]);
+  useEffect(() => { if (selectedPart) fetchTrialId(); else setTrialNo(""); }, [selectedPart]);
 
   const handlePartChange = (v: PartData | null) => { setSelectedPart(v); };
   const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
 
-  // --- MODIFIED PRINT FUNCTIONALITY ---
   const handleExportPDF = () => {
     if (!submitted) return;
-    window.print(); // Triggers the browser's print dialog (Save as PDF)
+    window.print();
   };
 
   const handleSaveAndContinue = () => {
@@ -347,7 +301,6 @@ function FoundrySampleCard() {
       tensile: tensileState,
       micro_structure: microState,
       hardness: hardnessState,
-      // moved fields
       samplingDate,
       mouldCount,
       machine,
@@ -405,42 +358,15 @@ function FoundrySampleCard() {
         <Container maxWidth="xl" disableGutters>
 
           <SaclHeader />
-          {/* Header Bar */}
-          <Paper sx={{
-            p: { xs: 1.5, md: 2 },
-            mb: 3,
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            justifyContent: "space-between",
-            alignItems: { xs: "flex-start", md: "center" },
-            gap: 2,
-            borderLeft: `6px solid ${COLORS.secondary}`
-          }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <FactoryIcon sx={{ fontSize: { xs: 32, md: 40 }, color: COLORS.primary }} />
-              <Box>
-                <Typography variant="h5" sx={{ color: COLORS.primary }}>
-                  FOUNDRY METHODS
-                </Typography>
-                <Typography variant="subtitle2" sx={{ color: COLORS.textSecondary }}>
-                  Automotive Component Specification
-                </Typography>
-              </Box>
-            </Box>
-            <Box display="flex" gap={2} alignItems="center" width={isMobile ? "100%" : "auto"} justifyContent="space-between">
-              <Chip label={userIP} size="small" variant="outlined" />
-              <Chip label="USER NAME" color="warning" size="small" icon={<PersonIcon />} />
-            </Box>
-          </Paper>
+          <DepartmentHeader title="FOUNDRY SAMPLE CARD" userIP={userIP} user={user} />
 
-          {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>}
+          <AlertMessage alert={alert} />
 
           {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}><CircularProgress /></Box>
+            <LoadingState message="Loading trial data..." />
           ) : (
             <Grid container spacing={3}>
 
-              {/* 1. Identification Section */}
               <Grid size={12}>
                 <Card elevation={0} sx={{ border: `1px solid ${COLORS.border}` }}>
                   <CardContent>
@@ -477,7 +403,7 @@ function FoundrySampleCard() {
                             sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
                             endAdornment: (
                               <InputAdornment position="end">
-                                <IconButton onClick={() => generateTrialId()} disabled={!selectedPart || trialLoading} size="small">
+                                <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
                                   {trialLoading ? <CircularProgress size={20} /> : <RefreshIcon fontSize="small" />}
                                 </IconButton>
                               </InputAdornment>
@@ -490,7 +416,6 @@ function FoundrySampleCard() {
                 </Card>
               </Grid>
 
-              {/* 2. Chemical Spec Section */}
               <Grid size={12}>
                 <Paper sx={{ p: { xs: 2, md: 3 } }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
@@ -508,11 +433,33 @@ function FoundrySampleCard() {
                         </TableRow>
                         <TableRow>
                           {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
-                            <TableCell key={h} align="center">{h}</TableCell>
+                            <TableCell
+                              key={h}
+                              align="center"
+                              sx={{
+                                backgroundColor: '#f1f5f9',
+                                color: 'black',
+                                fontWeight: 600,
+                                borderBottom: `1px solid ${COLORS.headerBg}`
+                              }}
+                            >
+                              {h}
+                            </TableCell>
                           ))}
                           <TableCell sx={{ border: 'none' }}></TableCell>
                           {["Nodularity", "Pearlite", "Carbide"].map(h => (
-                            <TableCell key={h} align="center">{h}</TableCell>
+                            <TableCell
+                              key={h}
+                              align="center"
+                              sx={{
+                                backgroundColor: '#f1f5f9',
+                                color: 'black',
+                                fontWeight: 600,
+                                borderBottom: `1px solid ${COLORS.headerBg}`
+                              }}
+                            >
+                              {h}
+                            </TableCell>
                           ))}
                         </TableRow>
                       </TableHead>
@@ -544,7 +491,6 @@ function FoundrySampleCard() {
                 </Paper>
               </Grid>
 
-              {/* 3. Mechanical Spec Section */}
               <Grid size={12}>
                 <Paper sx={{ p: { xs: 2, md: 3 } }}>
                   <SectionHeader icon={<ConstructionIcon />} title="Mechanical Properties & NDT" color={COLORS.secondary} />
@@ -554,7 +500,18 @@ function FoundrySampleCard() {
                       <TableHead>
                         <TableRow>
                           {["Tensile (MPa)", "Yield (MPa)", "Elongation (%)", "Impact Cold", "Impact Room", "Hardness (Surf)", "Hardness (Core)", "X-Ray Grade", "MPI"].map(h => (
-                            <TableCell key={h} align="center">{h}</TableCell>
+                            <TableCell
+                              key={h}
+                              align="center"
+                              sx={{
+                                backgroundColor: '#f1f5f9',
+                                color: 'black',
+                                fontWeight: 600,
+                                borderBottom: `1px solid ${COLORS.headerBg}`
+                              }}
+                            >
+                              {h}
+                            </TableCell>
                           ))}
                         </TableRow>
                       </TableHead>
@@ -576,225 +533,186 @@ function FoundrySampleCard() {
                 </Paper>
               </Grid>
 
-              {/* Action buttons were moved to bottom of the page */}
 
             </Grid>
           )}
 
-
-          {previewMode && previewPayload && (
-            <Box sx={{
-              position: "fixed", inset: 0, zIndex: 1300,
-              bgcolor: "rgba(15, 23, 42, 0.75)", backdropFilter: "blur(6px)",
-              display: "flex", alignItems: "center", justifyContent: "center", p: 2
-            }}>
-              <Paper sx={{
-                width: "100%", maxWidth: 900, maxHeight: "90vh", overflow: "hidden",
-                display: 'flex', flexDirection: 'column', borderRadius: 3, position: 'relative'
-              }}>
-                <Box sx={{ p: 2, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: "#fff" }}>
-                  <Typography variant="h6" sx={{ color: COLORS.primary }}>Verify Specification</Typography>
-                  <IconButton
-                    onClick={() => {
-                      setPreviewMode(false);
-                      setPreviewMode(false);
-                    }}
-                    sx={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      color: "#DC2626",
-                      "&:hover": { backgroundColor: "rgba(220,38,38,0.08)" },
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-
-                <Box sx={{ p: { xs: 2, md: 4 }, overflowY: "auto", bgcolor: COLORS.background }}>
-                  {/* 1. Part Identification */}
-                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Part Identification</Typography>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">PATTERN CODE</Typography>
-                        <Typography variant="subtitle1">{previewPayload.pattern_code}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">PART NAME</Typography>
-                        <Typography variant="subtitle1">{previewPayload.part_name}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.accentGreen}`, bgcolor: "#ecfdf5" }}>
-                        <Typography variant="caption" color="success.main">TRIAL ID</Typography>
-                        <Typography variant="subtitle1" color="success.main">{previewPayload.trial_no}</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.accentBlue }}>Chemical Composition</Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: 1, mb: 3 }}>
-                    {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(k => (
-                      <Box key={k} sx={{ textAlign: "center", p: 1, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">{k}</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.chemical_composition[k.toLowerCase()] || "-"}</Typography>
-                      </Box>
-                    ))}
-                  </Box>
-
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.secondary }}>Microstructure</Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
-                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="caption" color="text.secondary">Nodularity</Typography>
-                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.nodularity || "-"}</Typography>
-                    </Box>
-                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="caption" color="text.secondary">Pearlite</Typography>
-                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.pearlite || "-"}</Typography>
-                    </Box>
-                    <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="caption" color="text.secondary">Carbide</Typography>
-                      <Typography variant="body2" fontWeight="bold">{previewPayload.micro_structure.carbide || "-"}</Typography>
-                    </Box>
-                  </Box>
-
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Mechanical Properties & NDT</Typography>
-                  <Paper variant="outlined" sx={{ p: 2, bgcolor: "white", mb: 3 }}>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Tensile</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.tensileStrength || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Yield</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.yieldStrength || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Elongation</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.elongation || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Impact (Cold)</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.impactCold || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Impact (Room)</Typography>
-                        <Typography variant="body2" fontWeight="bold">{previewPayload.tensile.impactRoom || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Hardness (Surf/Core)</Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {previewPayload.hardness.surface || "-"} / {previewPayload.hardness.core || "-"}
-                        </Typography>
-                      </Grid>
-                    </Grid>
+          <PreviewModal
+            open={previewMode && previewPayload}
+            onClose={() => {
+              setPreviewMode(false)
+            }}
+            onSubmit={handleFinalSave}
+            onExport={handleExportPDF}
+            title="Verify Specification"
+            subtitle="Foundry Sample Card - Review your data"
+            submitted={submitted}
+          >
+            <Box sx={{ p: { xs: 2, md: 4 } }}>
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Part Identification</Typography>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">PATTERN CODE</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.pattern_code}</Typography>
                   </Paper>
-
-                  {/* 2. Sampling Details */}
-                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Sampling Details</Typography>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Sampling Date</Typography>
-                        <Typography variant="subtitle1">{previewPayload.samplingDate || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
-                        <Typography variant="subtitle1">{previewPayload.mouldCount || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Machine</Typography>
-                        <Typography variant="subtitle1">{previewPayload.machine || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Reason</Typography>
-                        <Typography variant="subtitle1">{previewPayload.reason || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Traceability</Typography>
-                        <Typography variant="subtitle1">{previewPayload.sampleTraceability || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Pattern Files</Typography>
-                        <Typography variant="subtitle1">{(previewPayload.patternFiles?.length) ? `${previewPayload.patternFiles.length} file(s)` : "0"}</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  {/* 3. Tooling Modification */}
-                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Modification</Typography>
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary"></Typography>
-                        <Typography variant="subtitle1">{previewPayload.toolingType || "-"}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="caption" color="text.secondary">Tooling Files</Typography>
-                        <Typography variant="subtitle1">{(previewPayload.toolingFiles?.length) ? `${previewPayload.toolingFiles.length} file(s)` : "0"}</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  {/* 4. Remarks */}
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
-                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}`, mb: 3 }}>
-                    <Typography variant="body2">{previewPayload.remarks || "-"}</Typography>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">PART NAME</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.part_name}</Typography>
                   </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.accentGreen}`, bgcolor: "#ecfdf5" }}>
+                    <Typography variant="caption" color="success.main">TRIAL ID</Typography>
+                    <Typography variant="subtitle1" color="success.main">{previewPayload?.trial_no}</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
 
-                  {/* 5. Mould Corrections */}
-                  <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Mould Corrections</Typography>
-                  <Table size="small" sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1, mb: 3 }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell align="center">Compressibility</TableCell>
-                        <TableCell align="center">Squeeze Pressure</TableCell>
-                        <TableCell align="center">Filler Size</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {(previewPayload.mouldCorrections || []).map((r: any, i: number) => (
-                        <TableRow key={i}>
-                          <TableCell sx={{ textAlign: 'center' }}>{r.compressibility || "-"}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{r.squeezePressure || "-"}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{r.fillerSize || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.accentBlue }}>Chemical Composition</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: 1, mb: 3 }}>
+                {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(k => (
+                  <Box key={k} sx={{ textAlign: "center", p: 1, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">{k}</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.chemical_composition[k.toLowerCase()] || "-"}</Typography>
+                  </Box>
+                ))}
+              </Box>
 
-                  {previewMessage && <Alert severity="success" sx={{ mt: 2 }}>{previewMessage}</Alert>}
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.secondary }}>Microstructure</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3 }}>
+                <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="caption" color="text.secondary">Nodularity</Typography>
+                  <Typography variant="body2" fontWeight="bold">{previewPayload?.micro_structure.nodularity || "-"}</Typography>
                 </Box>
-
-                <Box sx={{ p: 2, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", flexDirection: { xs: 'column', sm: 'row' } }}>
-                  <Button variant="outlined" fullWidth={isMobile} onClick={() => navigate('/dashboard')} disabled={submitted}>Back to Edit</Button>
-                  {submitted ? (
-                    <Button variant="contained" fullWidth={isMobile} color="primary" onClick={handleExportPDF} startIcon={<PrintIcon />}>Download PDF</Button>
-                  ) : (
-                    <Button variant="contained" fullWidth={isMobile} color="secondary" onClick={handleFinalSave} startIcon={<UploadFileIcon />}>Confirm & Submit</Button>
-                  )}
+                <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="caption" color="text.secondary">Pearlite</Typography>
+                  <Typography variant="body2" fontWeight="bold">{previewPayload?.micro_structure.pearlite || "-"}</Typography>
                 </Box>
+                <Box sx={{ p: 1.5, bgcolor: "white", borderRadius: 1, border: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="caption" color="text.secondary">Carbide</Typography>
+                  <Typography variant="body2" fontWeight="bold">{previewPayload?.micro_structure.carbide || "-"}</Typography>
+                </Box>
+              </Box>
+
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Mechanical Properties & NDT</Typography>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: "white", mb: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Tensile</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.tensile.tensileStrength || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Yield</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.tensile.yieldStrength || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Elongation</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.tensile.elongation || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Impact (Cold)</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.tensile.impactCold || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Impact (Room)</Typography>
+                    <Typography variant="body2" fontWeight="bold">{previewPayload?.tensile.impactRoom || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">Hardness (Surf/Core)</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {previewPayload?.hardness.surface || "-"} / {previewPayload?.hardness.core || "-"}
+                    </Typography>
+                  </Grid>
+                </Grid>
               </Paper>
+
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Sampling Details</Typography>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Sampling Date</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.samplingDate || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.mouldCount || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Machine</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.machine || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Reason</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.reason || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Traceability</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.sampleTraceability || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Pattern Files</Typography>
+                    <Typography variant="subtitle1">{(previewPayload?.patternFiles?.length) ? `${previewPayload.patternFiles.length} file(s)` : "0"}</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Modification</Typography>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary"></Typography>
+                    <Typography variant="subtitle1">{previewPayload?.toolingType || "-"}</Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="caption" color="text.secondary">Tooling Files</Typography>
+                    <Typography variant="subtitle1">{(previewPayload?.toolingFiles?.length) ? `${previewPayload.toolingFiles.length} file(s)` : "0"}</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
+              <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}`, mb: 3 }}>
+                <Typography variant="body2">{previewPayload?.remarks || "-"}</Typography>
+              </Paper>
+
+              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Mould Corrections</Typography>
+              <Table size="small" sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1, mb: 3 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">Compressibility</TableCell>
+                    <TableCell align="center">Squeeze Pressure</TableCell>
+                    <TableCell align="center">Filler Size</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(previewPayload?.mouldCorrections || []).map((r: any, i: number) => (
+                    <TableRow key={i}>
+                      <TableCell sx={{ textAlign: 'center' }}>{r.compressibility || "-"}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>{r.squeezePressure || "-"}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>{r.fillerSize || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {previewMessage && <Alert severity="success" sx={{ mt: 2 }}>{previewMessage}</Alert>}
             </Box>
-          )}
-
-
-
+          </PreviewModal>
 
           <Paper sx={{ overflowX: "auto", mb: 3, p: 2 }}>
             <Table size="small" sx={{ minWidth: 900 }}>
@@ -806,9 +724,18 @@ function FoundrySampleCard() {
                     "DISA / FOUNDRY-A",
                     "Reason For Sampling",
                     "Sample Traceability",
-                    "Pattern Data Sheet",
+                    "Upload",
                   ].map((head) => (
-                    <TableCell key={head} align="center">
+                    <TableCell
+                      key={head}
+                      align="center"
+                      sx={{
+                        backgroundColor: '#f1f5f9',
+                        color: 'black',
+                        fontWeight: 600,
+                        borderBottom: `1px solid ${COLORS.headerBg}`
+                      }}
+                    >
                       {head}
                     </TableCell>
                   ))}
@@ -892,7 +819,11 @@ function FoundrySampleCard() {
                         type="file"
                         hidden
                         multiple
-                        onChange={handlePatternFilesChange}
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            handlePatternFilesChange(Array.from(e.target.files));
+                          }
+                        }}
                       />
                     </Button>
                     {patternFiles.length > 0 && (
@@ -915,120 +846,103 @@ function FoundrySampleCard() {
             </Table>
           </Paper>
 
-          <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Tooling / Mould Corrections / Remarks</Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Chip label={`${toolingFiles.length} file(s)`} size="small" />
-                <Chip label={`${mouldCorrections.length} correction(s)`} size="small" />
-                <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
-                  {remarks ? `${remarks.slice(0, 80)}${remarks.length > 80 ? "..." : ""}` : "No remarks"}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <SectionHeader
+              icon={<ConstructionIcon />}
+              title="Tooling Modification Done"
+              color={COLORS.secondary}
+            />
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
+                  Pattern Files
                 </Typography>
-              </Box>
+                <FileUploadSection
+                  files={patternFiles}
+                  onFilesChange={handlePatternFilesChange}
+                  onFileRemove={removePatternFile}
+                  showAlert={showAlert}
+                  label="Attach Pattern PDF"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
+                  Tooling Files
+                </Typography>
+                <FileUploadSection
+                  files={toolingFiles}
+                  onFilesChange={handleToolingFilesChange}
+                  onFileRemove={removeToolingFile}
+                  showAlert={showAlert}
+                  label="Attach Tooling PDF"
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
+          <Paper sx={{ p: 3, mb: 3, overflowX: "auto" }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+              <SectionHeader icon={<EditIcon />} title="Mould Correction Details" color={COLORS.primary} />
             </Box>
-            <Button variant="outlined" onClick={openMetaDialog} startIcon={<EditIcon />}>Edit Material / Attach / Remarks</Button>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  {["Compressibility", "Squeeze Pressure", "Filler Size"].map(h => (
+                    <TableCell
+                      key={h}
+                      align="center"
+                      sx={{
+                        backgroundColor: '#f1f5f9',
+                        color: 'black',
+                        fontWeight: 600,
+                        borderBottom: `1px solid ${COLORS.headerBg}`
+                      }}
+                    >
+                      {h}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {mouldCorrections.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} />
+                    </TableCell>
+                    <TableCell>
+                      <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} />
+                    </TableCell>
+                    <TableCell align="center">
+                      {mouldCorrections.length > 1 && (
+                        <IconButton size="small" onClick={() => removeMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Paper>
 
 
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <SectionHeader icon={<EditIcon />} title="Remarks" color={COLORS.primary} />
 
-          {/* Meta Data Dialog */}
-          <Dialog open={showMetaDialog} onClose={() => setShowMetaDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ bgcolor: COLORS.primary, color: "#fff" }}>
-              <Typography variant="h6">Edit Tooling / Remarks</Typography>
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, bgcolor: COLORS.background }}>
-              {/* Tooling Files */}
-              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Files</Typography>
-              <Button
-                variant="outlined"
-                component="label"
-                fullWidth
-                sx={{ borderStyle: "dashed", mb: 2 }}
-              >
-                Upload Tooling Files
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  onChange={handleTempToolingFilesChange}
-                />
-              </Button>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {tempToolingFiles.map((f, i) => (
-                  <Chip
-                    key={i}
-                    label={f.name}
-                    onDelete={() => removeTempToolingFile(i)}
-                    size="small"
-                    sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}` }}
-                  />
-                ))}
-              </Box>
-
-              {/* Mould Corrections */}
-              <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary, mt: 3 }}>Mould Corrections</Typography>
-              {tempMouldCorrections.map((row, index) => (
-                <Box key={row.id} sx={{ display: "flex", gap: 2, mb: 2 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Compressibility"
-                    value={row.compressibility}
-                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'compressibility', e.target.value)}
-                  />
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Squeeze Pressure"
-                    value={row.squeezePressure}
-                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)}
-                  />
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Filler Size"
-                    value={row.fillerSize}
-                    onChange={(e) => handleTempMouldCorrectionChange(row.id, 'fillerSize', e.target.value)}
-                  />
-                  {tempMouldCorrections.length > 1 && (
-                    <IconButton size="small" onClick={() => removeTempMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </Box>
-              ))}
-              <Button
-                variant="outlined"
-                onClick={addTempMouldCorrectionRow}
-                size="small"
-                sx={{ mb: 2 }}
-              >
-                Add Mould Correction
-              </Button>
-
-              {/* Remarks */}
-              <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.primary }}>Remarks</Typography>
-              <TextField
-                multiline
-                rows={3}
-                fullWidth
-                variant="outlined"
-                placeholder="Enter remarks..."
-                value={tempRemarks}
-                onChange={(e) => setTempRemarks(e.target.value)}
-                sx={{ bgcolor: "#fff" }}
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 2, bgcolor: COLORS.background }}>
-              <Button variant="outlined" onClick={() => setShowMetaDialog(false)} color="inherit">
-                Cancel
-              </Button>
-              <Button variant="contained" onClick={handleMetaSave} color="secondary">
-                Save Changes
-              </Button>
-            </DialogActions>
-          </Dialog>
-
+            <TextField
+              multiline
+              rows={3}
+              fullWidth
+              variant="outlined"
+              placeholder="Enter remarks..."
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              sx={{ bgcolor: "#fff" }}
+            />
+          </Paper>
 
           <Box display="flex" justifyContent="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
             <Button variant="outlined" color="inherit" fullWidth={isMobile} onClick={() => window.location.reload()}>
@@ -1160,6 +1074,13 @@ function FoundrySampleCard() {
                     <th style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>Carbide</th>
                   </tr>
                 </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.nodularity || "-"}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.pearlite || "-"}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.micro_structure.carbide || "-"}</td>
+                  </tr>
+                </tbody>
               </table>
 
               <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1, mt: 3 }}>Mechanical Properties</Typography>
@@ -1192,7 +1113,7 @@ function FoundrySampleCard() {
 
         </Container>
       </Box>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 

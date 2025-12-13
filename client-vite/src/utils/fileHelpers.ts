@@ -1,4 +1,5 @@
 import type { FileMetadata } from '../types/inspection';
+export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
  * Converts a File object to metadata object
@@ -53,4 +54,48 @@ export const isFileTypeAllowed = (file: File, allowedTypes: string[]): boolean =
         }
         return file.type === type;
     });
+};
+
+/**
+ * Validates if file size is within allowed limit
+ * @param file - File to validate
+ * @param maxSize - Maximum allowed size in bytes (default: 5MB)
+ * @returns Object with isValid boolean and error message if invalid
+ */
+export const validateFileSize = (
+    file: File,
+    maxSize: number = MAX_FILE_SIZE
+): { isValid: boolean; error?: string } => {
+    if (file.size > maxSize) {
+        return {
+            isValid: false,
+            error: `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxSize)}.`
+        };
+    }
+    return { isValid: true };
+};
+
+/**
+ * Validates multiple files for size limit
+ * @param files - Array of files to validate
+ * @param maxSize - Maximum allowed size in bytes (default: 5MB)
+ * @returns Object with isValid boolean and array of error messages
+ */
+export const validateFileSizes = (
+    files: File[],
+    maxSize: number = MAX_FILE_SIZE
+): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    files.forEach(file => {
+        const result = validateFileSize(file, maxSize);
+        if (!result.isValid && result.error) {
+            errors.push(result.error);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
 };

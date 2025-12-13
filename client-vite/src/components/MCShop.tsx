@@ -46,8 +46,10 @@ import { uploadFiles } from '../services/fileUploadHelper';
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid } from '../utils';
+import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
+import DepartmentHeader from "./common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
 
 type Row = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -69,7 +71,6 @@ export default function McShopInspection({
   // ✅ ALL useState HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
   const [assigned, setAssigned] = useState<boolean | null>(null);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
-  const [userName, setUserName] = useState<string>("");
   const [userTime, setUserTime] = useState<string>("");
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [trialId, setTrialId] = useState<string>("");
@@ -97,20 +98,13 @@ export default function McShopInspection({
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
 
-  // ✅ NOW useEffect hooks
   useEffect(() => {
     let mounted = true;
     const check = async () => {
       try {
         const uname = user?.username ?? "";
-        const data = await getProgress(uname);
-        const found = data.some(
-          (p) =>
-            p.username === uname &&
-            p.department_id === 8 &&
-            (p.approval_status === "pending" || p.approval_status === "assigned")
-        );
-        if (mounted) setAssigned(found);
+        const res = await getProgress(uname);
+        if (mounted) setAssigned(res.length > 0);
       } catch {
         if (mounted) setAssigned(false);
       }
@@ -130,17 +124,8 @@ export default function McShopInspection({
   }, []);
 
   // ✅ NOW conditional returns (after all hooks)
-  if (assigned === null) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!assigned) {
-    return <NoPendingWorks />;
-  }
+  if (assigned === null) return <LoadingState />;
+  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
 
   // ✅ Helper functions
   const addColumn = () => {
@@ -148,9 +133,8 @@ export default function McShopInspection({
     setRows((r) => r.map((row) => ({ ...row, values: [...row.values, ""] })));
   };
 
-  const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []) as File[];
-    setAttachedFiles(prev => [...prev, ...files]);
+  const handleAttachFiles = (newFiles: File[]) => {
+    setAttachedFiles(prev => [...prev, ...newFiles]);
   };
 
   const removeAttachedFile = (index: number) => {
@@ -193,7 +177,6 @@ export default function McShopInspection({
 
   const resetAll = () => {
     setDate(new Date().toISOString().slice(0, 10));
-    setUserName("");
     setUserTime("");
     setCavities([...initialCavities]);
     setRows(makeInitialRows(initialCavities));
@@ -209,7 +192,7 @@ export default function McShopInspection({
     return {
       inspection_type: "mc_shop",
       inspection_date: date || null,
-      user_name: userName || null,
+      user_name: user?.username || null,
       user_time: userTime || null,
       user_ip: userIP || null,
       cavities: cavities.slice(),
@@ -228,7 +211,7 @@ export default function McShopInspection({
     };
   };
 
-  const handleSave = async () => {
+  const handleSaveAndContinue = async () => {
     const payload = buildPayload();
     setPreviewPayload(payload);
     setPreviewMode(true);
@@ -298,24 +281,6 @@ export default function McShopInspection({
     window.print();
   };
 
-  const handleUserNameChange = async (value: string | null) => {
-    const v = value ?? "";
-    setUserName(v);
-
-    if (v) {
-      const now = new Date();
-      const formattedTime = now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      setUserTime(formattedTime);
-    } else {
-      setUserTime("");
-    }
-  };
-
-
   return (
     <ThemeProvider theme={appTheme}>
       <GlobalStyles styles={{
@@ -333,30 +298,7 @@ export default function McShopInspection({
 
           <SaclHeader />
 
-          <Paper sx={{
-            p: 1.5, mb: 3,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            borderLeft: `6px solid ${COLORS.secondary}`
-          }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-              <Typography variant="h6">MACHINE SHOP INSPECTION</Typography>
-            </Box>
-            <Box display="flex" gap={1} alignItems="center">
-              <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
-              <Chip
-                label="USER NAME"
-                sx={{
-                  bgcolor: COLORS.secondary,
-                  color: 'white',
-                  fontWeight: 700,
-                  fontSize: '0.75rem'
-                }}
-                size="small"
-                icon={<PersonIcon style={{ color: "white" }} />}
-              />
-            </Box>
-          </Paper>
+          <DepartmentHeader title="MACHINE SHOP INSPECTION" userIP={userIP} user={user} />
 
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
@@ -481,6 +423,14 @@ export default function McShopInspection({
                                   type="file"
                                   onChange={(e) => {
                                     const file = e.target.files?.[0] ?? null;
+                                    if (file) {
+                                      const validation = validateFileSizes([file]);
+                                      if (!validation.isValid) {
+                                        validation.errors.forEach((error: string) => showAlert('error', error));
+                                        e.target.value = '';
+                                        return;
+                                      }
+                                    }
                                     setGroupMeta((g) => ({ ...g, attachment: file }));
                                   }}
                                 />
@@ -530,169 +480,123 @@ export default function McShopInspection({
               Add Column
             </Button>
 
-            <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
-              <Button
-                variant="outlined"
-                onClick={resetAll}
-                disabled={saving}
-                sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-              >
-                Reset Form
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSave}
-                disabled={saving}
-                startIcon={<SaveIcon />}
-                sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: COLORS.orangeHeaderText } }}
-              >
-                {saving ? "Processing..." : "Save & Continue"}
-              </Button>
+            <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                Attach PDF / Image Files
+              </Typography>
+              <FileUploadSection
+                files={attachedFiles}
+                onFilesChange={handleAttachFiles}
+                onFileRemove={removeAttachedFile}
+                showAlert={showAlert}
+                label="Attach PDF"
+              />
             </Box>
+
+            <ActionButtons
+              onReset={resetAll}
+              onSave={handleSaveAndContinue}
+              loading={saving}
+              showSubmit={false}
+            />
 
           </Paper>
 
-          {previewMode && previewPayload && (
-            <Box
-              sx={{
-                position: "fixed", inset: 0, zIndex: 1300,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                bgcolor: "rgba(15,23,42,0.85)", backdropFilter: "blur(4px)",
-                p: 2
-              }}
-            >
-              <Paper
-                sx={{
-                  width: "100%", maxWidth: 1000, maxHeight: "90vh", overflow: "hidden",
-                  display: "flex", flexDirection: "column", borderRadius: 3
-                }}
-              >
-                <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
-                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
-                    <CloseIcon />
-                  </IconButton>
+          <PreviewModal
+            open={previewMode && previewPayload}
+            onClose={() => setPreviewMode(false)}
+            onSubmit={handleFinalSave}
+            onExport={handleExportPDF}
+            title="Verify Inspection Data"
+            subtitle="Machine Shop Inspection Report"
+            submitted={previewSubmitted}
+          >
+            <Box sx={{ p: 4 }}>
+              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Machine Shop Inspection Report</Typography>
+                  <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
                 </Box>
+                <Divider sx={{ mb: 3 }} />
 
-                <Box sx={{ p: 4, overflowY: "auto", bgcolor: COLORS.background }}>
-                  <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Machine Shop Inspection Report</Typography>
-                      <Typography variant="body2" color="textSecondary">Date: {previewPayload.inspection_date}</Typography>
-                    </Box>
-                    <Divider sx={{ mb: 3 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Typography variant="caption" color="textSecondary">LOG TIME</Typography>
+                    <Typography variant="body1" fontWeight="bold">{previewPayload?.user_time || "-"}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Typography variant="caption" color="textSecondary">GENERAL NOTES</Typography>
+                    <Typography variant="body2">{previewPayload?.dimensional_report_remarks || "-"}</Typography>
+                  </Grid>
+                </Grid>
 
-                    <Grid container spacing={2} sx={{ mb: 3 }}>
-                      <Grid size={{ xs: 12, md: 4 }}>
-                        <Typography variant="caption" color="textSecondary">LOG TIME</Typography>
-                        <Typography variant="body1" fontWeight="bold">{previewPayload.user_time || "-"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 4 }}>
-                        <Typography variant="caption" color="textSecondary">GENERAL NOTES</Typography>
-                        <Typography variant="body2">{previewPayload.dimensional_report_remarks || "-"}</Typography>
-                      </Grid>
-                    </Grid>
-
-                    <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                            {previewPayload.cavities.map((c: string, i: number) => (
-                              <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
-                            ))}
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {previewPayload.rows.map((r: any, idx: number) => (
-                            <TableRow key={idx}>
-                              <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                              {r.freeText !== undefined && r.freeText !== null ? (
-                                <TableCell colSpan={previewPayload.cavities.length + 1} sx={{ textAlign: 'left', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                                  {r.freeText}
+                <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                        {previewPayload?.cavities.map((c: string, i: number) => (
+                          <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                        ))}
+                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {previewPayload?.rows.map((r: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
+                          {r.freeText !== undefined && r.freeText !== null ? (
+                            <TableCell colSpan={previewPayload.cavities.length + 1} sx={{ textAlign: 'left', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                              {r.freeText}
+                            </TableCell>
+                          ) : (
+                            <>
+                              {r.values.map((v: any, j: number) => (
+                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                  {v === null ? "-" : String(v)}
                                 </TableCell>
-                              ) : (
-                                <>
-                                  {r.values.map((v: any, j: number) => (
-                                    <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                      {v === null ? "-" : String(v)}
-                                    </TableCell>
-                                  ))}
-                                  <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                                    {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
-                                  </TableCell>
-                                </>
-                              )}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                              ))}
+                              <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                                {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+
+                {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
+                  <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
+                        <Chip
+                          key={idx}
+                          icon={<InsertDriveFileIcon />}
+                          label={fileName}
+                          variant="outlined"
+                          sx={{ bgcolor: 'white' }}
+                        />
+                      ))}
                     </Box>
-
-                    {previewPayload.attachedFiles && previewPayload.attachedFiles.length > 0 && (
-                      <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
-                            <Chip
-                              key={idx}
-                              icon={<InsertDriveFileIcon />}
-                              label={fileName}
-                              variant="outlined"
-                              sx={{ bgcolor: 'white' }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-
-                    {previewPayload.additionalRemarks && (
-                      <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                        <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
-                        <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
-                      </Box>
-                    )}
                   </Box>
+                )}
 
-                  {previewSubmitted && (
-                    <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
-                  )}
-                </Box>
+                {previewPayload?.additionalRemarks && (
+                  <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
+                    <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
+                  </Box>
+                )}
+              </Box>
 
-                <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: 'white' }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => navigate('/dashboard')}
-                    disabled={saving || previewSubmitted}
-                    sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                  >
-                    Back to Edit
-                  </Button>
-
-                  {previewSubmitted ? (
-                    <Button
-                      variant="contained"
-                      onClick={handleExportPDF}
-                      startIcon={<PrintIcon />}
-                      sx={{ bgcolor: COLORS.primary }}
-                    >
-                      Print / Save as PDF
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      onClick={handleFinalSave}
-                      disabled={saving}
-                      sx={{ bgcolor: COLORS.secondary }}
-                    >
-                      {saving ? "Saving..." : "Confirm & Submit"}
-                    </Button>
-                  )}
-                </Box>
-              </Paper>
+              {previewSubmitted && (
+                <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
+              )}
             </Box>
-          )}
+          </PreviewModal>
 
           <Box className="print-section" sx={{ display: 'none' }}>
             <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>

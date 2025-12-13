@@ -42,26 +42,11 @@ import { inspectionService } from '../services/inspectionService';
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta } from '../utils';
+import { fileToMeta, validateFileSizes } from '../utils';
+import DepartmentHeader from "./common/DepartmentHeader";
+import { LoadingState, EmptyState, SpecInput, ActionButtons, FileUploadSection, PreviewModal } from './common';
 
 
-
-const SpecInput = ({ inputStyle, ...props }: any) => (
-    <TextField
-        {...props}
-        variant="outlined"
-        size="small"
-        fullWidth
-        inputProps={{
-            ...props.inputProps,
-            style: { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem', ...inputStyle }
-        }}
-        sx={{
-            "& .MuiOutlinedInput-root": { backgroundColor: props.readOnly ? "rgba(0,0,0,0.04)" : "#fff" },
-            ...props.sx
-        }}
-    />
-);
 
 const LabelText = ({ children }: { children: React.ReactNode }) => (
     <Typography variant="caption" sx={{ fontWeight: 700, color: COLORS.textSecondary, mb: 0.5, display: 'block' }}>
@@ -139,7 +124,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
     const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
     const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
-    const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
     const [remarksText, setRemarksText] = useState<string>("");
     // Attach PDF / Images
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -155,14 +139,8 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         const check = async () => {
             try {
                 const uname = user?.username ?? "";
-                const data = await getProgress(uname);
-                const found = data.some(
-                    (p) =>
-                        p.username === uname &&
-                        p.department_id === 9 && // pouring dept id
-                        (p.approval_status === "pending" || p.approval_status === "assigned")
-                );
-                if (mounted) setAssigned(found);
+                const res = await getProgress(uname);
+                if (mounted) setAssigned(res.length > 0);
             } catch {
                 if (mounted) setAssigned(false);
             }
@@ -194,10 +172,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                 ficHeatNo,
                 ppCode,
                 followedBy,
-                userName
+                userName: user?.username || "system"
             });
         }
-    }, [pouringDate, heatCode, chemState, pouringTemp, pouringTime, ficHeatNo, ppCode, followedBy, userName, onPouringDetailsChange]);
+    }, [pouringDate, heatCode, chemState, pouringTemp, pouringTime, ficHeatNo, ppCode, followedBy, user?.username, onPouringDetailsChange]);
 
     useEffect(() => {
         const fetchIP = async () => {
@@ -207,14 +185,11 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         fetchIP();
     }, []);
     // Early exits after all hooks registered
-    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-    if (!assigned) return <NoPendingWorks />;
+    if (assigned === null) return <LoadingState />;
+    if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
     // Handle PDF/Image Upload
-    const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const fileList = e.target.files;
-        if (!fileList) return;
-        const files = Array.from(fileList) as File[];
-        setAttachedFiles((prev: File[]) => [...prev, ...files]);
+    const handleAttachFiles = (newFiles: File[]) => {
+        setAttachedFiles(prev => [...prev, ...newFiles]);
     };
 
     const removeAttachedFile = (index: number) => {
@@ -230,7 +205,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
             pouringTemp,
             pouringTime,
             inoculation: { stream: inoculationStream, inmould: inoculationInmould },
-            remarks: { ficHeatNo, ppCode, followedBy, userName }
+            remarks: { ficHeatNo, ppCode, followedBy, userName: user?.username }
         };
         setPreviewPayload(payload);
         setPreviewMode(true);
@@ -265,16 +240,42 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     "F/C & Heat No.": ficHeatNo,
                     "PP Code": ppCode,
                     "Followed by": followedBy,
-                    "Username": userName
+                    "Username": user?.username
                 },
                 remarks: remarksText
             };
 
             console.log("Submitting pouring details:", apiPayload);
 
-            const data = await inspectionService.submitPouringDetails(apiPayload);
-            setSubmitted(true);
-            showAlert('success', 'Pouring details created successfully.');
+            const result = await inspectionService.submitPouringDetails(apiPayload);
+
+            if (!result.success) {
+                showAlert('error', result.message || 'Failed to submit pouring details. Please try again.');
+            } else {
+                setSubmitted(true);
+                showAlert('success', 'Pouring details created successfully.');
+
+                if (attachedFiles.length > 0) {
+                    try {
+                        // Upload attached files after successful form submission
+                        // const uploadResults = await uploadFiles(
+                        //   attachedFiles,
+                        //   trialId,
+                        //   "POURING",
+                        //   user?.username || "system",
+                        //   additionalRemarks || ""
+                        // );
+
+                        // const failures = uploadResults.filter(r => !r.success);
+                        // if (failures.length > 0) {
+                        //   console.error("Some files failed to upload:", failures);
+                        // }
+                    } catch (uploadError) {
+                        console.error("File upload error:", uploadError);
+                        // Non-blocking: form submission already succeeded
+                    }
+                }
+            }
         } catch (error) {
             console.error("Error saving pouring details:", error);
             showAlert('error', 'Failed to save pouring details. Please try again.');
@@ -305,32 +306,10 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                     <SaclHeader />
                     {/* Header Bar */}
-                    <Paper sx={{ p: 1.5, mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center", borderLeft: `6px solid ${COLORS.secondary}` }}>
-                        <Box display="flex" alignItems="center" gap={2}>
-                            <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-                            <Typography variant="h6" sx={{ color: COLORS.primary, textTransform: 'uppercase' }}>POURING DETAILS</Typography>
-                            {submittedData?.trialNo && (
-                                <Chip
-                                    label={`Trial: ${submittedData.trialNo}`}
-                                    color="secondary"
-                                    size="small"
-                                    sx={{ fontWeight: 600 }}
-                                />
-                            )}
-                        </Box>
-                        <Box display="flex" gap={1}>
-                            <Chip label={userIP} size="small" variant="outlined" />
-                            <Chip label="USER NAME" color="warning" size="small" icon={<PersonIcon />} />
-                        </Box>
-                    </Paper>
+                    <DepartmentHeader title="POURING DETAILS" userIP={userIP} user={user} />
 
-                    {alert && (
-                        <Paper sx={{ p: 2, mb: 3, bgcolor: alert.severity === 'success' ? COLORS.accentGreen : '#fee2e2', borderLeft: `6px solid ${alert.severity === 'success' ? COLORS.accentGreen : '#dc2626'}` }}>
-                            <Typography variant="body1" sx={{ color: alert.severity === 'success' ? 'white' : '#991b1b', fontWeight: 600 }}>
-                                {alert.message}
-                            </Typography>
-                        </Paper>
-                    )}
+                    <AlertMessage alert={alert} />
+
 
                     {loading ? (
                         <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}><CircularProgress /></Box>
@@ -399,7 +378,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                             ))}
                                                             {/* Spacer Row */}
                                                             <Grid size={{ xs: 12 }} sx={{ my: 0.5 }}><Divider /></Grid>
-                                                            <AlertMessage alert={alert} />
 
                                                             {["S", "Mg", "Cu", "Cr"].map((el) => (
                                                                 <Grid size={{ xs: 6, sm: 3 }} key={el}>
@@ -492,7 +470,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                             <Grid size={{ xs: 12 }}>
                                                                 <Box display="flex" alignItems="center" gap={1}>
                                                                     <Typography variant="caption" noWrap minWidth={90}>Username :</Typography>
-                                                                    <Typography variant="body2" fontWeight="bold" color="primary">{userName}</Typography>
+                                                                    <Typography variant="body2" fontWeight="bold" color="primary">{user?.username}</Typography>
                                                                 </Box>
                                                             </Grid>
                                                         </Grid>
@@ -506,45 +484,16 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                             {/* Attach PDF / Image Section */}
                             <Grid size={{ xs: 12 }}>
                                 <Paper sx={{ p: 3, mb: 3 }}>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase", color: COLORS.primary }}>
                                         Attach PDF / Image Files
                                     </Typography>
-
-                                    <Button
-                                        variant="outlined"
-                                        component="label"
-                                        fullWidth
-                                        sx={{
-                                            bgcolor: "white",
-                                            borderStyle: "dashed",
-                                            py: 1.5,
-                                            fontWeight: 600
-                                        }}
-                                    >
-                                        Upload Files
-                                        <input
-                                            type="file"
-                                            hidden
-                                            multiple
-                                            accept="application/pdf,image/*"
-                                            onChange={handleAttachFiles}
-                                        />
-                                    </Button>
-
-                                    {/* Show uploaded file names */}
-                                    <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                                        {attachedFiles.map((file, i) => (
-                                            <Chip
-                                                key={i}
-                                                label={file.name}
-                                                onDelete={() => removeAttachedFile(i)}
-                                                sx={{
-                                                    bgcolor: "white",
-                                                    border: `1px solid ${COLORS.border}`
-                                                }}
-                                            />
-                                        ))}
-                                    </Box>
+                                    <FileUploadSection
+                                        files={attachedFiles}
+                                        onFilesChange={handleAttachFiles}
+                                        onFileRemove={removeAttachedFile}
+                                        showAlert={showAlert}
+                                        label="Attach PDF"
+                                    />
                                 </Paper>
                             </Grid>
 
@@ -570,10 +519,11 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                             {/* Action Buttons */}
                             <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
-                                <Box display="flex" justifyContent="flex-end" gap={2}>
-                                    <Button variant="outlined" color="inherit" onClick={() => window.location.reload()}>Reset Form</Button>
-                                    <Button variant="contained" color="secondary" onClick={handleSaveAndContinue} startIcon={<SaveIcon />}>Save & Continue</Button>
-                                </Box>
+                                <ActionButtons
+                                    onReset={() => window.location.reload()}
+                                    onSave={handleSaveAndContinue}
+                                    showSubmit={false}
+                                />
                             </Grid>
                         </Grid>
                     )}
@@ -581,105 +531,88 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     {previewPayload && (
                         <>
                             {/* PREVIEW OVERLAY */}
-                            {previewMode && (
-                                <Box sx={{ position: "fixed", inset: 0, zIndex: 1300, bgcolor: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
-                                    <Paper sx={{ width: "100%", maxWidth: 1000, maxHeight: "95vh", overflowY: "auto", p: 4, bgcolor: "white", position: 'relative' }}>
+                            <PreviewModal
+                                open={previewMode && previewPayload}
+                                onClose={() => setPreviewMode(false)}
+                                onSubmit={handleFinalSave}
+                                onExport={handleExportPDF}
+                                title="Verify Pouring Details"
+                                subtitle="Review your pouring data"
+                                submitted={submitted}
+                            >
+                                <Box sx={{ p: 4 }}>
+                                    {/* Updated Header Color (No longer Red) */}
+                                    <Typography variant="h6" sx={{ textDecoration: 'underline', color: 'black', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>POURING DETAILS:</Typography>
 
-                                        <IconButton
-                                            onClick={() => setPreviewMode(false)}
-                                            sx={{
-                                                position: 'absolute',
-                                                top: 8,
-                                                right: 8,
-                                                color: 'grey.500'
-                                            }}
-                                        >
-                                            <CloseIcon />
-                                        </IconButton>
-
-                                        {/* Updated Header Color (No longer Red) */}
-                                        <Typography variant="h6" sx={{ textDecoration: 'underline', color: 'black', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>POURING DETAILS:</Typography>
-
-                                        {/* Table with Main Font for Headers, Mono for Data */}
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: appTheme.typography.fontFamily }}>
-                                            <thead>
-                                                <tr style={{ backgroundColor: '#FDE68A', color: '#854d0e' }}>
-                                                    <th style={{ border: '1px solid black', padding: '10px' }}>Date & Heat code</th>
-                                                    <th style={{ border: '1px solid black', padding: '10px' }}>Composition</th>
-                                                    <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Temperature<br />Deg.C</th>
-                                                    <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Time<br />(Sec.)</th>
-                                                    <th style={{ border: '1px solid black', padding: '10px' }}>Other<br />Remarks</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr style={{ verticalAlign: 'top' }}>
-                                                    <td style={{ border: '1px solid black', padding: '12px' }}>
-                                                        <div><strong>Date:</strong> <span style={dataFontStyle}>{previewPayload.pouringDate}</span></div>
-                                                        <div style={{ marginTop: '15px' }}><strong>Heat Code:</strong><br /><span style={dataFontStyle}>{previewPayload.heatCode}</span></div>
-                                                    </td>
-                                                    <td style={{ border: '1px solid black', padding: '12px' }}>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
-                                                            {Object.entries(previewPayload.chemical_composition).map(([k, v]) => (
-                                                                <div key={k}><strong>{k.toUpperCase()}-</strong> <span style={dataFontStyle}>{v as string}</span></div>
-                                                            ))}
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ border: '1px solid black', padding: '12px' }}>
-                                                        <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                                                            <span style={dataFontStyle}>{previewPayload.pouringTemp}°C</span>
-                                                        </div>
-                                                        <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
-                                                            <u style={{ fontWeight: 'bold' }}>Inoculation:</u><br />
-                                                            Stream: <span style={dataFontStyle}>{previewPayload.inoculation.stream}</span> gms<br />
-                                                            Inmould: <span style={dataFontStyle}>{previewPayload.inoculation.inmould}</span> gms
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center', verticalAlign: 'middle', fontSize: '18px' }}>
-                                                        <span style={dataFontStyle}>{previewPayload.pouringTime}</span>
-                                                    </td>
-                                                    <td style={{ border: '1px solid black', padding: '12px' }}>
-                                                        <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload.remarks.ficHeatNo}</span></div>
-                                                        <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload.remarks.ppCode}</span></div>
-                                                        <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload.remarks.followedBy}</span></div>
-                                                        <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload.remarks.userName}</span></div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        {/* Attached Files in Preview */}
-                                        {attachedFiles.length > 0 && (
-                                            <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                                                    ATTACHED FILES:
-                                                </Typography>
-                                                {attachedFiles.map((file, i) => (
-                                                    <Typography key={i} variant="body2">• {file.name}</Typography>
-                                                ))}
-                                            </Box>
-                                        )}
-
-                                        {/* Remarks in Preview */}
-                                        {remarksText && (
-                                            <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>REMARKS:</Typography>
-                                                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
-                                                    {remarksText}
-                                                </Typography>
-                                            </Box>
-                                        )}
-
-
-                                        <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-                                            <Button variant="outlined" onClick={() => navigate('/dashboard')} sx={{ borderColor: 'black', color: 'black' }}>Back to Edit</Button>
-                                            {submitted ?
-                                                /* Updated Button Text to be clearer about functionality */
-                                                <Button variant="contained" onClick={handleExportPDF} startIcon={<PrintIcon />} sx={{ bgcolor: COLORS.primary }}>Print / Save as PDF</Button> :
-                                                <Button variant="contained" color="secondary" onClick={handleFinalSave}>Confirm & Submit</Button>
-                                            }
+                                    {/* Table with Main Font for Headers, Mono for Data */}
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: appTheme.typography.fontFamily }}>
+                                        <thead>
+                                            <tr style={{ backgroundColor: '#E0F2FE', color: '#0C4A6E' }}>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Date & Heat code</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Composition</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Temperature<br />Deg.C</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Time<br />(Sec.)</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Other<br />Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style={{ verticalAlign: 'top' }}>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div><strong>Date:</strong> <span style={dataFontStyle}>{previewPayload?.pouringDate}</span></div>
+                                                    <div style={{ marginTop: '15px' }}><strong>Heat Code:</strong><br /><span style={dataFontStyle}>{previewPayload?.heatCode}</span></div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
+                                                        {Object.entries(previewPayload?.chemical_composition || {}).map(([k, v]) => (
+                                                            <div key={k}><strong>{k.toUpperCase()}-</strong> <span style={dataFontStyle}>{v as string}</span></div>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+                                                        <span style={dataFontStyle}>{previewPayload?.pouringTemp}°C</span>
+                                                    </div>
+                                                    <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
+                                                        <u style={{ fontWeight: 'bold' }}>Inoculation:</u><br />
+                                                        Stream: <span style={dataFontStyle}>{previewPayload?.inoculation.stream}</span> gms<br />
+                                                        Inmould: <span style={dataFontStyle}>{previewPayload?.inoculation.inmould}</span> gms
+                                                    </div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center', verticalAlign: 'middle', fontSize: '18px' }}>
+                                                    <span style={dataFontStyle}>{previewPayload?.pouringTime}</span>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload?.remarks.ficHeatNo}</span></div>
+                                                    <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload?.remarks.ppCode}</span></div>
+                                                    <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload?.remarks.followedBy}</span></div>
+                                                    <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload?.remarks.userName}</span></div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    {/* Attached Files in Preview */}
+                                    {attachedFiles.length > 0 && (
+                                        <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                                                ATTACHED FILES:
+                                            </Typography>
+                                            {attachedFiles.map((file, i) => (
+                                                <Typography key={i} variant="body2">• {file.name}</Typography>
+                                            ))}
                                         </Box>
-                                    </Paper>
+                                    )}
+
+                                    {/* Remarks in Preview */}
+                                    {remarksText && (
+                                        <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>REMARKS:</Typography>
+                                            <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                                                {remarksText}
+                                            </Typography>
+                                        </Box>
+                                    )}
                                 </Box>
-                            )}
+                            </PreviewModal>
 
                             {/* PRINT SECTION (Exact replica of preview with fonts applied) */}
                             <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
@@ -687,7 +620,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                 <Typography variant="h5" sx={{ textDecoration: 'underline', color: 'black', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>POURING DETAILS:</Typography>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', border: '2px solid black' }}>
                                     <thead>
-                                        <tr style={{ backgroundColor: '#FDE68A', color: '#854d0e' }}>
+                                        <tr style={{ backgroundColor: '#E0F2FE', color: '#0C4A6E' }}>
                                             <th style={{ border: '1px solid black', padding: '8px' }}>Date & Heat code</th>
                                             <th style={{ border: '1px solid black', padding: '8px' }}>Composition</th>
                                             <th style={{ border: '1px solid black', padding: '8px' }}>Pouring<br />Temperature<br />Deg.C</th>
@@ -756,7 +689,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                 </Container>
             </Box>
-        </ThemeProvider>
+        </ThemeProvider >
     );
 }
 

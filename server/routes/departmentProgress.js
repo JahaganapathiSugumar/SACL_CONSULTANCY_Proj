@@ -113,7 +113,7 @@ router.put('/approve', asyncErrorHandler(async (req, res, next) => {
 router.get('/get-progress', asyncErrorHandler(async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT * FROM department_progress WHERE username = ?`,
+        `SELECT * FROM department_progress WHERE username = ? AND approval_status = 'pending' LIMIT 1`,
         [username]
     );
     res.status(200).json({

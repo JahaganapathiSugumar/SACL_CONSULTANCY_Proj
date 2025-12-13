@@ -47,7 +47,10 @@ import { uploadFiles } from '../services/fileUploadHelper';
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid } from '../utils';
+import { fileToMeta, generateUid, validateFileSizes } from '../utils';
+import SaclHeader from "./common/SaclHeader";
+import DepartmentHeader from "./common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, PreviewModal } from './common';
 
 interface Row {
   id: string;
@@ -76,45 +79,20 @@ const initialRows = (labels: string[]): Row[] =>
 
 const MICRO_PARAMS = ["Cavity number", "Nodularity", "Matrix", "Carbide", "Inclusion"];
 
-const HeaderSection = ({ title, userIP }: { title: string, userIP: string }) => (
-  <Paper sx={{
-    p: 1.5, mb: 3,
-    display: "flex", justifyContent: "space-between", alignItems: "center",
-    borderLeft: `6px solid ${COLORS.secondary}`
-  }}>
-    <Box display="flex" alignItems="center" gap={2}>
-      <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-      <Typography variant="h6">{title}</Typography>
-    </Box>
-    <Box display="flex" gap={1} alignItems="center">
-      <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
-      <Chip
-        label="USER NAME"
-        sx={{
-          bgcolor: COLORS.secondary,
-          color: 'white',
-          fontWeight: 700,
-          fontSize: '0.75rem'
-        }}
-        size="small"
-        icon={<PersonIcon style={{ color: 'white' }} />}
-      />
-    </Box>
-  </Paper>
-);
-
 function SectionTable({
   title,
   rows,
   onChange,
   showTotal = false,
   onValidationError,
+  showAlert,
 }: {
   title: string;
   rows: Row[];
   onChange: (id: string, patch: Partial<Row>) => void;
   showTotal?: boolean;
   onValidationError?: (message: string) => void;
+  showAlert?: (severity: 'success' | 'error', message: string) => void;
 }) {
   const [cols, setCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [cavityNumbers, setCavityNumbers] = useState<string[]>(['']);
@@ -264,7 +242,7 @@ function SectionTable({
                   />
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; updateGroupMeta({ attachment: file }); }} />
+                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateGroupMeta({ attachment: file }); }} />
                     <label htmlFor={`${title}-group-file`}>
                       <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}>
                         Attach PDF
@@ -403,6 +381,7 @@ function MicrostructureTable({
   setCols,
   setValues,
   setMeta,
+  showAlert,
 }: {
   params: string[];
   cols: MicroCol[];
@@ -411,6 +390,7 @@ function MicrostructureTable({
   setCols: (c: MicroCol[] | ((prev: MicroCol[]) => MicroCol[])) => void;
   setValues: (v: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)) => void;
   setMeta: (m: Record<string, { attachment: File | null; ok: boolean | null; remarks: string }> | ((prev: any) => any)) => void;
+  showAlert?: (severity: 'success' | 'error', message: string) => void;
 }) {
   const [cavityNumbers, setCavityNumbers] = useState<string[]>(['']);
 
@@ -537,7 +517,7 @@ function MicrostructureTable({
                         />
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`micro-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; updateMeta('group', { attachment: file }); }} />
+                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`micro-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateMeta('group', { attachment: file }); }} />
                           <label htmlFor={`micro-group-file`}>
                             <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}>
                               Attach PDF
@@ -574,7 +554,7 @@ export default function MetallurgicalInspection() {
   const printRef = useRef<HTMLDivElement | null>(null);
 
   const [assigned, setAssigned] = useState<boolean | null>(null);
-  const [, setUserName] = useState("");
+  const { user } = useAuth();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
   const [userIP, setUserIP] = useState<string>("Loading...");
@@ -619,27 +599,19 @@ export default function MetallurgicalInspection() {
     let mounted = true;
     const check = async () => {
       try {
-        // const uname = user?.username ?? ""; // Assuming user context is removed or replaced
-        // const data = await getProgress(uname); // Assuming getProgress is removed or replaced
-        // const found = data.some(
-        //   (p) =>
-        //     p.username === uname &&
-        //     p.department_id === 7 && // metallurgical dept id
-        //     (p.approval_status === "pending" || p.approval_status === "assigned")
-        // );
-        // if (mounted) setAssigned(found);
-        if (mounted) setAssigned(true); // Placeholder for now
+        const uname = user?.username ?? "";
+        const res = await getProgress(uname);
+        if (mounted) setAssigned(res.length > 0);
       } catch {
         if (mounted) setAssigned(false);
       }
     };
-    // if (user) check(); // Assuming user context is removed or replaced
-    check();
+    if (user) check();
     return () => { mounted = false; };
-  }, []); // Removed user from dependency array
+  }, [user]);
 
-  if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-  if (!assigned) return <Alert severity="warning">No pending works or access denied.</Alert>; // Replaced NoPendingWorks
+  if (assigned === null) return <LoadingState />;
+  if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />; // Replaced NoPendingWorks
 
   const updateRow = (setRows: React.Dispatch<React.SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
@@ -703,7 +675,7 @@ export default function MetallurgicalInspection() {
     };
   };
 
-  const handleSave = async () => {
+  const handleSaveAndContinue = async () => {
     const payload = buildPayload();
     setPreviewPayload(payload);
     setPreviewMode(true);
@@ -896,8 +868,8 @@ export default function MetallurgicalInspection() {
       <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
         <Container maxWidth="xl" disableGutters>
 
-          {/* <SaclHeader /> */} {/* SaclHeader removed as per instruction */}
-          <HeaderSection title="METALLURGICAL INSPECTION" userIP={userIP} />
+          <SaclHeader />
+          <DepartmentHeader title="METALLURGICAL INSPECTION" userIP={userIP} user={user} />
 
           <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
@@ -934,17 +906,18 @@ export default function MetallurgicalInspection() {
               setCols={setMicroCols}
               setValues={setMicroValues}
               setMeta={setMicroMeta}
+              showAlert={showAlert}
             />
 
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable title="MECHANICAL PROPERTIES" rows={mechRows} onChange={updateRow(setMechRows)} />
-                <SectionTable title="IMPACT STRENGTH" rows={impactRows} onChange={updateRow(setImpactRows)} />
+                <SectionTable title="MECHANICAL PROPERTIES" rows={mechRows} onChange={updateRow(setMechRows)} showAlert={showAlert} />
+                <SectionTable title="IMPACT STRENGTH" rows={impactRows} onChange={updateRow(setImpactRows)} showAlert={showAlert} />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable title="HARDNESS" rows={hardRows} onChange={updateRow(setHardRows)} />
+                <SectionTable title="HARDNESS" rows={hardRows} onChange={updateRow(setHardRows)} showAlert={showAlert} />
                 <Box>
-                  <SectionTable title="NDT INSPECTION ANALYSIS" rows={ndtRows} onChange={updateRow(setNdtRows)} showTotal={true} onValidationError={setNdtValidationError} />
+                  <SectionTable title="NDT INSPECTION ANALYSIS" rows={ndtRows} onChange={updateRow(setNdtRows)} showTotal={true} onValidationError={setNdtValidationError} showAlert={showAlert} />
                   {ndtValidationError && (
                     <Alert severity="error" sx={{ mt: 2 }} onClose={() => setNdtValidationError(null)}>
                       {ndtValidationError}
@@ -955,88 +928,46 @@ export default function MetallurgicalInspection() {
             </Grid>
 
             {/* Actions */}
-            <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
-              <Button
-                variant="outlined"
-                onClick={() => window.location.reload()}
-                sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-              >
-                Reset Form
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSave}
-                disabled={loading}
-                startIcon={<SaveIcon />}
-                sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: COLORS.orangeHeaderText } }}
-              >
-                Save & Continue
-              </Button>
-            </Box>
+            <ActionButtons
+              onReset={() => window.location.reload()}
+              onSave={handleSaveAndContinue}
+              loading={loading}
+              showSubmit={false}
+            />
 
           </Paper>
 
           {/* Preview Overlay */}
-          {previewMode && previewPayload && (
-            <Box
-              sx={{
-                position: 'fixed', inset: 0, zIndex: 1300,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                bgcolor: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(4px)',
-                p: 2
-              }}
-            >
-              <Paper
-                sx={{
-                  width: '100%', maxWidth: 1000, maxHeight: '90vh', overflow: 'hidden',
-                  display: 'flex', flexDirection: 'column', borderRadius: 3
-                }}
-              >
-                <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
-                  <IconButton size="small" onClick={() => setPreviewMode(false)} sx={{ color: '#ef4444' }}>
-                    <CloseIcon />
-                  </IconButton>
+          <PreviewModal
+            open={previewMode && previewPayload}
+            onClose={() => setPreviewMode(false)}
+            onSubmit={handleFinalSave}
+            onExport={handleExportPDF}
+            title="Verify Inspection Data"
+            subtitle="Metallurgical Inspection Report"
+            submitted={previewSubmitted}
+          >
+            <Box sx={{ p: 4 }} ref={printRef}>
+              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
+                  <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
                 </Box>
+                <Divider sx={{ mb: 3 }} />
 
-                <Box sx={{ p: 4, overflowY: 'auto', bgcolor: COLORS.background }} ref={printRef}>
-                  <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
-                      <Typography variant="body2" color="textSecondary">Date: {previewPayload.inspection_date}</Typography>
-                    </Box>
-                    <Divider sx={{ mb: 3 }} />
+                {/* Render ALL sections */}
+                <PreviewMicroTable data={previewPayload?.microRows} />
+                <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
+                {/* <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} /> */}
+                <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
+                <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload?.ndtRows} />
+              </Box>
 
-                    {/* Render ALL sections */}
-                    <PreviewMicroTable data={previewPayload.microRows} />
-                    <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload.mechRows} />
-                    {/* <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload.impactRows} /> */}
-                    <PreviewSectionTable title="HARDNESS" rows={previewPayload.hardRows} />
-                    <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload.ndtRows} />
-                  </Box>
-
-                  {message && (
-                    <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
-                  )}
-                </Box>
-
-                <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: 'white' }}>
-                  <Button variant="outlined" onClick={() => navigate('/dashboard')} disabled={sending || previewSubmitted}>
-                    Back to Edit
-                  </Button>
-                  {previewSubmitted ? (
-                    <Button variant="contained" onClick={handleExportPDF} startIcon={<PrintIcon />} sx={{ bgcolor: COLORS.primary }}>
-                      Print / Save as PDF
-                    </Button>
-                  ) : (
-                    <Button variant="contained" onClick={handleFinalSave} disabled={sending} sx={{ bgcolor: COLORS.secondary }}>
-                      {sending ? 'Saving...' : 'Confirm & Submit'}
-                    </Button>
-                  )}
-                </Box>
-              </Paper>
+              {message && (
+                <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
+              )}
             </Box>
-          )}
+          </PreviewModal>
 
           {/* Hidden Print Section */}
           <Box className="print-section" sx={{ display: 'none' }}>

@@ -48,8 +48,10 @@ import { useNavigate } from "react-router-dom";
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid } from '../utils';
+import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
+import DepartmentHeader from "./common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal } from './common';
 
 type Row = InspectionRow;
 type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
@@ -99,14 +101,8 @@ export default function VisualInspection({
         const check = async () => {
             try {
                 const uname = user?.username ?? "";
-                const data = await getProgress(uname);
-                const found = data.some(
-                    (p) =>
-                        p.username === uname &&
-                        p.department_id === 5 &&
-                        (p.approval_status === "pending" || p.approval_status === "assigned")
-                );
-                if (mounted) setAssigned(found);
+                const res = await getProgress(uname);
+                if (mounted) setAssigned(res.length > 0);
             } catch {
                 if (mounted) setAssigned(false);
             }
@@ -141,12 +137,11 @@ export default function VisualInspection({
         fetchUserIP();
     }, []);
 
-    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-    if (!assigned) return <NoPendingWorks />;
+    if (assigned === null) return <LoadingState />;
+    if (!assigned) return <EmptyState title="No pending works or access denied" severity="warning" />;
 
     const addColumn = () => {
         setCols((c) => [...c, ""]);
-
         setRows((r) =>
             r.map((row) => ({
                 ...row,
@@ -156,9 +151,8 @@ export default function VisualInspection({
     };
 
 
-    const handleAttachFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files ?? []) as File[];
-        setAttachedFiles(prev => [...prev, ...files]);
+    const handleAttachFiles = (newFiles: File[]) => {
+        setAttachedFiles(prev => [...prev, ...newFiles]);
     };
 
     const removeAttachedFile = (index: number) => {
@@ -344,30 +338,7 @@ export default function VisualInspection({
 
                     <SaclHeader />
 
-                    <Paper sx={{
-                        p: 1.5, mb: 3,
-                        display: "flex", justifyContent: "space-between", alignItems: "center",
-                        borderLeft: `6px solid ${COLORS.secondary}`
-                    }}>
-                        <Box display="flex" alignItems="center" gap={2}>
-                            <FactoryIcon sx={{ fontSize: 32, color: COLORS.primary }} />
-                            <Typography variant="h6">VISUAL INSPECTION</Typography>
-                        </Box>
-                        <Box display="flex" gap={1} alignItems="center">
-                            <Chip label={userIP} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
-                            <Chip
-                                label="USER NAME"
-                                sx={{
-                                    bgcolor: COLORS.secondary,
-                                    color: 'white',
-                                    fontWeight: 700,
-                                    fontSize: '0.75rem'
-                                }}
-                                size="small"
-                                icon={<PersonIcon style={{ color: 'white' }} />}
-                            />
-                        </Box>
-                    </Paper>
+                    <DepartmentHeader title="VISUAL INSPECTION" userIP={userIP} user={user} />
 
                     <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
@@ -519,6 +490,14 @@ export default function VisualInspection({
                                                                     type="file"
                                                                     onChange={(e) => {
                                                                         const file = e.target.files?.[0] ?? null;
+                                                                        if (file) {
+                                                                            const validation = validateFileSizes([file]);
+                                                                            if (!validation.isValid) {
+                                                                                validation.errors.forEach((error: string) => showAlert('error', error));
+                                                                                e.target.value = '';
+                                                                                return;
+                                                                            }
+                                                                        }
                                                                         setGroupMeta((g) => ({ ...g, attachment: file }));
                                                                     }}
                                                                 />
@@ -568,175 +547,129 @@ export default function VisualInspection({
                             Add Column
                         </Button>
 
-                        <Box display="flex" justifyContent="flex-end" gap={2} mt={4} pt={2} borderTop={`1px solid ${COLORS.border}`}>
-                            <Button
-                                variant="outlined"
-                                onClick={reset}
-                                disabled={saving}
-                                sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                            >
-                                Reset Form
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleSaveAndContinue}
-                                disabled={saving}
-                                startIcon={<SaveIcon />}
-                                sx={{ bgcolor: COLORS.secondary, '&:hover': { bgcolor: COLORS.orangeHeaderText } }}
-                            >
-                                {saving ? "Processing..." : "Save and Continue"}
-                            </Button>
+                        <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                Attach PDF / Image Files
+                            </Typography>
+                            <FileUploadSection
+                                files={attachedFiles}
+                                onFilesChange={handleAttachFiles}
+                                onFileRemove={removeAttachedFile}
+                                showAlert={showAlert}
+                                label="Attach PDF"
+                            />
                         </Box>
+
+                        <ActionButtons
+                            onReset={reset}
+                            onSave={handleSaveAndContinue}
+                            loading={saving}
+                            showSubmit={false}
+                        />
 
                     </Paper>
 
-                    {previewMode && previewPayload && (
-                        <Box
-                            sx={{
-                                position: "fixed", inset: 0, zIndex: 1300,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                bgcolor: "rgba(15,23,42,0.85)", backdropFilter: "blur(4px)",
-                                p: 2
-                            }}
-                        >
-                            <Paper
-                                sx={{
-                                    width: "100%", maxWidth: 1000, maxHeight: "90vh", overflow: "hidden",
-                                    display: "flex", flexDirection: "column", borderRadius: 3
-                                }}
-                            >
-                                <Box sx={{ p: 2, px: 3, borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: 'white' }}>
-                                    <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Verify Inspection Data</Typography>
-                                    <IconButton size="small" onClick={() => navigate("/dimensional-inspection")} sx={{ color: '#ef4444' }}>
-                                        <CloseIcon />
-                                    </IconButton>
+                    <PreviewModal
+                        open={previewMode && previewPayload}
+                        onClose={() => setPreviewMode(false)}
+                        onSubmit={handleFinalSave}
+                        onExport={handleExportPdf}
+                        title="Verify Inspection Data"
+                        subtitle="Review your visual inspection report"
+                        submitted={submitted}
+                    >
+                        <Box sx={{ p: 4 }}>
+                            <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                    <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Visual Inspection Report</Typography>
+                                    <Typography variant="body2" color="textSecondary">Created: {previewPayload?.created_at}</Typography>
+                                </Box>
+                                <Divider sx={{ mb: 3 }} />
+
+                                <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                                                {previewPayload?.cols.map((c: string, i: number) => (
+                                                    <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                ))}
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {previewPayload?.rows.map((r: any, idx: number) => (
+                                                <TableRow key={idx}>
+                                                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
+                                                    {r.values.map((v: any, j: number) => (
+                                                        <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                                            {v === null ? "-" : String(v)}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </Box>
 
-                                <Box sx={{ p: 4, overflowY: "auto", bgcolor: COLORS.background }}>
-                                    <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                                            <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Visual Inspection Report</Typography>
-                                            <Typography variant="body2" color="textSecondary">Created: {previewPayload.created_at}</Typography>
-                                        </Box>
-                                        <Divider sx={{ mb: 3 }} />
-
-                                        <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
-                                            <Table size="small">
-                                                <TableHead>
-                                                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                                                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                        {previewPayload.cols.map((c: string, i: number) => (
-                                                            <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {previewPayload.rows.map((r: any, idx: number) => (
-                                                        <TableRow key={idx}>
-                                                            <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                                                            {r.values.map((v: any, j: number) => (
-                                                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                                                    {v === null ? "-" : String(v)}
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </Box>
-
-                                        <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                            <Typography variant="subtitle2" mb={1} color="textSecondary">FINAL STATUS & REMARKS</Typography>
-                                            <Grid container spacing={2}>
-                                                <Grid size={{ xs: 12, sm: 4 }}>
-                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                        <Typography variant="body2">Status:</Typography>
-                                                        {previewPayload.group.ok === true ?
-                                                            <Chip label="OK" color="success" size="small" /> :
-                                                            previewPayload.group.ok === false ?
-                                                                <Chip label="NOT OK" color="error" size="small" /> :
-                                                                <Chip label="-" size="small" />
-                                                        }
-                                                    </Box>
-                                                </Grid>
-                                                <Grid size={{ xs: 12, sm: 8 }}>
-                                                    <Typography variant="body2">
-                                                        <strong>Remarks:</strong> {previewPayload.group.remarks || "No remarks"}
-                                                    </Typography>
-                                                    {previewPayload.group.attachment && (
-                                                        <Typography variant="caption" display="block" mt={0.5} color="primary">
-                                                            Attachment: {previewPayload.group.attachment.name}
-                                                        </Typography>
-                                                    )}
-                                                </Grid>
-                                            </Grid>
-                                        </Box>
-
-                                        {/* Attached PDF Files Preview */}
-                                        {previewPayload.attachedFiles && previewPayload.attachedFiles.length > 0 && (
-                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                    {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
-                                                        <Chip
-                                                            key={idx}
-                                                            icon={<InsertDriveFileIcon />}
-                                                            label={fileName}
-                                                            variant="outlined"
-                                                            sx={{ bgcolor: 'white' }}
-                                                        />
-                                                    ))}
-                                                </Box>
+                                <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                    <Typography variant="subtitle2" mb={1} color="textSecondary">FINAL STATUS & REMARKS</Typography>
+                                    <Grid container spacing={2}>
+                                        <Grid size={{ xs: 12, sm: 4 }}>
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <Typography variant="body2">Status:</Typography>
+                                                {previewPayload?.group.ok === true ?
+                                                    <Chip label="OK" color="success" size="small" /> :
+                                                    previewPayload?.group.ok === false ?
+                                                        <Chip label="NOT OK" color="error" size="small" /> :
+                                                        <Chip label="-" size="small" />
+                                                }
                                             </Box>
-                                        )}
+                                        </Grid>
+                                        <Grid size={{ xs: 12, sm: 8 }}>
+                                            <Typography variant="body2">
+                                                <strong>Remarks:</strong> {previewPayload?.group.remarks || "No remarks"}
+                                            </Typography>
+                                            {previewPayload?.group.attachment && (
+                                                <Typography variant="caption" display="block" mt={0.5} color="primary">
+                                                    Attachment: {previewPayload.group.attachment.name}
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    </Grid>
+                                </Box>
 
-                                        {/* Additional Remarks Preview */}
-                                        {previewPayload.additionalRemarks && (
-                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
-                                                <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
-                                            </Box>
-                                        )}
+                                {/* Attached PDF Files Preview */}
+                                {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
+                                    <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                        <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                            {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
+                                                <Chip
+                                                    key={idx}
+                                                    icon={<InsertDriveFileIcon />}
+                                                    label={fileName}
+                                                    variant="outlined"
+                                                    sx={{ bgcolor: 'white' }}
+                                                />
+                                            ))}
+                                        </Box>
                                     </Box>
+                                )}
 
-                                    {alert && (
-                                        <Alert severity={alert.severity} sx={{ mt: 2 }}>{alert.message}</Alert>
-                                    )}
-                                </Box>
+                                {/* Additional Remarks Preview */}
+                                {previewPayload?.additionalRemarks && (
+                                    <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                        <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
+                                        <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
+                                    </Box>
+                                )}
+                            </Box>
 
-                                <Box sx={{ p: 2, px: 3, borderTop: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: 'white' }}>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => navigate('/dashboard')}
-                                        disabled={saving || submitted}
-                                        sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                                    >
-                                        Back to Edit
-                                    </Button>
-
-                                    {submitted ? (
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleExportPdf}
-                                            startIcon={<PrintIcon />}
-                                            sx={{ bgcolor: COLORS.primary }}
-                                        >
-                                            Download PDF
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleFinalSave}
-                                            disabled={saving}
-                                            sx={{ bgcolor: COLORS.secondary }}
-                                        >
-                                            {saving ? "Saving..." : "Confirm & Submit"}
-                                        </Button>
-                                    )}
-                                </Box>
-                            </Paper>
+                            {alert && (
+                                <Alert severity={alert.severity} sx={{ mt: 2 }}>{alert.message}</Alert>
+                            )}
                         </Box>
-                    )}
+                    </PreviewModal>
 
                     {/* PRINT SECTION */}
                     <Box className="print-section" sx={{ display: 'none' }}>
