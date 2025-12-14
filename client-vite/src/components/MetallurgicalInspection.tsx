@@ -703,8 +703,7 @@ export default function MetallurgicalInspection() {
     if (progressData) fetchData();
   }, [user, progressData]);
 
-  if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
+
 
   const updateRow = (setRows: React.Dispatch<React.SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
@@ -1018,162 +1017,170 @@ export default function MetallurgicalInspection() {
           <SaclHeader />
           <DepartmentHeader title="METALLURGICAL INSPECTION" userIP={userIP} user={user} />
 
-          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+          {assigned === null ? (
+            <LoadingState />
+          ) : !assigned ? (
+            <EmptyState title="No pending works at the moment" severity="warning" />
+          ) : (
+            <>
+              <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
-          <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
+              <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
-            {/* Input Controls */}
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="flex-end"
-              mb={1}
-              flexWrap="wrap"
-              gap={2}
-            >
-              <Box />
-
-              <Box display="flex" gap={2}>
-                <TextField
-                  size="small"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  sx={{ width: 160 }}
-                />
-              </Box>
-            </Box>
-
-            <AlertMessage alert={alert} />
-
-            {/* Tables */}
-            <MicrostructureTable
-              params={MICRO_PARAMS}
-              cols={microCols}
-              values={microValues}
-              meta={microMeta}
-              setCols={setMicroCols}
-              setValues={setMicroValues}
-              setMeta={setMicroMeta}
-              showAlert={showAlert}
-            />
-
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable
-                  key={`mech-${loadKey}`}
-                  title="MECHANICAL PROPERTIES"
-                  rows={mechRows}
-                  onChange={updateRow(setMechRows)}
-                  showAlert={showAlert}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable
-                  key={`impact-${loadKey}`}
-                  title="IMPACT STRENGTH"
-                  rows={impactRows}
-                  onChange={updateRow(setImpactRows)}
-                  showAlert={showAlert}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable
-                  key={`hard-${loadKey}`}
-                  title="HARDNESS"
-                  rows={hardRows}
-                  onChange={updateRow(setHardRows)}
-                  showAlert={showAlert}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <SectionTable
-                  key={`ndt-${loadKey}`}
-                  title="NDT INSPECTION ANALYSIS"
-                  rows={ndtRows}
-                  onChange={updateRow(setNdtRows)}
-                  showTotal={true}
-                  onValidationError={setNdtValidationError}
-                  showAlert={showAlert}
-                />
-              </Grid>
-            </Grid>
-
-            <ActionButtons
-              onReset={() => window.location.reload()}
-              onSave={handleSaveAndContinue}
-              loading={sending}
-              showSubmit={false}
-              saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-              saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
-            >
-              {user?.role === 'HOD' && (
-                <Button
-                  variant="outlined"
-                  onClick={() => setIsEditing(!isEditing)}
-                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                {/* Input Controls */}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="flex-end"
+                  mb={1}
+                  flexWrap="wrap"
+                  gap={2}
                 >
-                  {isEditing ? "Cancel Edit" : "Edit Details"}
-                </Button>
-              )}
-            </ActionButtons>
+                  <Box />
 
-          </Paper>
-
-          {/* Preview Overlay */}
-          <PreviewModal
-            open={previewMode && previewPayload}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            onExport={handleExportPDF}
-            title="Verify Inspection Data"
-            subtitle="Metallurgical Inspection Report"
-            submitted={previewSubmitted}
-          >
-            <Box sx={{ p: 4 }} ref={printRef}>
-              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
-                  <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
+                  <Box display="flex" gap={2}>
+                    <TextField
+                      size="small"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      sx={{ width: 160 }}
+                    />
+                  </Box>
                 </Box>
-                <Divider sx={{ mb: 3 }} />
 
-                {/* Render ALL sections */}
-                <PreviewMicroTable data={previewPayload?.microRows} />
-                <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
-                {/* <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} /> */}
-                <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
-                <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload?.ndtRows} />
+                <AlertMessage alert={alert} />
+
+                {/* Tables */}
+                <MicrostructureTable
+                  params={MICRO_PARAMS}
+                  cols={microCols}
+                  values={microValues}
+                  meta={microMeta}
+                  setCols={setMicroCols}
+                  setValues={setMicroValues}
+                  setMeta={setMicroMeta}
+                  showAlert={showAlert}
+                />
+
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SectionTable
+                      key={`mech-${loadKey}`}
+                      title="MECHANICAL PROPERTIES"
+                      rows={mechRows}
+                      onChange={updateRow(setMechRows)}
+                      showAlert={showAlert}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SectionTable
+                      key={`impact-${loadKey}`}
+                      title="IMPACT STRENGTH"
+                      rows={impactRows}
+                      onChange={updateRow(setImpactRows)}
+                      showAlert={showAlert}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SectionTable
+                      key={`hard-${loadKey}`}
+                      title="HARDNESS"
+                      rows={hardRows}
+                      onChange={updateRow(setHardRows)}
+                      showAlert={showAlert}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SectionTable
+                      key={`ndt-${loadKey}`}
+                      title="NDT INSPECTION ANALYSIS"
+                      rows={ndtRows}
+                      onChange={updateRow(setNdtRows)}
+                      showTotal={true}
+                      onValidationError={setNdtValidationError}
+                      showAlert={showAlert}
+                    />
+                  </Grid>
+                </Grid>
+
+                <ActionButtons
+                  onReset={() => window.location.reload()}
+                  onSave={handleSaveAndContinue}
+                  loading={sending}
+                  showSubmit={false}
+                  saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                  saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                >
+                  {user?.role === 'HOD' && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setIsEditing(!isEditing)}
+                      sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                    >
+                      {isEditing ? "Cancel Edit" : "Edit Details"}
+                    </Button>
+                  )}
+                </ActionButtons>
+
+              </Paper>
+
+              {/* Preview Overlay */}
+              <PreviewModal
+                open={previewMode && previewPayload}
+                onClose={() => setPreviewMode(false)}
+                onSubmit={handleFinalSave}
+                onExport={handleExportPDF}
+                title="Verify Inspection Data"
+                subtitle="Metallurgical Inspection Report"
+                submitted={previewSubmitted}
+              >
+                <Box sx={{ p: 4 }} ref={printRef}>
+                  <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
+                      <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
+                    </Box>
+                    <Divider sx={{ mb: 3 }} />
+
+                    {/* Render ALL sections */}
+                    <PreviewMicroTable data={previewPayload?.microRows} />
+                    <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
+                    {/* <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} /> */}
+                    <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
+                    <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload?.ndtRows} />
+                  </Box>
+
+                  {message && (
+                    <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
+                  )}
+                </Box>
+              </PreviewModal>
+
+              {/* Hidden Print Section */}
+              <Box className="print-section" sx={{ display: 'none' }}>
+                <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>METALLURGICAL INSPECTION REPORT</Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2">Date: {date}</Typography>
+                  </Box>
+                </Box>
+
+                {/* Render Print-specific tables */}
+                {previewPayload && (
+                  <>
+                    <PrintMicroTable data={previewPayload.microRows} />
+                    <PrintSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload.mechRows} />
+                    {/* <PrintSectionTable title="IMPACT STRENGTH" rows={previewPayload.impactRows} /> */}
+                    <PrintSectionTable title="HARDNESS" rows={previewPayload.hardRows} />
+                    <PrintSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload.ndtRows} />
+                  </>
+                )}
               </Box>
-
-              {message && (
-                <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
-              )}
-            </Box>
-          </PreviewModal>
-
-          {/* Hidden Print Section */}
-          <Box className="print-section" sx={{ display: 'none' }}>
-            <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>METALLURGICAL INSPECTION REPORT</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">Date: {date}</Typography>
-              </Box>
-            </Box>
-
-            {/* Render Print-specific tables */}
-            {previewPayload && (
-              <>
-                <PrintMicroTable data={previewPayload.microRows} />
-                <PrintSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload.mechRows} />
-                {/* <PrintSectionTable title="IMPACT STRENGTH" rows={previewPayload.impactRows} /> */}
-                <PrintSectionTable title="HARDNESS" rows={previewPayload.hardRows} />
-                <PrintSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload.ndtRows} />
-              </>
-            )}
-          </Box>
+            </>
+          )}
 
         </Container>
       </Box>

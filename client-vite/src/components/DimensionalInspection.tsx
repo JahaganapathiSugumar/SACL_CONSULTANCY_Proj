@@ -6,24 +6,24 @@ import { useAuth } from "../context/AuthContext";
 import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from "react-router-dom";
 import {
-  Paper,
-  Typography,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TextField,
-  IconButton,
-  Button,
-  Alert,
-  ThemeProvider,
-  createTheme,
-  Container,
-  Grid,
-  Chip,
-  Divider,
-  GlobalStyles,
+    Paper,
+    Typography,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    TextField,
+    IconButton,
+    Button,
+    Alert,
+    ThemeProvider,
+    createTheme,
+    Container,
+    Grid,
+    Chip,
+    Divider,
+    GlobalStyles,
 } from "@mui/material";
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -55,677 +55,683 @@ type CavRow = InspectionRow;
 type GroupMeta = GroupMetadata;
 
 export default function DimensionalInspection({
-  initialCavities = ["Value 1"],
-  onSave = async (payload: any) => {
-    console.log("DimensionalInspection default onSave", payload);
-    return { ok: true };
-  },
+    initialCavities = ["Value 1"],
+    onSave = async (payload: any) => {
+        console.log("DimensionalInspection default onSave", payload);
+        return { ok: true };
+    },
 }: {
-  initialCavities?: string[];
-  onSave?: (payload: any) => Promise<any> | any;
+    initialCavities?: string[];
+    onSave?: (payload: any) => Promise<any> | any;
 }) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
-  const [assigned, setAssigned] = useState<boolean | null>(null);
-  const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
-  const [weightTarget, setWeightTarget] = useState<string>("");
-  const [cavities, setCavities] = useState<string[]>([...initialCavities]);
-  const [cavRows, setCavRows] = useState<CavRow[]>(() => {
-    const makeCavRows = (cavLabels: string[]) => [
-      { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
-      { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
-    ];
-    return makeCavRows(initialCavities);
-  });
-  const [bunchWeight, setBunchWeight] = useState<string>("");
-  const [numberOfCavity, setNumberOfCavity] = useState<string>("");
-  const [groupMeta, setGroupMeta] = useState<GroupMeta>({ remarks: "", attachment: null });
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const { alert, showAlert } = useAlert();
-  const [userIP, setUserIP] = useState<string>("Loading...");
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
-  const [previewMode, setPreviewMode] = useState(false);
-  const [previewPayload, setPreviewPayload] = useState<any | null>(null);
-  const [previewSubmitted, setPreviewSubmitted] = useState(false);
-  const [progressData, setProgressData] = useState<any>(null);
-  const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
+    const [assigned, setAssigned] = useState<boolean | null>(null);
+    const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+    const [weightTarget, setWeightTarget] = useState<string>("");
+    const [cavities, setCavities] = useState<string[]>([...initialCavities]);
+    const [cavRows, setCavRows] = useState<CavRow[]>(() => {
+        const makeCavRows = (cavLabels: string[]) => [
+            { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
+            { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+        ];
+        return makeCavRows(initialCavities);
+    });
+    const [bunchWeight, setBunchWeight] = useState<string>("");
+    const [numberOfCavity, setNumberOfCavity] = useState<string>("");
+    const [groupMeta, setGroupMeta] = useState<GroupMeta>({ remarks: "", attachment: null });
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+    const { alert, showAlert } = useAlert();
+    const [userIP, setUserIP] = useState<string>("Loading...");
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
+    const [previewMode, setPreviewMode] = useState(false);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [previewSubmitted, setPreviewSubmitted] = useState(false);
+    const [progressData, setProgressData] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState(false); // HOD Edit Mode
 
-  useEffect(() => {
-    let mounted = true;
-    const check = async () => {
-      try {
-        const uname = user?.username ?? "";
-        const res = await getProgress(uname);
-        if (mounted) {
-          setAssigned(res.length > 0);
-          if (res.length > 0) setProgressData(res[0]);
-        }
-      } catch {
-        if (mounted) setAssigned(false);
-      }
-    };
-    if (user) check();
-    return () => { mounted = false; };
-  }, [user]);
-
-  // Fetch Logic for HOD
-  useEffect(() => {
-    const fetchData = async () => {
-      if (user?.role === 'HOD' && progressData?.trial_id) {
-        try {
-          const response = await inspectionService.getDimensionalInspection(progressData.trial_id);
-          console.log("DimensionalInspection fetchData", response);
-          if (response.success && response.data && response.data.length > 0) {
-            const data = response.data[0];
-            setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
-            setWeightTarget(String(data.casting_weight || ""));
-            setBunchWeight(String(data.bunch_weight || ""));
-            setNumberOfCavity(String(data.no_of_cavities || ""));
-            setGroupMeta({ remarks: data.remarks || "", attachment: null });
-            console.log("DimensionalInspection fetchData", data);
-            if (data.inspections) {
-              try {
-                const parsed = JSON.parse(data.inspections);
-                if (Array.isArray(parsed)) {
-                  // Restore columns (Headers lost, using generic)
-                  setCavities(parsed.map((_, i) => `Cavity ${i + 1}`));
-
-                  // Restore Rows
-                  setCavRows(prev => prev.map(row => {
-                    if (row.label === "Cavity number") {
-                      return { ...row, values: parsed.map(p => String(p["Cavity Number"] || "")) };
-                    }
-                    if (row.label === "Casting weight") {
-                      return { ...row, values: parsed.map(p => String(p["Casting Weight"] || "")) };
-                    }
-                    return row;
-                  }));
+    useEffect(() => {
+        let mounted = true;
+        const check = async () => {
+            try {
+                const uname = user?.username ?? "";
+                const res = await getProgress(uname);
+                if (mounted) {
+                    setAssigned(res.length > 0);
+                    if (res.length > 0) setProgressData(res[0]);
                 }
-              } catch (e) {
-                console.error("Error parsing inspections JSON", e);
-              }
+            } catch {
+                if (mounted) setAssigned(false);
             }
-          }
-        } catch (error) {
-          console.error("Failed to fetch dimensional data:", error);
-          showAlert('error', 'Failed to load existing data.');
-        }
-      }
-    };
-    if (progressData) fetchData();
-  }, [user, progressData]);
-
-
-
-  useEffect(() => {
-    const fetchUserIP = async () => {
-      const ip = await ipService.getUserIP();
-      setUserIP(ip);
-    };
-    fetchUserIP();
-  }, []);
-
-  if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
-
-  const makeCavRows = (cavLabels: string[]) => [
-    { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
-    { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
-  ];
-
-  const calculateYield = () => {
-    const castingWeight = parseFloat(weightTarget);
-    const numCavity = parseFloat(numberOfCavity);
-    const bunch = parseFloat(bunchWeight);
-
-    if (isNaN(castingWeight) || isNaN(numCavity) || isNaN(bunch) || bunch === 0) {
-      return "";
-    }
-
-    const yieldValue = ((castingWeight * numCavity) / bunch) * 100;
-    return yieldValue.toFixed(2);
-  };
-
-  const addCavity = () => {
-    const next = `Value ${cavities.length + 1}`;
-    setCavities((c) => [...c, next]);
-    setCavRows((rows) => rows.map((r) => ({ ...r, values: [...r.values, ""] })));
-  };
-
-  const handleAttachFiles = (newFiles: File[]) => {
-    setAttachedFiles(prev => [...prev, ...newFiles]);
-  };
-
-  const removeAttachedFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const removeCavity = (index: number) => {
-    if (cavities.length <= 1) return;
-    setCavities((c) => c.filter((_, i) => i !== index));
-    setCavRows((rows) => rows.map((r) => ({ ...r, values: r.values.filter((_, i) => i !== index) })));
-  };
-
-  const updateCavityLabel = (index: number, label: string) => {
-    setCavities((prev) => prev.map((c, i) => (i === index ? label : c)));
-  };
-
-  const updateCavCell = (rowId: string, colIndex: number, value: string) => {
-    setCavRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, values: r.values.map((v, i) => (i === colIndex ? value : v)) } : r)));
-  };
-
-  const resetAll = () => {
-    setDate(new Date().toISOString().slice(0, 10));
-    setWeightTarget("");
-    setCavities([...initialCavities]);
-    setCavRows(makeCavRows(initialCavities));
-    setBunchWeight("");
-    setNumberOfCavity("");
-    setGroupMeta({ remarks: "", attachment: null });
-    setAttachedFiles([]);
-    setAdditionalRemarks("");
-    setMessage(null);
-    setPreviewSubmitted(false);
-  };
-
-  const buildPayload = () => {
-    return {
-      inspection_date: date || null,
-      weight_target: weightTarget || null,
-      cavities: cavities.slice(),
-      cavity_rows: cavRows.map((r) => ({ label: r.label, values: r.values.map((v) => (v === "" ? null : v)) })),
-      bunch_weight: bunchWeight || null,
-      number_of_cavity: numberOfCavity || null,
-      yield: calculateYield() || null,
-      dimensional_remarks: groupMeta.remarks || null,
-      attachment: fileToMeta(groupMeta.attachment),
-      attachedFiles: attachedFiles.map(f => f.name),
-      additionalRemarks: additionalRemarks,
-      created_at: new Date().toISOString(),
-    };
-  };
-
-  const handleSaveAndContinue = async () => {
-    const payload = buildPayload();
-    setPreviewPayload(payload);
-    setPreviewMode(true);
-    setPreviewSubmitted(false);
-    setMessage(null);
-  };
-
-  const handleFinalSave = async () => {
-    if (!previewPayload) return;
-    setSaving(true);
-
-    // HOD Approval Logic
-    if (user?.role === 'HOD' && progressData) {
-      try {
-        // 1. Update Data if Edited
-        if (isEditing) {
-          const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
-          const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
-
-          const inspections = (previewPayload.cavities || []).map((_: any, i: number) => ({
-            "Cavity Number": (cavityRow?.values?.[i] ?? previewPayload.cavities[i] ?? null),
-            "Casting Weight": (castingRow?.values?.[i] ?? null)
-          }));
-
-          const updatePayload = {
-            trial_id: progressData.trial_id,
-            inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
-            casting_weight: parseFloat(previewPayload.weight_target) || 0,
-            bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
-            no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
-            yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
-            inspections: JSON.stringify(inspections),
-            remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
-          };
-
-          await inspectionService.updateDimensionalInspection(updatePayload);
-        }
-
-        // 2. Approve
-        const approvalPayload = {
-          trial_id: progressData.trial_id,
-          next_department_id: progressData.department_id + 1,
-          username: user.username,
-          role: user.role,
-          remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Approved by HOD"
         };
+        if (user) check();
+        return () => { mounted = false; };
+    }, [user]);
 
-        await updateDepartment(approvalPayload);
-        setPreviewSubmitted(true);
-        showAlert('success', 'Department progress approved successfully.');
-        setTimeout(() => navigate('/dashboard'), 1500);
-      } catch (err) {
-        showAlert('error', 'Failed to approve. Please try again.');
-        console.error("Approval error:", err);
-      } finally {
-        setSaving(false);
-      }
-      return;
-    }
+    // Fetch Logic for HOD
+    useEffect(() => {
+        const fetchData = async () => {
+            if (user?.role === 'HOD' && progressData?.trial_id) {
+                try {
+                    const response = await inspectionService.getDimensionalInspection(progressData.trial_id);
+                    console.log("DimensionalInspection fetchData", response);
+                    if (response.success && response.data && response.data.length > 0) {
+                        const data = response.data[0];
+                        setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
+                        setWeightTarget(String(data.casting_weight || ""));
+                        setBunchWeight(String(data.bunch_weight || ""));
+                        setNumberOfCavity(String(data.no_of_cavities || ""));
+                        setGroupMeta({ remarks: data.remarks || "", attachment: null });
+                        console.log("DimensionalInspection fetchData", data);
+                        if (data.inspections) {
+                            try {
+                                const parsed = JSON.parse(data.inspections);
+                                if (Array.isArray(parsed)) {
+                                    // Restore columns (Headers lost, using generic)
+                                    setCavities(parsed.map((_, i) => `Cavity ${i + 1}`));
 
-    try {
-      const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+                                    // Restore Rows
+                                    setCavRows(prev => prev.map(row => {
+                                        if (row.label === "Cavity number") {
+                                            return { ...row, values: parsed.map(p => String(p["Cavity Number"] || "")) };
+                                        }
+                                        if (row.label === "Casting weight") {
+                                            return { ...row, values: parsed.map(p => String(p["Casting Weight"] || "")) };
+                                        }
+                                        return row;
+                                    }));
+                                }
+                            } catch (e) {
+                                console.error("Error parsing inspections JSON", e);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch dimensional data:", error);
+                    showAlert('error', 'Failed to load existing data.');
+                }
+            }
+        };
+        if (progressData) fetchData();
+    }, [user, progressData]);
 
-      const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
-      const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
 
-      const inspections = (previewPayload.cavities || []).map((_: any, i: number) => ({
-        "Cavity Number": (cavityRow?.values?.[i] ?? previewPayload.cavities[i] ?? null),
-        "Casting Weight": (castingRow?.values?.[i] ?? null)
-      }));
 
-      const apiPayload = {
-        trial_id: trialId,
-        inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
-        casting_weight: parseFloat(previewPayload.weight_target) || 0,
-        bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
-        no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
-        yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
-        inspections: JSON.stringify(inspections),
-        remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
-      };
+    useEffect(() => {
+        const fetchUserIP = async () => {
+            const ip = await ipService.getUserIP();
+            setUserIP(ip);
+        };
+        fetchUserIP();
+    }, []);
 
-      await inspectionService.submitDimensionalInspection(apiPayload);
-      setPreviewSubmitted(true);
-      showAlert('success', 'Dimensional inspection created successfully.');
 
-      if (attachedFiles.length > 0) {
+
+    const makeCavRows = (cavLabels: string[]) => [
+        { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
+        { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+    ];
+
+    const calculateYield = () => {
+        const castingWeight = parseFloat(weightTarget);
+        const numCavity = parseFloat(numberOfCavity);
+        const bunch = parseFloat(bunchWeight);
+
+        if (isNaN(castingWeight) || isNaN(numCavity) || isNaN(bunch) || bunch === 0) {
+            return "";
+        }
+
+        const yieldValue = ((castingWeight * numCavity) / bunch) * 100;
+        return yieldValue.toFixed(2);
+    };
+
+    const addCavity = () => {
+        const next = `Value ${cavities.length + 1}`;
+        setCavities((c) => [...c, next]);
+        setCavRows((rows) => rows.map((r) => ({ ...r, values: [...r.values, ""] })));
+    };
+
+    const handleAttachFiles = (newFiles: File[]) => {
+        setAttachedFiles(prev => [...prev, ...newFiles]);
+    };
+
+    const removeAttachedFile = (index: number) => {
+        setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeCavity = (index: number) => {
+        if (cavities.length <= 1) return;
+        setCavities((c) => c.filter((_, i) => i !== index));
+        setCavRows((rows) => rows.map((r) => ({ ...r, values: r.values.filter((_, i) => i !== index) })));
+    };
+
+    const updateCavityLabel = (index: number, label: string) => {
+        setCavities((prev) => prev.map((c, i) => (i === index ? label : c)));
+    };
+
+    const updateCavCell = (rowId: string, colIndex: number, value: string) => {
+        setCavRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, values: r.values.map((v, i) => (i === colIndex ? value : v)) } : r)));
+    };
+
+    const resetAll = () => {
+        setDate(new Date().toISOString().slice(0, 10));
+        setWeightTarget("");
+        setCavities([...initialCavities]);
+        setCavRows(makeCavRows(initialCavities));
+        setBunchWeight("");
+        setNumberOfCavity("");
+        setGroupMeta({ remarks: "", attachment: null });
+        setAttachedFiles([]);
+        setAdditionalRemarks("");
+        setMessage(null);
+        setPreviewSubmitted(false);
+    };
+
+    const buildPayload = () => {
+        return {
+            inspection_date: date || null,
+            weight_target: weightTarget || null,
+            cavities: cavities.slice(),
+            cavity_rows: cavRows.map((r) => ({ label: r.label, values: r.values.map((v) => (v === "" ? null : v)) })),
+            bunch_weight: bunchWeight || null,
+            number_of_cavity: numberOfCavity || null,
+            yield: calculateYield() || null,
+            dimensional_remarks: groupMeta.remarks || null,
+            attachment: fileToMeta(groupMeta.attachment),
+            attachedFiles: attachedFiles.map(f => f.name),
+            additionalRemarks: additionalRemarks,
+            created_at: new Date().toISOString(),
+        };
+    };
+
+    const handleSaveAndContinue = async () => {
+        const payload = buildPayload();
+        setPreviewPayload(payload);
+        setPreviewMode(true);
+        setPreviewSubmitted(false);
+        setMessage(null);
+    };
+
+    const handleFinalSave = async () => {
+        if (!previewPayload) return;
+        setSaving(true);
+
+        // HOD Approval Logic
+        if (user?.role === 'HOD' && progressData) {
+            try {
+                // 1. Update Data if Edited
+                if (isEditing) {
+                    const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
+                    const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
+
+                    const inspections = (previewPayload.cavities || []).map((_: any, i: number) => ({
+                        "Cavity Number": (cavityRow?.values?.[i] ?? previewPayload.cavities[i] ?? null),
+                        "Casting Weight": (castingRow?.values?.[i] ?? null)
+                    }));
+
+                    const updatePayload = {
+                        trial_id: progressData.trial_id,
+                        inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
+                        casting_weight: parseFloat(previewPayload.weight_target) || 0,
+                        bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
+                        no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
+                        yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
+                        inspections: JSON.stringify(inspections),
+                        remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
+                    };
+
+                    await inspectionService.updateDimensionalInspection(updatePayload);
+                }
+
+                // 2. Approve
+                const approvalPayload = {
+                    trial_id: progressData.trial_id,
+                    next_department_id: progressData.department_id + 1,
+                    username: user.username,
+                    role: user.role,
+                    remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Approved by HOD"
+                };
+
+                await updateDepartment(approvalPayload);
+                setPreviewSubmitted(true);
+                showAlert('success', 'Department progress approved successfully.');
+                setTimeout(() => navigate('/dashboard'), 1500);
+            } catch (err) {
+                showAlert('error', 'Failed to approve. Please try again.');
+                console.error("Approval error:", err);
+            } finally {
+                setSaving(false);
+            }
+            return;
+        }
+
         try {
-          // Uncomment when ready
-          // const uploadResults = await uploadFiles(
-          //   attachedFiles,
-          //   trialId,
-          //   "DIMENSIONAL_INSPECTION",
-          //   user?.username || "system",
-          //   additionalRemarks || ""
-          // );
-        } catch (uploadError) {
-          console.error("File upload error:", uploadError);
+            const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+
+            const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
+            const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
+
+            const inspections = (previewPayload.cavities || []).map((_: any, i: number) => ({
+                "Cavity Number": (cavityRow?.values?.[i] ?? previewPayload.cavities[i] ?? null),
+                "Casting Weight": (castingRow?.values?.[i] ?? null)
+            }));
+
+            const apiPayload = {
+                trial_id: trialId,
+                inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
+                casting_weight: parseFloat(previewPayload.weight_target) || 0,
+                bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
+                no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
+                yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
+                inspections: JSON.stringify(inspections),
+                remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
+            };
+
+            await inspectionService.submitDimensionalInspection(apiPayload);
+            setPreviewSubmitted(true);
+            showAlert('success', 'Dimensional inspection created successfully.');
+
+            if (attachedFiles.length > 0) {
+                try {
+                    // Uncomment when ready
+                    // const uploadResults = await uploadFiles(
+                    //   attachedFiles,
+                    //   trialId,
+                    //   "DIMENSIONAL_INSPECTION",
+                    //   user?.username || "system",
+                    //   additionalRemarks || ""
+                    // );
+                } catch (uploadError) {
+                    console.error("File upload error:", uploadError);
+                }
+            }
+
+            if (progressData) {
+                try {
+                    await updateDepartmentRole({
+                        trial_id: progressData.trial_id,
+                        current_department_id: progressData.department_id,
+                        username: user?.username || "user",
+                        role: "user",
+                        remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Completed by user"
+                    });
+                } catch (roleError) {
+                    console.error("Failed to update role progress:", roleError);
+                }
+            }
+
+            navigate('/dashboard');
+        } catch (err: any) {
+            console.error("Error saving dimensional inspection:", err);
+            showAlert('error', 'Failed to save dimensional inspection. Please try again.');
+        } finally {
+            setSaving(false);
         }
-      }
+    };
 
-      if (progressData) {
-        try {
-          await updateDepartmentRole({
-            trial_id: progressData.trial_id,
-            current_department_id: progressData.department_id,
-            username: user?.username || "user",
-            role: "user",
-            remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Completed by user"
-          });
-        } catch (roleError) {
-          console.error("Failed to update role progress:", roleError);
-        }
-      }
+    const handleExportPDF = () => {
+        window.print();
+    };
 
-      navigate('/dashboard');
-    } catch (err: any) {
-      console.error("Error saving dimensional inspection:", err);
-      showAlert('error', 'Failed to save dimensional inspection. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
+    return (
+        <ThemeProvider theme={appTheme}>
+            <GlobalStyles styles={{
+                "@media print": {
+                    "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
+                    "body *": { visibility: "hidden" },
+                    ".print-section, .print-section *": { visibility: "visible" },
+                    ".print-section": { display: "block !important", position: "absolute", left: 0, top: 0, width: "100%", color: "black", backgroundColor: "white", padding: "20px" },
+                    ".MuiModal-root": { display: "none !important" }
+                }
+            }} />
 
-  const handleExportPDF = () => {
-    window.print();
-  };
+            <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
+                <Container maxWidth="xl" disableGutters>
 
-  return (
-    <ThemeProvider theme={appTheme}>
-      <GlobalStyles styles={{
-        "@media print": {
-          "html, body": { height: "initial !important", overflow: "initial !important", backgroundColor: "white !important" },
-          "body *": { visibility: "hidden" },
-          ".print-section, .print-section *": { visibility: "visible" },
-          ".print-section": { display: "block !important", position: "absolute", left: 0, top: 0, width: "100%", color: "black", backgroundColor: "white", padding: "20px" },
-          ".MuiModal-root": { display: "none !important" }
-        }
-      }} />
+                    <SaclHeader />
 
-      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
-        <Container maxWidth="xl" disableGutters>
+                    <DepartmentHeader title="DIMENSIONAL INSPECTION" userIP={userIP} user={user} />
 
-          <SaclHeader />
+                    {assigned === null ? (
+                        <LoadingState />
+                    ) : !assigned ? (
+                        <EmptyState title="No pending works at the moment" severity="warning" />
+                    ) : (
+                        <>
+                            <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
-          <DepartmentHeader title="DIMENSIONAL INSPECTION" userIP={userIP} user={user} />
+                            <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
-          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+                                <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                    <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                                    <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>DIMENSIONAL DETAILS</Typography>
+                                </Box>
+                                <Divider sx={{ mb: 3, borderColor: COLORS.border }} />
 
-          <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
+                                <AlertMessage alert={alert} />
 
-            <Box display="flex" alignItems="center" gap={1} mb={1}>
-              <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>DIMENSIONAL DETAILS</Typography>
+                                <Grid container spacing={3} sx={{ mb: 3 }}>
+                                    <Grid size={{ xs: 12, md: 3 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
+                                        <TextField
+                                            type="date"
+                                            size="small"
+                                            fullWidth
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            sx={{ bgcolor: 'white' }}
+                                            disabled={user?.role === 'HOD' && !isEditing}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, md: 3 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Casting Weight (Kg)</Typography>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            placeholder="e.g. 12.5"
+                                            value={weightTarget}
+                                            onChange={(e) => setWeightTarget(e.target.value)}
+                                            sx={{ bgcolor: 'white' }}
+                                            disabled={user?.role === 'HOD' && !isEditing}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, md: 2 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Bunch Weight (Kg)</Typography>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            placeholder="Total Bunch Wt"
+                                            value={bunchWeight}
+                                            onChange={(e) => setBunchWeight(e.target.value)}
+                                            sx={{ bgcolor: 'white' }}
+                                            disabled={user?.role === 'HOD' && !isEditing}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, md: 2 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Number of Cavity</Typography>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            type="number"
+                                            placeholder="e.g. 4"
+                                            value={numberOfCavity}
+                                            onChange={(e) => setNumberOfCavity(e.target.value)}
+                                            sx={{ bgcolor: 'white' }}
+                                            disabled={user?.role === 'HOD' && !isEditing}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, md: 2 }}>
+                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yield (%)</Typography>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            value={calculateYield()}
+                                            InputProps={{ readOnly: true }}
+                                            sx={{ bgcolor: 'white', '& .MuiInputBase-input': { fontWeight: 700 } }}
+                                        />
+                                    </Grid>
+                                </Grid>
+
+                                <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ bgcolor: COLORS.blueHeaderBg }}>
+                                                <TableCell sx={{ minWidth: 200, color: COLORS.blueHeaderText }}>Parameter</TableCell>
+                                                {cavities.map((c, ci) => (
+                                                    <TableCell key={ci} sx={{ minWidth: 140 }}>
+                                                        <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                                            <TextField
+                                                                size="small"
+                                                                variant="standard"
+                                                                value={c}
+                                                                onChange={(e) => updateCavityLabel(ci, e.target.value)}
+                                                                InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                                sx={{ input: { textAlign: 'center' } }}
+                                                                disabled={user?.role === 'HOD' && !isEditing}
+                                                            />
+                                                            <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
+                                                                <DeleteIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        </TableHead>
+
+                                        <TableBody>
+                                            {cavRows.map((r, ri) => (
+                                                <TableRow key={r.id}>
+                                                    <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
+                                                        {r.label}
+                                                    </TableCell>
+                                                    {r.values.map((val, ci) => (
+                                                        <TableCell key={ci}>
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                value={val}
+                                                                onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
+                                                                variant="outlined"
+                                                                sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                                                                disabled={user?.role === 'HOD' && !isEditing}
+                                                            />
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </Box>
+
+                                <Button
+                                    size="small"
+                                    onClick={addCavity}
+                                    startIcon={<AddCircleIcon />}
+                                    sx={{ mt: 1, color: COLORS.secondary }}
+                                    disabled={user?.role === 'HOD' && !isEditing}
+                                >
+                                    Add Column
+                                </Button>
+
+                                <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                        Attach PDF / Image Files
+                                    </Typography>
+                                    <FileUploadSection
+                                        files={attachedFiles}
+                                        onFilesChange={handleAttachFiles}
+                                        onFileRemove={removeAttachedFile}
+                                        showAlert={showAlert}
+                                        label="Attach PDF"
+                                    />
+                                </Box>
+                            </Paper>
+
+                            <Paper sx={{ p: 3, mb: 3 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
+                                    <EditIcon sx={{ color: COLORS.primary }} />
+                                    <Typography variant="subtitle2" sx={{ color: COLORS.primary, flexGrow: 1 }}>
+                                        Additional Remarks
+                                    </Typography>
+                                </Box>
+                                <TextField
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    variant="outlined"
+                                    placeholder="Enter additional remarks..."
+                                    value={additionalRemarks}
+                                    onChange={(e) => setAdditionalRemarks(e.target.value)}
+                                    sx={{ bgcolor: '#fff' }}
+                                    disabled={user?.role === 'HOD' && !isEditing}
+                                />
+                            </Paper>
+
+                            <ActionButtons
+                                onReset={resetAll}
+                                onSave={handleSaveAndContinue}
+                                showSubmit={false}
+                                saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                                saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                            >
+                                {user?.role === 'HOD' && (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => setIsEditing(!isEditing)}
+                                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                    >
+                                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                                    </Button>
+                                )}
+                            </ActionButtons>
+
+                            <PreviewModal
+                                open={previewMode && previewPayload}
+                                onClose={() => setPreviewMode(false)}
+                                onSubmit={handleFinalSave}
+                                onExport={handleExportPDF}
+                                title="Verify Inspection Data"
+                                subtitle="Dimensional Inspection Report"
+                                submitted={previewSubmitted}
+                            >
+                                <Box sx={{ p: 4 }}>
+                                    <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                            <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Dimensional Inspection Report</Typography>
+                                            <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
+                                        </Box>
+                                        <Divider sx={{ mb: 3 }} />
+
+                                        <Grid container spacing={2} sx={{ mb: 3 }}>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography variant="caption" color="textSecondary">TARGET WEIGHT</Typography>
+                                                <Typography variant="body1" fontWeight="bold">{previewPayload?.weight_target || "-"} Kg</Typography>
+                                            </Grid>
+                                            <Grid size={{ xs: 12, md: 6 }}>
+                                                <Typography variant="caption" color="textSecondary">BUNCH WEIGHT</Typography>
+                                                <Typography variant="body1" fontWeight="bold">{previewPayload?.bunch_weight || "-"} Kg</Typography>
+                                            </Grid>
+                                        </Grid>
+
+                                        <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                                                        {previewPayload?.cavities.map((c: string, i: number) => (
+                                                            <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {previewPayload?.cavity_rows.map((r: any, idx: number) => (
+                                                        <TableRow key={idx}>
+                                                            <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
+                                                            {r.values.map((v: any, j: number) => (
+                                                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                                                    {v === null ? "-" : String(v)}
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </Box>
+
+                                        <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                            {previewPayload?.attachment && (
+                                                <Typography variant="caption" display="block" mt={1} color="primary">
+                                                    Attachment: {previewPayload.attachment.name}
+                                                </Typography>
+                                            )}
+                                        </Box>
+
+                                        {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
+                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                    {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
+                                                        <Chip
+                                                            key={idx}
+                                                            icon={<InsertDriveFileIcon />}
+                                                            label={fileName}
+                                                            variant="outlined"
+                                                            sx={{ bgcolor: 'white' }}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            </Box>
+                                        )}
+
+                                        {previewPayload?.additionalRemarks && (
+                                            <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                                <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
+                                                <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {previewSubmitted && (
+                                        <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
+                                    )}
+                                </Box>
+                            </PreviewModal>
+
+                            <Box className="print-section" sx={{ display: 'none' }}>
+                                <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                                    <Box>
+                                        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>DIMENSIONAL INSPECTION REPORT</Typography>
+                                    </Box>
+                                    <Box sx={{ textAlign: 'right' }}>
+                                        <Typography variant="body2">IP: {userIP}</Typography>
+                                        {previewPayload && <Typography variant="body2">Date: {previewPayload.inspection_date}</Typography>}
+                                    </Box>
+                                </Box>
+
+                                {previewPayload && (
+                                    <>
+                                        <Box sx={{ mb: 3, display: 'flex', gap: 4 }}>
+                                            <Typography><strong>Target Weight:</strong> {previewPayload.weight_target} Kg</Typography>
+                                            <Typography><strong>Bunch Weight:</strong> {previewPayload.bunch_weight} Kg</Typography>
+                                        </Box>
+
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '12px' }}>
+                                            <thead>
+                                                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                                                    <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>Parameter</th>
+                                                    {previewPayload.cavities.map((c: string, i: number) => (
+                                                        <th key={i} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>{c}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {previewPayload.cavity_rows.map((r: any, idx: number) => (
+                                                    <tr key={idx}>
+                                                        <td style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{r.label}</td>
+                                                        {r.values.map((v: any, j: number) => (
+                                                            <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
+                                                                {v === null ? "" : String(v)}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+
+                                        <div style={{ marginTop: "20px", padding: "10px", border: "1px solid black" }}>
+                                            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>General Remarks</div>
+                                            <div>{previewPayload.dimensional_remarks || '-'}</div>
+                                        </div>
+                                    </>
+                                )}
+                            </Box>
+                        </>
+                    )}
+                </Container>
             </Box>
-            <Divider sx={{ mb: 3, borderColor: COLORS.border }} />
-
-            <AlertMessage alert={alert} />
-
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
-                <TextField
-                  type="date"
-                  size="small"
-                  fullWidth
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  sx={{ bgcolor: 'white' }}
-                  disabled={user?.role === 'HOD' && !isEditing}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Casting Weight (Kg)</Typography>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="e.g. 12.5"
-                  value={weightTarget}
-                  onChange={(e) => setWeightTarget(e.target.value)}
-                  sx={{ bgcolor: 'white' }}
-                  disabled={user?.role === 'HOD' && !isEditing}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Bunch Weight (Kg)</Typography>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Total Bunch Wt"
-                  value={bunchWeight}
-                  onChange={(e) => setBunchWeight(e.target.value)}
-                  sx={{ bgcolor: 'white' }}
-                  disabled={user?.role === 'HOD' && !isEditing}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Number of Cavity</Typography>
-                <TextField
-                  size="small"
-                  fullWidth
-                  type="number"
-                  placeholder="e.g. 4"
-                  value={numberOfCavity}
-                  onChange={(e) => setNumberOfCavity(e.target.value)}
-                  sx={{ bgcolor: 'white' }}
-                  disabled={user?.role === 'HOD' && !isEditing}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yield (%)</Typography>
-                <TextField
-                  size="small"
-                  fullWidth
-                  value={calculateYield()}
-                  InputProps={{ readOnly: true }}
-                  sx={{ bgcolor: 'white', '& .MuiInputBase-input': { fontWeight: 700 } }}
-                />
-              </Grid>
-            </Grid>
-
-            <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: COLORS.blueHeaderBg }}>
-                    <TableCell sx={{ minWidth: 200, color: COLORS.blueHeaderText }}>Parameter</TableCell>
-                    {cavities.map((c, ci) => (
-                      <TableCell key={ci} sx={{ minWidth: 140 }}>
-                        <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                          <TextField
-                            size="small"
-                            variant="standard"
-                            value={c}
-                            onChange={(e) => updateCavityLabel(ci, e.target.value)}
-                            InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
-                            sx={{ input: { textAlign: 'center' } }}
-                            disabled={user?.role === 'HOD' && !isEditing}
-                          />
-                          <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {cavRows.map((r, ri) => (
-                    <TableRow key={r.id}>
-                      <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
-                        {r.label}
-                      </TableCell>
-                      {r.values.map((val, ci) => (
-                        <TableCell key={ci}>
-                          <TextField
-                            size="small"
-                            fullWidth
-                            value={val}
-                            onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
-                            variant="outlined"
-                            sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                            disabled={user?.role === 'HOD' && !isEditing}
-                          />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-
-            <Button
-              size="small"
-              onClick={addCavity}
-              startIcon={<AddCircleIcon />}
-              sx={{ mt: 1, color: COLORS.secondary }}
-              disabled={user?.role === 'HOD' && !isEditing}
-            >
-              Add Column
-            </Button>
-
-            <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                Attach PDF / Image Files
-              </Typography>
-              <FileUploadSection
-                files={attachedFiles}
-                onFilesChange={handleAttachFiles}
-                onFileRemove={removeAttachedFile}
-                showAlert={showAlert}
-                label="Attach PDF"
-              />
-            </Box>
-          </Paper>
-
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
-              <EditIcon sx={{ color: COLORS.primary }} />
-              <Typography variant="subtitle2" sx={{ color: COLORS.primary, flexGrow: 1 }}>
-                Additional Remarks
-              </Typography>
-            </Box>
-            <TextField
-              multiline
-              rows={3}
-              fullWidth
-              variant="outlined"
-              placeholder="Enter additional remarks..."
-              value={additionalRemarks}
-              onChange={(e) => setAdditionalRemarks(e.target.value)}
-              sx={{ bgcolor: '#fff' }}
-              disabled={user?.role === 'HOD' && !isEditing}
-            />
-          </Paper>
-
-          <ActionButtons
-            onReset={resetAll}
-            onSave={handleSaveAndContinue}
-            showSubmit={false}
-            saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-            saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
-          >
-            {user?.role === 'HOD' && (
-              <Button
-                variant="outlined"
-                onClick={() => setIsEditing(!isEditing)}
-                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-              >
-                {isEditing ? "Cancel Edit" : "Edit Details"}
-              </Button>
-            )}
-          </ActionButtons>
-
-          <PreviewModal
-            open={previewMode && previewPayload}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            onExport={handleExportPDF}
-            title="Verify Inspection Data"
-            subtitle="Dimensional Inspection Report"
-            submitted={previewSubmitted}
-          >
-            <Box sx={{ p: 4 }}>
-              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Dimensional Inspection Report</Typography>
-                  <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
-                </Box>
-                <Divider sx={{ mb: 3 }} />
-
-                <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="caption" color="textSecondary">TARGET WEIGHT</Typography>
-                    <Typography variant="body1" fontWeight="bold">{previewPayload?.weight_target || "-"} Kg</Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="caption" color="textSecondary">BUNCH WEIGHT</Typography>
-                    <Typography variant="body1" fontWeight="bold">{previewPayload?.bunch_weight || "-"} Kg</Typography>
-                  </Grid>
-                </Grid>
-
-                <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                        {previewPayload?.cavities.map((c: string, i: number) => (
-                          <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {previewPayload?.cavity_rows.map((r: any, idx: number) => (
-                        <TableRow key={idx}>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                          {r.values.map((v: any, j: number) => (
-                            <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                              {v === null ? "-" : String(v)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Box>
-
-                <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                  {previewPayload?.attachment && (
-                    <Typography variant="caption" display="block" mt={1} color="primary">
-                      Attachment: {previewPayload.attachment.name}
-                    </Typography>
-                  )}
-                </Box>
-
-                {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
-                  <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                    <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
-                        <Chip
-                          key={idx}
-                          icon={<InsertDriveFileIcon />}
-                          label={fileName}
-                          variant="outlined"
-                          sx={{ bgcolor: 'white' }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-
-                {previewPayload?.additionalRemarks && (
-                  <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                    <Typography variant="subtitle2" mb={1} color="textSecondary">ADDITIONAL REMARKS</Typography>
-                    <Typography variant="body2">{previewPayload.additionalRemarks}</Typography>
-                  </Box>
-                )}
-              </Box>
-
-              {previewSubmitted && (
-                <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
-              )}
-            </Box>
-          </PreviewModal>
-
-          <Box className="print-section" sx={{ display: 'none' }}>
-            <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>DIMENSIONAL INSPECTION REPORT</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">IP: {userIP}</Typography>
-                {previewPayload && <Typography variant="body2">Date: {previewPayload.inspection_date}</Typography>}
-              </Box>
-            </Box>
-
-            {previewPayload && (
-              <>
-                <Box sx={{ mb: 3, display: 'flex', gap: 4 }}>
-                  <Typography><strong>Target Weight:</strong> {previewPayload.weight_target} Kg</Typography>
-                  <Typography><strong>Bunch Weight:</strong> {previewPayload.bunch_weight} Kg</Typography>
-                </Box>
-
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '12px' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f0f0f0' }}>
-                      <th style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>Parameter</th>
-                      {previewPayload.cavities.map((c: string, i: number) => (
-                        <th key={i} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>{c}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewPayload.cavity_rows.map((r: any, idx: number) => (
-                      <tr key={idx}>
-                        <td style={{ border: '1px solid black', padding: '8px', fontWeight: 'bold' }}>{r.label}</td>
-                        {r.values.map((v: any, j: number) => (
-                          <td key={j} style={{ border: '1px solid black', padding: '8px', textAlign: 'center' }}>
-                            {v === null ? "" : String(v)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div style={{ marginTop: "20px", padding: "10px", border: "1px solid black" }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>General Remarks</div>
-                  <div>{previewPayload.dimensional_remarks || '-'}</div>
-                </div>
-              </>
-            )}
-          </Box>
-
-        </Container>
-      </Box>
-    </ThemeProvider >
-  );
+        </ThemeProvider >
+    );
 };

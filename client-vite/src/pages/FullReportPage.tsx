@@ -30,15 +30,21 @@ const ReportSection = ({ title, children }: { title: string, children: React.Rea
     </Box>
 );
 
-const KeyValueGrid = ({ data }: { data: { label: string, value: string }[] }) => (
-    <Grid container spacing={1} sx={{ mb: 2 }}>
-        {data.map((item, index) => (
-            <Grid size={{ xs: 6, md: 3 }} key={index}>
-                <Typography variant="caption" color="textSecondary" display="block">{item.label}</Typography>
-                <Typography variant="body2" fontWeight="bold">{item.value || "-"}</Typography>
-            </Grid>
-        ))}
-    </Grid>
+const VerticalTable = ({ data }: { data: { label: string, value: string | number | null }[] }) => (
+    <Table size="small" sx={{ border: '1px solid #ddd', mb: 2 }}>
+        <TableBody>
+            {data.map((item, index) => (
+                <TableRow key={index}>
+                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5', width: '40%', border: '1px solid #ddd' }}>
+                        {item.label}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #ddd' }}>
+                        {item.value || "-"}
+                    </TableCell>
+                </TableRow>
+            ))}
+        </TableBody>
+    </Table>
 );
 
 const SimpleTable = ({ headers, rows }: { headers: string[], rows: (string | number | null)[][] }) => (
@@ -113,6 +119,7 @@ export default function FullReportPage() {
     const meta = data.metallurgical_inspection?.[0] || {};
     const visual = data.visual_inspection?.[0] || {};
     const dimensional = data.dimensional_inspection?.[0] || {};
+    console.log(dimensional);
     const mcShop = data.machine_shop?.[0] || {};
 
     const safeParse = (data: any, fallback: any = {}) => {
@@ -159,7 +166,7 @@ export default function FullReportPage() {
                     {/* 0. TRIAL CARD DETAILS */}
                     {Object.keys(trialCard).length > 0 && (
                         <ReportSection title="0. TRIAL CARD DETAILS">
-                            <KeyValueGrid data={[
+                            <VerticalTable data={[
                                 { label: "Part Name", value: trialCard.part_name },
                                 { label: "Pattern Code", value: trialCard.pattern_code },
                                 { label: "Trial No", value: trialCard.trial_id },
@@ -174,7 +181,7 @@ export default function FullReportPage() {
                     {/* 1. POURING DETAILS */}
                     {Object.keys(pouring).length > 0 && (
                         <ReportSection title="1. POURING DETAILS">
-                            <KeyValueGrid data={[
+                            <VerticalTable data={[
                                 { label: "Pour Date", value: pouring.pour_date },
                                 { label: "Heat Code", value: pouring.heat_code },
                                 { label: "Pouring Temp (°C)", value: pouring.pouring_temp_c },
@@ -195,7 +202,7 @@ export default function FullReportPage() {
                     {/* 2. SAND PROPERTIES */}
                     {Object.keys(sand).length > 0 && (
                         <ReportSection title="2. SAND PROPERTIES">
-                            <KeyValueGrid data={[
+                            <VerticalTable data={[
                                 { label: "Date", value: sand.date },
                                 { label: "T. Clay %", value: sand.t_clay },
                                 { label: "A. Clay %", value: sand.a_clay },
@@ -214,7 +221,7 @@ export default function FullReportPage() {
                     {/* 3. MOULDING DETAILS */}
                     {Object.keys(moulding).length > 0 && (
                         <ReportSection title="3. MOULD CORRECTION">
-                            <KeyValueGrid data={[
+                            <VerticalTable data={[
                                 { label: "Date", value: moulding.date },
                                 { label: "Mould Thickness", value: moulding.mould_thickness },
                                 { label: "Compressibility", value: moulding.compressability },
@@ -303,41 +310,26 @@ export default function FullReportPage() {
                     {/* 5. VISUAL INSPECTION */}
                     {Object.keys(visual).length > 0 && (
                         <ReportSection title="5. VISUAL INSPECTION">
-                            <KeyValueGrid data={[
-                                { label: "Inspector", value: visual.user_name || '-' }, // specific to visual? Maybe user_name is not in DB? using visual.remarks for now?
-                                // visualInspection.js doesn't select user_name, audit_log tracks it. 
-                                // Actually visual_inspection table doesn't have user_name column.
-                                // It has visual_ok, remarks.
+                            <VerticalTable data={[
+                                { label: "Inspector", value: visual.user_name || '-' },
                                 { label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" },
                             ]} />
                             <Typography variant="subtitle2" fontWeight="bold">Remarks</Typography>
                             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>{visual.remarks}</Typography>
-
                             {/* Visual Inspections Table */}
                             {(() => {
-                                let visInspections = [];
-                                try { visInspections = JSON.parse(visual.inspections || '[]'); } catch (e) { }
-                                if (visInspections.length > 0) {
-                                    return (
-                                        <Table size="small" sx={{ border: '1px solid #ddd' }}>
-                                            <TableHead>
-                                                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                                                    {Object.keys(visInspections[0]).map((k, i) => (
-                                                        <TableCell key={i} sx={{ border: '1px solid #ddd', fontWeight: 'bold' }}>{k}</TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {visInspections.map((row: any, i: number) => (
-                                                    <TableRow key={i}>
-                                                        {Object.values(row).map((val: any, j: number) => (
-                                                            <TableCell key={j} sx={{ border: '1px solid #ddd' }}>{val}</TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    );
+                                const visInspections = safeParse(visual.inspections, []);
+                                if (Array.isArray(visInspections) && visInspections.length > 0) {
+                                    const headers = [
+                                        'Cavity number',
+                                        'Inspected Quantity',
+                                        'Accepted Quantity',
+                                        'Rejected Quantity',
+                                        'Rejection Percentage',
+                                        'Reason for rejection'
+                                    ];
+                                    const rows = visInspections.map((row: any) => headers.map(h => row[h]));
+                                    return <SimpleTable headers={headers} rows={rows} />;
                                 }
                                 return null;
                             })()}
@@ -347,7 +339,7 @@ export default function FullReportPage() {
                     {/* 6. DIMENSIONAL INSPECTION */}
                     {Object.keys(dimensional).length > 0 && (
                         <ReportSection title="6. DIMENSIONAL INSPECTION">
-                            <KeyValueGrid data={[
+                            <VerticalTable data={[
                                 { label: "Inspection Date", value: dimensional.inspection_date },
                                 { label: "Casting Weight (kg)", value: dimensional.casting_weight },
                                 { label: "Bunch Weight (kg)", value: dimensional.bunch_weight },
@@ -359,29 +351,12 @@ export default function FullReportPage() {
 
                             {/* Dimensional Inspections Table */}
                             {(() => {
-                                let dimInspections = [];
-                                try { dimInspections = JSON.parse(dimensional.inspections || '[]'); } catch (e) { }
-                                if (dimInspections.length > 0) {
-                                    return (
-                                        <Table size="small" sx={{ border: '1px solid #ddd' }}>
-                                            <TableHead>
-                                                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                                                    {Object.keys(dimInspections[0]).map((k, i) => (
-                                                        <TableCell key={i} sx={{ border: '1px solid #ddd', fontWeight: 'bold' }}>{k}</TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {dimInspections.map((row: any, i: number) => (
-                                                    <TableRow key={i}>
-                                                        {Object.values(row).map((val: any, j: number) => (
-                                                            <TableCell key={j} sx={{ border: '1px solid #ddd' }}>{val}</TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    );
+                                const dimInspections = safeParse(dimensional.inspections, []);
+                                if (Array.isArray(dimInspections) && dimInspections.length > 0) {
+                                    // Explicitly define headers to ensure correct order
+                                    const headers = ["Cavity Number", "Casting Weight"];
+                                    const rows = dimInspections.map((row: any) => headers.map((h) => row[h]));
+                                    return <SimpleTable headers={headers} rows={rows} />;
                                 }
                                 return null;
                             })()}

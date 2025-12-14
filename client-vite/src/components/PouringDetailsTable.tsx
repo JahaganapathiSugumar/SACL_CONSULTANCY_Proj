@@ -42,7 +42,7 @@ import { inspectionService } from '../services/inspectionService';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, Common, EmptyState } from './common';
+import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, Common, EmptyState, LoadingState } from './common';
 
 
 
@@ -328,8 +328,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         fetchIP();
     }, []);
 
-    if (assigned === null) return <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}><CircularProgress /></Box>;
-    if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
+
 
     const handleSaveAndContinue = () => {
         const payload = {
@@ -504,318 +503,326 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         )}
                     />
 
-                    <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
-
-
-                    <AlertMessage alert={alert} />
-
-                    {loading ? (
-                        <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}><CircularProgress /></Box>
+                    {assigned === null ? (
+                        <LoadingState />
+                    ) : !assigned ? (
+                        <EmptyState title="No pending works at the moment" severity="warning" />
                     ) : (
-                        <Grid container spacing={3}>
+                        <>
+                            <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
 
-                            <Grid size={{ xs: 12 }}>
-                                <Paper sx={{ p: { xs: 1, md: 2 }, overflow: "hidden" }}>
-                                    <Box sx={{ overflowX: "auto" }}>
-                                        <Table size="small" sx={{ minWidth: 1000, border: `2px solid ${COLORS.primary}` }}>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell width="12%">Date &<br />Heat code</TableCell>
-                                                    <TableCell width="35%">Composition</TableCell>
-                                                    <TableCell width="18%">
-                                                        Pouring<br />Temperature<br />Deg.C
-                                                    </TableCell>
-                                                    <TableCell width="10%">
-                                                        Pouring<br />Time<br />(Sec.)
-                                                    </TableCell>
-                                                    <TableCell width="25%"><br /></TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                <TableRow>
+                            <AlertMessage alert={alert} />
 
-                                                    <TableCell>
-                                                        <Box display="flex" flexDirection="column" gap={2}>
-                                                            <Box>
-                                                                <LabelText>Date</LabelText>
-                                                                <SpecInput
-                                                                    type="date"
-                                                                    value={pouringDate}
-                                                                    onChange={(e: any) => setPouringDate(e.target.value)}
-                                                                    inputStyle={{ textAlign: 'left' }}
-                                                                    disabled={user?.role === 'HOD' && !isEditing}
-                                                                />
-                                                            </Box>
-                                                            <Box>
-                                                                <LabelText>Heat Code</LabelText>
-                                                                <SpecInput
-                                                                    placeholder="Code"
-                                                                    value={heatCode}
-                                                                    onChange={(e: any) => setHeatCode(e.target.value)}
-                                                                    disabled={user?.role === 'HOD' && !isEditing}
-                                                                />
-                                                            </Box>
-                                                        </Box>
-                                                    </TableCell>
+                            {loading ? (
+                                <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}><CircularProgress /></Box>
+                            ) : (
+                                <Grid container spacing={3}>
 
 
-                                                    <TableCell>
-                                                        <Grid container spacing={1}>
-                                                            {["C", "Si", "Mn", "P"].map((el) => (
-                                                                <Grid size={{ xs: 6, sm: 3 }} key={el}>
-                                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                                        <Typography variant="body2" fontWeight="bold">{el}-</Typography>
+                                    <Grid size={{ xs: 12 }}>
+                                        <Paper sx={{ p: { xs: 1, md: 2 }, overflow: "hidden" }}>
+                                            <Box sx={{ overflowX: "auto" }}>
+                                                <Table size="small" sx={{ minWidth: 1000, border: `2px solid ${COLORS.primary}` }}>
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell width="12%">Date &<br />Heat code</TableCell>
+                                                            <TableCell width="35%">Composition</TableCell>
+                                                            <TableCell width="18%">
+                                                                Pouring<br />Temperature<br />Deg.C
+                                                            </TableCell>
+                                                            <TableCell width="10%">
+                                                                Pouring<br />Time<br />(Sec.)
+                                                            </TableCell>
+                                                            <TableCell width="25%"><br /></TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        <TableRow>
+
+                                                            <TableCell>
+                                                                <Box display="flex" flexDirection="column" gap={2}>
+                                                                    <Box>
+                                                                        <LabelText>Date</LabelText>
                                                                         <SpecInput
-                                                                            value={(chemState as any)[el.toLowerCase()]}
-                                                                            onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                            type="date"
+                                                                            value={pouringDate}
+                                                                            onChange={(e: any) => setPouringDate(e.target.value)}
+                                                                            inputStyle={{ textAlign: 'left' }}
                                                                             disabled={user?.role === 'HOD' && !isEditing}
                                                                         />
                                                                     </Box>
-                                                                </Grid>
-                                                            ))}
-                                                            <Grid size={{ xs: 12 }} sx={{ my: 0.5 }}><Divider /></Grid>
-
-                                                            {["S", "Mg", "Cu", "Cr"].map((el) => (
-                                                                <Grid size={{ xs: 6, sm: 3 }} key={el}>
-                                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                                        <Typography variant="body2" fontWeight="bold">{el}-</Typography>
+                                                                    <Box>
+                                                                        <LabelText>Heat Code</LabelText>
                                                                         <SpecInput
-                                                                            value={(chemState as any)[el.toLowerCase()]}
-                                                                            onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                            placeholder="Code"
+                                                                            value={heatCode}
+                                                                            onChange={(e: any) => setHeatCode(e.target.value)}
                                                                             disabled={user?.role === 'HOD' && !isEditing}
                                                                         />
                                                                     </Box>
+                                                                </Box>
+                                                            </TableCell>
+
+
+                                                            <TableCell>
+                                                                <Grid container spacing={1}>
+                                                                    {["C", "Si", "Mn", "P"].map((el) => (
+                                                                        <Grid size={{ xs: 6, sm: 3 }} key={el}>
+                                                                            <Box display="flex" alignItems="center" gap={1}>
+                                                                                <Typography variant="body2" fontWeight="bold">{el}-</Typography>
+                                                                                <SpecInput
+                                                                                    value={(chemState as any)[el.toLowerCase()]}
+                                                                                    onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                                    disabled={user?.role === 'HOD' && !isEditing}
+                                                                                />
+                                                                            </Box>
+                                                                        </Grid>
+                                                                    ))}
+                                                                    <Grid size={{ xs: 12 }} sx={{ my: 0.5 }}><Divider /></Grid>
+
+                                                                    {["S", "Mg", "Cu", "Cr"].map((el) => (
+                                                                        <Grid size={{ xs: 6, sm: 3 }} key={el}>
+                                                                            <Box display="flex" alignItems="center" gap={1}>
+                                                                                <Typography variant="body2" fontWeight="bold">{el}-</Typography>
+                                                                                <SpecInput
+                                                                                    value={(chemState as any)[el.toLowerCase()]}
+                                                                                    onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                                    disabled={user?.role === 'HOD' && !isEditing}
+                                                                                />
+                                                                            </Box>
+                                                                        </Grid>
+                                                                    ))}
                                                                 </Grid>
-                                                            ))}
-                                                        </Grid>
-                                                    </TableCell>
+                                                            </TableCell>
 
 
-                                                    <TableCell>
-                                                        <Box display="flex" flexDirection="column" height="100%" justifyContent="space-between" gap={2}>
-                                                            <Box>
+                                                            <TableCell>
+                                                                <Box display="flex" flexDirection="column" height="100%" justifyContent="space-between" gap={2}>
+                                                                    <Box>
+                                                                        <SpecInput
+                                                                            placeholder="Deg C"
+                                                                            value={pouringTemp}
+                                                                            onChange={(e: any) => setPouringTemp(e.target.value)}
+                                                                            InputProps={{
+                                                                                endAdornment: <InputAdornment position="end">°C</InputAdornment>,
+                                                                            }}
+                                                                            disabled={user?.role === 'HOD' && !isEditing}
+                                                                        />
+                                                                    </Box>
+                                                                    <Divider sx={{ borderStyle: 'dashed' }} />
+                                                                    <Box>
+                                                                        <Typography variant="caption" fontWeight="bold" sx={{ textDecoration: "underline" }}>Inoculation :</Typography>
+                                                                        <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                                                                            <Grid size={{ xs: 12 }}>
+                                                                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                                                    <Typography variant="caption">Stream</Typography>
+                                                                                    <SpecInput
+                                                                                        sx={{ width: 60 }}
+                                                                                        placeholder="gms"
+                                                                                        value={inoculationStream}
+                                                                                        onChange={(e: any) => setInoculationStream(e.target.value)}
+                                                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                                                    />
+                                                                                </Box>
+                                                                            </Grid>
+                                                                            <Grid size={{ xs: 12 }}>
+                                                                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                                                    <Typography variant="caption">Inmould</Typography>
+                                                                                    <SpecInput
+                                                                                        sx={{ width: 60 }}
+                                                                                        placeholder="gms"
+                                                                                        value={inoculationInmould}
+                                                                                        onChange={(e: any) => setInoculationInmould(e.target.value)}
+                                                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                                                    />
+                                                                                </Box>
+                                                                            </Grid>
+                                                                        </Grid>
+                                                                    </Box>
+                                                                </Box>
+                                                            </TableCell>
+
+
+                                                            <TableCell sx={{ verticalAlign: 'middle' }}>
                                                                 <SpecInput
-                                                                    placeholder="Deg C"
-                                                                    value={pouringTemp}
-                                                                    onChange={(e: any) => setPouringTemp(e.target.value)}
-                                                                    InputProps={{
-                                                                        endAdornment: <InputAdornment position="end">°C</InputAdornment>,
-                                                                    }}
+                                                                    placeholder="Sec"
+                                                                    value={pouringTime}
+                                                                    onChange={(e: any) => setPouringTime(e.target.value)}
                                                                     disabled={user?.role === 'HOD' && !isEditing}
                                                                 />
-                                                            </Box>
-                                                            <Divider sx={{ borderStyle: 'dashed' }} />
-                                                            <Box>
-                                                                <Typography variant="caption" fontWeight="bold" sx={{ textDecoration: "underline" }}>Inoculation :</Typography>
-                                                                <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                                                            </TableCell>
+
+
+                                                            <TableCell>
+                                                                <Grid container spacing={2}>
                                                                     <Grid size={{ xs: 12 }}>
-                                                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                                                            <Typography variant="caption">Stream</Typography>
-                                                                            <SpecInput
-                                                                                sx={{ width: 60 }}
-                                                                                placeholder="gms"
-                                                                                value={inoculationStream}
-                                                                                onChange={(e: any) => setInoculationStream(e.target.value)}
-                                                                                disabled={user?.role === 'HOD' && !isEditing}
-                                                                            />
+                                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                                            <Typography variant="caption" noWrap minWidth={90}>F/C & Heat No:</Typography>
+                                                                            <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
                                                                         </Box>
                                                                     </Grid>
                                                                     <Grid size={{ xs: 12 }}>
-                                                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                                                            <Typography variant="caption">Inmould</Typography>
-                                                                            <SpecInput
-                                                                                sx={{ width: 60 }}
-                                                                                placeholder="gms"
-                                                                                value={inoculationInmould}
-                                                                                onChange={(e: any) => setInoculationInmould(e.target.value)}
-                                                                                disabled={user?.role === 'HOD' && !isEditing}
-                                                                            />
+                                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                                            <Typography variant="caption" noWrap minWidth={90}>PP Code :</Typography>
+                                                                            <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                                                                        </Box>
+                                                                    </Grid>
+                                                                    <Grid size={{ xs: 12 }}>
+                                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                                            <Typography variant="caption" noWrap minWidth={90}>Followed by :</Typography>
+                                                                            <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                                                                        </Box>
+                                                                    </Grid>
+                                                                    <Grid size={{ xs: 12 }}>
+                                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                                            <Typography variant="caption" noWrap minWidth={90}>Username :</Typography>
+                                                                            <Typography variant="body2" fontWeight="bold" color="primary">{userName}</Typography>
                                                                         </Box>
                                                                     </Grid>
                                                                 </Grid>
-                                                            </Box>
-                                                        </Box>
-                                                    </TableCell>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    </TableBody>
+                                                </Table>
+                                            </Box>
+                                        </Paper>
+                                    </Grid>
 
 
-                                                    <TableCell sx={{ verticalAlign: 'middle' }}>
-                                                        <SpecInput
-                                                            placeholder="Sec"
-                                                            value={pouringTime}
-                                                            onChange={(e: any) => setPouringTime(e.target.value)}
-                                                            disabled={user?.role === 'HOD' && !isEditing}
-                                                        />
-                                                    </TableCell>
+                                    <Grid size={{ xs: 12 }}>
+                                        <Paper sx={{ p: 3, mb: 3 }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
+                                                Attach PDF / Image Files
+                                            </Typography>
+                                            <FileUploadSection
+                                                files={attachedFiles}
+                                                onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                                                onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                                showAlert={showAlert}
+                                                label="Upload Files"
+                                            />
+                                        </Paper>
+                                    </Grid>
 
 
-                                                    <TableCell>
-                                                        <Grid container spacing={2}>
-                                                            <Grid size={{ xs: 12 }}>
-                                                                <Box display="flex" alignItems="center" gap={1}>
-                                                                    <Typography variant="caption" noWrap minWidth={90}>F/C & Heat No:</Typography>
-                                                                    <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
-                                                                </Box>
-                                                            </Grid>
-                                                            <Grid size={{ xs: 12 }}>
-                                                                <Box display="flex" alignItems="center" gap={1}>
-                                                                    <Typography variant="caption" noWrap minWidth={90}>PP Code :</Typography>
-                                                                    <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
-                                                                </Box>
-                                                            </Grid>
-                                                            <Grid size={{ xs: 12 }}>
-                                                                <Box display="flex" alignItems="center" gap={1}>
-                                                                    <Typography variant="caption" noWrap minWidth={90}>Followed by :</Typography>
-                                                                    <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
-                                                                </Box>
-                                                            </Grid>
-                                                            <Grid size={{ xs: 12 }}>
-                                                                <Box display="flex" alignItems="center" gap={1}>
-                                                                    <Typography variant="caption" noWrap minWidth={90}>Username :</Typography>
-                                                                    <Typography variant="body2" fontWeight="bold" color="primary">{userName}</Typography>
-                                                                </Box>
-                                                            </Grid>
-                                                        </Grid>
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </Box>
-                                </Paper>
-                            </Grid>
+                                    <Grid size={{ xs: 12 }}>
+                                        <FormSection title="Remarks" icon={<EditIcon />}>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                placeholder="Enter additional remarks..."
+                                                value={remarksText}
+                                                onChange={(e) => setRemarksText(e.target.value)}
+                                                sx={{ bgcolor: "white" }}
+                                                disabled={user?.role === 'HOD' && !isEditing}
+                                            />
+                                        </FormSection>
+                                    </Grid>
 
 
-                            <Grid size={{ xs: 12 }}>
-                                <Paper sx={{ p: 3, mb: 3 }}>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
-                                        Attach PDF / Image Files
-                                    </Typography>
-                                    <FileUploadSection
-                                        files={attachedFiles}
-                                        onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
-                                        onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
-                                        showAlert={showAlert}
-                                        label="Upload Files"
-                                    />
-                                </Paper>
-                            </Grid>
-
-
-                            <Grid size={{ xs: 12 }}>
-                                <FormSection title="Remarks" icon={<EditIcon />}>
-                                    <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        placeholder="Enter additional remarks..."
-                                        value={remarksText}
-                                        onChange={(e) => setRemarksText(e.target.value)}
-                                        sx={{ bgcolor: "white" }}
-                                        disabled={user?.role === 'HOD' && !isEditing}
-                                    />
-                                </FormSection>
-                            </Grid>
-
-
-                            <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
-                                <Box display="flex" justifyContent="flex-end" gap={2}>
-                                    <ActionButtons
-                                        onReset={() => window.location.reload()}
-                                        onSave={handleSaveAndContinue}
-                                        showSubmit={false}
-                                        saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                                        saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
-                                    >
-                                        {user?.role === 'HOD' && (
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => setIsEditing(!isEditing)}
-                                                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                    <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
+                                        <Box display="flex" justifyContent="flex-end" gap={2}>
+                                            <ActionButtons
+                                                onReset={() => window.location.reload()}
+                                                onSave={handleSaveAndContinue}
+                                                showSubmit={false}
+                                                saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                                                saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
                                             >
-                                                {isEditing ? "Cancel Edit" : "Edit Details"}
-                                            </Button>
-                                        )}
-                                    </ActionButtons>
+                                                {user?.role === 'HOD' && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={() => setIsEditing(!isEditing)}
+                                                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                    >
+                                                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                                                    </Button>
+                                                )}
+                                            </ActionButtons>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            )}
+
+
+                            <PreviewModal
+                                open={previewMode}
+                                onClose={() => setPreviewMode(false)}
+                                onSubmit={handleFinalSave}
+                                onExport={handleExportPDF}
+                                title="POURING DETAILS:"
+                                submitted={submitted}
+                            >
+                                <Box sx={{ p: 4 }} className="print-section">
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: theme.typography.fontFamily }}>
+                                        <thead>
+                                            <tr style={{ backgroundColor: '#FDE68A', color: '#854d0e' }}>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Date & Heat code</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Composition</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Temperature<br />Deg.C</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Time<br />(Sec.)</th>
+                                                <th style={{ border: '1px solid black', padding: '10px' }}>Other<br />Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style={{ verticalAlign: 'top' }}>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div><strong>Date:</strong> <span style={dataFontStyle}>{previewPayload?.pouringDate}</span></div>
+                                                    <div style={{ marginTop: '15px' }}><strong>Heat Code:</strong><br /><span style={dataFontStyle}>{previewPayload?.heatCode}</span></div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
+                                                        {previewPayload?.chemical_composition && Object.entries(previewPayload.chemical_composition).map(([k, v]) => (
+                                                            <div key={k}><strong>{k.toUpperCase()}-</strong> <span style={dataFontStyle}>{v as string}</span></div>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+                                                        <span style={dataFontStyle}>{previewPayload?.pouringTemp}°C</span>
+                                                    </div>
+                                                    <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
+                                                        <u style={{ fontWeight: 'bold' }}>Inoculation:</u><br />
+                                                        Stream: <span style={dataFontStyle}>{previewPayload?.inoculation.stream}</span> gms<br />
+                                                        Inmould: <span style={dataFontStyle}>{previewPayload?.inoculation.inmould}</span> gms
+                                                    </div>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center', verticalAlign: 'middle', fontSize: '18px' }}>
+                                                    <span style={dataFontStyle}>{previewPayload?.pouringTime}</span>
+                                                </td>
+                                                <td style={{ border: '1px solid black', padding: '12px' }}>
+                                                    <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload?.remarks.ficHeatNo}</span></div>
+                                                    <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload?.remarks.ppCode}</span></div>
+                                                    <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload?.remarks.followedBy}</span></div>
+                                                    <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload?.remarks.userName}</span></div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    {previewPayload?.attachedFiles?.length > 0 && (
+                                        <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>ATTACHED FILES:</Typography>
+                                            {previewPayload.attachedFiles.map((file: File, i: number) => (
+                                                <Typography key={i} variant="body2">• {file.name}</Typography>
+                                            ))}
+                                        </Box>
+                                    )}
+
+                                    {previewPayload?.remarksText && (
+                                        <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>REMARKS:</Typography>
+                                            <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                                                {previewPayload.remarksText}
+                                            </Typography>
+                                        </Box>
+                                    )}
                                 </Box>
-                            </Grid>
-                        </Grid>
+                            </PreviewModal>
+                        </>
                     )}
-
-
-                    <PreviewModal
-                        open={previewMode}
-                        onClose={() => setPreviewMode(false)}
-                        onSubmit={handleFinalSave}
-                        onExport={handleExportPDF}
-                        title="POURING DETAILS:"
-                        submitted={submitted}
-                    >
-                        <Box sx={{ p: 4 }} className="print-section">
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: theme.typography.fontFamily }}>
-                                <thead>
-                                    <tr style={{ backgroundColor: '#FDE68A', color: '#854d0e' }}>
-                                        <th style={{ border: '1px solid black', padding: '10px' }}>Date & Heat code</th>
-                                        <th style={{ border: '1px solid black', padding: '10px' }}>Composition</th>
-                                        <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Temperature<br />Deg.C</th>
-                                        <th style={{ border: '1px solid black', padding: '10px' }}>Pouring<br />Time<br />(Sec.)</th>
-                                        <th style={{ border: '1px solid black', padding: '10px' }}>Other<br />Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style={{ verticalAlign: 'top' }}>
-                                        <td style={{ border: '1px solid black', padding: '12px' }}>
-                                            <div><strong>Date:</strong> <span style={dataFontStyle}>{previewPayload?.pouringDate}</span></div>
-                                            <div style={{ marginTop: '15px' }}><strong>Heat Code:</strong><br /><span style={dataFontStyle}>{previewPayload?.heatCode}</span></div>
-                                        </td>
-                                        <td style={{ border: '1px solid black', padding: '12px' }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
-                                                {previewPayload?.chemical_composition && Object.entries(previewPayload.chemical_composition).map(([k, v]) => (
-                                                    <div key={k}><strong>{k.toUpperCase()}-</strong> <span style={dataFontStyle}>{v as string}</span></div>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td style={{ border: '1px solid black', padding: '12px' }}>
-                                            <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                                                <span style={dataFontStyle}>{previewPayload?.pouringTemp}°C</span>
-                                            </div>
-                                            <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
-                                                <u style={{ fontWeight: 'bold' }}>Inoculation:</u><br />
-                                                Stream: <span style={dataFontStyle}>{previewPayload?.inoculation.stream}</span> gms<br />
-                                                Inmould: <span style={dataFontStyle}>{previewPayload?.inoculation.inmould}</span> gms
-                                            </div>
-                                        </td>
-                                        <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center', verticalAlign: 'middle', fontSize: '18px' }}>
-                                            <span style={dataFontStyle}>{previewPayload?.pouringTime}</span>
-                                        </td>
-                                        <td style={{ border: '1px solid black', padding: '12px' }}>
-                                            <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload?.remarks.ficHeatNo}</span></div>
-                                            <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload?.remarks.ppCode}</span></div>
-                                            <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload?.remarks.followedBy}</span></div>
-                                            <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload?.remarks.userName}</span></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            {previewPayload?.attachedFiles?.length > 0 && (
-                                <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>ATTACHED FILES:</Typography>
-                                    {previewPayload.attachedFiles.map((file: File, i: number) => (
-                                        <Typography key={i} variant="body2">• {file.name}</Typography>
-                                    ))}
-                                </Box>
-                            )}
-
-                            {previewPayload?.remarksText && (
-                                <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>REMARKS:</Typography>
-                                    <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
-                                        {previewPayload.remarksText}
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Box>
-                    </PreviewModal>
 
                 </Container>
             </Box>

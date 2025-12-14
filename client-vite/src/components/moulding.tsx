@@ -124,8 +124,7 @@ function MouldingTable() {
     fetchIP();
   }, []);
 
-  if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
+
   const handleChange = (field: string, value: string) => {
     setMouldState(prev => ({ ...prev, [field]: value }));
   };
@@ -306,263 +305,271 @@ function MouldingTable() {
           <SaclHeader />
           <DepartmentHeader title="MOULDING DETAILS" userIP={userIP} user={user} />
 
-          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+          {assigned === null ? (
+            <LoadingState />
+          ) : !assigned ? (
+            <EmptyState title="No pending works at the moment" severity="warning" />
+          ) : (
+            <>
+              <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
 
-          <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
-            {/* Initial table headers removed since not used in current implementation */}
+              <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
+                {/* Initial table headers removed since not used in current implementation */}
 
-            <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
-                <TextField
-                  type="date"
-                  size="small"
-                  hiddenLabel
-                  value={mouldDate}
-                  onChange={(e) => setMouldDate(e.target.value)}
-                  sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
-                  disabled={user?.role === 'HOD' && !isEditing}
-                />
-              </Box>
-            </Box>
-            <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
-
-            <Box sx={{ overflowX: "auto", mb: 4 }}>
-              <Table size="small" sx={{ minWidth: 1000 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
-                      <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
-                    </TableCell>
-                    <TableCell colSpan={1} sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText, borderBottom: 'none' }}>
-                    </TableCell>
-                  </TableRow>
-
-                  <TableRow>
-                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
-                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
-                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Squeeze Pressure</TableCell>
-                    <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary, borderRight: `2px solid ${COLORS.border}` }}>Mould Hardness</TableCell>
-
-                    <TableCell width="40%" sx={{ bgcolor: '#fff7ed', color: COLORS.textSecondary }}>Remarks</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
-                    <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
-                    </TableCell>
-
-                    <TableCell>
-                      <SpecInput
-                        value={mouldState.remarks}
-                        onChange={(e: any) => handleChange('remarks', e.target.value)}
-                        placeholder="--"
-                        disabled={user?.role === 'HOD' && !isEditing}
-                      />
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Box>
-            <Box sx={{ mt: 3, mb: 3 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
-              >
-                Attach PDF / Image Files
-              </Typography>
-
-              <Button
-                variant="outlined"
-                component="label"
-                sx={{
-                  bgcolor: "white",
-                  borderStyle: "dashed",
-                  py: 1.5,
-                  px: 3,
-                  fontWeight: 600,
-                }}
-              >
-                Attach PDF
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="application/pdf,image/*"
-                  onChange={handleAttachFiles}
-                />
-              </Button>
-
-              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {attachedFiles.map((file, index) => (
-                  <Chip
-                    key={index}
-                    label={file.name}
-                    onDelete={() => removeAttachedFile(index)}
-                    sx={{
-                      bgcolor: "white",
-                      border: `1px solid ${COLORS.border}`,
-                      fontSize: "0.8rem"
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-
-
-
-            <ActionButtons
-              onReset={handleReset}
-              onSave={handleSaveAndContinue}
-              showSubmit={false}
-              saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-              saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
-            >
-              {user?.role === 'HOD' && (
-                <Button
-                  variant="outlined"
-                  onClick={() => setIsEditing(!isEditing)}
-                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
-                >
-                  {isEditing ? "Cancel Edit" : "Edit Details"}
-                </Button>
-              )}
-            </ActionButtons>
-
-          </Paper>
-
-          <PreviewModal
-            open={previewMode}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            onExport={handleExportPDF}
-            title="Verify Moulding Details"
-            subtitle="Review your moulding parameters"
-            submitted={submitted}
-          >
-            <Box sx={{ p: 4 }}>
-
-              <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
-              <AlertMessage alert={alert} />
-              <Grid container spacing={2} sx={{ mb: 4 }}>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
-              </Grid>
-
-              <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
-              <Box sx={{
-                p: 3,
-                bgcolor: '#f8fafc',
-                borderRadius: 2,
-                border: `1px solid ${COLORS.border}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 3
-              }}>
-                <Box flex={2}>
-                  <Typography variant="caption" color="textSecondary" display="block">REMARKS</Typography>
-                  <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
+                    <TextField
+                      type="date"
+                      size="small"
+                      hiddenLabel
+                      value={mouldDate}
+                      onChange={(e) => setMouldDate(e.target.value)}
+                      sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
+                      disabled={user?.role === 'HOD' && !isEditing}
+                    />
+                  </Box>
                 </Box>
-              </Box>
-              {attachedFiles.length > 0 && (
-                <Box
-                  sx={{
-                    mt: 3,
-                    p: 2,
-                    bgcolor: "white",
-                    borderRadius: 2,
-                    border: `1px solid ${COLORS.border}`,
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                    ATTACHED FILES
+                <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
+
+                <Box sx={{ overflowX: "auto", mb: 4 }}>
+                  <Table size="small" sx={{ minWidth: 1000 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
+                          <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
+                        </TableCell>
+                        <TableCell colSpan={1} sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText, borderBottom: 'none' }}>
+                        </TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
+                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
+                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Squeeze Pressure</TableCell>
+                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary, borderRight: `2px solid ${COLORS.border}` }}>Mould Hardness</TableCell>
+
+                        <TableCell width="40%" sx={{ bgcolor: '#fff7ed', color: COLORS.textSecondary }}>Remarks</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                        <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
+                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                        </TableCell>
+
+                        <TableCell>
+                          <SpecInput
+                            value={mouldState.remarks}
+                            onChange={(e: any) => handleChange('remarks', e.target.value)}
+                            placeholder="--"
+                            disabled={user?.role === 'HOD' && !isEditing}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </Box>
+                <Box sx={{ mt: 3, mb: 3 }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
+                  >
+                    Attach PDF / Image Files
                   </Typography>
 
-                  {attachedFiles.map((file, i) => (
-                    <Typography key={i} variant="body2">• {file.name}</Typography>
-                  ))}
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{
+                      bgcolor: "white",
+                      borderStyle: "dashed",
+                      py: 1.5,
+                      px: 3,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Attach PDF
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept="application/pdf,image/*"
+                      onChange={handleAttachFiles}
+                    />
+                  </Button>
+
+                  <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {attachedFiles.map((file, index) => (
+                      <Chip
+                        key={index}
+                        label={file.name}
+                        onDelete={() => removeAttachedFile(index)}
+                        sx={{
+                          bgcolor: "white",
+                          border: `1px solid ${COLORS.border}`,
+                          fontSize: "0.8rem"
+                        }}
+                      />
+                    ))}
+                  </Box>
                 </Box>
-              )}
 
-              {submitted && (
-                <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
-                  <CheckCircleIcon fontSize="small" />
-                  <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Moulding Specification Registered Successfully</Typography>
+
+
+
+                <ActionButtons
+                  onReset={handleReset}
+                  onSave={handleSaveAndContinue}
+                  showSubmit={false}
+                  saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                  saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                >
+                  {user?.role === 'HOD' && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setIsEditing(!isEditing)}
+                      sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
+                    >
+                      {isEditing ? "Cancel Edit" : "Edit Details"}
+                    </Button>
+                  )}
+                </ActionButtons>
+
+              </Paper>
+
+              <PreviewModal
+                open={previewMode}
+                onClose={() => setPreviewMode(false)}
+                onSubmit={handleFinalSave}
+                onExport={handleExportPDF}
+                title="Verify Moulding Details"
+                subtitle="Review your moulding parameters"
+                submitted={submitted}
+              >
+                <Box sx={{ p: 4 }}>
+
+                  <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
+                  <AlertMessage alert={alert} />
+                  <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
+                  </Grid>
+
+                  <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
+                  <Box sx={{
+                    p: 3,
+                    bgcolor: '#f8fafc',
+                    borderRadius: 2,
+                    border: `1px solid ${COLORS.border}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 3
+                  }}>
+                    <Box flex={2}>
+                      <Typography variant="caption" color="textSecondary" display="block">REMARKS</Typography>
+                      <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
+                    </Box>
+                  </Box>
+                  {attachedFiles.length > 0 && (
+                    <Box
+                      sx={{
+                        mt: 3,
+                        p: 2,
+                        bgcolor: "white",
+                        borderRadius: 2,
+                        border: `1px solid ${COLORS.border}`,
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                        ATTACHED FILES
+                      </Typography>
+
+                      {attachedFiles.map((file, i) => (
+                        <Typography key={i} variant="body2">• {file.name}</Typography>
+                      ))}
+                    </Box>
+                  )}
+
+                  {submitted && (
+                    <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
+                      <CheckCircleIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Moulding Specification Registered Successfully</Typography>
+                    </Box>
+                  )}
+
                 </Box>
-              )}
+              </PreviewModal>
+              <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
+                <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY SAMPLE CARD</Typography>
+                    <Typography variant="body1">Moulding Correction Report</Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                    <Typography variant="body2">IP: {userIP}</Typography>
+                  </Box>
+                </Box>
 
-            </Box>
-          </PreviewModal>
-          <Box className="print-section" sx={{ display: 'none', fontFamily: appTheme.typography.fontFamily }}>
-            <Box sx={{ mb: 3, borderBottom: "2px solid black", pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>FOUNDRY SAMPLE CARD</Typography>
-                <Typography variant="body1">Moulding Correction Report</Typography>
+                <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Moulding Details</Typography>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                  <thead>
+                    <tr>
+                      <th colSpan={4} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Moulding Parameters</th>
+                      <th colSpan={1} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Log Data</th>
+                    </tr>
+                    <tr style={{ backgroundColor: '#f9f9f9' }}>
+                      <th style={{ border: '1px solid #999', padding: '6px' }}>Thickness</th>
+                      <th style={{ border: '1px solid #999', padding: '6px' }}>Compressability</th>
+                      <th style={{ border: '1px solid #999', padding: '6px' }}>Pressure</th>
+                      <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness</th>
+                      <th style={{ border: '1px solid #999', padding: '6px' }}>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.thickness}</td>
+                      <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.compressability}</td>
+                      <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.pressure}</td>
+                      <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.hardness}</td>
+                      <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.remarks || "-"}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                {/* Attached Files - Print Version */}
+                {attachedFiles.length > 0 && (
+                  <div style={{ marginTop: "20px" }}>
+                    <h3 style={{
+                      margin: 0,
+                      paddingBottom: "5px",
+                      borderBottom: "1px solid #999"
+                    }}>
+                      Attached Files
+                    </h3>
+
+                    <ul style={{ marginTop: "5px" }}>
+                      {attachedFiles.map((file, index) => (
+                        <li key={index} style={{ fontSize: "14px" }}>{file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
               </Box>
-              <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
-                <Typography variant="body2">IP: {userIP}</Typography>
-              </Box>
-            </Box>
-
-            <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Moulding Details</Typography>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
-              <thead>
-                <tr>
-                  <th colSpan={4} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Moulding Parameters</th>
-                  <th colSpan={1} style={{ border: '1px solid #999', padding: '6px', textAlign: 'center', backgroundColor: '#f0f0f0' }}>Log Data</th>
-                </tr>
-                <tr style={{ backgroundColor: '#f9f9f9' }}>
-                  <th style={{ border: '1px solid #999', padding: '6px' }}>Thickness</th>
-                  <th style={{ border: '1px solid #999', padding: '6px' }}>Compressability</th>
-                  <th style={{ border: '1px solid #999', padding: '6px' }}>Pressure</th>
-                  <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness</th>
-                  <th style={{ border: '1px solid #999', padding: '6px' }}>Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.thickness}</td>
-                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.compressability}</td>
-                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.pressure}</td>
-                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.hardness}</td>
-                  <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{mouldState.remarks || "-"}</td>
-                </tr>
-              </tbody>
-            </table>
-            {/* Attached Files - Print Version */}
-            {attachedFiles.length > 0 && (
-              <div style={{ marginTop: "20px" }}>
-                <h3 style={{
-                  margin: 0,
-                  paddingBottom: "5px",
-                  borderBottom: "1px solid #999"
-                }}>
-                  Attached Files
-                </h3>
-
-                <ul style={{ marginTop: "5px" }}>
-                  {attachedFiles.map((file, index) => (
-                    <li key={index} style={{ fontSize: "14px" }}>{file.name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-          </Box>
+            </>
+          )}
 
         </Container>
       </Box >

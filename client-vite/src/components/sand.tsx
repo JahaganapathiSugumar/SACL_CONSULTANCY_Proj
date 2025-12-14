@@ -153,8 +153,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   }, []);
 
   // Early exits now occur after all hooks have been registered
-  if (assigned === null) return <LoadingState />;
-  if (!assigned) return <EmptyState title="No pending works at the moment" severity="warning" />;
+
 
   const handleChange = (field: string, value: string) => {
     setSandProps(prev => ({ ...prev, [field]: value }));
@@ -314,241 +313,249 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
           <DepartmentHeader title="SAND PROPERTIES" userIP={userIP} user={user} />
 
-          <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
+          {assigned === null ? (
+            <LoadingState />
+          ) : !assigned ? (
+            <EmptyState title="No pending works at the moment" severity="warning" />
+          ) : (
+            <>
+              <Common trialId={progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || ""} />
 
 
-          <AlertMessage alert={alert} />
+              <AlertMessage alert={alert} />
 
-          {/* Main Content Card */}
-          <Paper sx={{ overflow: 'hidden', border: `2px solid ${COLORS.border}` }}>
+              {/* Main Content Card */}
+              <Paper sx={{ overflow: 'hidden', border: `2px solid ${COLORS.border}` }}>
 
-            <Box sx={{ overflowX: "auto" }}>
-              <Table size="small" sx={{ minWidth: 1000, borderCollapse: 'collapse' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={10} sx={{ backgroundColor: COLORS.headerBg, textAlign: 'left', py: 1.5, borderBottom: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="h6" sx={{ color: 'black', textTransform: 'uppercase', fontSize: '1rem' }}>SAND PROPERTIES</Typography>
-                    </TableCell>
-                  </TableRow>
+                <Box sx={{ overflowX: "auto" }}>
+                  <Table size="small" sx={{ minWidth: 1000, borderCollapse: 'collapse' }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell colSpan={10} sx={{ backgroundColor: COLORS.headerBg, textAlign: 'left', py: 1.5, borderBottom: `1px solid ${COLORS.border}` }}>
+                          <Typography variant="h6" sx={{ color: 'black', textTransform: 'uppercase', fontSize: '1rem' }}>SAND PROPERTIES</Typography>
+                        </TableCell>
+                      </TableRow>
 
-                  <TableRow>
-                    <TableCell colSpan={9} sx={{ borderRight: 'none', backgroundColor: '#fff' }}></TableCell>
-                    <TableCell
-                      colSpan={1}
-                      sx={{
-                        backgroundColor: '#f1f5f9',
-                        borderLeft: `1px solid ${COLORS.border}`,
-                        minWidth: 250,
-                        p: 1,
-                        borderBottom: `1px solid ${COLORS.headerBg}`
-                      }}
-                    >
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'black' }}>Date</Typography>
-                        <TextField
-                          type="date"
-                          size="small"
-                          fullWidth
-                          value={sandDate}
-                          onChange={(e) => setSandDate(e.target.value)}
-                          sx={{ bgcolor: 'white', borderRadius: 1 }}
-                        />
-                      </Box>
-                    </TableCell>
-                  </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={9} sx={{ borderRight: 'none', backgroundColor: '#fff' }}></TableCell>
+                        <TableCell
+                          colSpan={1}
+                          sx={{
+                            backgroundColor: '#f1f5f9',
+                            borderLeft: `1px solid ${COLORS.border}`,
+                            minWidth: 250,
+                            p: 1,
+                            borderBottom: `1px solid ${COLORS.headerBg}`
+                          }}
+                        >
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: 'black' }}>Date</Typography>
+                            <TextField
+                              type="date"
+                              size="small"
+                              fullWidth
+                              value={sandDate}
+                              onChange={(e) => setSandDate(e.target.value)}
+                              sx={{ bgcolor: 'white', borderRadius: 1 }}
+                            />
+                          </Box>
+                        </TableCell>
+                      </TableRow>
 
-                  <TableRow>
-                    {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Compactability", "Perm"].map((header) => (
-                      <TableCell
-                        key={header}
-                        width="9%"
-                        sx={{
-                          backgroundColor: '#f1f5f9',
-                          color: 'black',
-                          fontWeight: 600,
-                          textAlign: 'center',
-                          borderBottom: `1px solid ${COLORS.headerBg}`
-                        }}
-                      >
-                        {header}
-                      </TableCell>
-                    ))}
-                    <TableCell
-                      width="19%"
-                      sx={{
-                        backgroundColor: '#f1f5f9',
-                        color: 'black',
-                        fontWeight: 600,
-                        textAlign: 'center',
-                        borderBottom: `1px solid ${COLORS.headerBg}`
-                      }}
-                    >
-                      Remarks
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
+                      <TableRow>
+                        {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Compactability", "Perm"].map((header) => (
+                          <TableCell
+                            key={header}
+                            width="9%"
+                            sx={{
+                              backgroundColor: '#f1f5f9',
+                              color: 'black',
+                              fontWeight: 600,
+                              textAlign: 'center',
+                              borderBottom: `1px solid ${COLORS.headerBg}`
+                            }}
+                          >
+                            {header}
+                          </TableCell>
+                        ))}
+                        <TableCell
+                          width="19%"
+                          sx={{
+                            backgroundColor: '#f1f5f9',
+                            color: 'black',
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            borderBottom: `1px solid ${COLORS.headerBg}`
+                          }}
+                        >
+                          Remarks
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
 
-                <TableBody>
-                  <TableRow>
-                    {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((key) => (
-                      <TableCell key={key} sx={{ p: 2, verticalAlign: 'middle' }}>
-                        <SpecInput
-                          value={(sandProps as any)[key]}
-                          onChange={(e: any) => handleChange(key, e.target.value)}
-                          disabled={user?.role === 'HOD' && !isEditing}
-                        />
-                      </TableCell>
-                    ))}
-                    <TableCell sx={{ p: 1 }}>
-                      <TextField
-                        multiline
-                        rows={3}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Enter remarks..."
-                        value={sandProps.remarks}
-                        onChange={(e) => handleChange("remarks", e.target.value)}
-                        disabled={user?.role === 'HOD' && !isEditing}
-                        sx={{ bgcolor: '#fff' }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Box>
-
-
-
-
-            {/* File Upload Section */}
-            <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                Attach PDF / Image Files
-              </Typography>
-              <FileUploadSection
-                files={attachedFiles}
-                onFilesChange={handleAttachFiles}
-                onFileRemove={removeAttachedFile}
-                showAlert={showAlert}
-                label="Attach PDF"
-              />
-            </Box>
+                    <TableBody>
+                      <TableRow>
+                        {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((key) => (
+                          <TableCell key={key} sx={{ p: 2, verticalAlign: 'middle' }}>
+                            <SpecInput
+                              value={(sandProps as any)[key]}
+                              onChange={(e: any) => handleChange(key, e.target.value)}
+                              disabled={user?.role === 'HOD' && !isEditing}
+                            />
+                          </TableCell>
+                        ))}
+                        <TableCell sx={{ p: 1 }}>
+                          <TextField
+                            multiline
+                            rows={3}
+                            fullWidth
+                            variant="outlined"
+                            placeholder="Enter remarks..."
+                            value={sandProps.remarks}
+                            onChange={(e) => handleChange("remarks", e.target.value)}
+                            disabled={user?.role === 'HOD' && !isEditing}
+                            sx={{ bgcolor: '#fff' }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </Box>
 
 
 
 
-            {/* Form Actions - Updated Styles */}
-            <Box sx={{ p: 3, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, flexDirection: { xs: 'column', sm: 'row' } }}>
-              <Button
-                variant="outlined"
-                onClick={handleReset}
-                fullWidth={isMobile}
-                sx={{
-                  color: COLORS.primary,
-                  borderColor: COLORS.primary,
-                  borderWidth: '1.5px',
-                  '&:hover': {
-                    borderColor: COLORS.primary,
-                    borderWidth: '1.5px',
-                    bgcolor: '#f3f4f6'
-                  }
-                }}
-              >
-                Reset Form
-              </Button>
-
-              {user?.role === 'HOD' && (
-                <Button
-                  variant="outlined"
-                  onClick={() => setIsEditing(!isEditing)}
-                  sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                >
-                  {isEditing ? "Cancel Edit" : "Edit Details"}
-                </Button>
-              )}
-
-              <Button
-                variant="contained"
-                onClick={handleSaveAndContinue}
-                fullWidth={isMobile}
-                startIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
-                sx={{
-                  bgcolor: COLORS.secondary,
-                  color: 'white',
-                  '&:hover': { bgcolor: '#c2410c' }
-                }}
-              >
-                {user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-              </Button>
-            </Box>
-
-          </Paper>
-
-
-          <PreviewModal
-            open={previewMode}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            onExport={handleExportPDF}
-            title="Verify Sand Properties"
-            subtitle="Review your sand test data"
-            submitted={submitted}
-          >
-            <Box sx={{ p: 4 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: COLORS.headerBg }}>
-                    <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black' }}>SAND PROPERTIES:</th>
-                  </tr>
-                  <tr>
-                    <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
-                    <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
-                      <strong>Date:</strong> {sandDate}
-                    </td>
-                  </tr>
-                  <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
-                    {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Comp.", "Perm", "Remarks"].map((h, i) => (
-                      <th key={i} style={{ border: '1px solid black', padding: '8px' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ textAlign: 'center' }}>
-                    {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
-                      <td key={k} style={{ border: '1px solid black', padding: '12px' }}>
-                        {(sandProps as any)[k] || "-"}
-                      </td>
-                    ))}
-                    <td style={{ border: '1px solid black', padding: '12px', textAlign: 'left' }}>
-                      {sandProps.remarks || "-"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              {/* Attached Files in Preview */}
-              {attachedFiles.length > 0 && (
-                <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                    ATTACHED FILES
+                {/* File Upload Section */}
+                <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                    Attach PDF / Image Files
                   </Typography>
-
-                  {attachedFiles.map((file, i) => (
-                    <Typography key={i} variant="body2">• {file.name}</Typography>
-                  ))}
+                  <FileUploadSection
+                    files={attachedFiles}
+                    onFilesChange={handleAttachFiles}
+                    onFileRemove={removeAttachedFile}
+                    showAlert={showAlert}
+                    label="Attach PDF"
+                  />
                 </Box>
-              )}
 
 
-              {submitted && (
-                <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
-                  <CheckCircleIcon fontSize="small" />
-                  <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Sand Properties Registered Successfully</Typography>
+
+
+                {/* Form Actions - Updated Styles */}
+                <Box sx={{ p: 3, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <Button
+                    variant="outlined"
+                    onClick={handleReset}
+                    fullWidth={isMobile}
+                    sx={{
+                      color: COLORS.primary,
+                      borderColor: COLORS.primary,
+                      borderWidth: '1.5px',
+                      '&:hover': {
+                        borderColor: COLORS.primary,
+                        borderWidth: '1.5px',
+                        bgcolor: '#f3f4f6'
+                      }
+                    }}
+                  >
+                    Reset Form
+                  </Button>
+
+                  {user?.role === 'HOD' && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setIsEditing(!isEditing)}
+                      sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                    >
+                      {isEditing ? "Cancel Edit" : "Edit Details"}
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="contained"
+                    onClick={handleSaveAndContinue}
+                    fullWidth={isMobile}
+                    startIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                    sx={{
+                      bgcolor: COLORS.secondary,
+                      color: 'white',
+                      '&:hover': { bgcolor: '#c2410c' }
+                    }}
+                  >
+                    {user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                  </Button>
                 </Box>
-              )}
 
-            </Box>
+              </Paper>
 
-          </PreviewModal>
+
+              <PreviewModal
+                open={previewMode}
+                onClose={() => setPreviewMode(false)}
+                onSubmit={handleFinalSave}
+                onExport={handleExportPDF}
+                title="Verify Sand Properties"
+                subtitle="Review your sand test data"
+                submitted={submitted}
+              >
+                <Box sx={{ p: 4 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: COLORS.headerBg }}>
+                        <th colSpan={10} style={{ textAlign: 'left', padding: '10px', border: '1px solid black' }}>SAND PROPERTIES:</th>
+                      </tr>
+                      <tr>
+                        <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
+                        <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
+                          <strong>Date:</strong> {sandDate}
+                        </td>
+                      </tr>
+                      <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>
+                        {["T.Clay", "A.Clay", "VCM", "LOI", "AFS", "G.C.S", "MOI", "Comp.", "Perm", "Remarks"].map((h, i) => (
+                          <th key={i} style={{ border: '1px solid black', padding: '8px' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ textAlign: 'center' }}>
+                        {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
+                          <td key={k} style={{ border: '1px solid black', padding: '12px' }}>
+                            {(sandProps as any)[k] || "-"}
+                          </td>
+                        ))}
+                        <td style={{ border: '1px solid black', padding: '12px', textAlign: 'left' }}>
+                          {sandProps.remarks || "-"}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  {/* Attached Files in Preview */}
+                  {attachedFiles.length > 0 && (
+                    <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                        ATTACHED FILES
+                      </Typography>
+
+                      {attachedFiles.map((file, i) => (
+                        <Typography key={i} variant="body2">• {file.name}</Typography>
+                      ))}
+                    </Box>
+                  )}
+
+
+                  {submitted && (
+                    <Box sx={{ mt: 3, p: 2, bgcolor: '#ecfdf5', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, color: '#059669' }}>
+                      <CheckCircleIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ fontFamily: 'Inter', fontWeight: 500 }}>Sand Properties Registered Successfully</Typography>
+                    </Box>
+                  )}
+
+                </Box>
+
+              </PreviewModal>
+            </>
+          )}
 
         </Container>
 

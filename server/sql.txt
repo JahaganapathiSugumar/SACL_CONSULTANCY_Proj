@@ -195,7 +195,6 @@ CREATE TABLE machine_shop (
 );
 
 CREATE TABLE department_progress (
-    progress_id SERIAL PRIMARY KEY,
     trial_id INT REFERENCES trial_cards(trial_id),
     department_id INT REFERENCES departments(department_id),
     username VARCHAR(50) REFERENCES users(username),
