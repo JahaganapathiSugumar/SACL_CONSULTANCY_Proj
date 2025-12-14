@@ -478,17 +478,6 @@ export default function VisualInspection({
                         <Divider sx={{ mb: 2, borderColor: COLORS.border }} />
 
                         <Grid container spacing={2} sx={{ mb: 2 }}>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Trial ID</Typography>
-                                <TextField
-                                    size="small"
-                                    value={trialId}
-                                    onChange={(e) => setTrialId(e.target.value)}
-                                    fullWidth
-                                    sx={{ bgcolor: 'white' }}
-                                    disabled={user?.role === 'HOD'} // Always disabled for HOD (should match fetched ID)
-                                />
-                            </Grid>
                         </Grid>
 
                         <AlertMessage alert={alert} />

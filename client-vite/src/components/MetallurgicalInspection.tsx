@@ -205,8 +205,8 @@ function SectionTable({
                 </TableCell>
               )}
 
-              <TableCell sx={{ width: 140, bgcolor: COLORS.successBg, borderBottom: 'none' }}></TableCell>
-              <TableCell sx={{ bgcolor: '#fff7ed', borderBottom: 'none' }}></TableCell>
+              <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
+              <TableCell sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
             </TableRow>
           </TableHead>
 
@@ -332,7 +332,7 @@ function SectionTable({
               if (!inspected || !rejected) return null;
               return (
                 <TableRow key="rejection-percentage">
-                  <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#fff' }}>Rejection Percentage</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>Rejection Percentage</TableCell>
                   {cols.map((_, ci) => {
                     const insValRaw = values[inspected.id]?.[ci] ?? "";
                     const rejValRaw = values[rejected.id]?.[ci] ?? "";
@@ -361,9 +361,6 @@ function SectionTable({
                   })}
 
                   {showTotal && <TableCell sx={{ bgcolor: '#fff' }} />}
-
-                  <TableCell sx={{ bgcolor: '#fff' }} />
-                  <TableCell sx={{ bgcolor: '#fff' }} />
                 </TableRow>
               );
             })()}
@@ -872,7 +869,7 @@ export default function MetallurgicalInspection() {
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Value</TableCell>
               {hasTotal && <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total</TableCell>}
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>OK / NOT OK</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Remarks</TableCell>
             </TableRow>
           </TableHead>
@@ -910,7 +907,7 @@ export default function MetallurgicalInspection() {
               {Array.from({ length: maxCols }).map((_, i) => (
                 <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Value {i + 1}</TableCell>
               ))}
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>OK / NOT OK</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Remarks</TableCell>
             </TableRow>
           </TableHead>
@@ -948,7 +945,7 @@ export default function MetallurgicalInspection() {
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Parameter</th>
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Value</th>
               {hasTotal && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>Total</th>}
-              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '50px' }}>Status</th>
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '80px' }}>OK / NOT OK</th>
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Remarks</th>
             </tr>
           </thead>
@@ -982,7 +979,7 @@ export default function MetallurgicalInspection() {
               {Array.from({ length: maxCols }).map((_, i) => (
                 <th key={i} style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>Value {i + 1}</th>
               ))}
-              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '50px' }}>Status</th>
+              <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '80px' }}>OK / NOT OK</th>
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Remarks</th>
             </tr>
           </thead>
@@ -1063,46 +1060,46 @@ export default function MetallurgicalInspection() {
               showAlert={showAlert}
             />
 
-            <SectionTable
-              key={`mech-${loadKey}`}
-              title="MECHANICAL PROPERTIES"
-              rows={mechRows}
-              onChange={updateRow(setMechRows)}
-              showAlert={showAlert}
-            />
-            <SectionTable
-              key={`impact-${loadKey}`}
-              title="IMPACT STRENGTH"
-              rows={impactRows}
-              onChange={updateRow(setImpactRows)}
-              showAlert={showAlert}
-            />
-            <SectionTable
-              key={`hard-${loadKey}`}
-              title="HARDNESS"
-              rows={hardRows}
-              onChange={updateRow(setHardRows)}
-              showAlert={showAlert}
-            />
-            <MicrostructureTable
-              params={MICRO_PARAMS}
-              cols={microCols}
-              values={microValues}
-              meta={microMeta}
-              setCols={setMicroCols}
-              setValues={setMicroValues}
-              setMeta={setMicroMeta}
-              showAlert={showAlert}
-            />
-            <SectionTable
-              key={`ndt-${loadKey}`}
-              title="NDT INSPECTION ANALYSIS"
-              rows={ndtRows}
-              onChange={updateRow(setNdtRows)}
-              showTotal={true}
-              onValidationError={setNdtValidationError}
-              showAlert={showAlert}
-            />
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <SectionTable
+                  key={`mech-${loadKey}`}
+                  title="MECHANICAL PROPERTIES"
+                  rows={mechRows}
+                  onChange={updateRow(setMechRows)}
+                  showAlert={showAlert}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <SectionTable
+                  key={`impact-${loadKey}`}
+                  title="IMPACT STRENGTH"
+                  rows={impactRows}
+                  onChange={updateRow(setImpactRows)}
+                  showAlert={showAlert}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <SectionTable
+                  key={`hard-${loadKey}`}
+                  title="HARDNESS"
+                  rows={hardRows}
+                  onChange={updateRow(setHardRows)}
+                  showAlert={showAlert}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <SectionTable
+                  key={`ndt-${loadKey}`}
+                  title="NDT INSPECTION ANALYSIS"
+                  rows={ndtRows}
+                  onChange={updateRow(setNdtRows)}
+                  showTotal={true}
+                  onValidationError={setNdtValidationError}
+                  showAlert={showAlert}
+                />
+              </Grid>
+            </Grid>
 
             <ActionButtons
               onReset={() => window.location.reload()}

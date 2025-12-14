@@ -219,7 +219,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
     const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
     const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
-    const [userName] = useState<string>(pouringDetails?.userName || "Admin_User");
+    const [userName] = useState<string>(user?.username || "Admin_User");
     const [remarksText, setRemarksText] = useState<string>("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
@@ -687,22 +687,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
 
                             <Grid size={{ xs: 12 }}>
-                                <FormSection title="Remarks" icon={<EditIcon />}>
-                                    <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        placeholder="Enter additional remarks..."
-                                        value={remarksText}
-                                        onChange={(e) => setRemarksText(e.target.value)}
-                                        sx={{ bgcolor: "white" }}
-                                        disabled={user?.role === 'HOD' && !isEditing}
-                                    />
-                                </FormSection>
-                            </Grid>
-
-
-                            <Grid size={{ xs: 12 }}>
                                 <Paper sx={{ p: 3, mb: 3 }}>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
                                         Attach PDF / Image Files
@@ -715,6 +699,22 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                         label="Upload Files"
                                     />
                                 </Paper>
+                            </Grid>
+
+
+                            <Grid size={{ xs: 12 }}>
+                                <FormSection title="Remarks" icon={<EditIcon />}>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        placeholder="Enter additional remarks..."
+                                        value={remarksText}
+                                        onChange={(e) => setRemarksText(e.target.value)}
+                                        sx={{ bgcolor: "white" }}
+                                        disabled={user?.role === 'HOD' && !isEditing}
+                                    />
+                                </FormSection>
                             </Grid>
 
 

@@ -314,9 +314,23 @@ function MouldingTable() {
           <Paper sx={{ p: { xs: 2, md: 3 }, overflow: 'hidden' }}>
             {/* Initial table headers removed since not used in current implementation */}
 
-            <Box display="flex" alignItems="center" gap={1} mb={1}>
-              <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+              </Box>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
+                <TextField
+                  type="date"
+                  size="small"
+                  hiddenLabel
+                  value={mouldDate}
+                  onChange={(e) => setMouldDate(e.target.value)}
+                  sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
+                  disabled={user?.role === 'HOD' && !isEditing}
+                />
+              </Box>
             </Box>
             <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
 

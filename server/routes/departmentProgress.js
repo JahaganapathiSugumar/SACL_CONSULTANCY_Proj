@@ -152,8 +152,8 @@ router.put('/approve', verifyToken, asyncErrorHandler(async (req, res, next) => 
 router.get('/get-progress', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT * FROM department_progress WHERE username = ? AND department_id = ? AND approval_status = 'pending' LIMIT 1`,
-        [username, req.user.department_id]
+        `SELECT * FROM department_progress WHERE username = ? AND approval_status = 'pending' LIMIT 1`,
+        [username]
     );
     res.status(200).json({
         success: true,

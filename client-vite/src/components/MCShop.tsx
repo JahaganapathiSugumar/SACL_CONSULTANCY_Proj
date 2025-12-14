@@ -470,14 +470,7 @@ export default function McShopInspection({
                   disabled={user?.role === 'HOD' && !isEditing}
                 />
               </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Trial ID</Typography>
-                <TextField size="small" value={trialId} onChange={(e) => setTrialId(e.target.value)} fullWidth sx={{ bgcolor: 'white' }} disabled={user?.role === 'HOD' && !isEditing} />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Remarks</Typography>
-                <TextField size="small" value={remarks} onChange={(e) => setRemarks(e.target.value)} fullWidth multiline rows={2} sx={{ bgcolor: 'white' }} disabled={user?.role === 'HOD' && !isEditing} />
-              </Grid>
+
             </Grid>
 
             <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>

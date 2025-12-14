@@ -84,7 +84,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     perm: "",
     remarks: ""
   });
-  const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
+
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -166,7 +166,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       gcs: "", moi: "", compactability: "", perm: "", remarks: ""
     });
     setSandDate(new Date().toISOString().split('T')[0]);
-    setAdditionalRemarks("");
+
     setSubmitted(false);
   };
   // Handle file uploads
@@ -220,7 +220,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           next_department_id: progressData.department_id + 1, // Move to next department
           username: user.username,
           role: user.role,
-          remarks: additionalRemarks || sandProps.remarks || "Approved by HOD"
+          remarks: sandProps.remarks || "Approved by HOD"
         };
 
         await updateDepartment(approvalPayload);
@@ -419,22 +419,11 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               </Table>
             </Box>
 
-            <FormSection title="General Remarks" icon={<EditIcon />}>
-              <TextField
-                multiline
-                rows={3}
-                fullWidth
-                variant="outlined"
-                placeholder="Enter general remarks..."
-                value={additionalRemarks}
-                onChange={(e) => setAdditionalRemarks(e.target.value)}
-                sx={{ bgcolor: '#fff' }}
-              />
-            </FormSection>
+
 
 
             {/* File Upload Section */}
-            <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+            <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                 Attach PDF / Image Files
               </Typography>
