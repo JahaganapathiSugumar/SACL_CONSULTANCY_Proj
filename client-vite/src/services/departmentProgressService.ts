@@ -31,6 +31,24 @@ export async function getProgress(username: string): Promise<ProgressItem[]> {
   return Array.isArray(json.data) ? json.data as ProgressItem[] : [];
 }
 
+export async function createDepartmentProgress(payload: {
+  trial_id: string;
+  department_id: number;
+  username: string;
+  completed_at?: string;
+  approval_status?: string;
+  remarks?: string;
+}) {
+  const url = `${API_BASE}/department-progress`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": localStorage.getItem("authToken") || '' },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
 export async function updateDepartment(payload: {
   trial_id: string;
   next_department_id: number;
@@ -65,4 +83,17 @@ export async function updateDepartmentRole(payload: {
   return handleResponse(res);
 }
 
-export default { getProgress, updateDepartment, updateDepartmentRole };
+export async function approve(payload: {
+  trial_id: string;
+}) {
+  const url = `${API_BASE}/department-progress/approve`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": localStorage.getItem("authToken") || '' },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export default { getProgress, updateDepartment, updateDepartmentRole, createDepartmentProgress, approve };

@@ -99,3 +99,17 @@ export const validateFileSizes = (
         errors
     };
 };
+
+/**
+ * Converts a File to a Base64 string
+ * @param file - File object
+ * @returns Promise resolving to Base64 string
+ */
+export const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+};

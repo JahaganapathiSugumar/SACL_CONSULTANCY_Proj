@@ -183,12 +183,11 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   };
 
   const handleFinalSave = async () => {
-    console.log(localStorage.getItem("authToken"));
+
     setLoading(true);
     try {
-      const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+      const trialId = progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || "trial_id";
 
-      // Check if user is HOD
       // Check if user is HOD
       if (user?.role === 'HOD' && progressData) {
         // HOD Approval flow
@@ -215,7 +214,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         // 2. Approve
         const approvalPayload = {
           trial_id: progressData.trial_id,
-          next_department_id: progressData.department_id + 1,
+          next_department_id: 6,
           username: user.username,
           role: user.role,
           remarks: sandProps.remarks || "Approved by HOD"
@@ -498,6 +497,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                 title="Verify Sand Properties"
                 subtitle="Review your sand test data"
                 submitted={submitted}
+                isSubmitting={loading}
               >
                 <Box sx={{ p: 4 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid black', fontFamily: appTheme.typography.fontFamily, fontSize: '14px' }}>

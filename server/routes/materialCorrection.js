@@ -6,14 +6,14 @@ import CustomError from '../utils/customError.js';
 import verifyToken from '../utils/verifyToken.js';
 
 router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
-    const { trial_id, chemical_composition, process_parameters } = req.body || {};
+    const { trial_id, chemical_composition, process_parameters, remarks } = req.body || {};
     if (!trial_id || !chemical_composition || !process_parameters) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
-    const sql = 'INSERT INTO material_correction (trial_id, chemical_composition, process_parameters) VALUES (?, ?, ?)';
+    const sql = 'INSERT INTO material_correction (trial_id, chemical_composition, process_parameters, remarks) VALUES (?, ?, ?, ?)';
     const chemicalCompositionJson = JSON.stringify(chemical_composition);
     const processParametersJson = JSON.stringify(process_parameters);
-    const [result] = await Client.query(sql, [trial_id, chemicalCompositionJson, processParametersJson]);
+    const [result] = await Client.query(sql, [trial_id, chemicalCompositionJson, processParametersJson, remarks]);
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Material correction created', `Material correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`]);
     const insertId = result.insertId;
@@ -25,14 +25,14 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
 }));
 
 router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
-    const { trial_id, chemical_composition, process_parameters } = req.body || {};
+    const { trial_id, chemical_composition, process_parameters, remarks } = req.body || {};
     if (!trial_id || !chemical_composition || !process_parameters) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
-    const sql = 'UPDATE material_correction SET chemical_composition = ?, process_parameters = ? WHERE trial_id = ?';
+    const sql = 'UPDATE material_correction SET chemical_composition = ?, process_parameters = ?, remarks = ? WHERE trial_id = ?';
     const chemicalCompositionJson = JSON.stringify(chemical_composition);
     const processParametersJson = JSON.stringify(process_parameters);
-    const [result] = await Client.query(sql, [chemicalCompositionJson, processParametersJson, trial_id]);
+    const [result] = await Client.query(sql, [chemicalCompositionJson, processParametersJson, remarks, trial_id]);
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Material correction updated', `Material correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`]);
     const insertId = result.insertId;

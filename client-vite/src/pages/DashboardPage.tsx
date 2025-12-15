@@ -353,7 +353,7 @@ const DashboardPage: React.FC = () => {
         onClose={() => setIsAddUserModalOpen(false)}
         onUserCreated={() => {
           setShowUserDetails(true);
-          console.log('User created successfully');
+
         }}
       />
 

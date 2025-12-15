@@ -3,7 +3,8 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
-import { getProgress, updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
+import { getProgress, updateDepartment, updateDepartmentRole, approve } from "../services/departmentProgressService";
+import { trialService } from "../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -59,7 +60,7 @@ type GroupMeta = GroupMetadata;
 export default function McShopInspection({
   initialCavities = ["", "", ""],
   onSave = async (payload: any) => {
-    console.log("McShopInspection default onSave", payload);
+
     return { ok: true };
   },
 }: {
@@ -69,7 +70,7 @@ export default function McShopInspection({
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ ALL useState HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
+  /* useState HOOKS */
   const [assigned, setAssigned] = useState<boolean | null>(null);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [userTime, setUserTime] = useState<string>("");
@@ -138,7 +139,6 @@ export default function McShopInspection({
           if (response.success && response.data && response.data.length > 0) {
             const data = response.data[0];
             setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
-
             // Reconstruct Table
             if (data.inspections) {
               const inspections = typeof data.inspections === 'string' ? JSON.parse(data.inspections) : data.inspections;
@@ -326,18 +326,19 @@ export default function McShopInspection({
           await inspectionService.updateMachineShopInspection(serverPayload);
         }
 
-        // 2. Approve
-        const approvalPayload = {
-          trial_id: progressData.trial_id,
-          next_department_id: progressData.department_id + 1,
-          username: user.username,
-          role: user.role,
-          remarks: remarks || groupMeta.remarks || "Approved by HOD"
-        };
+        // 2. Approve Department Progress
+        await approve({
+          trial_id: progressData.trial_id
+        });
 
-        await updateDepartment(approvalPayload);
+        // 3. Update Trial Status to Closed
+        await trialService.updateTrialStatus({
+          trial_id: progressData.trial_id,
+          status: "CLOSED"
+        });
+
         setPreviewSubmitted(true);
-        showAlert('success', 'Department progress approved successfully.');
+        showAlert('success', 'Department progress approved and Trial Closed successfully.');
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (err) {
         showAlert('error', 'Failed to approve. Please try again.');
@@ -349,7 +350,7 @@ export default function McShopInspection({
     }
 
     try {
-      const trialIdParam = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+      const trialIdParam = progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || 'trial_id';
 
       const payload = buildPayload();
       const rowsByLabel = (labelSnippet: string) => rows.find(r => (r.label || '').toLowerCase().includes(labelSnippet));
@@ -670,6 +671,7 @@ export default function McShopInspection({
                 title="Verify Inspection Data"
                 subtitle="Machine Shop Inspection Report"
                 submitted={previewSubmitted}
+                isSubmitting={saving}
               >
                 <Box sx={{ p: 4 }}>
                   <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>

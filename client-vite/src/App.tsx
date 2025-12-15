@@ -24,7 +24,6 @@ import PouringDetailsTable from './components/PouringDetailsTable';
 import type { PouringDetails, SubmittedData } from './components/PouringDetailsTable';
 import SandTable from './components/Sand';
 import NotificationPage from './pages/NotificationPage';
-import PendingSampleCardsPage from './pages/PendingSampleCardsPage';
 import Common from '../src/components/common/Common';
 import MaterialCorrection from './components/MaterialCorrection';
 import FullReportPage from './pages/FullReportPage';
@@ -121,7 +120,6 @@ const AppRoutes: React.FC = () => {
       <Route path="/foundry-sample" element={<Navigate to="/foundry-sample-card" replace />} />
 
       <Route path="/notifications" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
-      <Route path="/pending-samples" element={<ProtectedRoute><PendingSampleCardsPage /></ProtectedRoute>} />
 
       <Route
         path="/moulding"

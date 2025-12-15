@@ -119,7 +119,7 @@ export default function FullReportPage() {
     const meta = data.metallurgical_inspection?.[0] || {};
     const visual = data.visual_inspection?.[0] || {};
     const dimensional = data.dimensional_inspection?.[0] || {};
-    console.log(dimensional);
+
     const mcShop = data.machine_shop?.[0] || {};
 
     const safeParse = (data: any, fallback: any = {}) => {

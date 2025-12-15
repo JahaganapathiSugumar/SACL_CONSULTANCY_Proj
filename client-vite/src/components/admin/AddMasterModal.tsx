@@ -125,8 +125,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
     };
 
     const testExactSQLPayload = async () => {
-        console.log('🧪 Testing with EXACT SQL payload structure...');
-
         // This is the EXACT same structure as your working SQL insert
         const exactSQLPayload = {
             pattern_code: 'PC-' + Date.now(), // Make it unique
@@ -149,19 +147,13 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
             mpi: 'No indications'
         };
 
-        console.log('🔧 EXACT SQL Payload:', JSON.stringify(exactSQLPayload, null, 2));
-
         try {
             const response = await masterListService.submitMasterListJson(exactSQLPayload);
             const responseText = await response.text();
-            console.log('📡 Response status:', response.status);
-            console.log('📡 Response text:', responseText);
 
             if (response.ok) {
-                console.log('✅ SUCCESS with exact SQL payload!');
                 return true;
             } else {
-                console.log('❌ FAILED with exact SQL payload');
                 return false;
             }
         } catch (err) {
@@ -177,14 +169,14 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
 
         try {
             // First, test with the exact SQL payload to see if it works
-            console.log('🚀 Step 1: Testing with exact SQL payload...');
+
             const sqlTestSuccess = await testExactSQLPayload();
 
             if (!sqlTestSuccess) {
                 throw new Error('Even the exact SQL payload fails! The issue is in the backend API validation.');
             }
 
-            console.log('🚀 Step 2: Now trying with form data...');
+
 
             // Validate required fields
             if (!formData.pattern_code.trim()) {
@@ -221,8 +213,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
                 tooling: formData.tooling || null // include tooling block
             };
 
-            console.log('🔧 Form Data Payload:', JSON.stringify(payloadObj, null, 2));
-            console.log('📎 Attachments count:', attachments.length);
+
 
             let response: Response;
             // If attachments present, send as FormData
@@ -234,8 +225,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
             }
 
             const responseText = await response.text();
-            console.log('📡 Form Data Response status:', response.status);
-            console.log('📡 Form Data Response text:', responseText);
+
 
             if (!response.ok) {
                 let errorMessage = `Server error: ${response.status}`;

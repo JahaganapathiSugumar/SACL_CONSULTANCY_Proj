@@ -12,6 +12,7 @@ interface PreviewModalProps {
     title: string;
     subtitle?: string;
     submitted?: boolean;
+    isSubmitting?: boolean;
     children: React.ReactNode;
 }
 
@@ -23,6 +24,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     title,
     subtitle,
     submitted,
+    isSubmitting,
     children
 }) => {
     if (!open) return null;
@@ -90,7 +92,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
                         justifyContent: 'flex-end'
                     }}
                 >
-                    <Button variant="outlined" onClick={onClose}>
+                    <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
                         Close
                     </Button>
                     {submitted && onExport && (
@@ -108,8 +110,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
                             variant="contained"
                             sx={{ bgcolor: COLORS.secondary }}
                             onClick={onSubmit}
+                            disabled={isSubmitting}
                         >
-                            Confirm & Submit
+                            {isSubmitting ? "Submitting..." : "Confirm & Submit"}
                         </Button>
                     )}
                 </Box>

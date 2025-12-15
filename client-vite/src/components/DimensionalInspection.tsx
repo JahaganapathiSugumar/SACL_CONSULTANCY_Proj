@@ -57,7 +57,7 @@ type GroupMeta = GroupMetadata;
 export default function DimensionalInspection({
     initialCavities = ["Value 1"],
     onSave = async (payload: any) => {
-        console.log("DimensionalInspection default onSave", payload);
+
         return { ok: true };
     },
 }: {
@@ -73,8 +73,8 @@ export default function DimensionalInspection({
     const [cavities, setCavities] = useState<string[]>([...initialCavities]);
     const [cavRows, setCavRows] = useState<CavRow[]>(() => {
         const makeCavRows = (cavLabels: string[]) => [
-            { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
-            { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+            { id: `cavity-${generateUid()}`, label: "Cavity Number", values: cavLabels.map(() => "") } as CavRow,
+            { id: `avg-${generateUid()}`, label: "Casting Weight", values: cavLabels.map(() => "") } as CavRow,
         ];
         return makeCavRows(initialCavities);
     });
@@ -117,7 +117,6 @@ export default function DimensionalInspection({
             if (user?.role === 'HOD' && progressData?.trial_id) {
                 try {
                     const response = await inspectionService.getDimensionalInspection(progressData.trial_id);
-                    console.log("DimensionalInspection fetchData", response);
                     if (response.success && response.data && response.data.length > 0) {
                         const data = response.data[0];
                         setDate(data.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
@@ -125,32 +124,27 @@ export default function DimensionalInspection({
                         setBunchWeight(String(data.bunch_weight || ""));
                         setNumberOfCavity(String(data.no_of_cavities || ""));
                         setGroupMeta({ remarks: data.remarks || "", attachment: null });
-                        console.log("DimensionalInspection fetchData", data);
+                        setAdditionalRemarks(data.remarks || "");
                         if (data.inspections) {
                             try {
-                                const parsed = JSON.parse(data.inspections);
-                                if (Array.isArray(parsed)) {
-                                    // Restore columns (Headers lost, using generic)
-                                    setCavities(parsed.map((_, i) => `Cavity ${i + 1}`));
-
-                                    // Restore Rows
+                                if (Array.isArray(data.inspections)) {
+                                    setCavities(data.inspections.map((_: any, i: number) => `Cavity ${i + 1}`));
                                     setCavRows(prev => prev.map(row => {
-                                        if (row.label === "Cavity number") {
-                                            return { ...row, values: parsed.map(p => String(p["Cavity Number"] || "")) };
+                                        if (row.label === "Cavity Number") {
+                                            return { ...row, values: data.inspections.map((p: any) => String(p["Cavity Number"] || "")) };
                                         }
-                                        if (row.label === "Casting weight") {
-                                            return { ...row, values: parsed.map(p => String(p["Casting Weight"] || "")) };
+                                        if (row.label === "Casting Weight") {
+                                            return { ...row, values: data.inspections.map((p: any) => String(p["Casting Weight"] || "")) };
                                         }
                                         return row;
                                     }));
                                 }
                             } catch (e) {
-                                console.error("Error parsing inspections JSON", e);
+                                // Error parsing
                             }
                         }
                     }
                 } catch (error) {
-                    console.error("Failed to fetch dimensional data:", error);
                     showAlert('error', 'Failed to load existing data.');
                 }
             }
@@ -171,8 +165,8 @@ export default function DimensionalInspection({
 
 
     const makeCavRows = (cavLabels: string[]) => [
-        { id: `cavity-${generateUid()}`, label: "Cavity number", values: cavLabels.map(() => "") } as CavRow,
-        { id: `avg-${generateUid()}`, label: "Casting weight", values: cavLabels.map(() => "") } as CavRow,
+        { id: `cavity-${generateUid()}`, label: "Cavity Number", values: cavLabels.map(() => "") } as CavRow,
+        { id: `avg-${generateUid()}`, label: "Casting Weight", values: cavLabels.map(() => "") } as CavRow,
     ];
 
     const calculateYield = () => {
@@ -199,13 +193,13 @@ export default function DimensionalInspection({
     };
 
     const removeAttachedFile = (index: number) => {
-        setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+        setAttachedFiles(prev => prev.filter((_: File, i: number) => i !== index));
     };
 
     const removeCavity = (index: number) => {
         if (cavities.length <= 1) return;
-        setCavities((c) => c.filter((_, i) => i !== index));
-        setCavRows((rows) => rows.map((r) => ({ ...r, values: r.values.filter((_, i) => i !== index) })));
+        setCavities((c) => c.filter((_: string, i: number) => i !== index));
+        setCavRows((rows) => rows.map((r) => ({ ...r, values: r.values.filter((_: string, i: number) => i !== index) })));
     };
 
     const updateCavityLabel = (index: number, label: string) => {
@@ -289,10 +283,10 @@ export default function DimensionalInspection({
                 // 2. Approve
                 const approvalPayload = {
                     trial_id: progressData.trial_id,
-                    next_department_id: progressData.department_id + 1,
+                    next_department_id: 8,
                     username: user.username,
-                    role: user.role,
-                    remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Approved by HOD"
+                    role: user.role || "HOD",
+                    remarks: "Approved by HOD"
                 };
 
                 await updateDepartment(approvalPayload);
@@ -301,7 +295,6 @@ export default function DimensionalInspection({
                 setTimeout(() => navigate('/dashboard'), 1500);
             } catch (err) {
                 showAlert('error', 'Failed to approve. Please try again.');
-                console.error("Approval error:", err);
             } finally {
                 setSaving(false);
             }
@@ -309,7 +302,7 @@ export default function DimensionalInspection({
         }
 
         try {
-            const trialId = new URLSearchParams(window.location.search).get('trial_id') || (localStorage.getItem('trial_id') ?? 'trial_id');
+            const trialId = progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || 'trial_id';
 
             const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
             const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
@@ -336,16 +329,15 @@ export default function DimensionalInspection({
 
             if (attachedFiles.length > 0) {
                 try {
-                    // Uncomment when ready
-                    // const uploadResults = await uploadFiles(
-                    //   attachedFiles,
-                    //   trialId,
-                    //   "DIMENSIONAL_INSPECTION",
-                    //   user?.username || "system",
-                    //   additionalRemarks || ""
-                    // );
+                    const uploadResults = await uploadFiles(
+                        attachedFiles,
+                        trialId,
+                        "DIMENSIONAL_INSPECTION",
+                        user?.username || "system",
+                        additionalRemarks || ""
+                    );
                 } catch (uploadError) {
-                    console.error("File upload error:", uploadError);
+                    // File upload error
                 }
             }
 
@@ -359,13 +351,12 @@ export default function DimensionalInspection({
                         remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Completed by user"
                     });
                 } catch (roleError) {
-                    console.error("Failed to update role progress:", roleError);
+                    // Failed to update role progress
                 }
             }
 
             navigate('/dashboard');
         } catch (err: any) {
-            console.error("Error saving dimensional inspection:", err);
             showAlert('error', 'Failed to save dimensional inspection. Please try again.');
         } finally {
             setSaving(false);
@@ -594,8 +585,8 @@ export default function DimensionalInspection({
                                 onSubmit={handleFinalSave}
                                 onExport={handleExportPDF}
                                 title="Verify Inspection Data"
-                                subtitle="Dimensional Inspection Report"
                                 submitted={previewSubmitted}
+                                isSubmitting={saving}
                             >
                                 <Box sx={{ p: 4 }}>
                                     <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>

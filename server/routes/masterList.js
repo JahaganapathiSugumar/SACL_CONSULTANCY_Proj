@@ -8,7 +8,6 @@ router.get('/', verifyToken, asyncErrorHandler(async(req, res, next)=>{
     const response = await Client.query(
         `SELECT * FROM master_card`
     )
-    console.log(response[0]);
     res.status(200).json({success:true, data:response[0]});
 }))
 

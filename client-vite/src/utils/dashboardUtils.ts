@@ -42,12 +42,15 @@ export const getPendingRoute = (departmentIdRaw: number | string | undefined): s
     const departmentRoutes: Record<number, string> = {
         10: '/dimensional-inspection',
         7: '/metallurgical-inspection',
-        8: '/machine-shop',
+        8: '/mc-shop',
         6: '/moulding',
-        9: '/pouring-details',
+        9: '/pouring',
+        3: '/material-correction',
         4: '/sand',
         5: '/visual-inspection',
     };
+
+    // 3, 9, 4, 6, 7, 5, 10, 8
 
     return departmentRoutes[departmentId] || '/dashboard';
 };

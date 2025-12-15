@@ -255,15 +255,28 @@ export default function VisualInspection({
         return {
             created_at: new Date().toLocaleString(),
             cols: cols.slice(),
-            rows: rows.map(r => ({
-                label: r.label,
-                values: r.values,
+            rows: rows.map(r => {
+                if (r.label === "Rejection Percentage (%)") {
+                    const inspectedRow = rows.find(row => row.label === "Inspected Quantity");
+                    const rejectedRow = rows.find(row => row.label === "Rejected Quantity");
+                    const calculatedValues = r.values.map((_, i) => {
+                        const ins = parseFloat(inspectedRow?.values[i] || "0");
+                        const rej = parseFloat(rejectedRow?.values[i] || "0");
+                        if (isNaN(ins) || isNaN(rej) || ins === 0) return "0.00";
+                        return ((rej / ins) * 100).toFixed(2);
+                    });
+                    return { ...r, values: calculatedValues, total: null };
+                }
+                return {
+                    label: r.label,
+                    values: r.values,
 
-                total: r.label === "Cavity number" ? null : r.values.reduce((acc, v) => {
-                    const n = parseFloat(String(v).trim());
-                    return acc + (isNaN(n) ? 0 : n);
-                }, 0)
-            })),
+                    total: r.label === "Cavity number" ? null : r.values.reduce((acc, v) => {
+                        const n = parseFloat(String(v).trim());
+                        return acc + (isNaN(n) ? 0 : n);
+                    }, 0)
+                };
+            }),
 
             group: {
                 ok: groupMeta.ok,
@@ -315,7 +328,7 @@ export default function VisualInspection({
                         const rejectionPercentage = (() => {
                             const ins = parseFloat(String(inspected ?? '0'));
                             const rej = parseFloat(String(rejected ?? '0'));
-                            if (isNaN(ins) || isNaN(rej) || ins === 0) return null;
+                            if (isNaN(ins) || isNaN(rej) || ins === 0) return "0.00";
                             return ((rej / ins) * 100).toFixed(2);
                         })();
 
@@ -341,7 +354,7 @@ export default function VisualInspection({
                 // 2. Approve
                 const approvalPayload = {
                     trial_id: progressData.trial_id,
-                    next_department_id: progressData.department_id + 1,
+                    next_department_id: 10,
                     username: user.username,
                     role: user.role,
                     remarks: groupMeta.remarks || "Approved by HOD"
@@ -375,7 +388,7 @@ export default function VisualInspection({
                 const rejectionPercentage = (() => {
                     const ins = parseFloat(String(inspected ?? '0'));
                     const rej = parseFloat(String(rejected ?? '0'));
-                    if (isNaN(ins) || isNaN(rej) || ins === 0) return null;
+                    if (isNaN(ins) || isNaN(rej) || ins === 0) return "0.00";
                     return ((rej / ins) * 100).toFixed(2);
                 })();
 
@@ -390,7 +403,7 @@ export default function VisualInspection({
             });
 
             const serverPayload = {
-                trial_id: trialId || null,
+                trial_id: progressData.trial_id,
                 inspections,
                 visual_ok: previewPayload.group?.ok ?? null,
                 remarks: previewPayload.additionalRemarks || previewPayload.group?.remarks || null,
@@ -713,13 +726,13 @@ export default function VisualInspection({
                             </Paper>
 
                             <PreviewModal
-                                open={previewMode && previewPayload}
+                                open={previewMode}
                                 onClose={() => setPreviewMode(false)}
                                 onSubmit={handleFinalSave}
                                 onExport={handleExportPdf}
-                                title="Verify Inspection Data"
-                                subtitle="Review your visual inspection report"
+                                title="VISUAL INSPECTION DETAILS"
                                 submitted={submitted}
+                                isSubmitting={saving}
                             >
                                 <Box sx={{ p: 4 }}>
                                     <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>

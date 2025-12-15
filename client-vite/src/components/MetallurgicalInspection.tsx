@@ -52,7 +52,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import SaclHeader from "./common/SaclHeader";
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, PreviewModal, Common } from './common';
+import { LoadingState, EmptyState, ActionButtons, PreviewModal, Common, FileUploadSection } from './common';
 
 interface Row {
   id: string;
@@ -113,6 +113,17 @@ function SectionTable({
   });
 
   const [groupMeta, setGroupMeta] = useState<{ attachment: File | null; ok: boolean | null; remarks: string }>(() => ({ attachment: null, ok: null, remarks: '' }));
+
+  useEffect(() => {
+    if (rows.length > 0) {
+      const first = rows[0];
+      setGroupMeta(prev => ({
+        ...prev,
+        ok: first.ok === true || String(first.ok) === "1" || String(first.ok) === "true",
+        remarks: first.remarks || prev.remarks || ""
+      }));
+    }
+  }, [rows]);
 
   useEffect(() => {
     setValues((prev) => {
@@ -576,6 +587,7 @@ export default function MetallurgicalInspection() {
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]); // Added for File Uploads
 
   const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [microValues, setMicroValues] = useState<Record<string, string[]>>(() => {
@@ -595,6 +607,14 @@ export default function MetallurgicalInspection() {
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Surface", "Core"]));
   const [ndtRows, setNdtRows] = useState<Row[]>(initialRows(["Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
   const [progressData, setProgressData] = useState<any>(null);
+
+  const handleAttachFiles = (newFiles: File[]) => {
+    setAttachedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -650,37 +670,29 @@ export default function MetallurgicalInspection() {
                 const newValues: any = {};
                 microData.forEach((row: any) => {
                   newValues[row.label] = row.values || [];
-                  if (row.label === 'Cavity number' || row.label === 'Nodularity') { /* etc can set metas */ }
                 });
                 setMicroValues(prev => ({ ...prev, ...newValues }));
 
-                // Restore Group meta if available check specific rows or logic
-                // Since microstructure in DB is Row[] similar structure
-                const groupRow = microData.find((r: any) => r.label === 'Cavity number'); // Or any
-                if (groupRow) {
-                  setMicroMeta(prev => ({
-                    ...prev,
-                    'group': {
-                      ok: groupRow.ok,
-                      remarks: groupRow.remarks || "",
-                      attachment: null
-                    }
-                  }));
-                }
+                // Restore Group meta from separate fields
+                setMicroMeta(prev => ({
+                  ...prev,
+                  'group': {
+                    ok: data.micro_structure_ok ?? null,
+                    remarks: data.micro_structure_remarks || "",
+                    attachment: null
+                  }
+                }));
               }
             }
 
             // Restore Section Tables (Mech, Impact, Hard, NDT)
-            // Note: SectionTable initializes from 'value' string. The DB stores Arrays.
-            // We need to map DB Row Objects back to UI Row Objects with 'value' string joined by '|'
-
             const restoreSection = (source: any) => {
               const arr = parseRows(source);
               return arr.map((r: any) => ({
-                id: r.label + "-" + generateUid(), // Regenerate ID or use existing if stored?
+                id: r.label + "-" + generateUid(),
                 label: r.label,
-                value: Array.isArray(r.values) ? r.values.join(' | ') : r.value, // Handle both formats if schema varied
-                ok: r.ok,
+                value: Array.isArray(r.values) ? r.values.join(' | ') : r.value,
+                ok: r.ok === true || String(r.ok) === "1" || String(r.ok) === "true",
                 remarks: r.remarks,
                 total: r.total,
                 attachment: null
@@ -783,28 +795,82 @@ export default function MetallurgicalInspection() {
   const handleFinalSave = async () => {
     if (!previewPayload) return;
 
+    // Transform payload to match new API schema
+    const transformToServerPayload = (payload: any) => {
+      // Extract OK status and remarks from grouped metadata
+      const microOk = microMeta['group']?.ok ?? null;
+      const microRemarks = microMeta['group']?.remarks ?? '';
+
+      // For other sections, check if any row has ok=false, then section is not ok
+      const getMechOk = () => {
+        const hasNotOk = payload.mechRows?.some((r: any) => r.ok === false);
+        if (hasNotOk) return false;
+        const hasOk = payload.mechRows?.some((r: any) => r.ok === true);
+        return hasOk ? true : null;
+      };
+
+      const getImpactOk = () => {
+        const hasNotOk = payload.impactRows?.some((r: any) => r.ok === false);
+        if (hasNotOk) return false;
+        const hasOk = payload.impactRows?.some((r: any) => r.ok === true);
+        return hasOk ? true : null;
+      };
+
+      const getHardnessOk = () => {
+        const hasNotOk = payload.hardRows?.some((r: any) => r.ok === false);
+        if (hasNotOk) return false;
+        const hasOk = payload.hardRows?.some((r: any) => r.ok === true);
+        return hasOk ? true : null;
+      };
+
+      const getNdtOk = () => {
+        const hasNotOk = payload.ndtRows?.some((r: any) => r.ok === false);
+        if (hasNotOk) return false;
+        const hasOk = payload.ndtRows?.some((r: any) => r.ok === true);
+        return hasOk ? true : null;
+      };
+
+      // Collect remarks from rows
+      const getMechRemarks = () => payload.mechRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+      const getImpactRemarks = () => payload.impactRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+      const getHardnessRemarks = () => payload.hardRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+      const getNdtRemarks = () => payload.ndtRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+
+      return {
+        trial_id: progressData?.trial_id,
+        inspection_date: payload.inspection_date,
+        micro_structure: payload.microRows || [],
+        micro_structure_ok: microOk,
+        micro_structure_remarks: microRemarks,
+        mech_properties: payload.mechRows || [],
+        mech_properties_ok: getMechOk(),
+        mech_properties_remarks: getMechRemarks(),
+        impact_strength: payload.impactRows || [],
+        impact_strength_ok: getImpactOk(),
+        impact_strength_remarks: getImpactRemarks(),
+        hardness: payload.hardRows || [],
+        hardness_ok: getHardnessOk(),
+        hardness_remarks: getHardnessRemarks(),
+        ndt_inspection: payload.ndtRows || [],
+        ndt_inspection_ok: getNdtOk(),
+        ndt_inspection_remarks: getNdtRemarks()
+      };
+    };
+
     // HOD Approval Logic
     if (user?.role === 'HOD' && progressData) {
+      setSending(true);
       try {
         // 1. Update Data if Edited
         if (isEditing) {
-          const serverPayload = {
-            trial_id: progressData.trial_id,
-            inspection_date: previewPayload.inspection_date,
-            micro_structure: JSON.stringify(previewPayload.microRows),
-            mech_properties: JSON.stringify(previewPayload.mechRows),
-            impact_strength: JSON.stringify(previewPayload.impactRows),
-            hardness: JSON.stringify(previewPayload.hardRows),
-            ndt_inspection: JSON.stringify(previewPayload.ndtRows),
-            remarks: previewPayload.ndtRows?.[0]?.remarks || null
-          }
+          const serverPayload = transformToServerPayload(previewPayload);
           await inspectionService.updateMetallurgicalInspection(serverPayload);
         }
 
         // 2. Approve
         const approvalPayload = {
           trial_id: progressData.trial_id,
-          next_department_id: progressData.department_id + 1,
+          next_department_id: 5,
           username: user.username,
           role: user.role,
           remarks: previewPayload.ndtRows?.[0]?.remarks || "Approved by HOD"
@@ -816,13 +882,19 @@ export default function MetallurgicalInspection() {
       } catch (err) {
         showAlert('error', 'Failed to approve. Please try again.');
         console.error(err);
+      } finally {
+        setSending(false);
       }
       return;
     }
 
     try {
       setSending(true);
-      await sendToServer(previewPayload);
+
+      // Send to actual API instead of simulated call
+      const serverPayload = transformToServerPayload(previewPayload);
+      await inspectionService.submitMetallurgicalInspection(serverPayload);
+
       setPreviewSubmitted(true);
       showAlert('success', 'Metallurgical inspection created successfully.');
 
@@ -840,9 +912,32 @@ export default function MetallurgicalInspection() {
         }
       }
 
+      // Handle File Uploads
+      if (attachedFiles.length > 0) {
+        try {
+          const uploadResults = await uploadFiles(
+            attachedFiles,
+            progressData?.trial_id || "trial_id",
+            "METALLURGICAL_INSPECTION",
+            user?.username || "system",
+            previewPayload.ndtRows?.[0]?.remarks || ""
+          );
+
+          const failures = uploadResults.filter(r => !r.success);
+          if (failures.length > 0) {
+            console.error("Some files failed to upload:", failures);
+            showAlert('warning', 'Some files failed to upload, but inspection data was saved.');
+          }
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+          showAlert('warning', 'File upload failed, but inspection data was saved.');
+        }
+      }
+
       navigate('/dashboard');
     } catch (err: any) {
       setMessage('Failed to submit inspection data');
+      showAlert('error', err.message || 'Failed to submit inspection data');
     } finally {
       setSending(false);
     }
@@ -919,7 +1014,7 @@ export default function MetallurgicalInspection() {
                 ))}
                 <TableCell sx={{ fontSize: '0.8rem' }}>
                   {r.ok === true ? <span style={{ color: 'green', fontWeight: 'bold' }}>OK</span> :
-                    r.ok === false ? <span style={{ color: 'red', fontWeight: 'bold' }}>NOT OKK</span> : '-'}
+                    r.ok === false ? <span style={{ color: 'red', fontWeight: 'bold' }}>NOT OK</span> : '-'}
                 </TableCell>
                 <TableCell sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{r.remarks || '-'}</TableCell>
               </TableRow>
@@ -1104,6 +1199,19 @@ export default function MetallurgicalInspection() {
                   </Grid>
                 </Grid>
 
+                <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                    Attach PDF / Image Files
+                  </Typography>
+                  <FileUploadSection
+                    files={attachedFiles}
+                    onFilesChange={handleAttachFiles}
+                    onFileRemove={removeAttachedFile}
+                    showAlert={showAlert}
+                    label="Attach PDF"
+                  />
+                </Box>
+
                 <ActionButtons
                   onReset={() => window.location.reload()}
                   onSave={handleSaveAndContinue}
@@ -1134,6 +1242,7 @@ export default function MetallurgicalInspection() {
                 title="Verify Inspection Data"
                 subtitle="Metallurgical Inspection Report"
                 submitted={previewSubmitted}
+                isSubmitting={sending}
               >
                 <Box sx={{ p: 4 }} ref={printRef}>
                   <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>

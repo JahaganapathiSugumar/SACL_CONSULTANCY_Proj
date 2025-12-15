@@ -36,7 +36,7 @@ export const trialService = {
      * @param partName - Name of the part to search for
      * @returns Promise resolving to trial data
      */
-    async getTrialByPartName(partName: string): Promise<any> {
+    async getTrialIdByPartName(partName: string): Promise<any> {
         try {
             const response = await fetch(
                 `${API_BASE}/trial/id?part_name=${encodeURIComponent(partName)}`, {
@@ -95,13 +95,13 @@ export const trialService = {
     },
 
     /**
-     * Submits trial data for November
+     * Submits trial data
      * @param payload - Trial data to submit
      * @returns Promise resolving to API response
      */
-    async submitTrialNovember(payload: any): Promise<any> {
+    async submitTrial(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/trial-november`, {
+            const response = await fetch(`${API_BASE}/trial`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,33 +119,7 @@ export const trialService = {
 
             return data;
         } catch (error) {
-            console.error('Failed to submit trial november:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Fetches pending sample cards
-     * @returns Promise resolving to array of pending cards
-     */
-    async getPendingSampleCards(): Promise<any[]> {
-        try {
-            const response = await fetch(`${API_BASE}/pending-sample-cards`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch pending cards');
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Failed to fetch pending sample cards:', error);
+            console.error('Failed to submit trial :', error);
             throw error;
         }
     },
@@ -172,6 +146,36 @@ export const trialService = {
             return data.data || [];
         } catch (error) {
             console.error('Failed to fetch all trials:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Updates trial status
+     * @param payload - { trial_id, status }
+     * @returns Promise resolving to API response
+     */
+    async updateTrialStatus(payload: { trial_id: string; status: string }): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE}/trial/update-status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('authToken') || ''
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Failed to update trial status:', error);
             throw error;
         }
     }

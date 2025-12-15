@@ -390,7 +390,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     // 2. Approve
                     const approvalPayload = {
                         trial_id: progressData.trial_id,
-                        next_department_id: progressData.department_id + 1,
+                        next_department_id: 4,
                         username: user.username,
                         role: user.role,
                         remarks: remarksText || "Approved by HOD"
@@ -408,7 +408,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
             }
 
             const apiPayload = {
-                trial_id: 'sample',
+                trial_id: progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || "trial_id",
                 pour_date: pouringDate,
                 heat_code: heatCode,
                 composition: {
@@ -436,7 +436,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                 remarks: remarksText
             };
 
-            console.log("Submitting pouring details:", apiPayload);
+
 
             const data = await inspectionService.submitPouringDetails(apiPayload);
             setSubmitted(true);
@@ -754,6 +754,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                 onExport={handleExportPDF}
                                 title="POURING DETAILS:"
                                 submitted={submitted}
+                                isSubmitting={loading}
                             >
                                 <Box sx={{ p: 4 }} className="print-section">
                                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', border: '2px solid black', fontFamily: theme.typography.fontFamily }}>

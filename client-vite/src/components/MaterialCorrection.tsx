@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { trialService } from "../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
     Box,
@@ -200,7 +201,7 @@ export default function MaterialCorrection() {
 
                     const approvalPayload = {
                         trial_id: progressData.trial_id,
-                        next_department_id: progressData.department_id + 1,
+                        next_department_id: 9,
                         username: user.username,
                         role: user.role,
                         remarks: remarks || "Approved by HOD"
@@ -244,8 +245,12 @@ export default function MaterialCorrection() {
                             role: "user",
                             remarks: remarks || "Completed by user"
                         });
+                        await trialService.updateTrialStatus({
+                            trial_id: progressData.trial_id,
+                            status: "IN PROGRESS"
+                        });
                     } catch (roleError) {
-                        console.error("Failed to update role progress:", roleError);
+                        console.error("Failed to update role progress or trial status:", roleError);
                     }
                 }
 
@@ -437,6 +442,7 @@ export default function MaterialCorrection() {
                         title="Verify Specification"
                         subtitle="Composition & Process Check"
                         submitted={submitted}
+                        isSubmitting={loading}
                     >
                         {previewPayload && (
                             <Box>

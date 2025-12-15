@@ -17,17 +17,8 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
         `INSERT INTO department_progress (trial_id, department_id, completed_at, approval_status, remarks, username) VALUES (?, ?, ?, ?, ?, ?)`,
         [trial_id, department_id, completed_at, approval_status, remarks, username]
     );
-    const user = await Client.query(
-        `SELECT * FROM users WHERE username = ?`,
-        [username]
-    );
-    const mailOptions = {
-        to: user[0].email,
-        subject: 'Department Progress Added',
-        text: `Department progress ${result.insertId} added by ${username} with trial id ${trial_id} to department ${department_id}. Please check the progress by logging into the application.`
-    };
-    await transporter.sendMail(mailOptions);
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress added', `Department progress for trial ${trial_id} added by ${username} to department ${department_id}`]);
     res.status(201).json({
         success: true,
         data: "Department progress added successfully"
@@ -54,12 +45,8 @@ router.put('/update-department', verifyToken, asyncErrorHandler(async (req, res,
     const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result_assignment] = await Client.query(audit_sql_assignment, [req.user.user_id, req.user.department_id, 'Department progress updated', `Department progress for trial ${trial_id} updated by ${req.user.username} to department ${next_department_id} for ${role}`]);
 
-    const user = await Client.query(
-        `SELECT * FROM users WHERE username = ?`,
-        [next_department_username]
-    );
     const mailOptions = {
-        to: user[0].email,
+        to: next_department_user[0][0].email,
         subject: 'A new request assigned',
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -92,6 +79,7 @@ router.put('/update-role', verifyToken, asyncErrorHandler(async (req, res, next)
         `SELECT * FROM users WHERE department_id = ? AND role = 'HOD' LIMIT 1`,
         [current_department_id]
     );
+    console.log(current_department_id);
     if (current_department_hod.length === 0) {
         throw new CustomError("No HOD found for the department.");
     }
@@ -133,10 +121,10 @@ router.put('/update-role', verifyToken, asyncErrorHandler(async (req, res, next)
 }));
 
 router.put('/approve', verifyToken, asyncErrorHandler(async (req, res, next) => {
-    const { trial_id, remarks } = req.body;
+    const { trial_id } = req.body;
     const [result] = await Client.query(
-        `UPDATE department_progress SET approval_status = 'approved', remarks = ? WHERE trial_id = ?`,
-        [remarks, trial_id]
+        `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = ?`,
+        [trial_id]
     );
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Department progress approved', `Department progress for trial ${trial_id} approved by ${req.user.username}`]);

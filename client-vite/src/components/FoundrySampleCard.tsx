@@ -26,7 +26,11 @@ import {
   CardContent,
   InputAdornment,
   useMediaQuery,
-  GlobalStyles
+  GlobalStyles,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 
@@ -46,7 +50,10 @@ import SaclHeader from "./common/SaclHeader";
 import { appTheme, COLORS } from "../theme/appTheme";
 import { trialService } from "../services/trialService";
 import { ipService } from "../services/ipService";
-import { validateFileSizes } from '../utils/fileHelpers';
+import { documentService } from "../services/documentService";
+import { specificationService } from "../services/specificationService";
+import departmentProgressService from "../services/departmentProgressService";
+import { validateFileSizes, fileToBase64 } from '../utils/fileHelpers';
 import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
 import { useAuth } from '../context/AuthContext';
@@ -64,6 +71,7 @@ interface PartData {
   impact?: string;
   hardness: string;
   xray: string;
+  mpi?: string;
   created_at: string;
 }
 
@@ -166,11 +174,12 @@ function FoundrySampleCard() {
 
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
+  const [trialId, setTrialId] = useState<string>("");
   const [trialNo, setTrialNo] = useState<string>("");
   const [masterParts, setMasterParts] = useState<PartData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [trialLoading, setTrialLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
   const { alert, showAlert } = useAlert();
@@ -220,6 +229,9 @@ function FoundrySampleCard() {
   const [previewMessage, setPreviewMessage] = useState<string | null>(null);
   const [userIP, setUserIP] = useState<string>("");
 
+  // Visibility State
+  const [openMetMechModal, setOpenMetMechModal] = useState(false);
+
   useEffect(() => {
     if (previewMessage) { const t = setTimeout(() => setPreviewMessage(null), 4000); return () => clearTimeout(t); }
   }, [previewMessage]);
@@ -238,11 +250,10 @@ function FoundrySampleCard() {
         setLoading(true);
         const parts = await trialService.getMasterList();
         setMasterParts(parts);
-        setError(null);
       } catch (e) {
         const mockData = [{ id: 1, pattern_code: "PT-2024-X", part_name: "Front Axle Housing", material_grade: "SG 450/10", chemical_composition: { c: 3.6, si: 2.3, mn: 0.3 }, micro_structure: "Ferritic >90%", tensile: "450 MPa", hardness: "160-190 HB", xray: "Level 1", created_at: "" }];
         setMasterParts(mockData);
-        setError("Failed to load master parts.");
+        showAlert("error", "Failed to load master parts.");
       } finally {
         setLoading(false);
       }
@@ -264,9 +275,10 @@ function FoundrySampleCard() {
     if (!selectedPart) return;
     setTrialLoading(true);
     try {
-      const json = await trialService.getTrialByPartName(selectedPart.part_name);
+      const json = await trialService.getTrialIdByPartName(selectedPart.part_name);
       const trialId = (json && (json.trialId || json.data)) as string | undefined;
       if (trialId) {
+        setTrialId(trialId);
         const formattedTrialId = trialId.includes('-') ? trialId.split('-').pop() : trialId;
         setTrialNo(formattedTrialId || "");
       } else {
@@ -291,33 +303,117 @@ function FoundrySampleCard() {
   };
 
   const handleSaveAndContinue = () => {
-    if (!selectedPart) { setError("Please select a Part Name first."); return; }
+    if (!selectedPart) { showAlert("error", "Please select a Part Name first."); return; }
     const payload = {
-      trial_no: trialNo,
+      trial_id: trialId,
       pattern_code: selectedPart.pattern_code,
       part_name: selectedPart.part_name,
+      material_grade: selectedPart.material_grade,
+      date_of_sampling: samplingDate,
+      status: "CREATED",
+      current_department_id: 3,
+      no_of_moulds: mouldCount,
+      reason_for_sampling: reason,
+      sample_traceability: sampleTraceability,
+      mould_correction: mouldCorrections,
+      disa: machine,
+      initiated_by: user?.username || "Unknown",
+      tooling_modification: toolingModification,
+      remarks: remarks,
       chemical_composition: chemState,
       tensile: tensileState,
       micro_structure: microState,
       hardness: hardnessState,
-      samplingDate,
-      mouldCount,
-      machine,
-      reason,
-      sampleTraceability,
-      toolingModification,
-      toolingFiles,
-      remarks,
-      mouldCorrections,
     };
     setPreviewPayload(payload);
     setPreviewMode(true);
   };
 
-  const handleFinalSave = () => {
-    setSubmittedData({ ...previewPayload });
-    setSubmitted(true);
-    setPreviewMessage("Trial Specification Registered Successfully");
+  const handleFinalSave = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. Submit Trial Data
+      await trialService.submitTrial(previewPayload);
+
+      // 1.1 Submit Metallurgical Specs
+      await specificationService.submitMetallurgicalSpecs({
+        trial_id: trialId,
+        chemical_composition: chemState,
+        microstructure: microState
+      });
+
+      // 1.2 Submit Mechanical Properties
+      await specificationService.submitMechanicalProperties({
+        trial_id: trialId,
+        tensile_strength: tensileState.tensileStrength,
+        yield_strength: tensileState.yieldStrength,
+        elongation: tensileState.elongation,
+        impact_strength_cold: tensileState.impactCold,
+        impact_strength_room: tensileState.impactRoom,
+        hardness_surface: hardnessState.surface,
+        hardness_core: hardnessState.core,
+        x_ray_inspection: selectedPart?.xray || "N/A",
+        mpi: selectedPart?.mpi || "N/A"
+      });
+
+      // 2. Upload Files
+      const uploadFiles = async (files: File[], docType: string) => {
+        for (const file of files) {
+          try {
+            // const base64 = await fileToBase64(file);
+            // await documentService.uploadDocument(
+            //   trialId,
+            //   docType,
+            //   file.name,
+            //   base64,
+            //   user?.username || "Unknown",
+            //   new Date().toISOString(),
+            //   remarks
+            // );
+          } catch (uploadError) {
+            console.error(`Failed to upload file ${file.name}:`, uploadError);
+            showAlert("error", `Failed to upload ${file.name}`);
+          }
+        }
+      };
+
+      await uploadFiles(toolingFiles, "Tooling Modification");
+      await uploadFiles(patternDataSheetFiles, "Pattern Data Sheet");
+
+      try {
+        await departmentProgressService.createDepartmentProgress({
+          trial_id: trialId,
+          department_id: 3,
+          username: user?.username || "Unknown",
+          approval_status: "pending",
+          remarks: "Trial Initiated",
+          completed_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        });
+
+        await departmentProgressService.updateDepartment({
+          trial_id: trialId,
+          next_department_id: 3,
+          username: user?.username || "Unknown",
+          role: user?.role || "User",
+          remarks: "Submitted to NPD QC for Material Correction"
+        });
+      } catch (progressError) {
+        console.error("Failed to update department progress:", progressError);
+        showAlert("warning", "Trial saved but failed to update department progress.");
+      }
+
+      setSubmittedData({ ...previewPayload });
+      setSubmitted(true);
+      setPreviewMessage("Trial Specification Registered Successfully");
+      showAlert("success", "Trial Specification Registered Successfully");
+
+    } catch (err: any) {
+      console.error("Submission Error:", err);
+      showAlert("error", "Failed to submit trial data: " + (err.message || "Unknown error"));
+    } finally {
+      navigate("/dashboard");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -414,121 +510,154 @@ function FoundrySampleCard() {
                 </Card>
               </Grid>
 
-              <Grid size={12}>
-                <Paper sx={{ p: { xs: 2, md: 3 } }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <SectionHeader icon={<ScienceIcon />} title="Metallurgical Composition" color={COLORS.accentBlue} />
-                    {!isMobile && <Chip label="Auto-Populated" size="small" variant="outlined" sx={{ opacity: 0.7 }} />}
-                  </Box>
 
-                  <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
-                    <Table size="small" sx={{ minWidth: 800 }}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell colSpan={8} align="center" sx={{ bgcolor: "#f0f9ff", color: COLORS.accentBlue }}>Chemical Elements (%)</TableCell>
-                          <TableCell sx={{ width: 20, border: 'none', bgcolor: 'transparent' }}></TableCell>
-                          <TableCell colSpan={3} align="center" sx={{ bgcolor: "#fff7ed", color: COLORS.secondary }}>Microstructure</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
-                            <TableCell
-                              key={h}
-                              align="center"
-                              sx={{
-                                backgroundColor: '#f1f5f9',
-                                color: 'black',
-                                fontWeight: 600,
-                                borderBottom: `1px solid ${COLORS.headerBg}`
-                              }}
-                            >
-                              {h}
-                            </TableCell>
-                          ))}
-                          <TableCell sx={{ border: 'none' }}></TableCell>
-                          {["Nodularity", "Pearlite", "Carbide"].map(h => (
-                            <TableCell
-                              key={h}
-                              align="center"
-                              sx={{
-                                backgroundColor: '#f1f5f9',
-                                color: 'black',
-                                fontWeight: 600,
-                                borderBottom: `1px solid ${COLORS.headerBg}`
-                              }}
-                            >
-                              {h}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          {Object.keys(chemState).map((key) => (
-                            <TableCell key={key}>
-                              <SpecInput
-                                value={(chemState as any)[key]}
-                                onChange={(e: any) => setChemState({ ...chemState, [key]: e.target.value })}
-                                readOnly={!editingOnlyMetallurgical}
-                              />
-                            </TableCell>
-                          ))}
-                          <TableCell sx={{ border: 'none' }}></TableCell>
-                          {Object.keys(microState).map((key) => (
-                            <TableCell key={key}>
-                              <SpecInput
-                                value={(microState as any)[key]}
-                                onChange={(e: any) => setMicroState({ ...microState, [key]: e.target.value })}
-                                readOnly={!editingOnlyMetallurgical}
-                              />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </Box>
-                </Paper>
-              </Grid>
 
               <Grid size={12}>
-                <Paper sx={{ p: { xs: 2, md: 3 } }}>
-                  <SectionHeader icon={<ConstructionIcon />} title="Mechanical Properties & NDT" color={COLORS.secondary} />
+                <Button
+                  variant="outlined"
+                  startIcon={<ScienceIcon />}
+                  onClick={() => setOpenMetMechModal(true)}
+                  sx={{ mb: 2 }}
+                >
+                  Fill Metallurgical & Mechanical Properties
+                </Button>
 
-                  <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
-                    <Table size="small" sx={{ minWidth: 900 }}>
-                      <TableHead>
-                        <TableRow>
-                          {["Tensile (MPa)", "Yield (MPa)", "Elongation (%)", "Impact Cold", "Impact Room", "Hardness (Surf)", "Hardness (Core)", "X-Ray Grade", "MPI"].map(h => (
-                            <TableCell
-                              key={h}
-                              align="center"
-                              sx={{
-                                backgroundColor: '#f1f5f9',
-                                color: 'black',
-                                fontWeight: 600,
-                                borderBottom: `1px solid ${COLORS.headerBg}`
-                              }}
-                            >
-                              {h}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell><SpecInput value={tensileState.tensileStrength} onChange={(e: any) => setTensileState({ ...tensileState, tensileStrength: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={tensileState.yieldStrength} onChange={(e: any) => setTensileState({ ...tensileState, yieldStrength: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={tensileState.elongation} onChange={(e: any) => setTensileState({ ...tensileState, elongation: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={tensileState.impactCold} onChange={(e: any) => setTensileState({ ...tensileState, impactCold: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={tensileState.impactRoom} onChange={(e: any) => setTensileState({ ...tensileState, impactRoom: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={hardnessState.surface} onChange={(e: any) => setHardnessState({ ...hardnessState, surface: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={hardnessState.core} onChange={(e: any) => setHardnessState({ ...hardnessState, core: e.target.value })} /></TableCell>
-                          <TableCell><SpecInput value={selectedPart?.xray || "--"} readOnly /></TableCell>
-                          <TableCell><SpecInput placeholder="--" /></TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </Box>
-                </Paper>
+                <Dialog
+                  open={openMetMechModal}
+                  onClose={() => setOpenMetMechModal(false)}
+                  maxWidth="xl"
+                  fullWidth
+                >
+                  <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Metallurgical & Mechanical Detail
+                    <IconButton onClick={() => setOpenMetMechModal(false)}>
+                      <CloseIcon />
+                    </IconButton>
+                  </DialogTitle>
+                  <DialogContent dividers>
+                    <Grid container spacing={3}>
+                      <Grid size={12}>
+                        <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                            <SectionHeader icon={<ScienceIcon />} title="Metallurgical Composition" color={COLORS.accentBlue} />
+                            {!isMobile && <Chip label="Auto-Populated" size="small" variant="outlined" sx={{ opacity: 0.7 }} />}
+                          </Box>
+
+                          <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                            <Table size="small" sx={{ minWidth: 800 }}>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell colSpan={8} align="center" sx={{ bgcolor: "#f0f9ff", color: COLORS.accentBlue }}>Chemical Elements (%)</TableCell>
+                                  <TableCell sx={{ width: 20, border: 'none', bgcolor: 'transparent' }}></TableCell>
+                                  <TableCell colSpan={3} align="center" sx={{ bgcolor: "#fff7ed", color: COLORS.secondary }}>Microstructure</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
+                                    <TableCell
+                                      key={h}
+                                      align="center"
+                                      sx={{
+                                        backgroundColor: '#f1f5f9',
+                                        color: 'black',
+                                        fontWeight: 600,
+                                        borderBottom: `1px solid ${COLORS.headerBg}`
+                                      }}
+                                    >
+                                      {h}
+                                    </TableCell>
+                                  ))}
+                                  <TableCell sx={{ border: 'none' }}></TableCell>
+                                  {["Nodularity", "Pearlite", "Carbide"].map(h => (
+                                    <TableCell
+                                      key={h}
+                                      align="center"
+                                      sx={{
+                                        backgroundColor: '#f1f5f9',
+                                        color: 'black',
+                                        fontWeight: 600,
+                                        borderBottom: `1px solid ${COLORS.headerBg}`
+                                      }}
+                                    >
+                                      {h}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                <TableRow>
+                                  {Object.keys(chemState).map((key) => (
+                                    <TableCell key={key}>
+                                      <SpecInput
+                                        value={(chemState as any)[key]}
+                                        onChange={(e: any) => setChemState({ ...chemState, [key]: e.target.value })}
+                                        readOnly={!editingOnlyMetallurgical}
+                                      />
+                                    </TableCell>
+                                  ))}
+                                  <TableCell sx={{ border: 'none' }}></TableCell>
+                                  {Object.keys(microState).map((key) => (
+                                    <TableCell key={key}>
+                                      <SpecInput
+                                        value={(microState as any)[key]}
+                                        onChange={(e: any) => setMicroState({ ...microState, [key]: e.target.value })}
+                                        readOnly={!editingOnlyMetallurgical}
+                                      />
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </Box>
+                        </Paper>
+                      </Grid>
+
+                      <Grid size={12}>
+                        <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                          <SectionHeader icon={<ConstructionIcon />} title="Mechanical Properties & NDT" color={COLORS.secondary} />
+
+                          <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                            <Table size="small" sx={{ minWidth: 900 }}>
+                              <TableHead>
+                                <TableRow>
+                                  {["Tensile (MPa)", "Yield (MPa)", "Elongation (%)", "Impact Cold", "Impact Room", "Hardness (Surf)", "Hardness (Core)", "X-Ray Grade", "MPI"].map(h => (
+                                    <TableCell
+                                      key={h}
+                                      align="center"
+                                      sx={{
+                                        backgroundColor: '#f1f5f9',
+                                        color: 'black',
+                                        fontWeight: 600,
+                                        borderBottom: `1px solid ${COLORS.headerBg}`
+                                      }}
+                                    >
+                                      {h}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell><SpecInput value={tensileState.tensileStrength} onChange={(e: any) => setTensileState({ ...tensileState, tensileStrength: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={tensileState.yieldStrength} onChange={(e: any) => setTensileState({ ...tensileState, yieldStrength: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={tensileState.elongation} onChange={(e: any) => setTensileState({ ...tensileState, elongation: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={tensileState.impactCold} onChange={(e: any) => setTensileState({ ...tensileState, impactCold: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={tensileState.impactRoom} onChange={(e: any) => setTensileState({ ...tensileState, impactRoom: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={hardnessState.surface} onChange={(e: any) => setHardnessState({ ...hardnessState, surface: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={hardnessState.core} onChange={(e: any) => setHardnessState({ ...hardnessState, core: e.target.value })} /></TableCell>
+                                  <TableCell><SpecInput value={selectedPart?.xray || "--"} readOnly /></TableCell>
+                                  <TableCell><SpecInput value={selectedPart?.mpi || "--"} readOnly /></TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </Box>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenMetMechModal(false)} variant="contained" color="primary">Done</Button>
+                  </DialogActions>
+                </Dialog>
               </Grid>
 
 
@@ -545,8 +674,10 @@ function FoundrySampleCard() {
             title="Verify Specification"
             subtitle="Foundry Sample Card - Review your data"
             submitted={submitted}
+            isSubmitting={isSubmitting} // Pass loading state to PreviewModal if it supports it, or handle in parent
           >
             <Box sx={{ p: { xs: 2, md: 4 } }}>
+              <AlertMessage alert={alert} />
               <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Part Identification</Typography>
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -564,7 +695,7 @@ function FoundrySampleCard() {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.accentGreen}`, bgcolor: "#ecfdf5" }}>
                     <Typography variant="caption" color="success.main">TRIAL ID</Typography>
-                    <Typography variant="subtitle1" color="success.main">{previewPayload?.trial_no}</Typography>
+                    <Typography variant="subtitle1" color="success.main">{previewPayload?.trial_id || previewPayload?.trial_no}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -624,6 +755,12 @@ function FoundrySampleCard() {
                       {previewPayload?.hardness.surface || "-"} / {previewPayload?.hardness.core || "-"}
                     </Typography>
                   </Grid>
+                  <Grid size={{ xs: 6, sm: 4 }}>
+                    <Typography variant="caption" color="text.secondary">NDT (X-Ray / MPI)</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {previewPayload?.x_ray_inspection || "-"} / {previewPayload?.mpi || "-"}
+                    </Typography>
+                  </Grid>
                 </Grid>
               </Paper>
 
@@ -632,31 +769,31 @@ function FoundrySampleCard() {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">Sampling Date</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.samplingDate || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.date_of_sampling || previewPayload?.samplingDate || "-"}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.mouldCount || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.no_of_moulds || previewPayload?.mouldCount || "-"}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">Machine</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.machine || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.disa || previewPayload?.machine || "-"}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">Reason</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.reason || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.reason_for_sampling || previewPayload?.reason || "-"}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">Traceability</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.sampleTraceability || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.sample_traceability || previewPayload?.sampleTraceability || "-"}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -666,7 +803,7 @@ function FoundrySampleCard() {
                 <Grid size={{ xs: 12 }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Modification Details</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.toolingModification || "-"}</Typography>
+                    <Typography variant="subtitle1">{previewPayload?.tooling_modification || previewPayload?.toolingModification || "-"}</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -686,7 +823,7 @@ function FoundrySampleCard() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(previewPayload?.mouldCorrections || []).map((r: any, i: number) => (
+                  {(previewPayload?.mould_correction || previewPayload?.mouldCorrections || []).map((r: any, i: number) => (
                     <TableRow key={i}>
                       <TableCell sx={{ textAlign: 'center' }}>{r.compressibility || "-"}</TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>{r.squeezePressure || "-"}</TableCell>
@@ -1049,6 +1186,7 @@ function FoundrySampleCard() {
                     <th style={{ border: '1px solid #999', padding: '6px' }}>Impact (Room)</th>
                     <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness (Surf)</th>
                     <th style={{ border: '1px solid #999', padding: '6px' }}>Hardness (Core)</th>
+                    <th style={{ border: '1px solid #999', padding: '6px' }}>X-Ray / MPI</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1060,6 +1198,7 @@ function FoundrySampleCard() {
                     <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.tensile.impactRoom}</td>
                     <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.hardness.surface}</td>
                     <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.hardness.core}</td>
+                    <td style={{ border: '1px solid #999', padding: '6px', textAlign: 'center' }}>{previewPayload.x_ray_inspection} / {previewPayload.mpi}</td>
                   </tr>
                 </tbody>
               </table>

@@ -71,7 +71,10 @@ function MouldingTable() {
   const [submitted, setSubmitted] = useState(false);
   const [userIP, setUserIP] = useState<string>("");
   const [progressData, setProgressData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
   const [isEditing, setIsEditing] = useState(false); // New state for HOD edit mode
+
 
   useEffect(() => {
     let mounted = true;
@@ -197,9 +200,10 @@ function MouldingTable() {
   };
 
   const handleFinalSave = async () => {
-    // Check if user is HOD
-    if (user?.role === 'HOD' && progressData) {
-      try {
+    setLoading(true);
+    try {
+      // Check if user is HOD
+      if (user?.role === 'HOD' && progressData) {
         // HOD Approval flow
         // 1. Update data first (if edited)
         if (isEditing) {
@@ -217,7 +221,7 @@ function MouldingTable() {
         // 2. Approve - update department progress
         const approvalPayload = {
           trial_id: progressData.trial_id,
-          next_department_id: progressData.department_id + 1, // Move to next department
+          next_department_id: 7,
           username: user.username,
           role: user.role,
           remarks: mouldState.remarks || "Approved by HOD"
@@ -227,50 +231,27 @@ function MouldingTable() {
         showAlert('success', 'Department progress approved successfully.');
         setSubmitted(true);
         setTimeout(() => navigate('/dashboard'), 1500);
-      } catch (err) {
-        showAlert('error', 'Failed to approve. Please try again.');
-        console.error("Approval error:", err);
-      }
-      return;
-    }
+      } else {
 
-    const payload = {
-      mould_thickness: mouldState.thickness,
-      compressability: mouldState.compressability,
-      squeeze_pressure: mouldState.pressure,
-      mould_hardness: mouldState.hardness,
-      remarks: mouldState.remarks
-    };
+        const payload = {
+          mould_thickness: mouldState.thickness,
+          compressability: mouldState.compressability,
+          squeeze_pressure: mouldState.pressure,
+          mould_hardness: mouldState.hardness,
+          remarks: mouldState.remarks,
+          trial_id: progressData?.trial_id || new URLSearchParams(window.location.search).get('trial_id') || "trial_id",
+          date: mouldDate
+        };
 
-    const result = await postMouldCorrection(payload);
-    if (!result.ok) {
-      showAlert('error', 'Failed to submit mould correction');
-    } else {
-      showAlert('success', 'Moulding details created successfully.');
-      setSubmitted(true);
+        await inspectionService.submitMouldingCorrection(payload);
+        showAlert('success', 'Moulding details created successfully.');
+        setSubmitted(true);
 
-      if (attachedFiles.length > 0) {
-        try {
-          // const uploadResults = await uploadFiles(
-          //   attachedFiles,
-          //   trialId,
-          //   "MOULDING",
-          //   user?.username || "system",
-          //   additionalRemarks || ""
-          // );
-
-          // const failures = uploadResults.filter(r => !r.success);
-          // if (failures.length > 0) {
-          //   console.error("Some files failed to upload:", failures);
-          // }
-        } catch (uploadError) {
-          console.error("File upload error:", uploadError);
-          // Non-blocking: form submission already succeeded
+        if (attachedFiles.length > 0) {
+          // File upload logic place holder
         }
-      }
 
-      if (progressData) {
-        try {
+        if (progressData) {
           await updateDepartmentRole({
             trial_id: progressData.trial_id,
             current_department_id: progressData.department_id,
@@ -278,12 +259,14 @@ function MouldingTable() {
             role: "user",
             remarks: mouldState.remarks || "Completed by user"
           });
-        } catch (roleError) {
-          console.error("Failed to update role progress:", roleError);
         }
+        navigate('/dashboard');
       }
-
-      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error saving moulding details:", error);
+      showAlert('error', 'Failed to save details.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -454,6 +437,7 @@ function MouldingTable() {
                 title="Verify Moulding Details"
                 subtitle="Review your moulding parameters"
                 submitted={submitted}
+                isSubmitting={loading}
               >
                 <Box sx={{ p: 4 }}>
 

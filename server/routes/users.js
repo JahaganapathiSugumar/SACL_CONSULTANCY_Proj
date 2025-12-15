@@ -29,7 +29,7 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
   res.status(201).json({ success: true, message: 'User created successfully.' });
 }));
 
-router.post('/send-otp', asyncErrorHandler(async (req, res, next) => {
+router.post('/send-otp', verifyToken, asyncErrorHandler(async (req, res, next) => {
   const { email } = req.body || {};
   const user = req.user;
   if (!email) throw new CustomError('Email is required', 400);
@@ -61,7 +61,7 @@ router.post('/send-otp', asyncErrorHandler(async (req, res, next) => {
   return res.json({ success: true, message: 'OTP sent' });
 }));
 
-router.post('/verify-otp', asyncErrorHandler(async (req, res, next) => {
+router.post('/verify-otp', verifyToken, asyncErrorHandler(async (req, res, next) => {
   const { email, otp } = req.body || {};
   const user = req.user;
   if (!email || !otp) throw new CustomError('Email and OTP are required', 400);
@@ -97,7 +97,7 @@ router.post('/verify-otp', asyncErrorHandler(async (req, res, next) => {
   return res.json({ success: true, message: 'Email verified and updated' });
 }));
 
-router.post('/change-password', asyncErrorHandler(async (req, res, next) => {
+router.post('/change-password', verifyToken, asyncErrorHandler(async (req, res, next) => {
   const { newPassword } = req.body || {};
   const user = req.user;
   if (!newPassword) throw new CustomError('New password is required', 400);
