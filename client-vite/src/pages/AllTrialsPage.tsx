@@ -22,6 +22,7 @@ import SaclHeader from '../components/common/SaclHeader';
 import { appTheme, COLORS } from '../theme/appTheme';
 import { trialService } from '../services/trialService';
 import { useAuth } from '../context/AuthContext';
+import { getDepartmentName } from '../utils/dashboardUtils';
 
 export default function AllTrialsPage() {
     const navigate = useNavigate();
@@ -92,6 +93,7 @@ export default function AllTrialsPage() {
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Pattern Code</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Grade</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Date</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Current Department</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Status</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', textAlign: 'center' }}>Actions</TableCell>
                                         </TableRow>
@@ -105,6 +107,19 @@ export default function AllTrialsPage() {
                                                     <TableCell>{trial.pattern_code}</TableCell>
                                                     <TableCell>{trial.material_grade}</TableCell>
                                                     <TableCell>{new Date(trial.date_of_sampling).toLocaleDateString()}</TableCell>
+                                                    <TableCell>
+                                                        <Box sx={{
+                                                            display: 'inline-block',
+                                                            px: 1.5, py: 0.5,
+                                                            borderRadius: 5,
+                                                            fontSize: '0.75rem',
+                                                            bgcolor: '#e0f2fe',
+                                                            color: '#0369a1',
+                                                            fontWeight: 500
+                                                        }}>
+                                                            {getDepartmentName(trial.current_department_id) || 'N/A'}
+                                                        </Box>
+                                                    </TableCell>
                                                     <TableCell>
                                                         <Box sx={{
                                                             display: 'inline-block',
@@ -132,7 +147,7 @@ export default function AllTrialsPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={7} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                                                <TableCell colSpan={8} align="center" sx={{ py: 5, color: 'text.secondary' }}>
                                                     No trials found.
                                                 </TableCell>
                                             </TableRow>

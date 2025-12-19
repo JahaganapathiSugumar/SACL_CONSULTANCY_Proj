@@ -11,7 +11,12 @@ import transporter from '../utils/mailSender.js';
 const router = express.Router();
 
 router.get('/', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(async (req, res, next) => {
-  const [rows] = await Client.execute('SELECT user_id, username, full_name, email, department_id, role, created_at FROM users');
+  const [rows] = await Client.execute(`
+    SELECT u.user_id, u.username, u.full_name, u.email, u.department_id, 
+           d.department_name, u.role, u.is_active, u.created_at 
+    FROM users u 
+    LEFT JOIN departments d ON u.department_id = d.department_id
+  `);
   res.status(200).json({ users: rows });
 }));
 

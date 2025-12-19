@@ -60,7 +60,6 @@ export const DEPARTMENT_ACTIONS: ActionItem[] = [
 // DashboardPage Specific Stats (Admin Ideas Dashboard)
 export const ADMIN_IDEAS_STATS: StatItem[] = [
     { label: 'Total Ideas', value: '502', color: '#007bff' },
-    { label: 'Uncle Review', value: '1', color: '#ffc107' },
     { label: 'Ongoing', value: '150', color: '#17a2b8' },
     { label: 'Approved', value: '121', color: '#28a745' },
     { label: 'Implemented', value: '18', color: '#6f42c1' },

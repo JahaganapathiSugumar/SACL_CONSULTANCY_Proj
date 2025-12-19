@@ -103,12 +103,9 @@
   margin-right: -50px;
   flex-wrap: nowrap;
   padding: 24px 50px;
-  background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(124, 77, 255, 0.08) 100%);
+  background: transparent;
   border-radius: 0;
   border: none;
-  border-top: 1px solid rgba(25, 118, 210, 0.15);
-  border-bottom: 1px solid rgba(25, 118, 210, 0.15);
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
   width: calc(100% + 100px);
   box-sizing: border-box;
 }

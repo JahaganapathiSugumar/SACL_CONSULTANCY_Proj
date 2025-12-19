@@ -42,6 +42,13 @@ router.put('/update-department', verifyToken, asyncErrorHandler(async (req, res,
         `UPDATE department_progress SET department_id = ?, username = ?, remarks = ? WHERE trial_id = ?`,
         [next_department_id, next_department_username, remarks, trial_id]
     );
+    
+    // Update the current_department_id in trial_cards table to keep it in sync
+    await Client.query(
+        `UPDATE trial_cards SET current_department_id = ? WHERE trial_id = ?`,
+        [next_department_id, trial_id]
+    );
+    
     const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result_assignment] = await Client.query(audit_sql_assignment, [req.user.user_id, req.user.department_id, 'Department progress updated', `Department progress for trial ${trial_id} updated by ${req.user.username} to department ${next_department_id} for ${role}`]);
 
