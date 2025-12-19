@@ -17,6 +17,8 @@ import {
   ThemeProvider,
   Container,
   Alert,
+  Button,
+  Collapse,
 } from "@mui/material";
 import { COLORS, appTheme } from "../../theme/appTheme";
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
@@ -25,6 +27,8 @@ import ScienceIcon from '@mui/icons-material/Science';
 import EditIcon from '@mui/icons-material/Edit';
 import FactoryIcon from '@mui/icons-material/Factory';
 import PersonIcon from "@mui/icons-material/Person";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { trialService } from "../../services/trialService";
 
 // Helper component for consistent input styling
@@ -74,6 +78,7 @@ type TrialData = {
   tensile?: any;
   hardness?: any;
   xray?: string;
+  mpi?: string;
 };
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color: string }) => (
@@ -94,6 +99,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TrialData | null>(null);
   const [userIP, setUserIP] = useState<string>("");
+  const [showSpecifications, setShowSpecifications] = useState(false);
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -151,7 +157,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
 
   return (
     <ThemeProvider theme={appTheme}>
-      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
+      <Box sx={{ bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
         <Container maxWidth="xl" disableGutters>
 
           {error && (
@@ -164,50 +170,215 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
             </Box>
           ) : (
             <>
-              <Grid container spacing={3} sx={{ mb: 3 }}>
-                {/* Part Identification */}
-                <Grid size={12}>
-                  <Card elevation={0} sx={{ border: `1px solid ${COLORS.border}` }}>
-                    <CardContent>
-                      <SectionHeader icon={<PrecisionManufacturingIcon />} title="Part Identification" color={COLORS.primary} />
-                      <Grid container spacing={2}>
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>PATTERN CODE</Typography>
-                          <TextField
-                            fullWidth
-                            value={data?.pattern_code || ''}
-                            InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6, md: 5 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>COMPONENT NAME</Typography>
-                          <TextField
-                            fullWidth
-                            value={data?.part_name || ''}
-                            InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 4 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>TRIAL REFERENCE</Typography>
-                          <TextField
-                            fullWidth
-                            value={initialTrialId || 'No Trial ID'}
-                            InputProps={{
-                              readOnly: true,
-                              sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary }
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-
+              {/* Show/Hide Specifications Button */}
               {data && (
-                <>
-                  {/* Sampling Details Table */}
-                  <Paper sx={{ overflowX: "auto", p: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: showSpecifications ? 0 : 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={showSpecifications ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    onClick={() => setShowSpecifications(!showSpecifications  )}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {showSpecifications ? 'Hide' : 'Show'} Basic Information
+                  </Button>
+                </Box>
+              )}
+
+              <Collapse in={showSpecifications} timeout="auto" unmountOnExit>
+                <Grid container spacing={3} sx={{ mb: 3, mt: 0 }}>
+                  {/* Part Identification */}
+                  <Grid size={12}>
+                    <Card elevation={0} sx={{ border: `1px solid ${COLORS.border}` }}>
+                      <CardContent>
+                        <SectionHeader icon={<PrecisionManufacturingIcon />} title="Part Identification" color={COLORS.primary} />
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>PATTERN CODE</Typography>
+                            <TextField
+                              fullWidth
+                              value={data?.pattern_code || ''}
+                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6, md: 5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>COMPONENT NAME</Typography>
+                            <TextField
+                              fullWidth
+                              value={data?.part_name || ''}
+                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 4 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>TRIAL REFERENCE</Typography>
+                            <TextField
+                              fullWidth
+                              value={initialTrialId || 'No Trial ID'}
+                              InputProps={{
+                                readOnly: true,
+                                sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary }
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* Metallurgical Composition */}
+                  {data && (
+                    <Grid size={12}>
+                      <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                        <SectionHeader icon={<ScienceIcon />} title="Metallurgical Composition" color={COLORS.accentBlue} />
+                      <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                        <Table size="small" sx={{ minWidth: 800, border: '1px solid #ddd', '& td, & th': { border: '1px solid #ddd' } }}>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell colSpan={8} align="center" sx={{ bgcolor: "#f0f9ff", color: COLORS.accentBlue, border: '1px solid #ddd' }}>Chemical Elements (%)</TableCell>
+                              <TableCell sx={{ width: 20, border: 'none', bgcolor: 'transparent' }}></TableCell>
+                              <TableCell colSpan={3} align="center" sx={{ bgcolor: "#fff7ed", color: COLORS.secondary, border: '1px solid #ddd' }}>Microstructure</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              {["C", "Si", "Mn", "P", "S", "Mg", "Cr", "Cu"].map(h => (
+                                <TableCell
+                                  key={h}
+                                  align="center"
+                                  sx={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: 'black',
+                                    fontWeight: 600,
+                                    border: '1px solid #ddd'
+                                  }}
+                                >
+                                  {h}
+                                </TableCell>
+                              ))}
+                              <TableCell sx={{ border: 'none' }}></TableCell>
+                              {["Nodularity", "Pearlite", "Carbide"].map(h => (
+                                <TableCell
+                                  key={h}
+                                  align="center"
+                                  sx={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: 'black',
+                                    fontWeight: 600,
+                                    border: '1px solid #ddd'
+                                  }}
+                                >
+                                  {h}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                              {["c", "si", "mn", "p", "s", "mg", "cr", "cu"].map((key) => (
+                                <TableCell key={key} align="center">
+                                  <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                    {data?.chemical_composition?.[key] || data?.chemical_composition?.[key.toUpperCase()] || '-'}
+                                  </Typography>
+                                </TableCell>
+                              ))}
+                              <TableCell sx={{ border: 'none' }}></TableCell>
+                              {["nodularity", "pearlite", "carbide"].map((key) => (
+                                <TableCell key={key} align="center">
+                                  <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                    {data?.micro_structure?.[key] || '-'}
+                                  </Typography>
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                  )}
+
+                  {/* Mechanical Properties & NDT */}
+                  {data && (
+                    <Grid size={12}>
+                      <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                      <SectionHeader icon={<ConstructionIcon />} title="Mechanical Properties & NDT" color={COLORS.secondary} />
+                      <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
+                        <Table size="small" sx={{ minWidth: 900, border: '1px solid #ddd', '& td, & th': { border: '1px solid #ddd' } }}>
+                          <TableHead>
+                            <TableRow>
+                              {["Tensile (MPa)", "Yield (MPa)", "Elongation (%)", "Impact Cold", "Impact Room", "Hardness (Surf)", "Hardness (Core)", "X-Ray Grade", "MPI"].map(h => (
+                                <TableCell
+                                  key={h}
+                                  align="center"
+                                  sx={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: 'black',
+                                    fontWeight: 600,
+                                    border: '1px solid #ddd'
+                                  }}
+                                >
+                                  {h}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.tensile?.tensileStrength || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.tensile?.yieldStrength || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.tensile?.elongation || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.tensile?.impactCold || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.tensile?.impactRoom || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.hardness?.surface || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.hardness?.core || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.xray || '-'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="500" sx={{ fontFamily: 'Roboto Mono' }}>
+                                  {data?.mpi || '-'}
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                  )}
+                </Grid>
+
+                {data && (
+                  <>
+                    {/* Sampling Details Table */}
+                    <Paper sx={{ overflowX: "auto", p: 2, mb: 3 }}>
                     <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
@@ -409,8 +580,9 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
                       InputProps={{ readOnly: true, sx: { bgcolor: '#f8fafc' } }}
                     />
                   </Paper>
-                </>
-              )}
+                  </>
+                )}
+              </Collapse>
 
               {!data && !loading && (
                 <Paper sx={{ p: 6, textAlign: 'center', mt: 3 }}>

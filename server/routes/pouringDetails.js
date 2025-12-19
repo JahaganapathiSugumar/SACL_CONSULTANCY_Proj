@@ -16,6 +16,7 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const inoculationJson = JSON.stringify(inoculation);
     const sql = 'INSERT INTO pouring_details (trial_id, pour_date, heat_code, composition, pouring_temp_c, pouring_time_sec, inoculation, other_remarks, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const [result] = await Client.query(sql, [trial_id, pour_date, heat_code, compositionJson, pouring_temp_c, pouring_time_sec, inoculationJson, otherRemarksJson, remarks]);
+    
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
     const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Pouring details created', `Pouring details ${trial_id} created by ${req.user.username} with trial id ${trial_id}`]);
     res.status(201).json({ success: true, message: 'Pouring details created successfully.' });

@@ -4,7 +4,7 @@ export const getDepartmentName = (departmentId: number | string | undefined): st
 
     const departmentMap: Record<number, string> = {
         1: 'ADMIN',
-        2: 'NPD METHODS',
+        2: 'METHODS',
         3: 'NPD QC',
         4: 'SANDPLANT',
         5: 'FETTLING & VISUAL INSPECTION',
@@ -48,6 +48,7 @@ export const getPendingRoute = (departmentIdRaw: number | string | undefined): s
         3: '/material-correction',
         4: '/sand',
         5: '/visual-inspection',
+        2: '/foundry-sample-card'
     };
 
     // 3, 9, 4, 6, 7, 5, 10, 8

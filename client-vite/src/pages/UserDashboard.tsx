@@ -3,28 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import NotificationModal from '../components/dashboard/NotificationModal';
+import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import QuickActions from '../components/dashboard/QuickActions';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo, getPendingRoute } from '../utils/dashboardUtils';
 import { USER_DASHBOARD_STATS, USER_DASHBOARD_ACTIONS } from '../data/dashboardData';
+import PendingSampleCards from './PendingSampleCards';
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showPendingCards, setShowPendingCards] = useState(false);
   const navigate = useNavigate();
 
   const departmentInfo = getDepartmentInfo(user);
 
   const handlePendingClick = () => {
-    const route = getPendingRoute(user?.department_id);
-    navigate(route);
+    setShowPendingCards(true);
+  };
+
+  const handlePendingCardSelect = (card: any) => {
+    setShowPendingCards(false);
+    const route = getPendingRoute(card.department_id);
+    navigate(`${route}?trial_id=${card.trial_id}`);
   };
 
   return (
     <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <Header
         setShowNotifications={setShowNotifications}
+        setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
       />
       <main className="dashboard-content" style={{ padding: '20px' }}>
@@ -72,6 +82,17 @@ const UserDashboard: React.FC = () => {
 
       {/* Notification Modal */}
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
+
+      {/* Profile Modal */}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      {/* Pending Cards Overlay */}
+      <PendingSampleCards
+        open={showPendingCards}
+        onClose={() => setShowPendingCards(false)}
+        username={user?.username || ""}
+        onCardSelect={handlePendingCardSelect}
+      />
     </div>
   );
 };

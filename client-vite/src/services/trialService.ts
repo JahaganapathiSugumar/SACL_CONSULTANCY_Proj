@@ -178,5 +178,69 @@ export const trialService = {
             console.error('Failed to update trial status:', error);
             throw error;
         }
+    },
+
+    /**
+     * Fetches trial by ID (alias for getTrialByTrialId)
+     * @param trialId - Trial ID to fetch
+     * @returns Promise resolving to trial data
+     */
+    async getTrialById(trialId: string): Promise<any> {
+        try {
+            const response = await fetch(
+                `${API_BASE}/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('authToken') || ''
+                },
+                credentials: 'include'
+            }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                return { success: true, data: data.data[0] };
+            }
+
+            return { success: false, data: null };
+        } catch (error) {
+            console.error('Failed to fetch trial by ID:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Updates trial data
+     * @param payload - Trial data to update
+     * @returns Promise resolving to API response
+     */
+    async updateTrial(payload: any): Promise<any> {
+        try {
+            const response = await fetch(`${API_BASE}/trial/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('authToken') || ''
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Failed to update trial:', error);
+            throw error;
+        }
     }
 };

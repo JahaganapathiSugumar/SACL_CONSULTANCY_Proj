@@ -83,6 +83,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
 
     // New: attachments state to hold selected files
     const [attachments, setAttachments] = useState<File[]>([]);
+    
+    // State for toggling Tooling Data Sheet visibility
+    const [showToolingTable, setShowToolingTable] = useState(false);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData((prev: any) => ({
@@ -842,10 +845,39 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
                         border: '1px solid #ddd',
                         fontFamily: "'Poppins', sans-serif"
                     }}>
-                        <div style={{ textAlign: 'center', fontWeight: 700, marginBottom: '8px', fontSize: '16px' }}>
-                            TOOLING ( PATTERN ) DATA SHEET
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowToolingTable(!showToolingTable)}
+                            style={{ 
+                                width: '100%',
+                                textAlign: 'center', 
+                                fontWeight: 600, 
+                                marginBottom: showToolingTable ? '12px' : '0', 
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '10px',
+                                padding: '12px 20px',
+                                backgroundColor: '#2950bb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1e3a8a'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#2950bb'; }}
+                        >
+                            <span style={{
+                                display: 'inline-block',
+                                transform: showToolingTable ? 'rotate(90deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s'
+                            }}>▶</span>
+                            {showToolingTable ? 'Hide' : 'Show'} TOOLING ( PATTERN ) DATA SHEET Table
+                        </button>
 
+                        {showToolingTable && (
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
@@ -1025,6 +1057,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose }) => {
                                 </tbody>
                             </table>
                         </div>
+                        )}
                     </div>
                     {/* Action Buttons */}
                     <div

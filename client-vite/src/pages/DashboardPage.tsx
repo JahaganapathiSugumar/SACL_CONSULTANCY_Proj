@@ -5,6 +5,7 @@ import UserManagement from '../components/admin/UserManagement';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import NotificationModal from '../components/dashboard/NotificationModal';
+import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
@@ -16,6 +17,7 @@ const DashboardPage: React.FC = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const departmentInfo = getDepartmentInfo(user);
 
@@ -26,6 +28,7 @@ const DashboardPage: React.FC = () => {
 
       <Header
         setShowNotifications={setShowNotifications}
+        setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
         customStyle={{ backgroundColor: '#ffffff', color: '#333', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
         textColor="#333"
@@ -36,8 +39,7 @@ const DashboardPage: React.FC = () => {
         {showUserDetails ? (
           <UserManagement />
         ) : (
-          <div className="welcome-section" style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-
+          <>
             <WelcomeSection
               title="Admin Ideas Dashboard"
               description={`Welcome back, ${user?.username}!`}
@@ -72,7 +74,7 @@ const DashboardPage: React.FC = () => {
                     onClick={() => setIsAddUserModalOpen(true)}
                     style={{
                       backgroundImage: 'none',
-                      backgroundColor: '#FF9C00',
+                      backgroundColor: '#2c2822ff',
                       color: 'white',
                       border: 'none',
                       padding: '10px 20px',
@@ -322,7 +324,7 @@ const DashboardPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
         {showUserDetails && (
           <button
@@ -365,6 +367,9 @@ const DashboardPage: React.FC = () => {
 
       {/* Notification Modal */}
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
+      
+      {/* Profile Modal */}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </div>
   );
 };

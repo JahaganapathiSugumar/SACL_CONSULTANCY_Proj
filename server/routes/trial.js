@@ -55,4 +55,69 @@ router.put('/update-status', verifyToken, asyncErrorHandler(async (req, res, nex
     res.status(200).json({ success: true, message: 'Trial status updated successfully.' });
 }));
 
+router.put('/update', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { 
+        trial_id, 
+        part_name, 
+        pattern_code, 
+        material_grade, 
+        date_of_sampling, 
+        no_of_moulds, 
+        reason_for_sampling, 
+        disa, 
+        sample_traceability, 
+        mould_correction,
+        tooling_modification,
+        remarks,
+        chemical_composition,
+        tensile,
+        micro_structure,
+        hardness
+    } = req.body || {};
+    
+    if (!trial_id) {
+        return res.status(400).json({ success: false, message: 'trial_id is required to update the trial' });
+    }
+    
+    const mouldJson = mould_correction ? JSON.stringify(mould_correction) : null;
+    const chemJson = chemical_composition ? JSON.stringify(chemical_composition) : null;
+    const tensileJson = tensile ? JSON.stringify(tensile) : null;
+    const microJson = micro_structure ? JSON.stringify(micro_structure) : null;
+    const hardnessJson = hardness ? JSON.stringify(hardness) : null;
+    
+    const sql = `UPDATE trial_cards SET 
+        part_name = COALESCE(?, part_name),
+        pattern_code = COALESCE(?, pattern_code),
+        material_grade = COALESCE(?, material_grade),
+        date_of_sampling = COALESCE(?, date_of_sampling),
+        no_of_moulds = COALESCE(?, no_of_moulds),
+        reason_for_sampling = COALESCE(?, reason_for_sampling),
+        disa = COALESCE(?, disa),
+        sample_traceability = COALESCE(?, sample_traceability),
+        mould_correction = COALESCE(?, mould_correction),
+        tooling_modification = COALESCE(?, tooling_modification),
+        remarks = COALESCE(?, remarks)
+        WHERE trial_id = ?`;
+    
+    const [result] = await Client.query(sql, [
+        part_name, 
+        pattern_code, 
+        material_grade, 
+        date_of_sampling, 
+        no_of_moulds, 
+        reason_for_sampling, 
+        disa, 
+        sample_traceability, 
+        mouldJson,
+        tooling_modification,
+        remarks,
+        trial_id
+    ]);
+    
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (?, ?, ?, ?)';
+    await Client.query(audit_sql, [req.user.user_id, req.user.department_id, 'Trial updated', `Trial ${trial_id} updated by ${req.user.username}`]);
+    
+    res.status(200).json({ success: true, message: 'Trial updated successfully.' });
+}));
+
 export default router;

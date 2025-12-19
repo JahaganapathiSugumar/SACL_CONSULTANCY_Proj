@@ -76,7 +76,6 @@ class ApiService {
   async getUsers(): Promise<User[]> {
     const response = await this.request('/users', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
     });
     return response.users || [];
   }
@@ -84,7 +83,6 @@ class ApiService {
   async createUser(userData: CreateUserRequest): Promise<{ userId: number }> {
     return this.request('/users', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
       body: JSON.stringify(userData),
     });
   }

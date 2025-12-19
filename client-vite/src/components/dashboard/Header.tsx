@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { Paper, Chip, Typography, Box } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { COLORS } from '../../theme/appTheme';
 
 interface HeaderProps {
-    setShowNotifications: (show: boolean) => void;
+    setShowNotifications?: (show: boolean) => void;
     departmentInfo: {
         displayText: string;
         showDepartment: boolean;
+        name?: string;
     };
     customStyle?: React.CSSProperties;
     textColor?: string;
@@ -13,6 +16,7 @@ interface HeaderProps {
         title: string;
         subtitle: string;
     };
+    setShowProfile?: (show: boolean) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -20,19 +24,16 @@ const Header: React.FC<HeaderProps> = ({
     departmentInfo,
     customStyle,
     textColor,
-    logoTextColors
+    logoTextColors,
+    setShowProfile
 }) => {
     const { user, logout } = useAuth();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
     // Default colors
     const defaultTextColor = '#333';
-    const defaultTitleColor = '#333';
-    const defaultSubtitleColor = '#666';
 
     const currentTextColor = textColor || defaultTextColor;
-    const titleColor = logoTextColors?.title || defaultTitleColor;
-    const subtitleColor = logoTextColors?.subtitle || defaultSubtitleColor;
 
     return (
         <header style={{
@@ -46,57 +47,78 @@ const Header: React.FC<HeaderProps> = ({
             ...customStyle // Apply custom styles
         }}>
             {/* Left side - Logo/Brand and Department Info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-                <div style={{
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    color: titleColor,
-                    letterSpacing: '1px'
-                }}>
-                    SAKTHI AUTO COMPONENTS LTD
-                </div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                {/* SACL Logo Section */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Box
+                        component="img"
+                        src="/assets/SACL-LOGO-01.jpg"
+                        alt="SACL Logo"
+                        sx={{
+                            height: 40,
+                            width: "auto",
+                            borderRadius: 1,
+                        }}
+                    />
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontWeight: 700,
+                            color: COLORS.primary,
+                            letterSpacing: 1,
+                        }}
+                    >
+                        SAKTHI AUTO COMPONENT LIMITED
+                    </Typography>
+                </Box>
 
                 {/* Department and Role Info */}
-                <div style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '6px',
-                    border: '1px solid #e0e0e0'
-                }}>
-                    <div style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#333', // Keep this badge dark for readability usually, or parameterize if needed. 
-                        // But wait, if the header is dark, this badge might need to be visible. 
-                        // The badge background is light (#f8f9fa). So text should be dark (#333).
+                <Paper
+                    elevation={1}
+                    sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <span style={{
-                            padding: '4px 8px',
-                            backgroundColor: '#007bff',
+                        gap: 1,
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        backgroundColor: '#f8f9fa',
+                        border: '1px solid #e0e0e0'
+                    }}
+                >
+                    <Chip
+                        label={user?.role?.toUpperCase() || 'USER'}
+                        size="small"
+                        sx={{
+                            backgroundColor: COLORS.primary,
                             color: 'white',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            fontWeight: '500'
-                        }}>
-                            {user?.role?.toUpperCase() || 'USER'}
-                        </span>
-                        {/* Only show department separator and name for non-Admin/Methods users */}
-                        {departmentInfo.showDepartment && departmentInfo.displayText && (
-                            <>
-                                <span style={{ color: '#666' }}>|</span>
-                                <span style={{ color: '#555' }}>{departmentInfo.displayText}</span>
-                            </>
-                        )}
-                        {/* Fallback if showDepartment is false but we still want to show displayText (like 'Operations' in HODDashboard logic) */}
-                        {!departmentInfo.showDepartment && departmentInfo.displayText && (
-                            <span style={{ color: '#555' }}>{departmentInfo.displayText}</span>
-                        )}
-                    </div>
-                </div>
-            </div>
+                            fontWeight: 600,
+                            fontSize: '0.75rem'
+                        }}
+                    />
+                    {/* Only show department separator and name for non-Admin/Methods users */}
+                    {departmentInfo.showDepartment && departmentInfo.displayText && (
+                        <>
+                            <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>|</Typography>
+                            <Typography sx={{ color: '#555', fontSize: '0.875rem', fontWeight: 500 }}>
+                                {departmentInfo.displayText}
+                            </Typography>
+                        </>
+                    )}
+                    {/* Fallback if showDepartment is false but we still want to show displayText */}
+                    {!departmentInfo.showDepartment && departmentInfo.displayText && (
+                        <Typography sx={{ color: '#555', fontSize: '0.875rem', fontWeight: 500 }}>
+                            {departmentInfo.displayText}
+                        </Typography>
+                    )}
+                </Paper>
+            </Box>
 
             {/* Right side - Icons and Profile */}
             <div style={{
@@ -104,35 +126,6 @@ const Header: React.FC<HeaderProps> = ({
                 alignItems: 'center',
                 gap: '20px'
             }}>
-                {/* Notification Icon */}
-                <div
-                    style={{
-                        position: 'relative',
-                        cursor: 'pointer',
-                        padding: '8px',
-                        borderRadius: '50%',
-                        transition: 'background-color 0.2s',
-                        color: currentTextColor
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')} // adjust hover for dark mode compatibility
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    onClick={() => setShowNotifications(true)}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <div style={{
-                        position: 'absolute',
-                        top: '5px',
-                        right: '5px',
-                        width: '8px',
-                        height: '8px',
-                        backgroundColor: '#ff4444',
-                        borderRadius: '50%'
-                    }}></div>
-                </div>
-
                 {/* Profile Section */}
                 <div style={{ position: 'relative' }}>
                     <div
@@ -227,6 +220,26 @@ const Header: React.FC<HeaderProps> = ({
                                     )}
                                 </div>
                             </div>
+                            {setShowProfile && (
+                                <div
+                                    style={{
+                                        padding: '12px 16px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        color: '#333',
+                                        transition: 'background-color 0.2s',
+                                        borderBottom: '1px solid #f0f0f0'
+                                    }}
+                                    onClick={() => {
+                                        setShowProfile(true);
+                                        setShowProfileDropdown(false);
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                >
+                                    👤 View Profile
+                                </div>
+                            )}
                             <div
                                 style={{
                                     padding: '12px 16px',

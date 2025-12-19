@@ -4,6 +4,7 @@ export interface User {
   full_name: string;
   email: string;
   department_id?: number;
+  department_name?: string;
   role: string;
   is_active?: boolean;
   created_at?: string;

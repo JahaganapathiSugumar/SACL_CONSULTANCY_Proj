@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import NotificationModal from '../components/dashboard/NotificationModal';
+import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import QuickActions from '../components/dashboard/QuickActions';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
@@ -13,6 +14,7 @@ const MethodsDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const departmentInfo = getDepartmentInfo(user);
 
@@ -20,6 +22,7 @@ const MethodsDashboard: React.FC = () => {
     <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <Header
         setShowNotifications={setShowNotifications}
+        setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
       />
       <main className="dashboard-content" style={{ padding: '20px' }}>
@@ -75,6 +78,9 @@ const MethodsDashboard: React.FC = () => {
 
       {/* Notification Modal */}
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
+      
+      {/* Profile Modal */}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </div>
   );
 };
