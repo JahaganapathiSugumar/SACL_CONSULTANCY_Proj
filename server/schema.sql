@@ -68,22 +68,28 @@ SELECT * FROM master_card;
 
 CREATE TABLE trial_cards (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    part_name VARCHAR(100),
-    pattern_code VARCHAR(50),
-    material_grade VARCHAR(50),
-    initiated_by VARCHAR(50),
-    date_of_sampling DATE,
-    no_of_moulds INT,
+    part_name VARCHAR(100) NOT NULL,
+    pattern_code VARCHAR(50) NOT NULL,
+    material_grade VARCHAR(50) NOT NULL,
+    initiated_by VARCHAR(50) NOT NULL,
+    date_of_sampling DATE NOT NULL,
+    no_of_moulds INT CHECK (no_of_moulds > 0),
     reason_for_sampling NVARCHAR(MAX),
-    status VARCHAR(30),
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
     tooling_modification NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
     current_department_id INT,
     disa VARCHAR(50),
     sample_traceability VARCHAR(50),
     mould_correction NVARCHAR(MAX),
+    CONSTRAINT chk_trial_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'APPROVED', 'REJECTED', 'ON_HOLD')),
     FOREIGN KEY (current_department_id) REFERENCES departments(department_id)
 );
+GO
+
+CREATE INDEX idx_trial_pattern_code ON trial_cards(pattern_code);
+CREATE INDEX idx_trial_status ON trial_cards(status);
+CREATE INDEX idx_trial_department ON trial_cards(current_department_id);
 GO
 
 CREATE TABLE mechanical_properties (
@@ -97,7 +103,7 @@ CREATE TABLE mechanical_properties (
     hardness_core NVARCHAR(MAX),
     x_ray_inspection NVARCHAR(MAX),
     mpi NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
@@ -105,7 +111,7 @@ CREATE TABLE metallurgical_specifications (
     trial_id NVARCHAR(255) PRIMARY KEY,
     chemical_composition NVARCHAR(MAX),
     microstructure NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
@@ -114,38 +120,38 @@ CREATE TABLE material_correction (
     chemical_composition NVARCHAR(MAX),
     process_parameters NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE pouring_details (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    pour_date DATE,
+    pour_date DATE NOT NULL,
     heat_code NVARCHAR(MAX),
     composition NVARCHAR(MAX),
-    pouring_temp_c DECIMAL(6,2),
-    pouring_time_sec INT,
+    pouring_temp_c DECIMAL(6,2) CHECK (pouring_temp_c > 0),
+    pouring_time_sec INT CHECK (pouring_time_sec > 0),
     inoculation NVARCHAR(MAX),
     other_remarks NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE sand_properties (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    date DATE,
-    t_clay DECIMAL(6,3),
-    a_clay DECIMAL(6,3),
-    vcm DECIMAL(6,3),
-    loi DECIMAL(6,3),
-    afs DECIMAL(6,3),
-    gcs DECIMAL(6,3),
-    moi DECIMAL(6,3),
-    compactability DECIMAL(6,3),
-    permeability DECIMAL(6,3),
+    date DATE NOT NULL,
+    t_clay DECIMAL(6,3) CHECK (t_clay >= 0),
+    a_clay DECIMAL(6,3) CHECK (a_clay >= 0),
+    vcm DECIMAL(6,3) CHECK (vcm >= 0),
+    loi DECIMAL(6,3) CHECK (loi >= 0),
+    afs DECIMAL(6,3) CHECK (afs >= 0),
+    gcs DECIMAL(6,3) CHECK (gcs >= 0),
+    moi DECIMAL(6,3) CHECK (moi >= 0),
+    compactability DECIMAL(6,3) CHECK (compactability >= 0),
+    permeability DECIMAL(6,3) CHECK (permeability >= 0),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
@@ -156,85 +162,95 @@ CREATE TABLE mould_correction (
     squeeze_pressure VARCHAR(30),
     mould_hardness VARCHAR(30),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE metallurgical_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
     user_name NVARCHAR(MAX),
-    date DATE,
+    date DATE NOT NULL,
     micro_examination NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE ndt_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
     ndt NVARCHAR(MAX),
-    ndt_ok BIT,
+    ndt_ok BIT NOT NULL,
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE visual_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
     inspections NVARCHAR(MAX),
-    visual_ok BIT,
+    visual_ok BIT NOT NULL,
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE dimensional_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    inspection_date DATE,
-    casting_weight INT,
-    bunch_weight INT,
-    no_of_cavities INT,
-    yields INT,
+    inspection_date DATE NOT NULL,
+    casting_weight INT CHECK (casting_weight > 0),
+    bunch_weight INT CHECK (bunch_weight > 0),
+    no_of_cavities INT CHECK (no_of_cavities > 0),
+    yields INT CHECK (yields >= 0),
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE machine_shop (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    inspection_date DATE,
+    inspection_date DATE NOT NULL,
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE department_progress (
-    trial_id NVARCHAR(255),
-    department_id INT,
-    username VARCHAR(50),
+    trial_id NVARCHAR(255) NOT NULL,
+    department_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
     completed_at DATETIME2 DEFAULT GETDATE(),
-    approval_status VARCHAR(20) DEFAULT 'pending',
+    approval_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id),
+    CONSTRAINT chk_approval_status CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id),
     FOREIGN KEY (username) REFERENCES users(username)
 );
 GO
 
+CREATE INDEX idx_dept_progress_trial ON department_progress(trial_id, department_id);
+CREATE INDEX idx_dept_progress_status ON department_progress(approval_status);
+GO
+
 CREATE TABLE documents (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
-    trial_id NVARCHAR(255),
+    trial_id NVARCHAR(255) NOT NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
     uploaded_by INT,
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
+    CONSTRAINT chk_document_type CHECK (document_type IN ('DRAWING', 'REPORT', 'CERTIFICATE', 'PHOTO', 'OTHER')),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
 );
+GO
+
+CREATE INDEX idx_documents_trial ON documents(trial_id);
+CREATE INDEX idx_documents_type ON documents(document_type);
 GO
 
 CREATE TABLE users (
@@ -252,8 +268,13 @@ CREATE TABLE users (
     PRIMARY KEY (user_id),
     CONSTRAINT ux_username UNIQUE (username),
     CONSTRAINT ux_email UNIQUE (email),
-    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Methods','Admin'))
+    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Methods','Admin')),
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
+GO
+
+CREATE INDEX idx_users_department ON users(department_id);
+CREATE INDEX idx_users_role ON users(role);
 GO
 
 CREATE TABLE email_otps (
@@ -266,6 +287,7 @@ CREATE TABLE email_otps (
     expires_at DATETIME2 NOT NULL,
     created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
     PRIMARY KEY (otp_id),
+    CONSTRAINT chk_otp_attempts CHECK (attempts >= 0 AND attempts <= 10),
     CONSTRAINT fk_emailotps_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 GO
@@ -306,4 +328,10 @@ CREATE TABLE audit_log (
     remarks NVARCHAR(MAX),
     PRIMARY KEY (audit_id)
 );
+GO
+
+CREATE INDEX idx_audit_trial ON audit_log(trial_id);
+CREATE INDEX idx_audit_user ON audit_log(user_id);
+CREATE INDEX idx_audit_timestamp ON audit_log(action_timestamp);
+CREATE INDEX idx_audit_trial_timestamp ON audit_log(trial_id, action_timestamp);
 GO
