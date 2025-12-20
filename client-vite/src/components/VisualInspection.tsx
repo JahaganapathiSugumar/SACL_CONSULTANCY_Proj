@@ -198,24 +198,62 @@ export default function VisualInspection({
     };
 
     const updateCell = (rowId: string, colIndex: number, value: string) => {
-        setRows(prev =>
-            prev.map(r => {
+        setRows(prev => {
+            let updated = prev.map(r => {
                 if (r.id !== rowId) return r;
-
                 const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
+                return { ...r, values: newValues };
+            });
 
+            const inspectedRow = updated.find(r => r.label === "Inspected Quantity");
+            const acceptedRow = updated.find(r => r.label === "Accepted Quantity");
+            const rejectedRow = updated.find(r => r.label === "Rejected Quantity");
+            const percentageRow = updated.find(r => r.label === "Rejection Percentage (%)");
 
-                let total: number | undefined = undefined;
-                if (r.label !== "Cavity Number") {
-                    total = newValues.reduce((sum, val) => {
-                        const n = parseFloat(String(val).trim());
-                        return sum + (isNaN(n) ? 0 : n);
-                    }, 0);
+            if (inspectedRow && acceptedRow && rejectedRow) {
+                const inspectedNum = parseFloat(String(inspectedRow.values[colIndex] || '').trim());
+                const acceptedNum = parseFloat(String(acceptedRow.values[colIndex] || '').trim());
+
+                if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
+                    const newRejectedValues = [...rejectedRow.values];
+                    if (acceptedNum > inspectedNum) {
+                        newRejectedValues[colIndex] = 'Invalid';
+                        showAlert('error', `Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
+                    } else {
+                        const calculatedRejected = inspectedNum - acceptedNum;
+                        newRejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
+                    }
+                    updated = updated.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues } : r);
                 }
+            }
 
-                return total !== undefined ? { ...r, values: newValues, total } : { ...r, values: newValues };
-            })
-        );
+            if (inspectedRow && rejectedRow && percentageRow) {
+                const newPercentageValues = [...percentageRow.values];
+                const inspectedNum = parseFloat(String(inspectedRow.values[colIndex] || '').trim());
+                const rejectedNum = parseFloat(String(rejectedRow.values[colIndex] || '').trim());
+
+                if (!isNaN(inspectedNum) && inspectedNum > 0 && !isNaN(rejectedNum)) {
+                    if (rejectedNum > inspectedNum) {
+                        newPercentageValues[colIndex] = 'Invalid';
+                    } else {
+                        const percentage = (rejectedNum / inspectedNum) * 100;
+                        newPercentageValues[colIndex] = percentage.toFixed(2);
+                    }
+                } else {
+                    newPercentageValues[colIndex] = '';
+                }
+                updated = updated.map(r => r.id === percentageRow.id ? { ...r, values: newPercentageValues } : r);
+            }
+
+            return updated.map(r => {
+                if (r.label === "Cavity Number") return r;
+                const total = r.values.reduce((sum, val) => {
+                    const n = parseFloat(String(val).trim());
+                    return sum + (isNaN(n) ? 0 : n);
+                }, 0);
+                return { ...r, total };
+            });
+        });
     };
 
 
@@ -519,8 +557,23 @@ export default function VisualInspection({
                                             </TableCell>
 
                                             {cols.map((_, ci) => {
+                                                const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
                                                 const isRejectionPercentage = r.label === "Rejection Percentage (%)";
+                                                const isRejectedQty = r.label === "Rejected Quantity";
+                                                const isAcceptedQty = r.label === "Accepted Quantity";
+
+                                                const inspectedValue = inspectedRow ? (inspectedRow.values[ci] ?? "") : "";
+                                                const inspectedNum = parseFloat(String(inspectedValue).trim());
+                                                const acceptedNum = isAcceptedQty ? parseFloat(String(r.values[ci] ?? '').trim()) : NaN;
+                                                const isInvalid = !isNaN(inspectedNum) && !isNaN(acceptedNum) && acceptedNum > inspectedNum;
+                                                const rejectedValue = isRejectedQty ? (r.values[ci] ?? "") : "";
+                                                const isRejectedInvalid = rejectedValue === 'Invalid';
+
                                                 const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r.values[ci] ?? "");
+                                                const isFieldDisabled = (user?.role === 'HOD' && !isEditing) ||
+                                                    (isAcceptedQty && !inspectedValue) ||
+                                                    isRejectedQty ||
+                                                    isRejectionPercentage;
 
                                                 return (
                                                     <TableCell key={ci}>
@@ -531,20 +584,26 @@ export default function VisualInspection({
                                                             onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                                             variant="outlined"
                                                             InputProps={{
-                                                                readOnly: isRejectionPercentage || (user?.role === 'HOD' && !isEditing),
+                                                                readOnly: isFieldDisabled,
                                                             }}
                                                             sx={{
                                                                 "& .MuiInputBase-input": {
                                                                     textAlign: 'center',
                                                                     fontFamily: 'Roboto Mono',
                                                                     fontSize: '0.85rem',
-                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' : 'transparent',
+                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' :
+                                                                        isRejectedQty ? '#f3f4f6' :
+                                                                            (isInvalid || isRejectedInvalid) ? '#fee2e2' :
+                                                                                'transparent',
                                                                     fontWeight: isRejectionPercentage ? 700 : 400,
                                                                 },
                                                                 "& .MuiInputBase-root": {
-                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' : 'white'
+                                                                    bgcolor: isRejectionPercentage ? '#fffbeb' :
+                                                                        isRejectedQty ? '#f3f4f6' :
+                                                                            'white'
                                                                 }
                                                             }}
+                                                            error={isInvalid || isRejectedInvalid}
                                                         />
                                                     </TableCell>
                                                 );
@@ -552,6 +611,30 @@ export default function VisualInspection({
                                             <TableCell sx={{ textAlign: 'center', fontWeight: 700 }}>
                                                 {(() => {
                                                     if (r.label === "Cavity Number") return "-";
+
+                                                    if (r.label === "Rejection Percentage (%)") {
+                                                        const inspectedRow = rows.find(row => row.label === "Inspected Quantity");
+                                                        const rejectedRow = rows.find(row => row.label === "Rejected Quantity");
+
+                                                        if (!inspectedRow || !rejectedRow) return "-";
+
+                                                        const totalInspected = inspectedRow.values.reduce((acc, v) => {
+                                                            const n = parseFloat(String(v).trim());
+                                                            return acc + (isNaN(n) ? 0 : n);
+                                                        }, 0);
+
+                                                        const totalRejected = rejectedRow.values.reduce((acc, v) => {
+                                                            const n = parseFloat(String(v).trim());
+                                                            return acc + (isNaN(n) ? 0 : n);
+                                                        }, 0);
+
+                                                        if (totalInspected > 0 && !isNaN(totalRejected)) {
+                                                            const percent = (totalRejected / totalInspected) * 100;
+                                                            return `${percent.toFixed(2)}%`;
+                                                        }
+                                                        return "-";
+                                                    }
+
                                                     const sum = r.values.reduce((acc, v) => {
                                                         const n = parseFloat(String(v).trim());
                                                         return acc + (isNaN(n) ? 0 : n);

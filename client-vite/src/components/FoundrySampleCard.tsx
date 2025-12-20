@@ -253,9 +253,9 @@ function FoundrySampleCard() {
             setMouldCount(data.no_of_moulds || '');
             setMachine(data.disa || '');
             setReason(data.reason_for_sampling || '');
-            setSampleTraceability(data.sample_traceability && data.sample_traceability !== 'null' ? data.sample_traceability : '');
-            setToolingModification(data.tooling_modification && data.tooling_modification !== 'null' ? data.tooling_modification : '');
-            setRemarks(data.remarks && data.remarks !== 'null' ? data.remarks : '');
+            setSampleTraceability(data.sample_traceability && data.sample_traceability !== 'null' && data.sample_traceability !== 'undefined' ? data.sample_traceability : '');
+            setToolingModification(data.tooling_modification && data.tooling_modification !== 'null' && data.tooling_modification !== 'undefined' ? data.tooling_modification : '');
+            setRemarks(data.remarks && data.remarks !== 'null' && data.remarks !== 'undefined' ? data.remarks : '');
 
             const comp = typeof data.chemical_composition === 'string'
               ? JSON.parse(data.chemical_composition)

@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import NotificationModal from '../components/dashboard/NotificationModal';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
-import QuickActions from '../components/dashboard/QuickActions';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo, getPendingRoute } from '../utils/dashboardUtils';
-import { USER_DASHBOARD_STATS, USER_DASHBOARD_ACTIONS } from '../data/dashboardData';
+import { type StatItem } from '../data/dashboardData';
 import PendingSampleCards from './PendingSampleCards';
 import CompletedTrialsModal from './CompletedTrialsModal';
+import { getDashboardStats } from '../services/statsService';
+import { CircularProgress } from '@mui/material';
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -18,9 +19,33 @@ const UserDashboard: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showPendingCards, setShowPendingCards] = useState(false);
   const [showCompletedTrials, setShowCompletedTrials] = useState(false);
+  const [stats, setStats] = useState<StatItem[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
   const navigate = useNavigate();
 
   const departmentInfo = getDepartmentInfo(user);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (user?.username && user?.role) {
+        try {
+          setLoadingStats(true);
+          const statsData = await getDashboardStats({
+            role: user.role,
+            username: user.username,
+            department_id: user.department_id
+          });
+          setStats(statsData);
+        } catch (error) {
+          console.error('Error fetching stats:', error);
+        } finally {
+          setLoadingStats(false);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [user]);
 
   const handlePendingClick = () => {
     setShowPendingCards(true);
@@ -88,18 +113,13 @@ const UserDashboard: React.FC = () => {
           </WelcomeSection>
 
           {/* User Specific Stats Grid */}
-          <div style={{ marginBottom: '30px' }}>
-            <StatsGrid stats={USER_DASHBOARD_STATS} />
-
-            <hr style={{
-              border: 'none',
-              borderTop: '1px solid #dee2e6',
-              margin: '30px 0'
-            }} />
-          </div>
-
-          {/* Quick Actions Section */}
-          <QuickActions actions={USER_DASHBOARD_ACTIONS} />
+          {loadingStats ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+              <CircularProgress />
+            </div>
+          ) : (
+            <StatsGrid stats={stats} />
+          )}
         </div>
       </main>
 

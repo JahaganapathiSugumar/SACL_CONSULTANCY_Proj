@@ -158,10 +158,43 @@ function SectionTable({
     });
   };
 
+
   const updateCell = (rowId: string, colIndex: number, val: string) => {
     setValues((prev) => {
       const arr = prev[rowId].map((v, i) => (i === colIndex ? val : v));
-      const copy = { ...prev, [rowId]: arr };
+      let copy = { ...prev, [rowId]: arr };
+
+      if (title === "NDT INSPECTION ANALYSIS") {
+        const inspectedRow = rows.find(r => r.label.toLowerCase().includes('inspected'));
+        const acceptedRow = rows.find(r => r.label.toLowerCase().includes('accepted'));
+        const rejectedRow = rows.find(r => r.label.toLowerCase().includes('rejected'));
+
+        if (inspectedRow && acceptedRow && rejectedRow) {
+          const inspectedValues = copy[inspectedRow.id] || [];
+          const acceptedValues = copy[acceptedRow.id] || [];
+          const rejectedValues = [...(copy[rejectedRow.id] || [])];
+
+          const inspectedNum = parseFloat(String(inspectedValues[colIndex] || '').trim());
+          const acceptedNum = parseFloat(String(acceptedValues[colIndex] || '').trim());
+
+          if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
+            if (acceptedNum > inspectedNum) {
+              rejectedValues[colIndex] = 'Invalid';
+              if (onValidationError) {
+                onValidationError(`Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
+              }
+            } else {
+              const calculatedRejected = inspectedNum - acceptedNum;
+              rejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
+            }
+            copy = { ...copy, [rejectedRow.id]: rejectedValues };
+
+            const rejectedCombined = rejectedValues.map(v => v || "").join(' | ');
+            onChange(rejectedRow.id, { value: rejectedCombined });
+          }
+        }
+      }
+
       const combined = arr.map(v => v || "").join(' | ');
       const total = arr.reduce((acc, s) => {
         const n = parseFloat(String(s).trim());
@@ -171,6 +204,7 @@ function SectionTable({
       return copy;
     });
   };
+
 
   const updateGroupMeta = (patch: Partial<{ attachment: File | null; ok: boolean | null; remarks: string }>) => {
     setGroupMeta((prev) => ({ ...prev, ...patch }));
@@ -300,23 +334,51 @@ function SectionTable({
               }, 0);
               const totalToShow = rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null);
 
+              const inspectedRow = rows.find(rr => rr.label.toLowerCase().includes('inspected'));
+              const isAcceptedOrRejected = r.label.toLowerCase().includes('accepted') || r.label.toLowerCase().includes('rejected');
+
               return (
                 <TableRow key={r.id}>
                   <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
 
-                  {cols.map((c, ci) => (
-                    <TableCell key={c.id} sx={{ display: r.label.toLowerCase().includes('reason') ? 'none' : 'table-cell' }}>
-                      <TextField
-                        size="small"
-                        fullWidth
-                        value={values[r.id]?.[ci] ?? ""}
-                        onChange={(e) => updateCell(r.id, ci, e.target.value)}
-                        variant="outlined"
-                        sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                        disabled={user?.role === 'HOD' && !isEditing}
-                      />
-                    </TableCell>
-                  ))}
+                  {cols.map((c, ci) => {
+                    const inspectedValue = inspectedRow ? (values[inspectedRow.id]?.[ci] ?? "") : "";
+                    const isRejectedQty = r.label.toLowerCase().includes('rejected') && !r.label.toLowerCase().includes('reason');
+                    const isAcceptedQty = r.label.toLowerCase().includes('accepted');
+
+                    const inspectedNum = inspectedRow ? parseFloat(String(values[inspectedRow.id]?.[ci] ?? '').trim()) : NaN;
+                    const acceptedNum = isAcceptedQty ? parseFloat(String(values[r.id]?.[ci] ?? '').trim()) : NaN;
+                    const isInvalid = title === "NDT INSPECTION ANALYSIS" && !isNaN(inspectedNum) && !isNaN(acceptedNum) && acceptedNum > inspectedNum;
+                    const rejectedValue = isRejectedQty ? (values[r.id]?.[ci] ?? "") : "";
+                    const isRejectedInvalid = rejectedValue === 'Invalid';
+
+                    const isFieldDisabled = (user?.role === 'HOD' && !isEditing) ||
+                      (title === "NDT INSPECTION ANALYSIS" && isAcceptedOrRejected && !inspectedValue) ||
+                      (title === "NDT INSPECTION ANALYSIS" && isRejectedQty);
+
+                    return (
+                      <TableCell key={c.id} sx={{ display: r.label.toLowerCase().includes('reason') ? 'none' : 'table-cell' }}>
+                        <TextField
+                          size="small"
+                          fullWidth
+                          value={values[r.id]?.[ci] ?? ""}
+                          onChange={(e) => updateCell(r.id, ci, e.target.value)}
+                          variant="outlined"
+                          sx={{
+                            "& .MuiInputBase-input": {
+                              textAlign: 'center',
+                              fontFamily: 'Roboto Mono',
+                              fontSize: '0.85rem',
+                              bgcolor: isRejectedQty ? '#f3f4f6' : (isInvalid || isRejectedInvalid) ? '#fee2e2' : 'inherit'
+                            }
+                          }}
+                          disabled={isFieldDisabled}
+                          error={isInvalid || isRejectedInvalid}
+                        />
+                      </TableCell>
+                    );
+                  })}
+
 
                   {r.label.toLowerCase().includes('reason') && (
                     <TableCell colSpan={cols.length + (showTotal ? 1 : 0)}>
@@ -380,7 +442,37 @@ function SectionTable({
                     );
                   })}
 
-                  {showTotal && <TableCell sx={{ bgcolor: '#fff' }} />}
+                  {showTotal && (() => {
+                    const inspectedRow = rows.find(rr => rr.label.toLowerCase().includes('inspected'));
+                    const rejectedRow = rows.find(rr => rr.label.toLowerCase().includes('rejected') && !rr.label.toLowerCase().includes('percentage'));
+
+                    if (!inspectedRow || !rejectedRow) return <TableCell sx={{ bgcolor: '#fff' }} />;
+
+                    const inspectedVals = values[inspectedRow.id] || [];
+                    const rejectedVals = values[rejectedRow.id] || [];
+
+                    const totalInspected = inspectedVals.reduce((acc, v) => {
+                      const n = parseFloat(String(v).trim());
+                      return acc + (isNaN(n) ? 0 : n);
+                    }, 0);
+
+                    const totalRejected = rejectedVals.reduce((acc, v) => {
+                      const n = parseFloat(String(v).trim());
+                      return acc + (isNaN(n) ? 0 : n);
+                    }, 0);
+
+                    let totalPercentage = '-';
+                    if (totalInspected > 0 && !isNaN(totalRejected)) {
+                      const percent = (totalRejected / totalInspected) * 100;
+                      totalPercentage = `${percent.toFixed(2)}%`;
+                    }
+
+                    return (
+                      <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f8fafc' }}>
+                        {totalPercentage}
+                      </TableCell>
+                    );
+                  })()}
                 </TableRow>
               );
             })()}

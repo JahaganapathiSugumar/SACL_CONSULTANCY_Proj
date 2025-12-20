@@ -423,7 +423,6 @@ function MouldingTable() {
             <Box sx={{ p: 4 }}>
 
               <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
-              <AlertMessage alert={alert} />
               <Grid container spacing={2} sx={{ mb: 4 }}>
                 <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
                 <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>

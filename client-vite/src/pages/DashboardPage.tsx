@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
@@ -9,7 +9,9 @@ import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
-import { ADMIN_IDEAS_STATS } from '../data/dashboardData';
+import { type StatItem } from '../data/dashboardData';
+import { getDashboardStats } from '../services/statsService';
+import { CircularProgress } from '@mui/material';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -18,8 +20,33 @@ const DashboardPage: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [stats, setStats] = useState<StatItem[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   const departmentInfo = getDepartmentInfo(user);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (user?.username && user?.role) {
+        try {
+          setLoadingStats(true);
+          const statsData = await getDashboardStats({
+            role: user.role,
+            username: user.username,
+            department_id: user.department_id,
+            statsType: 'admin_trials'
+          });
+          setStats(statsData);
+        } catch (error) {
+          console.error('Error fetching stats:', error);
+        } finally {
+          setLoadingStats(false);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [user]);
 
   return (
     <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: "'Poppins', sans-serif" }}>
@@ -139,191 +166,13 @@ const DashboardPage: React.FC = () => {
             </WelcomeSection>
 
             {/* Overview Section */}
-            <div style={{ marginBottom: '30px' }}>
-              <StatsGrid stats={ADMIN_IDEAS_STATS} />
-
-              <hr style={{
-                border: 'none',
-                borderTop: '1px solid #eee',
-                margin: '30px 0'
-              }} />
-            </div>
-
-            {/* Employee Management Section */}
-            <div style={{ marginBottom: '30px' }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: 700,
-                color: '#333',
-                marginBottom: '15px'
-              }}>
-                Employee Management
-              </h3>
-              <p style={{
-                color: '#666',
-                fontSize: '14px',
-                marginBottom: '15px',
-                fontWeight: 500
-              }}>
-                Manage employee data
-              </p>
-
-              <div style={{
-                backgroundColor: '#f8f9fa',
-                padding: '20px',
-                borderRadius: '8px',
-                border: '1px solid #eee'
-              }}>
-                <input
-                  type="text"
-                  placeholder="Search ideas by title or ideology..."
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    marginBottom: '15px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    fontWeight: 400,
-                    backgroundColor: 'white'
-                  }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = '#007bff')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = '#ddd')}
-                />
-
-                <div style={{ marginBottom: '15px' }}>
-                  <strong style={{ color: '#333', fontWeight: 500 }}>All Departments</strong>
-                </div>
-
-                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                  {['Al Priorities', 'Expert Excel', 'Refresh'].map((dept, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        backgroundColor: 'white',
-                        padding: '8px 15px',
-                        borderRadius: '20px',
-                        fontSize: '14px',
-                        color: '#333',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        fontWeight: 500,
-                        border: '1px solid #ddd'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#e9ecef';
-                        e.currentTarget.style.borderColor = '#ccc';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'white';
-                        e.currentTarget.style.borderColor = '#ddd';
-                      }}
-                    >
-                      {dept}
-                    </div>
-                  ))}
-                </div>
+            {loadingStats ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                <CircularProgress />
               </div>
-            </div>
-
-            {/* Idea Directory Section */}
-            <div>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: 700,
-                color: '#333',
-                marginBottom: '15px'
-              }}>
-                Idea Directory
-              </h3>
-              <p style={{
-                color: '#666',
-                fontSize: '14px',
-                marginBottom: '15px',
-                fontWeight: 500
-              }}>
-                Showing ideas from all departments (302 levels)
-              </p>
-
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                border: '1px solid #eee',
-                overflow: 'hidden'
-              }}>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    minWidth: '800px'
-                  }}>
-                    <thead>
-                      <tr style={{
-                        backgroundColor: '#f8f9fa',
-                        borderBottom: '2px solid #eee'
-                      }}>
-                        {['IDEA', 'DEPARTMENT', 'DATE UPLOADED', 'EMPLOYEE', 'STATUS', 'ASSIGNED TO', 'ACTIONS'].map((header, index) => (
-                          <th key={index} style={{
-                            padding: '12px 15px',
-                            textAlign: 'left',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#666',
-                            textTransform: 'uppercase'
-                          }}>
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { idea: 'TEST-05 Read Only', department: '[legal]', date: '2025-10-30', employee: 'Pestablishment', status: 'Implemented', assigned: 'Martin Gusepong 2', actions: '✅ 2025-10-30' },
-                        { idea: 'TEST-04 Read Only', department: '[legal]', date: '2025-10-30', employee: 'Pestablishment', status: 'Rejected', assigned: 'Martin Gusepong 2', actions: '✅ 2025-10-30' },
-                        { idea: 'test-3 Read Only', department: '[legal]', date: '2025-10-30', employee: 'Pestablishment', status: 'Rejected', assigned: 'Martin Gusepong 2', actions: '✅ 2025-10-30' },
-                        { idea: 'test-002 Read Only', department: '[legal]', date: '2025-10-30', employee: 'Pestablishment', status: 'Rejected', assigned: 'Martin Gusepong 2', actions: '✅ 2025-10-30' }
-                      ].map((row, index) => (
-                        <tr key={index} style={{
-                          borderBottom: '1px solid #eee',
-                          backgroundColor: index % 2 === 0 ? 'white' : '#fcfcfc',
-                          transition: 'background-color 0.2s'
-                        }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#fcfcfc')}
-                        >
-                          <td style={{ padding: '12px 15px', fontSize: '14px' }}>
-                            <div style={{ fontWeight: 500, color: '#333' }}>{row.idea}</div>
-                            <div style={{ fontSize: '12px', color: '#666', fontWeight: 400 }}>Mastery: &lt;sudity&gt;e{1000 + index}</div>
-                          </td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.department}</td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.date}</td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>
-                            <div style={{ fontWeight: 400 }}>{row.employee}</div>
-                            <div style={{ fontSize: '12px', color: '#666', fontWeight: 400 }}>ID: 102</div>
-                          </td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px' }}>
-                            <span style={{
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              fontWeight: 400,
-                              backgroundColor: row.status === 'Implemented' ? '#d4edda' : '#f8d7da',
-                              color: row.status === 'Implemented' ? '#155724' : '#721c24'
-                            }}>
-                              {row.status}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.assigned}</td>
-                          <td style={{ padding: '12px 15px', fontSize: '14px', color: '#333', fontWeight: 400 }}>{row.actions}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <StatsGrid stats={stats} />
+            )}
           </>
         )}
         {showUserDetails && (
@@ -367,7 +216,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Notification Modal */}
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
-      
+
       {/* Profile Modal */}
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </div>
