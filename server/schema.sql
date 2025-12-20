@@ -1,20 +1,23 @@
 CREATE DATABASE SACL;
+GO
 USE SACL;
+GO
 CREATE TABLE master_card (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL IDENTITY(1,1),
     pattern_code VARCHAR(150) NOT NULL,
     part_name VARCHAR(200) NOT NULL,
     material_grade VARCHAR(100),
-    chemical_composition TEXT,
-    micro_structure TEXT,
-    tensile TEXT,
-    impact TEXT,
-    hardness TEXT,
-    xray TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    chemical_composition NVARCHAR(MAX),
+    micro_structure NVARCHAR(MAX),
+    tensile NVARCHAR(MAX),
+    impact NVARCHAR(MAX),
+    hardness NVARCHAR(MAX),
+    xray NVARCHAR(MAX),
+    created_at DATETIME2 DEFAULT GETDATE(),
     PRIMARY KEY (id),
-    UNIQUE KEY ux_pattern_code (pattern_code)
+    CONSTRAINT ux_pattern_code UNIQUE (pattern_code)
 );
+GO
 
 INSERT INTO master_card (pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray) VALUES ('FIA-S-011-B0-20-P-01-00','H6 FRONT KNUCKLE','FCD 590/7','C : 3.40 - 3.80% Si : 2.20 - 2.70% Mn : 0.30 - 0.60% P : 0.030 - 0.050% S : 0.015% Max Mg : 0.030 - 0.060% Cu : 0.30% Min','Spheroidization 90% min Pearlite – Ferrite Cementite : ≤5%','590 N/mm² Min. 370 N/mm² Min. ≥7%','--','190 – 250 BHN 10mm Ball / 3000 Kgs load','Type A - Gas porosity : Level 2 Type B - Sand and Slag inclusions : Level 2 Type C - Shrinkage : Level 2 Type D,E,F (Crack, Hot tear & Insert) : Not allowed');
 INSERT INTO master_card 
@@ -64,152 +67,243 @@ INSERT INTO master_card (pattern_code, part_name, material_grade, chemical_compo
 SELECT * FROM master_card;
 
 CREATE TABLE trial_cards (
-    trial_id TEXT PRIMARY KEY,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     part_name VARCHAR(100),
     pattern_code VARCHAR(50),
     material_grade VARCHAR(50),
     initiated_by VARCHAR(50),
     date_of_sampling DATE,
     no_of_moulds INT,
-    reason_for_sampling TEXT,
+    reason_for_sampling NVARCHAR(MAX),
     status VARCHAR(30),
-    tooling_modification TEXT,
-    remarks TEXT,
-    current_department_id INT REFERENCES departments(department_id),
+    tooling_modification NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    current_department_id INT,
     disa VARCHAR(50),
     sample_traceability VARCHAR(50),
-    mould_correction JSON
+    mould_correction NVARCHAR(MAX),
+    FOREIGN KEY (current_department_id) REFERENCES departments(department_id)
 );
+GO
 
 CREATE TABLE mechanical_properties (
-    prop_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    tensile_strength TEXT,
-    yield_strength TEXT,
-    elongation TEXT,
-    impact_strength_cold TEXT,
-    impact_strength_room TEXT,
-    hardness_surface TEXT,
-    hardness_core TEXT,
-    x_ray_inspection TEXT,
-    mpi TEXT
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    tensile_strength NVARCHAR(MAX),
+    yield_strength NVARCHAR(MAX),
+    elongation NVARCHAR(MAX),
+    impact_strength_cold NVARCHAR(MAX),
+    impact_strength_room NVARCHAR(MAX),
+    hardness_surface NVARCHAR(MAX),
+    hardness_core NVARCHAR(MAX),
+    x_ray_inspection NVARCHAR(MAX),
+    mpi NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE metallurgical_specifications (
-    spec_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    chemical_composition JSON,
-    microstructure JSON
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    chemical_composition NVARCHAR(MAX),
+    microstructure NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE material_correction (
-    correction_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    chemical_composition JSON,
-    process_parameters JSON,
-    remarks TEXT
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    chemical_composition NVARCHAR(MAX),
+    process_parameters NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE pouring_details (
-    id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     pour_date DATE,
-    heat_code TEXT,
-    composition JSON,
-    pouring_temp_c NUMERIC(6,2),
+    heat_code NVARCHAR(MAX),
+    composition NVARCHAR(MAX),
+    pouring_temp_c DECIMAL(6,2),
     pouring_time_sec INT,
-    inoculation JSON,
-    other_remarks JSON,
-    remarks TEXT
+    inoculation NVARCHAR(MAX),
+    other_remarks NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE sand_properties (
-    prop_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     date DATE,
-    t_clay NUMERIC(6,3),
-    a_clay NUMERIC(6,3),
-    vcm NUMERIC(6,3),
-    loi NUMERIC(6,3),
-    afs NUMERIC(6,3),
-    gcs NUMERIC(6,3),
-    moi NUMERIC(6,3),
-    compactability NUMERIC(6,3),
-    permeability NUMERIC(6,3),
-    remarks TEXT
+    t_clay DECIMAL(6,3),
+    a_clay DECIMAL(6,3),
+    vcm DECIMAL(6,3),
+    loi DECIMAL(6,3),
+    afs DECIMAL(6,3),
+    gcs DECIMAL(6,3),
+    moi DECIMAL(6,3),
+    compactability DECIMAL(6,3),
+    permeability DECIMAL(6,3),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE mould_correction (
-    correction_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     mould_thickness VARCHAR(30),
     compressability VARCHAR(30),
     squeeze_pressure VARCHAR(30),
     mould_hardness VARCHAR(30),
-    remarks TEXT
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE metallurgical_inspection (
-    inspection_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    user_name TEXT,
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    user_name NVARCHAR(MAX),
     date DATE,
-    micro_examination JSON[],
-    remarks TEXT
+    micro_examination NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE ndt_inspection (
-    inspection_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    ndt JSON[],
-    ndt_ok BOOLEAN,
-    remarks TEXT
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    ndt NVARCHAR(MAX),
+    ndt_ok BIT,
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE visual_inspection (
-    inspection_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
-    inspections JSON[],
-    visual_ok BOOLEAN,
-    remarks TEXT
+    trial_id NVARCHAR(255) PRIMARY KEY,
+    inspections NVARCHAR(MAX),
+    visual_ok BIT,
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE dimensional_inspection (
-    inspection_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     inspection_date DATE,
     casting_weight INT,
     bunch_weight INT,
     no_of_cavities INT,
     yields INT,
-    inspections JSON[]
-    remarks TEXT
+    inspections NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE machine_shop (
-    machine_shop_id SERIAL PRIMARY KEY,
-    trial_id VARCHAR(255) REFERENCES trial_cards(trial_id) NOT NULL,
+    trial_id NVARCHAR(255) PRIMARY KEY,
     inspection_date DATE,
-    inspections JSON[]
-    remarks TEXT
+    inspections NVARCHAR(MAX),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id)
 );
+GO
 
 CREATE TABLE department_progress (
-    trial_id INT REFERENCES trial_cards(trial_id),
-    department_id INT REFERENCES departments(department_id),
-    username VARCHAR(50) REFERENCES users(username),
-    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    trial_id NVARCHAR(255),
+    department_id INT,
+    username VARCHAR(50),
+    completed_at DATETIME2 DEFAULT GETDATE(),
     approval_status VARCHAR(20) DEFAULT 'pending',
-    remarks TEXT
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id),
+    FOREIGN KEY (department_id) REFERENCES departments(department_id),
+    FOREIGN KEY (username) REFERENCES users(username)
 );
+GO
 
 CREATE TABLE documents (
-    document_id SERIAL PRIMARY KEY,
-    trial_id INT REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
+    document_id INT IDENTITY(1,1) PRIMARY KEY,
+    trial_id NVARCHAR(255),
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    file_base64 TEXT,
-    uploaded_by INT REFERENCES users(user_id),
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    remarks TEXT
+    file_base64 NVARCHAR(MAX),
+    uploaded_by INT,
+    uploaded_at DATETIME2 DEFAULT GETDATE(),
+    remarks NVARCHAR(MAX),
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
 );
+GO
+
+CREATE TABLE users (
+    user_id BIGINT NOT NULL IDENTITY(1,1),
+    username VARCHAR(50) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) DEFAULT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    department_id INT DEFAULT NULL,
+    role VARCHAR(20) NOT NULL,
+    is_active BIT DEFAULT 1,
+    created_at DATETIME2 NULL DEFAULT GETDATE(),
+    last_login DATETIME2 NULL DEFAULT NULL,
+    remarks NVARCHAR(MAX),
+    PRIMARY KEY (user_id),
+    CONSTRAINT ux_username UNIQUE (username),
+    CONSTRAINT ux_email UNIQUE (email),
+    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Methods','Admin'))
+);
+GO
+
+CREATE TABLE email_otps (
+    otp_id BIGINT NOT NULL IDENTITY(1,1),
+    user_id BIGINT DEFAULT NULL,
+    email NVARCHAR(255) NOT NULL,
+    otp_code NVARCHAR(10) NOT NULL,
+    attempts TINYINT NOT NULL DEFAULT 0,
+    used BIT NOT NULL DEFAULT 0,
+    expires_at DATETIME2 NOT NULL,
+    created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+    PRIMARY KEY (otp_id),
+    CONSTRAINT fk_emailotps_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX idx_user_email ON email_otps(user_id, email);
+CREATE INDEX idx_email ON email_otps(email);
+CREATE INDEX idx_expires_at ON email_otps(expires_at);
+GO
+
+CREATE TABLE departments (
+    department_id INT IDENTITY(1,1) PRIMARY KEY,
+    department_name VARCHAR(50) UNIQUE NOT NULL
+);
+GO
+
+INSERT INTO departments(department_name) VALUES
+('ADMIN'),
+('NPD METHODS'),
+('NPD QC'),
+('SANDPLANT'),
+('FETTLING'),
+('VISUAL INSPECTION'),
+('MOULDING'),
+('QUALITY'),
+('MACHINESHOP'),
+('NDT QC'),
+('QA'),
+('CUSTOMER');
+GO
+
+CREATE TABLE audit_log (
+    audit_id BIGINT NOT NULL IDENTITY(1,1),
+    user_id INT DEFAULT NULL,
+    trial_id NVARCHAR(255) DEFAULT NULL,
+    department_id INT DEFAULT NULL,
+    action VARCHAR(100) NOT NULL,
+    action_timestamp DATETIME2 NULL DEFAULT GETDATE(),
+    remarks NVARCHAR(MAX),
+    PRIMARY KEY (audit_id)
+);
+GO
