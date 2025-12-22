@@ -13,61 +13,91 @@ interface StatsGridProps {
 
 const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
     return (
-        <div className="stats-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px',
-            marginBottom: '30px'
-        }}>
-            {stats.map((stat, index) => (
-                <div
-                    key={index}
-                    className="stat-card"
-                    style={{
-                        backgroundColor: 'white',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        textAlign: 'center',
-                        borderLeft: `4px solid ${stat.color}`,
-                        transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    }}
-                >
-                    <div style={{
-                        fontSize: '28px',
-                        fontWeight: 'bold',
-                        color: '#333',
-                        marginBottom: '5px'
-                    }}>
-                        {stat.value}
+        <>
+            <style>
+                {`
+                    .stats-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 20px;
+                        margin-bottom: 30px;
+                    }
+                    .stat-card {
+                        background-color: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        text-align: center;
+                        transition: transform 0.2s, box-shadow 0.2s;
+                    }
+                    .stat-card:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                    }
+                    .stat-value {
+                        font-size: 28px;
+                        font-weight: bold;
+                        color: #333;
+                        margin-bottom: 5px;
+                    }
+                    .stat-label {
+                        font-size: 14px;
+                        color: #666;
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                    }
+                    .stat-description {
+                        font-size: 12px;
+                        color: #999;
+                    }
+                    @media (max-width: 768px) {
+                        .stats-grid {
+                            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                            gap: 15px;
+                        }
+                        .stat-card {
+                            padding: 15px;
+                        }
+                        .stat-value {
+                            font-size: 24px;
+                        }
+                        .stat-label {
+                            font-size: 13px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .stats-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 10px;
+                        }
+                        .stat-card {
+                            padding: 12px;
+                        }
+                        .stat-value {
+                            font-size: 20px;
+                        }
+                        .stat-label {
+                            font-size: 12px;
+                        }
+                    }
+                `}
+            </style>
+            <div className="stats-grid">
+                {stats.map((stat, index) => (
+                    <div
+                        key={index}
+                        className="stat-card"
+                        style={{ borderLeft: `4px solid ${stat.color}` }}
+                    >
+                        <div className="stat-value">{stat.value}</div>
+                        <div className="stat-label">{stat.label}</div>
+                        {stat.description && (
+                            <div className="stat-description">{stat.description}</div>
+                        )}
                     </div>
-                    <div style={{
-                        fontSize: '14px',
-                        color: '#666',
-                        fontWeight: '600',
-                        marginBottom: '5px'
-                    }}>
-                        {stat.label}
-                    </div>
-                    {stat.description && (
-                        <div style={{
-                            fontSize: '12px',
-                            color: '#999'
-                        }}>
-                            {stat.description}
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+        </>
     );
 };
 
