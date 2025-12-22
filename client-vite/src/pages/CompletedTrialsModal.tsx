@@ -15,6 +15,8 @@ import {
     DialogTitle,
     DialogContent,
     IconButton,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { COLORS } from '../theme/appTheme';
@@ -30,6 +32,9 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
     const [completedTrials, setCompletedTrials] = useState<ProgressItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
     useEffect(() => {
         if (open && username) {
@@ -80,20 +85,21 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
             onClose={onClose}
             maxWidth="lg"
             fullWidth
+            fullScreen={isMobile}
             PaperProps={{
                 sx: {
-                    minHeight: '70vh',
-                    maxHeight: '90vh'
+                    minHeight: isMobile ? '100vh' : '70vh',
+                    maxHeight: isMobile ? '100vh' : '90vh'
                 }
             }}
         >
-            <DialogTitle sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <DialogTitle sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: { xs: 1.5, sm: 2 }, px: { xs: 2, sm: 3 }, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 ✅ Completed Trials
                 <IconButton onClick={onClose} size="small" sx={{ color: COLORS.blueHeaderText }}>
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
-            <DialogContent sx={{ p: 3 }}>
+            <DialogContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
                 <Box>
                     {/* Loading State */}
                     {loading && (
@@ -111,18 +117,18 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
 
                     {/* Completed Trials Table */}
                     {!loading && (
-                        <Paper variant="outlined" sx={{ border: `2px solid ${COLORS.primary}`, overflow: 'hidden' }}>
-                            <Table>
+                        <Paper variant="outlined" sx={{ border: `2px solid ${COLORS.primary}`, overflow: 'auto' }}>
+                            <Table size={isMobile ? "small" : "medium"}>
                                 <TableHead>
                                     <TableRow sx={{ backgroundColor: COLORS.blueHeaderBg }}>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Trial ID</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Pattern Code</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Part Name</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Machine</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Sampling Date</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Department</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Completed At</TableCell>
-                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Status</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText, fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' }, whiteSpace: 'nowrap' }}>Trial ID</TableCell>
+                                        {!isMobile && <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Pattern Code</TableCell>}
+                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText, fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' } }}>Part Name</TableCell>
+                                        {!isTablet && <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Machine</TableCell>}
+                                        {!isTablet && <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Sampling Date</TableCell>}
+                                        {!isMobile && <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Department</TableCell>}
+                                        {!isTablet && <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText }}>Completed At</TableCell>}
+                                        <TableCell sx={{ fontWeight: 700, color: COLORS.blueHeaderText, fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' } }}>Status</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -136,13 +142,13 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
                                                     }
                                                 }}
                                             >
-                                                <TableCell sx={{ fontWeight: 600 }}>{trial.trial_id}</TableCell>
-                                                <TableCell>{trial.pattern_code || 'N/A'}</TableCell>
-                                                <TableCell>{trial.part_name || 'N/A'}</TableCell>
-                                                <TableCell>{trial.disa || 'N/A'}</TableCell>
-                                                <TableCell>{formatDate(trial.date_of_sampling || '')}</TableCell>
-                                                <TableCell>{trial.department_name || 'N/A'}</TableCell>
-                                                <TableCell>{formatDateTime(trial.completed_at || '')}</TableCell>
+                                                <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' } }}>{trial.trial_id}</TableCell>
+                                                {!isMobile && <TableCell>{trial.pattern_code || 'N/A'}</TableCell>}
+                                                <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' } }}>{trial.part_name || 'N/A'}</TableCell>
+                                                {!isTablet && <TableCell>{trial.disa || 'N/A'}</TableCell>}
+                                                {!isTablet && <TableCell>{formatDate(trial.date_of_sampling || '')}</TableCell>}
+                                                {!isMobile && <TableCell>{trial.department_name || 'N/A'}</TableCell>}
+                                                {!isTablet && <TableCell>{formatDateTime(trial.completed_at || '')}</TableCell>}
                                                 <TableCell>
                                                     <Chip
                                                         label="Completed"
@@ -151,6 +157,7 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
                                                             backgroundColor: '#10b981',
                                                             color: '#FFFFFF',
                                                             fontWeight: 600,
+                                                            fontSize: { xs: '0.65rem', sm: '0.75rem' }
                                                         }}
                                                     />
                                                 </TableCell>
@@ -158,7 +165,7 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4 }}>
+                                            <TableCell colSpan={isMobile ? 3 : isTablet ? 5 : 8} sx={{ textAlign: 'center', py: 4 }}>
                                                 <Typography variant="body2" color="text.secondary">
                                                     No completed trials found
                                                 </Typography>
