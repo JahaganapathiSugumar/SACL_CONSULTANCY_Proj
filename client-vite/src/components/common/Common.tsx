@@ -90,11 +90,102 @@ const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: s
   </Box>
 );
 
+// Parsing utility functions for master list data
+const parseChemicalComposition = (composition: any) => {
+  const blank = { c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" };
+  if (!composition) return blank;
+  let obj: any = composition;
+  if (typeof composition === "string") {
+    try { obj = JSON.parse(composition); } catch (e) { return blank; }
+  }
+  if (typeof obj !== "object" || obj === null) return blank;
+  const map: Record<string, any> = {};
+  Object.keys(obj).forEach((k) => {
+    if (typeof k === "string") { map[k.toLowerCase().replace(/\s+/g, "")] = obj[k]; }
+  });
+  return {
+    c: map["c"] || "",
+    si: map["si"] || map["silicon"] || "",
+    mn: map["mn"] || "",
+    p: map["p"] || "",
+    s: map["s"] || "",
+    mg: map["mg"] || "",
+    cr: map["cr"] || "",
+    cu: map["cu"] || ""
+  };
+};
+
+const parseTensileData = (tensile: string) => {
+  const lines = tensile ? tensile.split("\n") : [];
+  let tensileStrength = "", yieldStrength = "", elongation = "", impactCold = "", impactRoom = "";
+  lines.forEach((line) => {
+    const cleanLine = line.trim();
+    if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile")) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
+      if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
+    }
+    if (cleanLine.includes("Yield")) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
+      if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
+    }
+    if (cleanLine.includes("Elongation") || cleanLine.includes("%")) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
+      if (match && !elongation) elongation = `${match[1]}${match[2]}`;
+    }
+  });
+  return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
+};
+
+const parseMicrostructureData = (microstructure: string) => {
+  const lines = microstructure ? microstructure.split("\n") : [];
+  let nodularity = "", pearlite = "", carbide = "";
+  lines.forEach((line) => {
+    const cleanLine = line.trim().toLowerCase();
+    if (cleanLine.includes("nodularity")) {
+      const match = cleanLine.match(/([≥≤]?)\s*(\d+)/);
+      if (match) nodularity = `${match[1]}${match[2]}`;
+    }
+    if (cleanLine.includes("pearlite")) {
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
+      if (match) pearlite = `${match[1]}${match[2]}`;
+    }
+    if (cleanLine.includes("carbide")) {
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
+      if (match) carbide = `${match[1]}${match[2]}`;
+    }
+  });
+  return { nodularity: nodularity || "--", pearlite: pearlite || "--", carbide: carbide || "--" };
+};
+
+const parseHardnessData = (hardness: string) => {
+  const lines = hardness ? hardness.split("\n") : [];
+  let surface = "", core = "";
+  lines.forEach((line) => {
+    const cleanLine = line.trim().toLowerCase();
+    if (cleanLine.includes("surface")) {
+      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
+      if (match) surface = match[1];
+    } else if (cleanLine.includes("core")) {
+      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
+      if (match) core = match[1];
+    } else if (!surface) {
+      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
+      if (match) surface = match[1];
+    }
+  });
+  return { surface: surface || "--", core: core || "--" };
+};
+
 interface CommonProps {
   trialId?: string;
 }
 
 const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
+  // Read trial ID from URL if not provided as prop
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlTrialId = urlParams.get('trial_id') || "";
+  const effectiveTrialId = initialTrialId || urlTrialId;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TrialData | null>(null);
@@ -136,6 +227,21 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
             }
           }
         });
+
+        // Fetch master specifications by part_name
+        if (parsedTrial.part_name) {
+          const masterData = await trialService.getMasterByPart(parsedTrial.part_name);
+          if (masterData) {
+            // Parse and apply master specifications
+            parsedTrial.chemical_composition = parseChemicalComposition(masterData.chemical_composition);
+            parsedTrial.micro_structure = parseMicrostructureData(masterData.micro_structure);
+            parsedTrial.tensile = parseTensileData(masterData.tensile);
+            parsedTrial.hardness = parseHardnessData(masterData.hardness);
+            parsedTrial.xray = masterData.xray || parsedTrial.xray;
+            parsedTrial.mpi = masterData.mpi || parsedTrial.mpi;
+          }
+        }
+
         setData(parsedTrial);
       } else {
         setData(null);
@@ -150,10 +256,10 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
   };
 
   useEffect(() => {
-    if (initialTrialId) {
-      fetchTrial(initialTrialId);
+    if (effectiveTrialId) {
+      fetchTrial(effectiveTrialId);
     }
-  }, [initialTrialId]);
+  }, [effectiveTrialId]);
 
   return (
     <ThemeProvider theme={appTheme}>

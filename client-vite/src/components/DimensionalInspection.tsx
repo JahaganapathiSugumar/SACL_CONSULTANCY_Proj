@@ -255,7 +255,7 @@ export default function DimensionalInspection({
                         no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
                         yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
                         inspections: JSON.stringify(inspections),
-                        remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
+                        remarks: previewPayload.dimensional_remarks || ""
                     };
 
                     await inspectionService.updateDimensionalInspection(updatePayload);
@@ -300,7 +300,7 @@ export default function DimensionalInspection({
                 no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
                 yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
                 inspections: JSON.stringify(inspections),
-                remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || null
+                remarks: previewPayload.dimensional_remarks || ""
             };
 
             await inspectionService.submitDimensionalInspection(apiPayload);
@@ -312,7 +312,7 @@ export default function DimensionalInspection({
                     //     trialId,
                     //     "DIMENSIONAL_INSPECTION",
                     //     user?.username || "system",
-                    //     additionalRemarks || ""
+                    //     "DIMENSIONAL_INSPECTION"
                     // );
                 } catch (uploadError) {
                     console.error("File upload error:", uploadError);
@@ -327,7 +327,7 @@ export default function DimensionalInspection({
                         current_department_id: 10,
                         username: user?.username || "user",
                         role: "user",
-                        remarks: previewPayload.dimensional_remarks || previewPayload.additionalRemarks || "Completed by user"
+                        remarks: "Completed by user"
                     });
                 } catch (roleError) {
                     console.error("Failed to update role progress:", roleError);

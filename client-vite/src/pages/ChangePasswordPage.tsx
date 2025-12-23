@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Container,
   ThemeProvider,
-  createTheme,
   InputAdornment,
   IconButton,
   LinearProgress,
@@ -17,76 +16,45 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { apiService } from '../services/commonService';
 import { useNavigate } from 'react-router-dom';
+import { appTheme, COLORS } from '../theme/appTheme';
 
-const SAKTHI_COLORS = {
-  primary: '#2950bbff',
-  secondary: '#DC2626',
-  accent: '#F59E0B',
-  background: '#F8FAFC',
-  lightBlue: '#3B82F6',
-  darkGray: '#374151',
-  lightGray: '#E5E7EB',
-  white: '#FFFFFF',
-  success: '#10B981',
-};
+// Password validation helper
+const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
 
-const theme = createTheme({
-  palette: {
-    primary: { main: SAKTHI_COLORS.primary },
-    secondary: { main: SAKTHI_COLORS.secondary },
-    success: { main: SAKTHI_COLORS.success },
-    background: { default: SAKTHI_COLORS.background },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: { fontWeight: 700 },
-    body1: { fontWeight: 500 },
-  },
-  components: {
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-          }
-        }
-      }
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
-          fontSize: '1rem',
-        },
-        contained: {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          }
-        }
-      }
-    }
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters');
   }
-});
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain lowercase letters');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain uppercase letters');
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain digits');
+  }
+
+  return { isValid: errors.length === 0, errors };
+};
 
 // Password strength calculator
 const calculatePasswordStrength = (password: string): { strength: number; color: string; label: string } => {
   let strength = 0;
-  if (password.length >= 6) strength += 25;
-  if (password.length >= 8) strength += 25;
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
-  if (/[0-9]/.test(password)) strength += 12.5;
-  if (/[^a-zA-Z0-9]/.test(password)) strength += 12.5;
+  if (password.length >= 6) strength += 20;
+  if (password.length >= 8) strength += 20;
+  if (/[a-z]/.test(password)) strength += 15;
+  if (/[A-Z]/.test(password)) strength += 15;
+  if (/[0-9]/.test(password)) strength += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 15;
 
-  let color = SAKTHI_COLORS.secondary;
+  let color: string = COLORS.secondary;
   let label = 'Weak';
   if (strength >= 75) {
-    color = SAKTHI_COLORS.success;
+    color = COLORS.successText;
     label = 'Strong';
   } else if (strength >= 50) {
-    color = SAKTHI_COLORS.accent;
+    color = COLORS.orangeHeaderText;
     label = 'Fair';
   }
 
@@ -104,21 +72,27 @@ const ChangePasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
   const passwordStrength = calculatePasswordStrength(newPassword);
+  const passwordValidation = validatePassword(newPassword);
   const passwordsMatch = newPassword && confirm && newPassword === confirm;
+  const isPasswordValid = passwordValidation.isValid && passwordsMatch;
 
   const handleSubmit = async () => {
     setError('');
     setMessage('');
+
     if (!newPassword || !confirm) {
       setError('Both password fields are required');
       return;
     }
+
     if (newPassword !== confirm) {
       setError('Passwords do not match');
       return;
     }
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+
+    // Validate password requirements
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors.join('. '));
       return;
     }
 
@@ -141,14 +115,14 @@ const ChangePasswordPage: React.FC = () => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           minHeight: '100vh',
-          background: `linear-gradient(135deg, ${SAKTHI_COLORS.background} 0%, ${SAKTHI_COLORS.white} 100%)`,
+          background: `linear-gradient(135deg, ${COLORS.background} 0%, ${COLORS.surface} 100%)`,
           padding: 2,
         }}
       >
@@ -158,7 +132,7 @@ const ChangePasswordPage: React.FC = () => {
             sx={{
               padding: 4,
               borderRadius: 3,
-              border: `2px solid ${SAKTHI_COLORS.lightBlue}`,
+              border: `2px solid ${COLORS.accentBlue}`,
               boxShadow: '0 8px 24px rgba(41, 80, 187, 0.15)',
             }}
           >
@@ -167,7 +141,7 @@ const ChangePasswordPage: React.FC = () => {
               <Typography
                 variant="h4"
                 sx={{
-                  color: SAKTHI_COLORS.primary,
+                  color: COLORS.primary,
                   mb: 1,
                   fontWeight: 700,
                 }}
@@ -177,7 +151,7 @@ const ChangePasswordPage: React.FC = () => {
               <Typography
                 variant="body1"
                 sx={{
-                  color: SAKTHI_COLORS.darkGray,
+                  color: COLORS.textSecondary,
                   fontSize: '0.95rem',
                 }}
               >
@@ -192,7 +166,7 @@ const ChangePasswordPage: React.FC = () => {
                 sx={{
                   mb: 1.5,
                   fontWeight: 600,
-                  color: SAKTHI_COLORS.darkGray,
+                  color: COLORS.textPrimary,
                 }}
               >
                 New Password
@@ -221,7 +195,7 @@ const ChangePasswordPage: React.FC = () => {
                     </InputAdornment>
                   ),
                   sx: {
-                    backgroundColor: SAKTHI_COLORS.white,
+                    backgroundColor: COLORS.surface,
                     borderRadius: 2,
                   }
                 }}
@@ -231,7 +205,7 @@ const ChangePasswordPage: React.FC = () => {
               {newPassword && (
                 <Box sx={{ mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="caption" sx={{ color: SAKTHI_COLORS.darkGray, fontSize: '0.8rem' }}>
+                    <Typography variant="caption" sx={{ color: COLORS.textSecondary, fontSize: '0.8rem' }}>
                       Password Strength
                     </Typography>
                     <Typography
@@ -251,7 +225,7 @@ const ChangePasswordPage: React.FC = () => {
                     sx={{
                       height: 6,
                       borderRadius: 3,
-                      backgroundColor: SAKTHI_COLORS.lightGray,
+                      backgroundColor: COLORS.border,
                       '& .MuiLinearProgress-bar': {
                         backgroundColor: passwordStrength.color,
                         borderRadius: 3,
@@ -259,44 +233,60 @@ const ChangePasswordPage: React.FC = () => {
                     }}
                   />
                   <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: SAKTHI_COLORS.darkGray, fontSize: '0.75rem' }}>
-                      Requirements:
+                    <Typography variant="caption" sx={{ color: COLORS.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
+                      Password Requirements:
                     </Typography>
                     <Typography
                       variant="caption"
                       sx={{
-                        color: newPassword.length >= 6 ? SAKTHI_COLORS.success : SAKTHI_COLORS.secondary,
+                        color: newPassword.length >= 8 ? COLORS.successText : COLORS.secondary,
                         fontSize: '0.75rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
+                        fontWeight: 500,
                       }}
                     >
-                      {newPassword.length >= 6 ? '✓' : '○'} At least 6 characters
+                      {newPassword.length >= 8 ? '✓' : '○'} At least 8 characters
                     </Typography>
                     <Typography
                       variant="caption"
                       sx={{
-                        color: /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? SAKTHI_COLORS.success : SAKTHI_COLORS.secondary,
+                        color: /[a-z]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
                         fontSize: '0.75rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
+                        fontWeight: 500,
                       }}
                     >
-                      {/[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? '✓' : '○'} Mix of uppercase & lowercase
+                      {/[a-z]/.test(newPassword) ? '✓' : '○'} Contains lowercase letters
                     </Typography>
                     <Typography
                       variant="caption"
                       sx={{
-                        color: /[0-9]/.test(newPassword) ? SAKTHI_COLORS.success : SAKTHI_COLORS.secondary,
+                        color: /[A-Z]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
                         fontSize: '0.75rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
+                        fontWeight: 500,
                       }}
                     >
-                      {/[0-9]/.test(newPassword) ? '✓' : '○'} Contains numbers
+                      {/[A-Z]/.test(newPassword) ? '✓' : '○'} Contains uppercase letters
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: /[0-9]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {/[0-9]/.test(newPassword) ? '✓' : '○'} Contains digits
                     </Typography>
                   </Box>
                 </Box>
@@ -310,7 +300,7 @@ const ChangePasswordPage: React.FC = () => {
                 sx={{
                   mb: 1.5,
                   fontWeight: 600,
-                  color: SAKTHI_COLORS.darkGray,
+                  color: COLORS.textPrimary,
                 }}
               >
                 Confirm Password
@@ -339,7 +329,7 @@ const ChangePasswordPage: React.FC = () => {
                     </InputAdornment>
                   ),
                   sx: {
-                    backgroundColor: SAKTHI_COLORS.white,
+                    backgroundColor: COLORS.surface,
                     borderRadius: 2,
                   }
                 }}
@@ -352,7 +342,7 @@ const ChangePasswordPage: React.FC = () => {
                   sx={{
                     display: 'block',
                     mt: 1,
-                    color: passwordsMatch ? SAKTHI_COLORS.success : SAKTHI_COLORS.secondary,
+                    color: passwordsMatch ? COLORS.successText : COLORS.secondary,
                     fontSize: '0.8rem',
                     fontWeight: 500,
                   }}
@@ -367,24 +357,24 @@ const ChangePasswordPage: React.FC = () => {
               fullWidth
               variant="contained"
               onClick={handleSubmit}
-              disabled={loading || !newPassword || !confirm || !passwordsMatch}
+              disabled={loading || !isPasswordValid}
               sx={{
                 py: 1.5,
                 mb: 2,
-                background: passwordsMatch
-                  ? `linear-gradient(135deg, ${SAKTHI_COLORS.primary} 0%, ${SAKTHI_COLORS.lightBlue} 100%)`
-                  : SAKTHI_COLORS.lightGray,
-                '&:hover': passwordsMatch ? {
-                  background: `linear-gradient(135deg, ${SAKTHI_COLORS.lightBlue} 0%, ${SAKTHI_COLORS.primary} 100%)`,
+                background: isPasswordValid
+                  ? `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accentBlue} 100%)`
+                  : COLORS.border,
+                '&:hover': isPasswordValid ? {
+                  background: `linear-gradient(135deg, ${COLORS.accentBlue} 0%, ${COLORS.primary} 100%)`,
                 } : {},
                 '&:disabled': {
-                  background: SAKTHI_COLORS.lightGray,
-                  color: SAKTHI_COLORS.darkGray,
+                  background: COLORS.border,
+                  color: COLORS.textSecondary,
                 }
               }}
             >
               {loading ? (
-                <CircularProgress size={20} sx={{ color: SAKTHI_COLORS.white }} />
+                <CircularProgress size={20} sx={{ color: COLORS.surface }} />
               ) : (
                 'Update Password'
               )}
@@ -396,9 +386,9 @@ const ChangePasswordPage: React.FC = () => {
                 severity="success"
                 sx={{
                   mb: 2,
-                  backgroundColor: `${SAKTHI_COLORS.success}15`,
-                  color: SAKTHI_COLORS.success,
-                  border: `1px solid ${SAKTHI_COLORS.success}`,
+                  backgroundColor: COLORS.successBg,
+                  color: COLORS.successText,
+                  border: `1px solid ${COLORS.successText}`,
                   borderRadius: 2,
                 }}
               >
@@ -410,9 +400,9 @@ const ChangePasswordPage: React.FC = () => {
                 severity="error"
                 sx={{
                   mb: 2,
-                  backgroundColor: `${SAKTHI_COLORS.secondary}15`,
-                  color: SAKTHI_COLORS.secondary,
-                  border: `1px solid ${SAKTHI_COLORS.secondary}`,
+                  backgroundColor: COLORS.orangeHeaderBg,
+                  color: COLORS.secondary,
+                  border: `1px solid ${COLORS.secondary}`,
                   borderRadius: 2,
                 }}
               >
@@ -426,7 +416,7 @@ const ChangePasswordPage: React.FC = () => {
               sx={{
                 display: 'block',
                 textAlign: 'center',
-                color: SAKTHI_COLORS.darkGray,
+                color: COLORS.textSecondary,
                 fontSize: '0.8rem',
               }}
             >

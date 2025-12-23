@@ -433,7 +433,7 @@ function FoundrySampleCard() {
             next_department_id: 3,
             username: user.username,
             role: user.role,
-            remarks: remarks || "Approved by HOD"
+            remarks: "Approved by HOD"
           };
 
           await updateDepartment(approvalPayload);
@@ -471,25 +471,25 @@ function FoundrySampleCard() {
         mpi: selectedPart?.mpi || "N/A"
       });
 
-      try {
-        await uploadFiles(
-          toolingFiles,
-          trialId,
-          "TOOLING_MODIFICATION",
-          user?.username || "Unknown",
-          "Tooling Modification files"
-        );
-        await uploadFiles(
-          patternDataSheetFiles,
-          trialId,
-          "PATTERN_DATA_SHEET",
-          user?.username || "Unknown",
-          "Pattern Data Sheet files"
-        );
-      } catch (uploadError) {
-        console.error(`Failed to upload file:`, uploadError);
-        showAlert("error", `Failed to upload file`);
-      }
+      // try {
+      //   await uploadFiles(
+      //     toolingFiles,
+      //     trialId,
+      //     "TOOLING_MODIFICATION",
+      //     user?.username || "Unknown",
+      //     "Tooling Modification files"
+      //   );
+      //   await uploadFiles(
+      //     patternDataSheetFiles,
+      //     trialId,
+      //     "PATTERN_DATA_SHEET",
+      //     user?.username || "Unknown",
+      //     "Pattern Data Sheet files"
+      //   );
+      // } catch (uploadError) {
+      //   console.error(`Failed to upload file:`, uploadError);
+      //   showAlert("error", `Failed to upload file`);
+      // }
 
       try {
         await departmentProgressService.createDepartmentProgress({
@@ -506,11 +506,11 @@ function FoundrySampleCard() {
           current_department_id: 2,
           username: user?.username || "HOD",
           role: "HOD",
-          remarks: "Completed by user"
+          remarks: "Approved by HOD"
         });
       } catch (progressError) {
         console.error("Failed to update department progress:", progressError);
-        showAlert("warning", "Trial saved but failed to update department progress.");
+        showAlert("warning", "Failed to update department progress.");
       }
 
       setSubmittedData({ ...previewPayload });

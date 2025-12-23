@@ -2,6 +2,7 @@ import express from 'express';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 import Client from '../config/connection.js';
 import verifyToken from '../utils/verifyToken.js';
+import CustomError from '../utils/customError.js';
 const router = express.Router();
 
 router.get('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
@@ -42,6 +43,27 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
         message: "Master list created successfully.",
         id: insertId
     });
+}));
+
+router.get('/by-part', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { part_name, pattern_code } = req.query;
+    if (!part_name && !pattern_code) {
+        throw new CustomError(400, 'Missing required fields');
+    }
+    let sql = 'SELECT * FROM master_card WHERE ';
+    let params = [];
+    if (part_name) {
+        sql += 'part_name = ?';
+        params.push(part_name);
+    } else {
+        sql += 'pattern_code = ?';
+        params.push(pattern_code);
+    }
+    const [response] = await Client.query(sql, params);
+    if (response.length === 0) {
+        throw new CustomError(404, 'No master data found for the specified part');
+    }
+    res.status(200).json({ success: true, data: response[0] });
 }));
 
 export default router;

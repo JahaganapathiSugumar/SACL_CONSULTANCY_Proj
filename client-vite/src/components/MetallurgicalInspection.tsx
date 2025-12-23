@@ -947,7 +947,7 @@ export default function MetallurgicalInspection() {
           next_department_id: 5,
           username: user.username,
           role: user.role,
-          remarks: previewPayload.ndtRows?.[0]?.remarks || "Approved by HOD"
+          remarks: "Approved by HOD"
         };
         await updateDepartment(approvalPayload);
         setPreviewSubmitted(true);
@@ -975,7 +975,7 @@ export default function MetallurgicalInspection() {
             current_department_id: 7,
             username: user?.username || "user",
             role: "user",
-            remarks: previewPayload.ndtRows?.[0]?.remarks || "Completed by user"
+            remarks: "Completed by user"
           });
         } catch (roleError) {
           console.error("Failed to update role progress:", roleError);
@@ -989,7 +989,7 @@ export default function MetallurgicalInspection() {
           //   progressData?.trial_id || "trial_id",
           //   "METALLURGICAL_INSPECTION",
           //   user?.username || "system",
-          //   previewPayload.ndtRows?.[0]?.remarks || ""
+          //   "METALLURGICAL_INSPECTION"
           // );
 
           // const failures = uploadResults.filter(r => !r.success);

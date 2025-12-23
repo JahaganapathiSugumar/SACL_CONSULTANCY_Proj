@@ -356,7 +356,7 @@ export default function McShopInspection({
           //   trialIdParam,
           //   "MC_SHOP_INSPECTION",
           //   user?.username || "system",
-          //   additionalRemarks || ""
+          //   "MC_SHOP_INSPECTION"
           // );
         } catch (uploadError) {
           console.error("File upload error:", uploadError);
@@ -370,7 +370,7 @@ export default function McShopInspection({
             current_department_id: 8,
             username: user?.username || "user",
             role: "user",
-            remarks: remarks || groupMeta.remarks || "Completed by user"
+            remarks: "Completed by user"
           });
           await inspectionService.submitMachineShopInspection(serverPayload);
         } catch (roleError) {

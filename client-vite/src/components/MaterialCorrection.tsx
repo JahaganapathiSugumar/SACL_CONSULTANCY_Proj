@@ -183,7 +183,7 @@ export default function MaterialCorrection() {
                         next_department_id: 9,
                         username: user.username,
                         role: user.role,
-                        remarks: remarks || "Approved by HOD"
+                        remarks: "Approved by HOD"
                     };
 
                     await updateDepartment(approvalPayload);
@@ -207,7 +207,13 @@ export default function MaterialCorrection() {
 
             if (response.success) {
                 if (attachedFiles.length > 0) {
-                    
+                    // const uploadResults = await uploadFiles(
+                    //   attachedFiles,
+                    //   trialId,
+                    //   "MATERIAL_CORRECTION",
+                    //   user?.username || "system",
+                    //   "MATERIAL_CORRECTION"
+                    // );
                 }
                 if (trialId) {
                     try {
@@ -216,7 +222,7 @@ export default function MaterialCorrection() {
                             current_department_id: 3,
                             username: user?.username || "user",
                             role: "HOD",
-                            remarks: remarks || "Completed by user, pending HOD approval"
+                            remarks: "Completed by user"
                         });
                         await trialService.updateTrialStatus({
                             trial_id: trialId,

@@ -13,7 +13,7 @@ interface Department {
   department_name: string;
 }
 
-const ROLES = ['Admin', 'HOD', 'User'];
+const ROLES = ['HOD', 'User'];
 
 const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCreated }) => {
   const [formData, setFormData] = useState({
@@ -50,20 +50,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    // If role changes to Methods, clear department_id
-    if (name === 'role' && value === 'Methods') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        department_id: ''
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

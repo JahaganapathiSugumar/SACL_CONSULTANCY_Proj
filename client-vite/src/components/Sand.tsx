@@ -187,7 +187,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           next_department_id: 6,
           username: user.username,
           role: user.role,
-          remarks: sandProps.remarks || "Approved by HOD"
+          remarks: "Approved by HOD"
         };
 
         await updateDepartment(approvalPayload);
@@ -219,7 +219,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             //   trialId,
             //   "SAND_PROPERTIES",
             //   user?.username || "system",
-            //   additionalRemarks || ""
+            //   "SAND_PROPERTIES"
             // );
 
             // const failures = uploadResults.filter(r => !r.success);
@@ -238,7 +238,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               current_department_id: 4,
               username: user?.username || "user",
               role: "user",
-              remarks: sandProps.remarks || "Completed by user"
+              remarks: "Completed by user"
             });
           } catch (roleError) {
             console.error("Failed to update role progress:", roleError);

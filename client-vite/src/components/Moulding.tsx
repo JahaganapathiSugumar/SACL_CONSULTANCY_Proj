@@ -182,7 +182,6 @@ function MouldingTable() {
     try {
       if (user?.role === 'HOD' && trialId) {
 
-        // 1. Update data first (if edited)
         if (isEditing) {
           const payload = {
             mould_thickness: mouldState.thickness,
@@ -195,13 +194,12 @@ function MouldingTable() {
           await inspectionService.updateMouldingCorrection(payload);
         }
 
-        // 2. Approve - update department progress
         const approvalPayload = {
           trial_id: trialId,
           next_department_id: 7,
           username: user.username,
           role: user.role,
-          remarks: mouldState.remarks || "Approved by HOD"
+          remarks: "Approved by HOD"
         };
 
         await updateDepartment(approvalPayload);
@@ -229,7 +227,7 @@ function MouldingTable() {
             //     trialId || "trial_id",
             //     "MOULDING",
             //     user?.username || "system",
-            //     mouldState.remarks || ""
+            //     "MOULDING"
             // );
 
             // const failures = uploadResults.filter(r => !r.success);
@@ -247,7 +245,7 @@ function MouldingTable() {
             current_department_id: 6,
             username: user?.username || "user",
             role: "user",
-            remarks: mouldState.remarks || "Completed by user"
+            remarks: "Completed by user"
           });
           showAlert('success', 'Moulding details created and department progress updated successfully.');
           setSubmitted(true);

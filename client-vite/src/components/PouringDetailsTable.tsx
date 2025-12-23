@@ -362,7 +362,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         next_department_id: 4,
                         username: user.username,
                         role: user.role,
-                        remarks: remarksText || "Approved by HOD"
+                        remarks: "Approved by HOD"
                     };
 
                     await updateDepartment(approvalPayload);
@@ -414,7 +414,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         current_department_id: 9,
                         username: user?.username || "user",
                         role: "user",
-                        remarks: remarksText || "Completed by user"
+                        remarks: "Completed by user"
                     });
                 } catch (roleError) {
                     console.error("Failed to update role progress:", roleError);
@@ -428,7 +428,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     //     trialId || "trial_id",
                     //     "POURING_DETAILS",
                     //     user?.username || "system",
-                    //     additionalRemarks || ""
+                    //     "POURING_DETAILS"
                     // );
 
                     // const failures = uploadResults.filter(r => !r.success);

@@ -376,7 +376,7 @@ export default function VisualInspection({
                     next_department_id: 10,
                     username: user.username,
                     role: user.role,
-                    remarks: groupMeta.remarks || "Approved by HOD"
+                    remarks: "Approved by HOD"
                 };
 
                 await updateDepartment(approvalPayload);
@@ -437,7 +437,7 @@ export default function VisualInspection({
                     //     trialId || "trial_id",
                     //     "VISUAL_INSPECTION",
                     //     user?.username || "system",
-                    //     additionalRemarks || ""
+                    //     "VISUAL_INSPECTION"
                     // );
 
                     // const failures = uploadResults.filter(r => !r.success);
@@ -456,7 +456,7 @@ export default function VisualInspection({
                         current_department_id: 5,
                         username: user?.username || "user",
                         role: "user",
-                        remarks: previewPayload.additionalRemarks || previewPayload.group?.remarks || "Completed by user"
+                        remarks: "Completed by user"
                     });
                 } catch (roleError) {
                     console.error("Failed to update role progress:", roleError);
