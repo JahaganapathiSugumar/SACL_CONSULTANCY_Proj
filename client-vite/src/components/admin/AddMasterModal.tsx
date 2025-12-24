@@ -55,8 +55,16 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         xray: '',
         mpi: '',
         tooling: {
+            number_of_cavity: '',
             number_of_cavity_sp: '',
             number_of_cavity_pp: '',
+            cavity_identification: '',
+            pattern_material: '',
+            core_weight: '',
+            core_mask_weight: '',
+            core_mask_thickness: '',
+            estimated_casting_weight: '',
+            estimated_bunch_weight: '',
             pattern_plate_thickness_sp: '',
             pattern_plate_thickness_pp: '',
             cavity_identification_sp: '',
@@ -69,12 +77,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             crush_pin_height_pp: '',
             core_weight_sp: '',
             core_weight_pp: '',
-            calculated_casting_weight_sp: '',
-            calculated_casting_weight_pp: '',
             core_mask_weight_sp: '',
             core_mask_weight_pp: '',
-            calculated_punch_weight_sp: '',
-            calculated_punch_weight_pp: '',
             core_mask_thickness_sp: '',
             core_mask_thickness_pp: '',
             calculated_yield_sp: '',
@@ -175,7 +179,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 material_grade: initialData.material_grade || '',
                 chemical_composition: chemComp,
                 micro_structure: initialData.micro_structure || '',
-                tensile_strength_min: initialData.tensile || '', // Fallback: put full string here
+                tensile_strength_min: initialData.tensile || '',
                 yield_strength_min: '',
                 elongation: '',
                 impact_cold: impactCold,
@@ -203,8 +207,16 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 xray: '',
                 mpi: '',
                 tooling: {
+                    number_of_cavity: '',
                     number_of_cavity_sp: '',
                     number_of_cavity_pp: '',
+                    cavity_identification: '',
+                    pattern_material: '',
+                    core_weight: '',
+                    core_mask_weight: '',
+                    core_mask_thickness: '',
+                    estimated_casting_weight: '',
+                    estimated_bunch_weight: '',
                     pattern_plate_thickness_sp: '',
                     pattern_plate_thickness_pp: '',
                     cavity_identification_sp: '',
@@ -217,12 +229,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                     crush_pin_height_pp: '',
                     core_weight_sp: '',
                     core_weight_pp: '',
-                    calculated_casting_weight_sp: '',
-                    calculated_casting_weight_pp: '',
                     core_mask_weight_sp: '',
                     core_mask_weight_pp: '',
-                    calculated_punch_weight_sp: '',
-                    calculated_punch_weight_pp: '',
                     core_mask_thickness_sp: '',
                     core_mask_thickness_pp: '',
                     calculated_yield_sp: '',
@@ -338,6 +346,44 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         }
     }, [isOpen, initialData]);
 
+    // Auto-calculate yield percentage
+    useEffect(() => {
+        const calculateYield = (cavityCount: string, castingWeight: string, bunchWeight: string): string => {
+            const cavity = parseFloat(cavityCount);
+            const casting = parseFloat(castingWeight);
+            const bunch = parseFloat(bunchWeight);
+
+            if (isNaN(cavity) || isNaN(casting) || isNaN(bunch) || bunch === 0) {
+                return '';
+            }
+
+            const yieldValue = ((casting * cavity) / bunch) * 100;
+            const clampedYield = Math.max(0, Math.min(100, yieldValue));
+
+            return clampedYield.toFixed(2);
+        };
+
+        const calculatedYield = calculateYield(
+            formData.tooling.number_of_cavity,
+            formData.tooling.estimated_casting_weight,
+            formData.tooling.estimated_bunch_weight
+        );
+
+        if (calculatedYield !== formData.tooling.yield_label) {
+            setFormData((prev: any) => ({
+                ...prev,
+                tooling: {
+                    ...prev.tooling,
+                    yield_label: calculatedYield
+                }
+            }));
+        }
+    }, [
+        formData.tooling.number_of_cavity,
+        formData.tooling.estimated_casting_weight,
+        formData.tooling.estimated_bunch_weight
+    ]);
+
     const chemicalElements = ['C', 'Si', 'Mn', 'P', 'S', 'Mg', 'Cr', 'Cu', 'Nodularity', 'Pearlite', 'Carbide'];
 
     const toolingRows = [
@@ -364,17 +410,10 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         },
         {
             left: "Core weight in kgs",
-            right: "Calculated casting weight in kgs",
+            right: "Core mask weight in kgs",
             fieldLeft: "core_weight",
             sp: "core_weight_sp",
             pp: "core_weight_pp"
-        },
-        {
-            left: "Core mask weight in kgs",
-            right: "Calculated punch weight in kgs",
-            fieldLeft: "core_mask_weight",
-            sp: "core_mask_weight_sp",
-            pp: "core_mask_weight_pp"
         },
         {
             left: "Core mask thickness in mm",
@@ -387,6 +426,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             left: "Estimated casting weight",
             right: "Estimated Bunch weight",
             fieldLeft: "estimated_casting_weight",
+            fieldRight: "estimated_bunch_weight",
             sp: "estimated_casting_weight_sp",
             pp: "estimated_casting_weight_pp",
             isYieldRow: true
@@ -668,8 +708,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                             <TableCell sx={{ p: 0.5 }}>
                                                 <TextField
                                                     fullWidth
-                                                    value={formData.tooling[row.sp] || ""}
-                                                    onChange={(e) => handleToolingChange(row.sp, e.target.value)}
+                                                    value={formData.tooling[row.fieldRight || row.sp] || ""}
+                                                    onChange={(e) => handleToolingChange(row.fieldRight || row.sp, e.target.value)}
                                                     size="small"
                                                 />
                                             </TableCell>
@@ -679,10 +719,13 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                         <Typography variant="body2" fontWeight={600}>Yield:</Typography>
                                                         <TextField
                                                             fullWidth
-                                                            value={formData.tooling.yield_label || ""}
-                                                            onChange={(e) => handleToolingChange("yield_label", e.target.value)}
-                                                            placeholder="Enter yield"
+                                                            value={formData.tooling.yield_label ? `${formData.tooling.yield_label}%` : ""}
                                                             size="small"
+                                                            InputProps={{
+                                                                readOnly: true,
+                                                                sx: { bgcolor: 'action.hover' }
+                                                            }}
+                                                            placeholder="Auto-calculated"
                                                         />
                                                     </Box>
                                                 ) : (
