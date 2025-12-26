@@ -222,8 +222,8 @@
 
 .login-button {
   padding: 16px 32px;
-  background: #e0e0e0;
-  color: #757575;
+  background: #f39b03;
+  color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -234,16 +234,18 @@
 }
 
 .login-button:not(:disabled) {
-  background: linear-gradient(135deg, #1976d2 0%, #7c4dff 100%);
-  color: white;
+  background: #f39b03;
+  color: #fff;
 }
 
 .login-button:hover:not(:disabled) {
+  background: #e38c02;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 4px 12px rgba(243, 155, 3, 0.3);
 }
 
 .login-button:active:not(:disabled) {
+  background: #c97d02;
   transform: translateY(0);
 }
 
