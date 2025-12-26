@@ -39,14 +39,14 @@ router.post('/send-otp', verifyToken, asyncErrorHandler(async (req, res, next) =
   const user = req.user;
   if (!email) throw new CustomError('Email is required', 400);
 
-  const [existing] = await Client.execute('SELECT user_id FROM users WHERE email = ? LIMIT 1', [email]);
+  const [existing] = await Client.execute('SELECT TOP 1 user_id FROM users WHERE email = ?', [email]);
   if (existing && existing.length > 0) {
     throw new CustomError('Email already in use', 409);
   }
 
   const otp = crypto.randomInt(100000, 1000000).toString();
 
-  const sql = `INSERT INTO email_otps (user_id, email, otp_code, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))`;
+  const sql = `INSERT INTO email_otps (user_id, email, otp_code, expires_at) VALUES (?, ?, ?, DATEADD(minute, 5, GETDATE()))`;
   try {
     await Client.execute(sql, [user.user_id || null, email, otp]);
   } catch (err) {
@@ -70,9 +70,9 @@ router.post('/verify-otp', verifyToken, asyncErrorHandler(async (req, res, next)
   const { email, otp } = req.body || {};
   const user = req.user;
   if (!email || !otp) throw new CustomError('Email and OTP are required', 400);
-  const selectSql = `SELECT otp_id, otp_code, attempts, expires_at FROM email_otps
-    WHERE user_id = ? AND email = ? AND used = 0 AND expires_at > NOW()
-    ORDER BY created_at DESC LIMIT 1`;
+  const selectSql = `SELECT TOP 1 otp_id, otp_code, attempts, expires_at FROM email_otps
+    WHERE user_id = ? AND email = ? AND used = 0 AND expires_at > GETDATE()
+    ORDER BY created_at DESC`;
   const [rows] = await Client.execute(selectSql, [user.user_id || null, email]);
   if (!rows || rows.length === 0) {
     throw new CustomError('OTP not found or expired', 400);

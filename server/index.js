@@ -93,7 +93,7 @@ const port = process.env.PORT || 3000;
 
 app.listen(port, async () => {
     try {
-        const res = await query('SELECT NOW()');
+        const res = await query('SELECT GETDATE()');
         console.log(res[0]);
     } catch (err) {
         console.error(`${err}`);

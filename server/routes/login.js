@@ -35,14 +35,14 @@ router.post('/', asyncErrorHandler(async (req, res, next) => {
     }
 
     try {
-        const [rows] = await Client.query('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
+        const [rows] = await Client.query('SELECT TOP 1 * FROM users WHERE username = ?', [username]);
 
         if (!rows || rows.length === 0) {
             return next(new CustomError('Invalid credentials', 401));
         }
 
         let user = rows[0];
-        const departmentQuery = `SELECT department_name FROM departments WHERE department_id = ? LIMIT 1`;
+        const departmentQuery = `SELECT TOP 1 department_name FROM departments WHERE department_id = ?`;
         if (user.department_id) {
             const [deptRows] = await Client.query(departmentQuery, [user.department_id]);
             if (deptRows && deptRows.length > 0) {

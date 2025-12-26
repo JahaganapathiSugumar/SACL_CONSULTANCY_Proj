@@ -17,7 +17,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress approved' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 YEAR)`,
+             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
             [userDepartmentId]
         );
         const completedLastYear = completedLastYearResult[0].count;
@@ -27,7 +27,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress approved' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 MONTH)`,
+             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
             [userDepartmentId]
         );
         const completedLastMonth = completedLastMonthResult[0].count;
@@ -53,7 +53,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress completed' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 YEAR)`,
+             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
             [userDepartmentId]
         );
         const completedLastYear = completedLastYearResult[0].count;
@@ -63,7 +63,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress completed' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 MONTH)`,
+             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
             [userDepartmentId]
         );
         const completedLastMonth = completedLastMonthResult[0].count;
@@ -117,7 +117,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress added' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 YEAR)`,
+             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
             [userDepartmentId]
         );
         const initiatedLastYear = initiatedLastYearResult[0].count;
@@ -127,7 +127,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
              FROM audit_log al
              WHERE al.department_id = ?
              AND al.action = 'Department progress added' 
-             AND al.action_timestamp >= DATE_SUB(NOW(), INTERVAL 1 MONTH)`,
+             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
             [userDepartmentId]
         );
         const initiatedLastMonth = initiatedLastMonthResult[0].count;

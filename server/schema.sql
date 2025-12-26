@@ -166,10 +166,22 @@ GO
 
 CREATE TABLE metallurgical_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    user_name NVARCHAR(MAX),
-    date DATE NOT NULL,
-    micro_examination NVARCHAR(MAX),
-    remarks NVARCHAR(MAX),
+    inspection_date DATE NOT NULL,
+    micro_structure NVARCHAR(MAX),
+    micro_structure_ok BIT,
+    micro_structure_remarks NVARCHAR(MAX),
+    mech_properties NVARCHAR(MAX),
+    mech_properties_ok BIT,
+    mech_properties_remarks NVARCHAR(MAX),
+    impact_strength NVARCHAR(MAX),
+    impact_strength_ok BIT,
+    impact_strength_remarks NVARCHAR(MAX),
+    hardness NVARCHAR(MAX),
+    hardness_ok BIT,
+    hardness_remarks NVARCHAR(MAX),
+    ndt_inspection NVARCHAR(MAX),
+    ndt_inspection_ok BIT,
+    ndt_inspection_remarks NVARCHAR(MAX),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO

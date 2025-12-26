@@ -31,7 +31,7 @@ router.put('/update-department', verifyToken, asyncErrorHandler(async (req, res,
     const [audit_result_completion] = await Client.query(audit_sql_completion, [req.user.user_id, req.user.department_id, trial_id, 'Department progress updated', `Department progress for trial ${trial_id} updated by ${username} as completed at ${req.user.department}`]);
 
     const next_department_user = await Client.query(
-        `SELECT * FROM users WHERE department_id = ? AND role = 'User' LIMIT 1`,
+        `SELECT TOP 1 * FROM users WHERE department_id = ? AND role = 'User'`,
         [next_department_id]
     );
     if (next_department_user.length === 0) {
@@ -82,7 +82,7 @@ router.put('/update-role', verifyToken, asyncErrorHandler(async (req, res, next)
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (?, ?, ?, ?, ?)';
     const [audit_result_completion] = await Client.query(audit_sql_completion, [req.user.user_id, req.user.department_id, trial_id, 'Department progress completed', `Department progress for trial ${trial_id} marked as completed by ${req.user.username}`]);
     const current_department_hod = await Client.query(
-        `SELECT * FROM users WHERE department_id = ? AND role = 'HOD' LIMIT 1`,
+        `SELECT TOP 1 * FROM users WHERE department_id = ? AND role = 'HOD'`,
         [current_department_id]
     );
     if (current_department_hod.length === 0) {
