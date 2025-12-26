@@ -191,8 +191,8 @@ function FoundrySampleCard() {
   const [mouldCount, setMouldCount] = useState("");
   const [machine, setMachine] = useState("");
   const [reason, setReason] = useState("");
-    const [customReason, setCustomReason] = useState("");
-    const [reason_for_sampling, setReasonForSampling] = useState("");
+  const [customReason, setCustomReason] = useState("");
+  const [reason_for_sampling, setReasonForSampling] = useState("");
   const [sampleTraceability, setSampleTraceability] = useState("");
   const [toolingModification, setToolingModification] = useState("");
   const [toolingFiles, setToolingFiles] = useState<File[]>([]);
@@ -404,7 +404,7 @@ function FoundrySampleCard() {
       status: "CREATED",
       current_department_id: 3,
       no_of_moulds: mouldCount,
-        reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
+      reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
       sample_traceability: sampleTraceability,
       mould_correction: mouldCorrections,
       disa: machine,
@@ -427,10 +427,37 @@ function FoundrySampleCard() {
         try {
           if (isEditing) {
             await trialService.updateTrial({
-              ...previewPayload,
               trial_id: trialIdFromUrl,
               user_name: user?.username || 'Unknown',
-              user_ip: userIP
+              user_ip: userIP,
+              part_name: selectedPart?.part_name,
+              pattern_code: selectedPart?.pattern_code,
+              material_grade: selectedPart?.material_grade,
+              date_of_sampling: samplingDate,
+              no_of_moulds: mouldCount,
+              reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
+              disa: machine,
+              sample_traceability: sampleTraceability,
+              mould_correction: mouldCorrections,
+              tooling_modification: toolingModification,
+              remarks: remarks
+            });
+            await specificationService.updateMetallurgicalSpecs({
+              trial_id: trialIdFromUrl,
+              chemical_composition: chemState,
+              microstructure: microState
+            });
+            await specificationService.updateMechanicalProperties({
+              trial_id: trialIdFromUrl,
+              tensile_strength: tensileState.tensileStrength,
+              yield_strength: tensileState.yieldStrength,
+              elongation: tensileState.elongation,
+              impact_strength_cold: tensileState.impactCold,
+              impact_strength_room: tensileState.impactRoom,
+              hardness_surface: hardnessState.surface,
+              hardness_core: hardnessState.core,
+              x_ray_inspection: selectedPart?.xray || "N/A",
+              mpi: selectedPart?.mpi || "N/A"
             });
           }
 
@@ -887,8 +914,8 @@ function FoundrySampleCard() {
               </Grid>
 
               <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Tooling Modification Done</Typography>
-              <Paper elevation={0} sx={{ p: 2, mb: 3,bgcolor: "white", border: `1px solid ${COLORS.border}`, }}>
-                
+              <Paper elevation={0} sx={{ p: 2, mb: 3, bgcolor: "white", border: `1px solid ${COLORS.border}`, }}>
+
                 <Box sx={{ mb: 1.5 }}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>MODIFICATION DETAILS</Typography>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#333', mt: 0.5 }}>{previewPayload?.tooling_modification || previewPayload?.toolingModification || "-"}</Typography>
