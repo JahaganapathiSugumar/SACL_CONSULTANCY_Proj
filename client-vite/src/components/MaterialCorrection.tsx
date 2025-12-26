@@ -226,7 +226,7 @@ export default function MaterialCorrection() {
                         });
                         await trialService.updateTrialStatus({
                             trial_id: trialId,
-                            status: "IN PROGRESS"
+                            status: "IN_PROGRESS"
                         });
                         setSubmitted(true);
                         setAlertMessage({ severity: 'success', message: "Material correction created and department progress updated successfully!" });

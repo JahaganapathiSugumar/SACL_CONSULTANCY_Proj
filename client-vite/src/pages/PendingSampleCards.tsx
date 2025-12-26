@@ -78,11 +78,11 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'pending':
+            case 'created':
                 return '#ffc107';
             case 'in_progress':
                 return '#3b82f6';
-            case 'completed':
+            case 'closed':
                 return '#10b981';
             default:
                 return '#6c757d';
@@ -91,12 +91,12 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'pending':
-                return 'Pending';
+            case 'created':
+                return 'Created';
             case 'in_progress':
                 return 'In Progress';
-            case 'completed':
-                return 'Completed';
+            case 'closed':
+                return 'Closed';
             default:
                 return 'Unknown';
         }

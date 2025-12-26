@@ -93,7 +93,7 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
         const [ongoingResult] = await Client.query(
             `SELECT COUNT(DISTINCT trial_id) as count FROM trial_cards 
              WHERE trial_id IS NOT NULL 
-             AND status = 'IN PROGRESS'`
+             AND status = 'IN_PROGRESS'`
         );
         const ongoing = ongoingResult[0].count;
 
