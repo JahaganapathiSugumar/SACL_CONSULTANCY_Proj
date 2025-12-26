@@ -191,6 +191,8 @@ function FoundrySampleCard() {
   const [mouldCount, setMouldCount] = useState("");
   const [machine, setMachine] = useState("");
   const [reason, setReason] = useState("");
+    const [customReason, setCustomReason] = useState("");
+    const [reason_for_sampling, setReasonForSampling] = useState("");
   const [sampleTraceability, setSampleTraceability] = useState("");
   const [toolingModification, setToolingModification] = useState("");
   const [toolingFiles, setToolingFiles] = useState<File[]>([]);
@@ -389,6 +391,10 @@ function FoundrySampleCard() {
 
   const handleSaveAndContinue = () => {
     if (!selectedPart) { showAlert("error", "Please select a Part Name first."); return; }
+    if (reason === 'Others' && !customReason.trim()) {
+      showAlert("error", "Please specify the reason for sampling.");
+      return;
+    }
     const payload = {
       trial_id: trialId,
       pattern_code: selectedPart.pattern_code,
@@ -398,7 +404,7 @@ function FoundrySampleCard() {
       status: "CREATED",
       current_department_id: 3,
       no_of_moulds: mouldCount,
-      reason_for_sampling: reason,
+        reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
       sample_traceability: sampleTraceability,
       mould_correction: mouldCorrections,
       disa: machine,
@@ -995,7 +1001,10 @@ function FoundrySampleCard() {
                         <FormControl fullWidth size="small">
                           <Select
                             value={reason}
-                            onChange={(e) => setReason(e.target.value)}
+                            onChange={(e) => {
+                              setReason(e.target.value);
+                              if (e.target.value !== 'Others') setCustomReason("");
+                            }}
                             displayEmpty
                             disabled={user?.role === 'HOD' && !isEditing}
                           >
@@ -1009,6 +1018,17 @@ function FoundrySampleCard() {
                             ))}
                           </Select>
                         </FormControl>
+                        {reason === 'Others' && (
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Please specify..."
+                            value={customReason}
+                            onChange={e => setCustomReason(e.target.value)}
+                            sx={{ mt: 1 }}
+                            disabled={user?.role === 'HOD' && !isEditing}
+                          />
+                        )}
                       </TableCell>
                       <TableCell>
                         <TextField
