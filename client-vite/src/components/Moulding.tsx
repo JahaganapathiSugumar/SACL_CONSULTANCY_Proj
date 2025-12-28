@@ -389,7 +389,7 @@ function MouldingTable() {
             </Box>
 
             <ActionButtons
-              onReset={handleReset}
+              {...(user?.role !== 'HOD' ? { onReset: handleReset } : {})}
               onSave={handleSaveAndContinue}
               showSubmit={false}
               saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
