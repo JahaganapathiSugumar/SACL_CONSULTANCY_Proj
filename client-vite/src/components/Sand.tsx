@@ -395,23 +395,25 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             </Box>
 
             <Box sx={{ p: 3, display: "flex", justifyContent: "flex-end", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, flexDirection: { xs: 'column', sm: 'row' } }}>
-              <Button
-                variant="outlined"
-                onClick={handleReset}
-                fullWidth={isMobile}
-                sx={{
-                  color: COLORS.primary,
-                  borderColor: COLORS.primary,
-                  borderWidth: '1.5px',
-                  '&:hover': {
+              {user?.role !== 'HOD' && (
+                <Button
+                  variant="outlined"
+                  onClick={handleReset}
+                  fullWidth={isMobile}
+                  sx={{
+                    color: COLORS.primary,
                     borderColor: COLORS.primary,
                     borderWidth: '1.5px',
-                    bgcolor: '#f3f4f6'
-                  }
-                }}
-              >
-                Reset Form
-              </Button>
+                    '&:hover': {
+                      borderColor: COLORS.primary,
+                      borderWidth: '1.5px',
+                      bgcolor: '#f3f4f6'
+                    }
+                  }}
+                >
+                  Reset Form
+                </Button>
+              )}
 
               {user?.role === 'HOD' && (
                 <Button
