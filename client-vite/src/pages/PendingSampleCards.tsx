@@ -67,7 +67,7 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
     const fetchPendingCards = async () => {
         try {
             setLoading(true);
-            const pendingCards = await departmentProgressService.getProgress(username);
+            const pendingCards = await departmentProgressService.getProgress(username);            
             setPendingCards(pendingCards);
             setError(null);
         } catch (err) {
@@ -87,11 +87,9 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'created':
+            case 'pending':
                 return '#ffc107';
-            case 'in_progress':
-                return '#3b82f6';
-            case 'closed':
+            case 'completed':
                 return '#10b981';
             default:
                 return '#6c757d';
@@ -100,12 +98,10 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'created':
-                return 'Created';
-            case 'in_progress':
-                return 'In Progress';
-            case 'closed':
-                return 'Closed';
+            case 'pending':
+                return 'Pending';
+            case 'completed':
+                return 'Completed';
             default:
                 return 'Unknown';
         }

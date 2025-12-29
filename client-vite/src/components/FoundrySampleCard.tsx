@@ -81,7 +81,28 @@ const parseChemicalComposition = (composition: any) => {
   if (!composition) return blank;
   let obj: any = composition;
   if (typeof composition === "string") {
-    try { obj = JSON.parse(composition); } catch (e) { return { ...blank, c: composition }; }
+    try {
+      obj = JSON.parse(composition);
+    } catch (e) {
+      const result = { ...blank };
+      const parts = composition.split(/\s+(?=[A-Z][a-z]?[a-z]?\s*:)/);
+      parts.forEach(part => {
+        const match = part.match(/^([A-Za-z]+)\s*:\s*(.+?)(?:%|$)/);
+        if (match) {
+          const element = match[1].toLowerCase().trim();
+          const value = match[2].trim();
+          if (element === 'c') result.c = value;
+          else if (element === 'si' || element === 'silicon') result.si = value;
+          else if (element === 'mn') result.mn = value;
+          else if (element === 'p') result.p = value;
+          else if (element === 's') result.s = value;
+          else if (element === 'mg') result.mg = value;
+          else if (element === 'cr') result.cr = value;
+          else if (element === 'cu') result.cu = value;
+        }
+      });
+      return result;
+    }
   }
   if (typeof obj !== "object" || obj === null) return blank;
   const map: Record<string, any> = {};
@@ -102,8 +123,21 @@ const parseChemicalComposition = (composition: any) => {
 };
 
 const parseTensileData = (tensile: string) => {
-  const lines = tensile ? tensile.split("\n") : [];
+  if (!tensile) return { tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" };
   let tensileStrength = "", yieldStrength = "", elongation = "", impactCold = "", impactRoom = "";
+  const spaceSepMatches = tensile.match(/([≥>=]+)?\s*(\d+)\s*(?:MPa|N\/mm²|N\/mm2)?/g);
+  if (spaceSepMatches && spaceSepMatches.length >= 2) {
+    const first = spaceSepMatches[0].match(/([≥>=]+)?\s*(\d+)/);
+    if (first) tensileStrength = (first[1] || "≥") + first[2];
+    const second = spaceSepMatches[1].match(/([≥>=]+)?\s*(\d+)/);
+    if (second) yieldStrength = (second[1] || "≥") + second[2];
+    if (spaceSepMatches.length >= 3) {
+      const third = spaceSepMatches[2].match(/([≥>=]+)?\s*(\d+)/);
+      if (third) elongation = (third[1] || "≥") + third[2];
+    }
+    return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
+  }
+  const lines = tensile.split("\n");
   lines.forEach((line) => {
     const cleanLine = line.trim();
     if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile") || cleanLine.match(/[≥>]\s*\d+/)) {
@@ -120,25 +154,53 @@ const parseTensileData = (tensile: string) => {
 };
 
 const parseMicrostructureData = (microstructure: string) => {
-  const lines = microstructure ? microstructure.split("\n") : [];
+  if (!microstructure) return { nodularity: "--", pearlite: "--", carbide: "--" };
   let nodularity = "", pearlite = "", carbide = "";
+  const lines = microstructure.split("\n");
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
-    if (cleanLine.includes("nodularity")) { const match = cleanLine.match(/([≥≤]?)\s*(\d+)/); if (match) nodularity = `${match[1]}${match[2]}`; }
-    if (cleanLine.includes("pearlite")) { const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/); if (match) pearlite = `${match[1]}${match[2]}`; }
-    if (cleanLine.includes("carbide")) { const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/); if (match) carbide = `${match[1]}${match[2]}`; }
+    if (cleanLine.includes("nodularity") || cleanLine.includes("spheroidization")) {
+      const match = cleanLine.match(/([≥≤]?)\s*(\d+)/);
+      if (match) nodularity = `${match[1]}${match[2]}`;
+    }
+    else if (cleanLine.includes("shape") && cleanLine.match(/(\d+)\s*%/)) {
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)\s*%/);
+      if (match && !nodularity) nodularity = `${match[1] || "≥"}${match[2]}`;
+    }
+    if (cleanLine.includes("pearlite") || cleanLine.includes("pearlitic")) {
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
+      if (match) pearlite = `${match[1]}${match[2]}`;
+    }
+    else if (cleanLine.includes("matrix") && cleanLine.includes("ferrite")) {
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)\s*%/);
+      if (match && !pearlite) pearlite = `${match[1] || "≥"}${match[2]}`;
+    }
+    if (cleanLine.includes("carbide")) {
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)/);
+      if (match) carbide = `${match[1]}${match[2]}`;
+    }
   });
   return { nodularity: nodularity || "--", pearlite: pearlite || "--", carbide: carbide || "--" };
 };
 
 const parseHardnessData = (hardness: string) => {
-  const lines = hardness ? hardness.split("\n") : [];
+  if (!hardness) return { surface: "--", core: "--" };
+  const lines = hardness.split("\n");
   let surface = "", core = "";
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
-    if (cleanLine.includes("surface")) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) surface = match[1]; }
-    else if (cleanLine.includes("core")) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) core = match[1]; }
-    else if (!surface) { const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/); if (match) surface = match[1]; }
+    if (cleanLine.includes("surface")) {
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) surface = match[1].replace(/\s+/g, ' ');
+    }
+    else if (cleanLine.includes("core")) {
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) core = match[1].replace(/\s+/g, ' ');
+    }
+    else if (!surface) {
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) surface = match[1].replace(/\s+/g, ' ');
+    }
   });
   return { surface: surface || "--", core: core || "--" };
 };
@@ -379,7 +441,13 @@ function FoundrySampleCard() {
     }
   };
 
-  useEffect(() => { if (selectedPart) fetchTrialId(); else setTrialNo(""); }, [selectedPart]);
+  useEffect(() => {
+    if (user?.role === 'HOD' && trialIdFromUrl) {
+      return;
+    }
+    if (selectedPart) fetchTrialId();
+    else setTrialNo("");
+  }, [selectedPart, user, trialIdFromUrl]);
 
   const handlePartChange = (v: PartData | null) => { setSelectedPart(v); };
   const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
@@ -644,13 +712,13 @@ function FoundrySampleCard() {
                           InputProps={{
                             readOnly: true,
                             sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
-                            endAdornment: (
+                            endAdornment: user?.role !== 'HOD' ? (
                               <InputAdornment position="end">
                                 <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
                                   {trialLoading ? <CircularProgress size={20} /> : <RefreshIcon fontSize="small" />}
                                 </IconButton>
                               </InputAdornment>
-                            )
+                            ) : undefined
                           }}
                         />
                       </Grid>

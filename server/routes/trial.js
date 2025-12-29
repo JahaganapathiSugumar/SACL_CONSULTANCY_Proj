@@ -6,12 +6,12 @@ import transporter from '../utils/mailSender.js';
 import verifyToken from '../utils/verifyToken.js';
 
 router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
-    const { trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction } = req.body || {};
+    const { trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
     if (!trial_id || !part_name || !pattern_code || !material_grade || !initiated_by || !date_of_sampling || !no_of_moulds || !reason_for_sampling || !current_department_id || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
-    const sql = 'INSERT INTO trial_cards (trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction) VALUES (@trial_id, @part_name, @pattern_code, @material_grade, @initiated_by, @date_of_sampling, @no_of_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction)';
+    const sql = 'INSERT INTO trial_cards (trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_id, @part_name, @pattern_code, @material_grade, @initiated_by, @date_of_sampling, @no_of_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks)';
     const [result] = await Client.query(sql, {
         trial_id,
         part_name,
@@ -25,7 +25,9 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
         current_department_id,
         disa,
         sample_traceability,
-        mould_correction: mouldJson
+        mould_correction: mouldJson,
+        tooling_modification: tooling_modification || null,
+        remarks: remarks || null
     });
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     const [audit_result] = await Client.query(audit_sql, {

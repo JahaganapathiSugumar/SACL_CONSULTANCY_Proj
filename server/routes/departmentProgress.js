@@ -32,6 +32,7 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
 }));
 
 router.put('/update-department', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, next_department_id, username, role, remarks } = req.body;
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     const [audit_result_completion] = await Client.query(audit_sql_completion, {
         user_id: req.user.user_id,
@@ -180,7 +181,7 @@ router.put('/approve', verifyToken, asyncErrorHandler(async (req, res, next) => 
 router.get('/get-progress', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT department_progress.*, departments.department_name, t.trial_id, t.part_name, t.pattern_code, t.disa, t.date_of_sampling FROM department_progress 
+        `SELECT department_progress.*, departments.department_name, t.part_name, t.pattern_code, t.disa, t.date_of_sampling FROM department_progress 
          JOIN departments ON department_progress.department_id = departments.department_id 
          JOIN trial_cards t ON department_progress.trial_id = t.trial_id 
          WHERE department_progress.username = @username AND department_progress.approval_status = 'pending'`,
