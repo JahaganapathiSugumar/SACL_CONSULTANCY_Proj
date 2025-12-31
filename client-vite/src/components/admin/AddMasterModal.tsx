@@ -320,7 +320,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 tensile: tensile,
                 impact: impact,
                 hardness: hardness,
-                xray: xray
+                xray: xray,
+                tooling: formData.tooling
             };
 
             let response: Response;
