@@ -132,16 +132,41 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
 
     const resetForm = () => {
         if (initialData) {
-            // Parse Logic
             let chemComp = { C: '', Si: '', Mn: '', P: '', S: '', Mg: '', Cr: '', Cu: '', Nodularity: '', Pearlite: '', Carbide: '' };
-            try {
+
+            if (initialData.chemical_composition) {
+                let obj: any = initialData.chemical_composition;
+
                 if (typeof initialData.chemical_composition === 'string') {
-                    chemComp = { ...chemComp, ...JSON.parse(initialData.chemical_composition) };
-                } else if (typeof initialData.chemical_composition === 'object') {
-                    chemComp = { ...chemComp, ...initialData.chemical_composition };
+                    try {
+                        obj = JSON.parse(initialData.chemical_composition);
+                    } catch (e) {
+                        const result = { C: '', Si: '', Mn: '', P: '', S: '', Mg: '', Cr: '', Cu: '', Nodularity: '', Pearlite: '', Carbide: '' };
+                        const regex = /([A-Za-z]+)\s*:\s*([^:]+?)(?=\s+[A-Za-z]+\s*:|$)/g;
+                        const matches = [...initialData.chemical_composition.matchAll(regex)];
+
+                        matches.forEach(match => {
+                            const element = match[1].trim();
+                            let value = match[2].trim();
+                            value = value.replace(/%/g, '').trim();
+
+                            if (element.toLowerCase() === 'c' || element.toLowerCase() === 'carbon') result.C = value;
+                            else if (element.toLowerCase() === 'si' || element.toLowerCase() === 'silicon') result.Si = value;
+                            else if (element.toLowerCase() === 'mn' || element.toLowerCase() === 'manganese') result.Mn = value;
+                            else if (element.toLowerCase() === 'p' || element.toLowerCase() === 'phosphorus') result.P = value;
+                            else if (element.toLowerCase() === 's' || element.toLowerCase() === 'sulfur' || element.toLowerCase() === 'sulphur') result.S = value;
+                            else if (element.toLowerCase() === 'mg' || element.toLowerCase() === 'magnesium') result.Mg = value;
+                            else if (element.toLowerCase() === 'cr' || element.toLowerCase() === 'chromium') result.Cr = value;
+                            else if (element.toLowerCase() === 'cu' || element.toLowerCase() === 'copper') result.Cu = value;
+                            else if (element.toLowerCase() === 'nodularity') result.Nodularity = value;
+                            else if (element.toLowerCase() === 'pearlite') result.Pearlite = value;
+                            else if (element.toLowerCase() === 'carbide') result.Carbide = value;
+                        });
+
+                        chemComp = result;
+                        obj = null;
+                    }
                 }
-            } catch (e) {
-                console.error("Error parsing chemical composition", e);
             }
 
             // Impact Parsing
@@ -443,7 +468,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             PaperProps={{ sx: { maxHeight: '90vh' } }}
         >
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-                <Typography variant="h6" fontWeight={700}>Add to Master List</Typography>
+                <Typography component="div" variant="h6" fontWeight={700}>Add to Master List</Typography>
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
                 </IconButton>
@@ -627,7 +652,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                     const mpiMatch = value.match(/MPI\s*[:\-]\s*(.*)$/i);
 
                                     if (mpiMatch) {
-                                        const mpi = mpiMatch[1].trim();
+                                        let mpi = mpiMatch[1].trim();
+                                        mpi = mpi.replace(/%/g, '').trim();
+
                                         const xrayValue = value
                                             .replace(mpiMatch[0], "")
                                             .replace(/•$/, "")

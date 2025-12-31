@@ -269,7 +269,6 @@ CREATE TABLE users (
     remarks NVARCHAR(MAX),
     PRIMARY KEY (user_id),
     CONSTRAINT ux_username UNIQUE (username),
-    CONSTRAINT ux_email UNIQUE (email),
     CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Admin')),
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
