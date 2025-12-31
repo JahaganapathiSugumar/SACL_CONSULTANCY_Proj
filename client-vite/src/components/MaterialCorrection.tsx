@@ -180,8 +180,9 @@ export default function MaterialCorrection() {
 
                     const approvalPayload = {
                         trial_id: trialId,
-                        next_department_id: 9,
+                        next_department_id: 7,
                         username: user.username,
+                        current_form: "POURING",
                         role: user.role,
                         remarks: "Approved by HOD"
                     };
@@ -207,13 +208,13 @@ export default function MaterialCorrection() {
 
             if (response.success) {
                 if (attachedFiles.length > 0) {
-                    // const uploadResults = await uploadFiles(
-                    //   attachedFiles,
-                    //   trialId,
-                    //   "MATERIAL_CORRECTION",
-                    //   user?.username || "system",
-                    //   "MATERIAL_CORRECTION"
-                    // );
+                    const uploadResults = await uploadFiles(
+                      attachedFiles,
+                      trialId,
+                      "MATERIAL_CORRECTION",
+                      user?.username || "system",
+                      "MATERIAL_CORRECTION"
+                    );
                 }
                 if (trialId) {
                     try {
@@ -226,7 +227,7 @@ export default function MaterialCorrection() {
                         });
                         await trialService.updateTrialStatus({
                             trial_id: trialId,
-                            status: "IN PROGRESS"
+                            status: "IN_PROGRESS"
                         });
                         setSubmitted(true);
                         setAlertMessage({ severity: 'success', message: "Material correction created and department progress updated successfully!" });

@@ -73,6 +73,20 @@ export default function AllTrialsPage() {
         return matchesSearch && matchesPatternCode;
     });
 
+    const getStatusStyle = (status: string) => {
+        const normalizedStatus = status ? status.toUpperCase() : 'CREATED';
+        switch (normalizedStatus) {
+            case 'CREATED':
+                return { bgcolor: '#e0f2fe', color: '#0369a1' }; // Light Blue
+            case 'IN_PROGRESS':
+                return { bgcolor: '#fff7ed', color: '#c2410c' }; // Orange
+            case 'CLOSED':
+                return { bgcolor: '#dcfce7', color: '#15803d' }; // Green
+            default:
+                return { bgcolor: '#f1f5f9', color: '#475569' }; // Grey
+        }
+    };
+
     return (
         <ThemeProvider theme={appTheme}>
             <Box sx={{ minHeight: '100vh', bgcolor: COLORS.background, py: { xs: 2, sm: 3, md: 4 } }}>
@@ -174,10 +188,10 @@ export default function AllTrialsPage() {
                                                             py: 0.5,
                                                             borderRadius: 5,
                                                             fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                            bgcolor: trial.status === 'Completed' ? '#dcfce7' : '#fff7ed',
-                                                            color: trial.status === 'Completed' ? '#166534' : '#9a3412'
+                                                            ...getStatusStyle(trial.status),
+                                                            fontWeight: 600
                                                         }}>
-                                                            {trial.status || 'In Progress'}
+                                                            {trial.status || 'CREATED'}
                                                         </Box>
                                                     </TableCell>
                                                     <TableCell align="center">

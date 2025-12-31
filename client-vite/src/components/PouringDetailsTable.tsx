@@ -5,6 +5,7 @@ import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
 import { updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { useNavigate } from 'react-router-dom';
+import { uploadFiles } from '../services/fileUploadHelper';
 import {
     Paper,
     Typography,
@@ -361,6 +362,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         trial_id: trialId,
                         next_department_id: 4,
                         username: user.username,
+                        current_form: "SANDPLANT",
                         role: user.role,
                         remarks: "Approved by HOD"
                     };
@@ -411,7 +413,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                 try {
                     await updateDepartmentRole({
                         trial_id: trialId,
-                        current_department_id: 9,
+                        current_department_id: 7,
                         username: user?.username || "user",
                         role: "user",
                         remarks: "Completed by user"
@@ -423,18 +425,18 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
             if (attachedFiles.length > 0) {
                 try {
-                    // const uploadResults = await uploadFiles(
-                    //     attachedFiles,
-                    //     trialId || "trial_id",
-                    //     "POURING_DETAILS",
-                    //     user?.username || "system",
-                    //     "POURING_DETAILS"
-                    // );
+                    const uploadResults = await uploadFiles(
+                        attachedFiles,
+                        trialId || "trial_id",
+                        "POURING_DETAILS",
+                        user?.username || "system",
+                        "POURING_DETAILS"
+                    );
 
-                    // const failures = uploadResults.filter(r => !r.success);
-                    // if (failures.length > 0) {
-                    //     console.error("Some files failed to upload:", failures);
-                    // }
+                    const failures = uploadResults.filter(r => !r.success);
+                    if (failures.length > 0) {
+                        console.error("Some files failed to upload:", failures);
+                    }
                 } catch (uploadError) {
                     console.error("File upload error:", uploadError);
                 }

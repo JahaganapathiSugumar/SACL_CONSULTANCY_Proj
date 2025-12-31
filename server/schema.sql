@@ -1,5 +1,3 @@
-CREATE DATABASE SACL;
-GO
 USE SACL;
 GO
 CREATE TABLE master_card (
@@ -75,14 +73,14 @@ CREATE TABLE trial_cards (
     date_of_sampling DATE NOT NULL,
     no_of_moulds INT CHECK (no_of_moulds > 0),
     reason_for_sampling NVARCHAR(MAX),
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    status VARCHAR(30) NOT NULL DEFAULT 'CREATED',
     tooling_modification NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
     current_department_id INT,
     disa VARCHAR(50),
     sample_traceability VARCHAR(50),
     mould_correction NVARCHAR(MAX),
-    CONSTRAINT chk_trial_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'APPROVED', 'REJECTED', 'ON_HOLD')),
+    CONSTRAINT chk_trial_status CHECK (status IN ('CREATED', 'IN_PROGRESS', 'CLOSED')),
     FOREIGN KEY (current_department_id) REFERENCES departments(department_id)
 );
 GO
@@ -162,25 +160,29 @@ CREATE TABLE mould_correction (
     squeeze_pressure VARCHAR(30),
     mould_hardness VARCHAR(30),
     remarks NVARCHAR(MAX),
+    date DATE NOT NULL,
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
 
 CREATE TABLE metallurgical_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
-    user_name NVARCHAR(MAX),
-    date DATE NOT NULL,
-    micro_examination NVARCHAR(MAX),
-    remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
-);
-GO
-
-CREATE TABLE ndt_inspection (
-    trial_id NVARCHAR(255) PRIMARY KEY,
-    ndt NVARCHAR(MAX),
-    ndt_ok BIT NOT NULL,
-    remarks NVARCHAR(MAX),
+    inspection_date DATE NOT NULL,
+    micro_structure NVARCHAR(MAX),
+    micro_structure_ok BIT,
+    micro_structure_remarks NVARCHAR(MAX),
+    mech_properties NVARCHAR(MAX),
+    mech_properties_ok BIT,
+    mech_properties_remarks NVARCHAR(MAX),
+    impact_strength NVARCHAR(MAX),
+    impact_strength_ok BIT,
+    impact_strength_remarks NVARCHAR(MAX),
+    hardness NVARCHAR(MAX),
+    hardness_ok BIT,
+    hardness_remarks NVARCHAR(MAX),
+    ndt_inspection NVARCHAR(MAX),
+    ndt_inspection_ok BIT,
+    ndt_inspection_remarks NVARCHAR(MAX),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
@@ -221,10 +223,10 @@ CREATE TABLE department_progress (
     department_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,
     completed_at DATETIME2 DEFAULT GETDATE(),
-    current_form TEXT,
+    current_form VARCHAR(50) NOT NULL,
     approval_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     remarks NVARCHAR(MAX),
-    CONSTRAINT chk_approval_status CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+    CONSTRAINT chk_approval_status CHECK (approval_status IN ('pending', 'approved')),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id),
     FOREIGN KEY (username) REFERENCES users(username)
@@ -241,10 +243,9 @@ CREATE TABLE documents (
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
-    uploaded_by INT,
+    uploaded_by BIGINT,
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
-    CONSTRAINT chk_document_type CHECK (document_type IN ('DRAWING', 'REPORT', 'CERTIFICATE', 'PHOTO', 'OTHER')),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
 );
@@ -269,7 +270,7 @@ CREATE TABLE users (
     PRIMARY KEY (user_id),
     CONSTRAINT ux_username UNIQUE (username),
     CONSTRAINT ux_email UNIQUE (email),
-    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Methods','Admin')),
+    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Admin')),
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 GO

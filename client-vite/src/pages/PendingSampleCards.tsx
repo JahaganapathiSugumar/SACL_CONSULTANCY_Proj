@@ -67,7 +67,7 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
     const fetchPendingCards = async () => {
         try {
             setLoading(true);
-            const pendingCards = await departmentProgressService.getProgress(username);
+            const pendingCards = await departmentProgressService.getProgress(username);            
             setPendingCards(pendingCards);
             setError(null);
         } catch (err) {
@@ -89,8 +89,6 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
         switch (status) {
             case 'pending':
                 return '#ffc107';
-            case 'in_progress':
-                return '#3b82f6';
             case 'completed':
                 return '#10b981';
             default:
@@ -102,8 +100,6 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
         switch (status) {
             case 'pending':
                 return 'Pending';
-            case 'in_progress':
-                return 'In Progress';
             case 'completed':
                 return 'Completed';
             default:

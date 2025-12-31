@@ -11,8 +11,8 @@ router.get('/by-trial', verifyToken, asyncErrorHandler(async (req, res, next) =>
         throw new CustomError("Trial id is required.", 400);
     }
     const [rows] = await Client.query(
-        `SELECT * FROM metallurgical_specifications WHERE trial_id = ?`,
-        [trial_id]
+        `SELECT * FROM metallurgical_specifications WHERE trial_id = @trial_id`,
+        { trial_id }
     )
     if (rows.length === 0) {
         throw new CustomError("No metallurgical specs found for the specified trial id.", 404);
@@ -33,18 +33,58 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const [response] = await Client.query(
         `INSERT INTO metallurgical_specifications 
          (trial_id, chemical_composition, microstructure)
-         VALUES (?, ?, ?)`,
-        [trial_id, chemicalJSON, microJSON]
+         VALUES (@trial_id, @chemical_composition, @microstructure)`,
+        { trial_id, chemical_composition: chemicalJSON, microstructure: microJSON }
     );
 
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (?, ?, ?, ?, ?)';
-    const [audit_result] = await Client.query(audit_sql, [req.user.user_id, req.user.department_id, trial_id, 'Metallurgical specifications created', `Metallurgical specifications ${trial_id} created by ${req.user.username} with trial id ${trial_id}`]);
-
-    const insertId = response.insertId;
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
+    const [audit_result] = await Client.query(audit_sql, {
+        user_id: req.user.user_id,
+        department_id: req.user.department_id,
+        trial_id,
+        action: 'Metallurgical specifications created',
+        remarks: `Metallurgical specifications ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+    });
 
     res.status(201).json({
         success: true,
         message: "Metallurgical specifications created successfully."
+    });
+}));
+
+router.put('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
+    const { trial_id, chemical_composition, microstructure } = req.body;
+
+    if (!trial_id) {
+        throw new CustomError("Trial id is required.", 400);
+    }
+
+    const chemicalJSON = chemical_composition ? JSON.stringify(chemical_composition) : null;
+    const microJSON = microstructure ? JSON.stringify(microstructure) : null;
+
+    const sql = `UPDATE metallurgical_specifications SET 
+        chemical_composition = COALESCE(@chemical_composition, chemical_composition),
+        microstructure = COALESCE(@microstructure, microstructure)
+        WHERE trial_id = @trial_id`;
+
+    const [result] = await Client.query(sql, {
+        chemical_composition: chemicalJSON,
+        microstructure: microJSON,
+        trial_id
+    });
+
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
+    await Client.query(audit_sql, {
+        user_id: req.user.user_id,
+        department_id: req.user.department_id,
+        trial_id,
+        action: 'Metallurgical specifications updated',
+        remarks: `Metallurgical specifications ${trial_id} updated by ${req.user.username}`
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Metallurgical specifications updated successfully."
     });
 }));
 

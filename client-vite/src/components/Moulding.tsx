@@ -198,6 +198,7 @@ function MouldingTable() {
           trial_id: trialId,
           next_department_id: 7,
           username: user.username,
+          current_form: "METALLURGICAL_INSPECTION",
           role: user.role,
           remarks: "Approved by HOD"
         };
@@ -222,18 +223,18 @@ function MouldingTable() {
 
         if (attachedFiles.length > 0) {
           try {
-            // const uploadResults = await uploadFiles(
-            //     attachedFiles,
-            //     trialId || "trial_id",
-            //     "MOULDING",
-            //     user?.username || "system",
-            //     "MOULDING"
-            // );
+            const uploadResults = await uploadFiles(
+                attachedFiles,
+                trialId || "trial_id",
+                "MOULDING",
+                user?.username || "system",
+                "MOULDING"
+            );
 
-            // const failures = uploadResults.filter(r => !r.success);
-            // if (failures.length > 0) {
-            //     console.error("Some files failed to upload:", failures);
-            // }
+            const failures = uploadResults.filter(r => !r.success);
+            if (failures.length > 0) {
+                console.error("Some files failed to upload:", failures);
+            }
           } catch (uploadError) {
             console.error("File upload error:", uploadError);
           }
