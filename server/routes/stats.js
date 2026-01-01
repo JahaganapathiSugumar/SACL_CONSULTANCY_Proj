@@ -12,25 +12,36 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
     let stats = [];
 
     if (role === 'HOD') {
+        const [completedCurrentYearResult] = await Client.query(
+            `SELECT COUNT(DISTINCT al.trial_id) as count 
+             FROM audit_log al
+             WHERE al.department_id = @department_id
+             AND al.action = 'Department progress approved' 
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
+            { department_id: userDepartmentId }
+        );
+        const completedCurrentYear = completedCurrentYearResult[0].count;
+
         const [completedLastYearResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress approved' 
-             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE()) - 1`,
             { department_id: userDepartmentId }
         );
         const completedLastYear = completedLastYearResult[0].count;
 
-        const [completedLastMonthResult] = await Client.query(
+        const [completedCurrentMonthResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress approved' 
-             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
+             AND MONTH(al.action_timestamp) = MONTH(GETDATE())
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
         );
-        const completedLastMonth = completedLastMonthResult[0].count;
+        const completedCurrentMonth = completedCurrentMonthResult[0].count;
 
         const [pendingCardsResult] = await Client.query(
             `SELECT COUNT(*) as count 
@@ -42,31 +53,43 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
         const pendingCards = pendingCardsResult[0].count;
 
         stats = [
-            { label: 'Completed (Last Year)', value: completedLastYear.toString(), color: '#28a745', description: 'Trials completed in last 12 months' },
-            { label: 'Completed (Last Month)', value: completedLastMonth.toString(), color: '#20c997', description: 'Trials completed in last 30 days' },
+            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear.toString(), color: '#6c757d', description: 'Trials completed in previous year' },
+            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear.toString(), color: '#28a745', description: 'Trials completed in current year' },
+            { label: 'Completed (Current Month)', value: completedCurrentMonth.toString(), color: '#20c997', description: 'Trials completed in current month' },
             { label: 'Pending Cards', value: pendingCards.toString(), color: '#ffc107', description: 'Trials awaiting completion' }
         ];
     }
     else if (role === 'User') {
+        const [completedCurrentYearResult] = await Client.query(
+            `SELECT COUNT(DISTINCT al.trial_id) as count 
+             FROM audit_log al
+             WHERE al.department_id = @department_id
+             AND al.action = 'Department progress completed' 
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
+            { department_id: userDepartmentId }
+        );
+        const completedCurrentYear = completedCurrentYearResult[0].count;
+
         const [completedLastYearResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress completed' 
-             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE()) - 1`,
             { department_id: userDepartmentId }
         );
         const completedLastYear = completedLastYearResult[0].count;
 
-        const [completedLastMonthResult] = await Client.query(
+        const [completedCurrentMonthResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress completed' 
-             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
+             AND MONTH(al.action_timestamp) = MONTH(GETDATE())
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
         );
-        const completedLastMonth = completedLastMonthResult[0].count;
+        const completedCurrentMonth = completedCurrentMonthResult[0].count;
 
         const [pendingCardsResult] = await Client.query(
             `SELECT COUNT(*) as count 
@@ -78,8 +101,9 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
         const pendingCards = pendingCardsResult[0].count;
 
         stats = [
-            { label: 'Completed (Last Year)', value: completedLastYear.toString(), color: '#28a745', description: 'Trials completed in last 12 months' },
-            { label: 'Completed (Last Month)', value: completedLastMonth.toString(), color: '#20c997', description: 'Trials completed in last 30 days' },
+            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear.toString(), color: '#6c757d', description: 'Trials completed in previous year' },
+            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear.toString(), color: '#28a745', description: 'Trials completed in current year' },
+            { label: 'Completed (Current Month)', value: completedCurrentMonth.toString(), color: '#20c997', description: 'Trials completed in current month' },
             { label: 'Pending Cards', value: pendingCards.toString(), color: '#ffc107', description: 'Tasks awaiting review' }
         ];
     }
@@ -112,29 +136,41 @@ router.get('/dashboard', verifyToken, asyncErrorHandler(async (req, res, next) =
     }
 
     if (req.query.statsType === 'methods_dashboard') {
+        const [initiatedCurrentYearResult] = await Client.query(
+            `SELECT COUNT(DISTINCT al.trial_id) as count 
+             FROM audit_log al
+             WHERE al.department_id = @department_id
+             AND al.action = 'Department progress added' 
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
+            { department_id: userDepartmentId }
+        );
+        const initiatedCurrentYear = initiatedCurrentYearResult[0].count;
+
         const [initiatedLastYearResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress added' 
-             AND al.action_timestamp >= DATEADD(year, -1, GETDATE())`,
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE()) - 1`,
             { department_id: userDepartmentId }
         );
         const initiatedLastYear = initiatedLastYearResult[0].count;
 
-        const [initiatedLastMonthResult] = await Client.query(
+        const [initiatedCurrentMonthResult] = await Client.query(
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
              AND al.action = 'Department progress added' 
-             AND al.action_timestamp >= DATEADD(month, -1, GETDATE())`,
+             AND MONTH(al.action_timestamp) = MONTH(GETDATE())
+             AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
         );
-        const initiatedLastMonth = initiatedLastMonthResult[0].count;
+        const initiatedCurrentMonth = initiatedCurrentMonthResult[0].count;
 
         stats = [
-            { label: 'Initiated (Last Year)', value: initiatedLastYear.toString(), color: '#28a745', description: 'Trials initiated in last 12 months' },
-            { label: 'Initiated (Last Month)', value: initiatedLastMonth.toString(), color: '#20c997', description: 'Trials initiated in last 30 days' },
+            { label: `Initiated (${new Date().getFullYear() - 1})`, value: initiatedLastYear.toString(), color: '#6c757d', description: 'Trials initiated in previous year' },
+            { label: `Initiated (${new Date().getFullYear()})`, value: initiatedCurrentYear.toString(), color: '#28a745', description: 'Trials initiated in current year' },
+            { label: 'Initiated (Current Month)', value: initiatedCurrentMonth.toString(), color: '#20c997', description: 'Trials initiated in current month' },
         ];
     }
 
