@@ -37,6 +37,8 @@ export default function AllTrialsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPatternCode, setSelectedPatternCode] = useState<string>('all');
+    const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+    const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -63,6 +65,20 @@ export default function AllTrialsPage() {
         return [...new Set(patternCodes)].sort();
     }, [trials]);
 
+    const uniqueDepartments = useMemo(() => {
+        const departments = trials
+            .map(trial => trial.current_department_id)
+            .filter(Boolean);
+        return [...new Set(departments)].sort((a, b) => a - b);
+    }, [trials]);
+
+    const uniqueStatuses = useMemo(() => {
+        const statuses = trials
+            .map(trial => trial.status || 'CREATED')
+            .filter(Boolean);
+        return [...new Set(statuses)].sort();
+    }, [trials]);
+
     const filteredTrials = trials.filter(trial => {
         const matchesSearch = trial.trial_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,7 +86,11 @@ export default function AllTrialsPage() {
 
         const matchesPatternCode = selectedPatternCode === 'all' || trial.pattern_code === selectedPatternCode;
 
-        return matchesSearch && matchesPatternCode;
+        const matchesDepartment = selectedDepartment === 'all' || trial.current_department_id === parseInt(selectedDepartment);
+
+        const matchesStatus = selectedStatus === 'all' || (trial.status || 'CREATED') === selectedStatus;
+
+        return matchesSearch && matchesPatternCode && matchesDepartment && matchesStatus;
     });
 
     const getStatusStyle = (status: string) => {
@@ -137,6 +157,39 @@ export default function AllTrialsPage() {
                                     ))}
                                 </Select>
                             </FormControl>
+
+                            <FormControl size="small" sx={{ bgcolor: 'white', minWidth: { xs: '100%', sm: 200 } }}>
+                                <InputLabel>Current Department</InputLabel>
+                                <Select
+                                    value={selectedDepartment}
+                                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                                    label="Current Department"
+                                >
+                                    <MenuItem value="all">All Departments</MenuItem>
+                                    {uniqueDepartments.map((deptId) => (
+                                        <MenuItem key={deptId} value={deptId.toString()}>
+                                            {getDepartmentName(deptId)}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl size="small" sx={{ bgcolor: 'white', minWidth: { xs: '100%', sm: 200 } }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={selectedStatus}
+                                    onChange={(e) => setSelectedStatus(e.target.value)}
+                                    label="Status"
+                                >
+                                    <MenuItem value="all">All Status</MenuItem>
+                                    {uniqueStatuses.map((status) => (
+                                        <MenuItem key={status} value={status}>
+                                            {status}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
                             <TextField
                                 placeholder="Search Trial ID, Part Name..."
                                 value={searchTerm}
