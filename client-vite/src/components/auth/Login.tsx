@@ -420,6 +420,9 @@ const Login: React.FC = () => {
                     }}
                   // style handled by className
                   >
+                    <div style={{ padding: '12px', backgroundColor: '#e3f2fd', border: '1px solid #90caf9', borderRadius: '4px', marginBottom: '16px', fontSize: '14px', color: '#1565c0' }}>
+                      <strong>Note:</strong> If you don't know your username and password, please contact the admin for assistance.
+                    </div>
                     <input
                       type="text"
                       name="forgotUsername"
