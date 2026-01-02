@@ -7,10 +7,10 @@ const router = express.Router();
 
 router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     console.log("req.body", req.body);
-    const { trial_id, document_type, file_name, file_base64, uploaded_by, remarks } = req.body;
+    const { trial_id, document_type, file_name, file_base64, remarks } = req.body;
     const [result] = await Client.query(
         `INSERT INTO documents (trial_id, document_type, file_name, file_base64, uploaded_by, remarks) VALUES (@trial_id, @document_type, @file_name, @file_base64, @uploaded_by, @remarks)`,
-        { trial_id, document_type, file_name, file_base64, uploaded_by, remarks }
+        { trial_id, document_type, file_name, file_base64, uploaded_by: req.user.user_id, remarks }
     );
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     const [audit_result] = await Client.query(audit_sql, {

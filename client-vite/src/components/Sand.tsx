@@ -383,17 +383,23 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             </Box>
 
             <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                Attach PDF / Image Files
-              </Typography>
-              <FileUploadSection
-                files={attachedFiles}
-                onFilesChange={handleAttachFiles}
-                onFileRemove={removeAttachedFile}
-                showAlert={showAlert}
-                label="Attach PDF"
-              />
-              <DocumentViewer trialId={trialId} category="SAND_PROPERTIES" />
+              {(user?.role !== 'HOD' || isEditing) && (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                    Attach PDF / Image Files
+                  </Typography>
+                  <FileUploadSection
+                    files={attachedFiles}
+                    onFilesChange={handleAttachFiles}
+                    onFileRemove={removeAttachedFile}
+                    showAlert={showAlert}
+                    label="Attach PDF"
+                  />
+                </>
+              )}
+              {user?.role === 'HOD' && (
+                <DocumentViewer trialId={trialId || ""} category="SAND_PROPERTIES" />
+              )}
             </Box>
 
             <Box sx={{ p: 3, display: "flex", flexDirection: { xs: 'column', sm: 'row' }, justifyContent: "flex-end", alignItems: "flex-end", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>

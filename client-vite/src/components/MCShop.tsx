@@ -596,18 +596,24 @@ export default function McShopInspection({
             </Button>
 
             <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                Attach PDF / Image Files
-              </Typography>
-              <FileUploadSection
-                files={attachedFiles}
-                onFilesChange={handleAttachFiles}
-                onFileRemove={removeAttachedFile}
-                showAlert={showAlert}
-                label="Attach PDF"
-                disabled={user?.role === 'HOD' && !isEditing}
-              />
-              <DocumentViewer trialId={trialId || ""} category="MC_SHOP_INSPECTION" />
+              {(user?.role !== 'HOD' || isEditing) && (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                    Attach PDF / Image Files
+                  </Typography>
+                  <FileUploadSection
+                    files={attachedFiles}
+                    onFilesChange={handleAttachFiles}
+                    onFileRemove={removeAttachedFile}
+                    showAlert={showAlert}
+                    label="Attach PDF"
+                    disabled={user?.role === 'HOD' && !isEditing}
+                  />
+                </>
+              )}
+              {user?.role === 'HOD' && (
+                <DocumentViewer trialId={trialId || ""} category="MC_SHOP_INSPECTION" />
+              )}
             </Box>
 
 

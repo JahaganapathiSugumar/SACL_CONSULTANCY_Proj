@@ -351,20 +351,26 @@ export default function MaterialCorrection() {
 
                         <Grid size={{ xs: 12 }}>
                             <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
-                                <SectionHeader
-                                    icon={<UploadFileIcon />}
-                                    title="Attach PDF / Image Files"
-                                    color={COLORS.accentBlue}
-                                />
+                                {(user?.role !== 'HOD' || isEditing) && (
+                                    <>
+                                        <SectionHeader
+                                            icon={<UploadFileIcon />}
+                                            title="Attach PDF / Image Files"
+                                            color={COLORS.accentBlue}
+                                        />
 
-                                <FileUploadSection
-                                    files={attachedFiles}
-                                    onFilesChange={handleFileChange}
-                                    onFileRemove={removeAttachedFile}
-                                    label="Upload Files"
-                                    showAlert={(severity, message) => setAlertMessage({ severity, message })}
-                                />
-                                <DocumentViewer trialId={trialId} category="MATERIAL_CORRECTION" />
+                                        <FileUploadSection
+                                            files={attachedFiles}
+                                            onFilesChange={handleFileChange}
+                                            onFileRemove={removeAttachedFile}
+                                            label="Upload Files"
+                                            showAlert={(severity, message) => setAlertMessage({ severity, message })}
+                                        />
+                                    </>
+                                )}
+                                {user?.role === 'HOD' && (
+                                    <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
+                                )}
                             </Paper>
                         </Grid>
 

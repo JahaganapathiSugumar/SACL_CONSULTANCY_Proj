@@ -681,18 +681,24 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                         <Grid size={{ xs: 12 }}>
                             <Paper sx={{ p: 3, mb: 3 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
-                                    Attach PDF / Image Files
-                                </Typography>
-                                <FileUploadSection
-                                    files={attachedFiles}
-                                    onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
-                                    onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
-                                    showAlert={showAlert}
-                                    label="Upload Files"
-                                    disabled={user?.role === 'HOD' && !isEditing}
-                                />
-                                <DocumentViewer trialId={trialId || ""} category="POURING_DETAILS" />
+                                {(user?.role !== 'HOD' || isEditing) && (
+                                    <>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
+                                            Attach PDF / Image Files
+                                        </Typography>
+                                        <FileUploadSection
+                                            files={attachedFiles}
+                                            onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                                            onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                            showAlert={showAlert}
+                                            label="Upload Files"
+                                            disabled={user?.role === 'HOD' && !isEditing}
+                                        />
+                                    </>
+                                )}
+                                {user?.role === 'HOD' && (
+                                    <DocumentViewer trialId={trialId || ""} category="POURING_DETAILS" />
+                                )}
                             </Paper>
                         </Grid>
 

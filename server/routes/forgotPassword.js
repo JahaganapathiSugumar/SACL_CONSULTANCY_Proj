@@ -7,10 +7,8 @@ import transporter from '../utils/mailSender.js';
 
 const router = express.Router();
 
-// Store OTPs in-memory for demo (use Redis or DB in production)
 const otpStore = {};
 
-// Step 1: Request OTP
 router.post('/request-reset', asyncErrorHandler(async (req, res, next) => {
   const { username, email } = req.body;
   if (!username || !email) {
@@ -31,7 +29,6 @@ router.post('/request-reset', asyncErrorHandler(async (req, res, next) => {
   res.json({ success: true, message: 'OTP sent to your email.' });
 }));
 
-// Step 2: Verify OTP and update password
 router.post('/reset-password', asyncErrorHandler(async (req, res, next) => {
   const { username, otp, newPassword } = req.body;
   if (!username || !otp || !newPassword) {
@@ -41,7 +38,6 @@ router.post('/reset-password', asyncErrorHandler(async (req, res, next) => {
   if (!record || record.otp !== otp || record.expires < Date.now()) {
     throw new CustomError('Invalid or expired OTP', 400);
   }
-  // Hash password and update in DB
   const bcrypt = await import('bcrypt');
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   const hash = await bcrypt.default.hash(newPassword, saltRounds);

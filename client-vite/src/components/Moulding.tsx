@@ -345,49 +345,55 @@ function MouldingTable() {
               </Table>
             </Box>
             <Box sx={{ mt: 3, mb: 3 }}>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
-              >
-                Attach PDF / Image Files
-              </Typography>
+              {(user?.role !== 'HOD' || isEditing) && (
+                <>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
+                  >
+                    Attach PDF / Image Files
+                  </Typography>
 
-              <Button
-                variant="outlined"
-                component="label"
-                sx={{
-                  bgcolor: "white",
-                  borderStyle: "dashed",
-                  py: 1.5,
-                  px: 3,
-                  fontWeight: 600,
-                }}
-              >
-                Attach PDF
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="application/pdf,image/*"
-                  onChange={handleAttachFiles}
-                />
-              </Button>
-
-              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {attachedFiles.map((file, index) => (
-                  <Chip
-                    key={index}
-                    label={file.name}
-                    onDelete={() => removeAttachedFile(index)}
+                  <Button
+                    variant="outlined"
+                    component="label"
                     sx={{
                       bgcolor: "white",
-                      border: `1px solid ${COLORS.border}`,
-                      fontSize: "0.8rem"
+                      borderStyle: "dashed",
+                      py: 1.5,
+                      px: 3,
+                      fontWeight: 600,
                     }}
-                  />
-                ))}
-              </Box>
-              <DocumentViewer trialId={trialId || ""} category="MOULDING" />
+                  >
+                    Attach PDF
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept="application/pdf,image/*"
+                      onChange={handleAttachFiles}
+                    />
+                  </Button>
+
+                  <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {attachedFiles.map((file, index) => (
+                      <Chip
+                        key={index}
+                        label={file.name}
+                        onDelete={() => removeAttachedFile(index)}
+                        sx={{
+                          bgcolor: "white",
+                          border: `1px solid ${COLORS.border}`,
+                          fontSize: "0.8rem"
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </>
+              )}
+              {user?.role === 'HOD' && (
+                <DocumentViewer trialId={trialId || ""} category="MOULDING" />
+              )}
             </Box>
 
 

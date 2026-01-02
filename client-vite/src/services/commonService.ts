@@ -87,16 +87,10 @@ class ApiService {
     });
   }
 
-  async deleteUser(userId: number): Promise<void> {
-    return this.request(`/users/${userId}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async deleteUsersBulk(userIds: number[]): Promise<void> {
-    return this.request('/users/bulk-delete', {
-      method: 'POST',
-      body: JSON.stringify({ userIds })
+  async updateUserStatus(userId: number, status: boolean): Promise<void> {
+    return this.request('/users/change-status', {
+      method: 'PUT',
+      body: JSON.stringify({ userId, status })
     });
   }
 

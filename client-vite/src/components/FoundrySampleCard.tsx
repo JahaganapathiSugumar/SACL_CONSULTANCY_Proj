@@ -1208,14 +1208,18 @@ function FoundrySampleCard() {
                         />
                       </TableCell>
                       <TableCell>
-                        <FileUploadSection
-                          files={patternDataSheetFiles}
-                          onFilesChange={handlePatternDataSheetFilesChange}
-                          onFileRemove={removePatternDataSheetFile}
-                          showAlert={showAlert}
-                          label="Attach Pattern Data Sheet"
-                        />
-                        <DocumentViewer trialId={trialId || ""} category="PATTERN_DATA_SHEET" label="Attached Sheets" />
+                        {(user?.role !== 'HOD' || isEditing) && (
+                          <FileUploadSection
+                            files={patternDataSheetFiles}
+                            onFilesChange={handlePatternDataSheetFilesChange}
+                            onFileRemove={removePatternDataSheetFile}
+                            showAlert={showAlert}
+                            label="Attach Pattern Data Sheet"
+                          />
+                        )}
+                        {user?.role === 'HOD' && (
+                          <DocumentViewer trialId={trialId || ""} category="PATTERN_DATA_SHEET" label="Attached Sheets" />
+                        )}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -1249,14 +1253,18 @@ function FoundrySampleCard() {
                     <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
                       Tooling Files
                     </Typography>
-                    <FileUploadSection
-                      files={toolingFiles}
-                      onFilesChange={handleToolingFilesChange}
-                      onFileRemove={removeToolingFile}
-                      showAlert={showAlert}
-                      label="Attach Tooling PDF"
-                    />
-                    <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" />
+                    {(user?.role !== 'HOD' || isEditing) && (
+                      <FileUploadSection
+                        files={toolingFiles}
+                        onFilesChange={handleToolingFilesChange}
+                        onFileRemove={removeToolingFile}
+                        showAlert={showAlert}
+                        label="Attach Tooling PDF"
+                      />
+                    )}
+                    {user?.role === 'HOD' && (
+                      <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" />
+                    )}
                   </Grid>
                 </Grid>
               </Paper>

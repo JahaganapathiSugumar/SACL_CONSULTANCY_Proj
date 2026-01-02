@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import { getDepartmentName } from '../../utils/dashboardUtils';
-import DeleteIcon from '@mui/icons-material/Delete';
 import './UserTable.css';
 
 interface UserTableProps {
   users: User[];
-  onDelete: (userIds: number[]) => void;
+  onToggleStatus: (userId: number, currentStatus: boolean) => void;
 }
 
 // Department mapping for filter options (unchanged)
@@ -23,10 +22,9 @@ const departmentOptions = [
   { id: 10, name: 'QA' }
 ];
 
-const UserTable: React.FC<UserTableProps> = ({ users, onDelete }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus }) => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
-  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
 
   // Get unique roles from users
   const roleOptions = useMemo(() => {
@@ -47,25 +45,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, onDelete }) => {
   const clearFilters = () => {
     setRoleFilter('');
     setDepartmentFilter('');
-  };
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      const allIds = new Set(filteredUsers.map(u => u.user_id));
-      setSelectedUsers(allIds);
-    } else {
-      setSelectedUsers(new Set());
-    }
-  };
-
-  const handleSelectUser = (id: number) => {
-    const newSelected = new Set(selectedUsers);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedUsers(newSelected);
   };
 
   return (
@@ -141,29 +120,6 @@ const UserTable: React.FC<UserTableProps> = ({ users, onDelete }) => {
           </button>
         )}
 
-        {selectedUsers.size > 0 && (
-          <button
-            onClick={() => onDelete(Array.from(selectedUsers))}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              marginLeft: '15px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-            Delete Selected ({selectedUsers.size})
-          </button>
-        )}
-
         <span style={{ marginLeft: 'auto', fontSize: '14px', color: '#666' }}>
           Showing {filteredUsers.length} of {users.length} users
         </span>
@@ -172,31 +128,18 @@ const UserTable: React.FC<UserTableProps> = ({ users, onDelete }) => {
       <table className="user-table">
         <thead>
           <tr>
-            <th style={{ width: '40px' }}>
-              <input
-                type="checkbox"
-                onChange={handleSelectAll}
-                checked={filteredUsers.length > 0 && selectedUsers.size === filteredUsers.length}
-              />
-            </th>
             <th>ID</th>
             <th>Username</th>
             <th>Full Name</th>
             <th>Email</th>
             <th>Role</th>
             <th>Department</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.map(user => (
-            <tr key={user.user_id} className={selectedUsers.has(user.user_id) ? 'selected-row' : ''}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedUsers.has(user.user_id)}
-                  onChange={() => handleSelectUser(user.user_id)}
-                />
-              </td>
+            <tr key={user.user_id}>
               <td>{user.user_id}</td>
               <td>{user.username}</td>
               <td>{user.full_name}</td>
@@ -207,11 +150,30 @@ const UserTable: React.FC<UserTableProps> = ({ users, onDelete }) => {
                 </span>
               </td>
               <td>{getDepartmentName(user.department_id) || 'N/A'}</td>
+              <td>
+                <button
+                  onClick={() => onToggleStatus(user.user_id, !!user.is_active)}
+                  className={`status-toggle ${user.is_active ? 'active' : 'inactive'}`}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    backgroundColor: user.is_active ? '#e6f4ea' : '#fce8e6',
+                    color: user.is_active ? '#1e7e34' : '#c62828',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {user.is_active ? 'Active' : 'Inactive'}
+                </button>
+              </td>
             </tr>
           ))}
           {filteredUsers.length === 0 && (
             <tr>
-              <td colSpan={8} className="no-data">
+              <td colSpan={7} className="no-data">
                 No users found
               </td>
             </tr>
