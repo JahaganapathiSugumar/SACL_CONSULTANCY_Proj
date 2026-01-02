@@ -29,7 +29,11 @@ router.post('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
 router.get('/', verifyToken, asyncErrorHandler(async (req, res, next) => {
     const { trial_id } = req.query;
     const [documents] = await Client.query(
-        `SELECT * FROM documents WHERE trial_id = @trial_id ORDER BY document_id`,
+        `SELECT d.*, u.username as uploaded_by_username 
+         FROM documents d 
+         LEFT JOIN users u ON d.uploaded_by = u.user_id 
+         WHERE d.trial_id = @trial_id 
+         ORDER BY d.document_id`,
         { trial_id }
     );
     res.status(200).json({

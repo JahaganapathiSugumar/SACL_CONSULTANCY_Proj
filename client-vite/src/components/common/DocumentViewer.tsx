@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, CircularProgress } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, CircularProgress, Paper } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -19,6 +19,7 @@ interface Document {
     document_type: string;
     file_base64: string;
     uploaded_by: string;
+    uploaded_by_username?: string;
     uploaded_at: string;
     remarks: string;
 }
@@ -46,6 +47,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
                     }
                 } else {
                     console.error("Failed to fetch documents");
+                    setError("Failed to fetch documents");
                 }
             } catch (err) {
                 console.error("Error fetching documents:", err);
@@ -127,7 +129,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
                         </ListItemIcon>
                         <ListItemText
                             primary={doc.file_name}
-                            secondary={`Uploaded by ${doc.uploaded_by} on ${new Date(doc.uploaded_at).toLocaleDateString()}`}
+                            secondary={`Uploaded by ${doc.uploaded_by_username || doc.uploaded_by} on ${new Date(doc.uploaded_at).toLocaleDateString()}`}
                             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
                             secondaryTypographyProps={{ variant: 'caption' }}
                         />
