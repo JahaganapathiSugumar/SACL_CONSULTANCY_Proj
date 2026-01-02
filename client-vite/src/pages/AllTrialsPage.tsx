@@ -47,11 +47,13 @@ export default function AllTrialsPage() {
         fetchTrials();
     }, []);
 
-    const filteredTrials = trials.filter(trial =>
-        trial.trial_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trial.pattern_code?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTrials = trials
+        .filter(trial =>
+            trial.trial_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            trial.pattern_code?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => new Date(b.date_of_sampling).getTime() - new Date(a.date_of_sampling).getTime());
 
     return (
         <ThemeProvider theme={appTheme}>
@@ -117,7 +119,7 @@ export default function AllTrialsPage() {
                                                     <TableCell>{trial.part_name}</TableCell>
                                                     <TableCell>{trial.pattern_code}</TableCell>
                                                     <TableCell>{trial.material_grade}</TableCell>
-                                                    <TableCell>{new Date(trial.date_of_sampling).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
                                                     <TableCell>
                                                         <Box sx={{
                                                             display: 'inline-block',
