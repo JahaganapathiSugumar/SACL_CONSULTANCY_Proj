@@ -15,7 +15,7 @@ import {
     TextField,
     InputAdornment
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -27,10 +27,13 @@ import { getDepartmentName } from '../utils/dashboardUtils';
 
 export default function AllTrialsPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { user } = useAuth();
     const [trials, setTrials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    
+    const isMyTrials = searchParams.get('myTrials') === 'true';
 
     useEffect(() => {
         const fetchTrials = async () => {
@@ -72,7 +75,7 @@ export default function AllTrialsPage() {
                                 Back to Dashboard
                             </Button>
                             <Typography variant="h4" fontWeight="bold" color="primary">
-                                All Trials Repository
+                                {isMyTrials ? 'Initiated Trials' : 'All Trials Repository'}
                             </Typography>
                         </Box>
                         <TextField
@@ -106,9 +109,13 @@ export default function AllTrialsPage() {
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Pattern Code</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Grade</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Date</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Current Department</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Status</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', textAlign: 'center' }}>Actions</TableCell>
+                                            {!isMyTrials && (
+                                                <>
+                                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Current Department</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc' }}>Status</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', textAlign: 'center' }}>Actions</TableCell>
+                                                </>
+                                            )}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -120,42 +127,46 @@ export default function AllTrialsPage() {
                                                     <TableCell>{trial.pattern_code}</TableCell>
                                                     <TableCell>{trial.material_grade}</TableCell>
                                                     <TableCell>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
-                                                    <TableCell>
-                                                        <Box sx={{
-                                                            display: 'inline-block',
-                                                            px: 1.5, py: 0.5,
-                                                            borderRadius: 5,
-                                                            fontSize: '0.75rem',
-                                                            bgcolor: '#e0f2fe',
-                                                            color: '#0369a1',
-                                                            fontWeight: 500
-                                                        }}>
-                                                            {getDepartmentName(trial.current_department_id) || 'N/A'}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Box sx={{
-                                                            display: 'inline-block',
-                                                            px: 1.5, py: 0.5,
-                                                            borderRadius: 5,
-                                                            fontSize: '0.75rem',
-                                                            bgcolor: trial.status === 'Completed' ? '#dcfce7' : '#fff7ed',
-                                                            color: trial.status === 'Completed' ? '#166534' : '#9a3412'
-                                                        }}>
-                                                            {trial.status || 'In Progress'}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            startIcon={<DescriptionIcon />}
-                                                            onClick={() => navigate(`/full-report?trial_id=${trial.trial_id}`)}
-                                                            sx={{ borderRadius: 2, textTransform: 'none' }}
-                                                        >
-                                                            View Report
-                                                        </Button>
-                                                    </TableCell>
+                                                    {!isMyTrials && (
+                                                        <>
+                                                            <TableCell>
+                                                                <Box sx={{
+                                                                    display: 'inline-block',
+                                                                    px: 1.5, py: 0.5,
+                                                                    borderRadius: 5,
+                                                                    fontSize: '0.75rem',
+                                                                    bgcolor: '#e0f2fe',
+                                                                    color: '#0369a1',
+                                                                    fontWeight: 500
+                                                                }}>
+                                                                    {getDepartmentName(trial.current_department_id) || 'N/A'}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Box sx={{
+                                                                    display: 'inline-block',
+                                                                    px: 1.5, py: 0.5,
+                                                                    borderRadius: 5,
+                                                                    fontSize: '0.75rem',
+                                                                    bgcolor: trial.status === 'Completed' ? '#dcfce7' : '#fff7ed',
+                                                                    color: trial.status === 'Completed' ? '#166534' : '#9a3412'
+                                                                }}>
+                                                                    {trial.status || 'In Progress'}
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    size="small"
+                                                                    startIcon={<DescriptionIcon />}
+                                                                    onClick={() => navigate(`/full-report?trial_id=${trial.trial_id}`)}
+                                                                    sx={{ borderRadius: 2, textTransform: 'none' }}
+                                                                >
+                                                                    View Report
+                                                                </Button>
+                                                            </TableCell>
+                                                        </>
+                                                    )}
                                                 </TableRow>
                                             ))
                                         ) : (
