@@ -5,9 +5,10 @@ import { getDepartmentInfo } from '../../utils/dashboardUtils';
 
 interface ProfileModalProps {
   onClose: () => void;
+  onPhotoUpdate?: () => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) => {
   const { user, updateUser } = useAuth();
   const departmentInfo = getDepartmentInfo(user);
 
@@ -65,6 +66,10 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
           await apiService.uploadProfilePhoto(base64String);
           setProfilePhoto(base64String);
           setPhotoSuccess('Profile photo updated successfully!');
+          // Trigger Header refresh
+          if (onPhotoUpdate) {
+            onPhotoUpdate();
+          }
           setTimeout(() => {
             setPhotoSuccess('');
           }, 3000);
@@ -392,6 +397,39 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
         {/* Profile Details */}
         <div style={{ padding: '25px 30px' }}>
+          {/* Change Profile Photo Button */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'inline-block',
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: '#667eea',
+              color: 'white',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: photoLoading ? 'not-allowed' : 'pointer',
+              textAlign: 'center',
+              border: 'none',
+              opacity: photoLoading ? 0.6 : 1,
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#5568d3')}
+            onMouseLeave={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#667eea')}
+            >
+              {photoLoading ? '⏳ Uploading...' : '📷 Change Profile Picture'}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                disabled={photoLoading}
+                style={{
+                  display: 'none'
+                }}
+              />
+            </label>
+          </div>
+
           <div style={{ marginBottom: '20px' }}>
             {/* Username Section */}
             <div style={{
