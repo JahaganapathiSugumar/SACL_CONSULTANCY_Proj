@@ -11,13 +11,14 @@ import { type StatItem } from '../data/dashboardData';
 import PendingSampleCards from './PendingSampleCards';
 import CompletedTrialsModal from './CompletedTrialsModal';
 import { getDashboardStats } from '../services/statsService';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { CircularProgress } from '@mui/material';
 
 const HODDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
 
   const [showPendingCards, setShowPendingCards] = useState(false);
   const [showCompletedTrials, setShowCompletedTrials] = useState(false);
@@ -77,6 +78,7 @@ const HODDashboard: React.FC = () => {
         setShowNotifications={setShowNotifications}
         setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
+        photoRefreshKey={headerRefreshKey}
       />
       <main className="dashboard-content" style={{ padding: '20px' }}>
         <div className="welcome-section">
@@ -129,7 +131,7 @@ const HODDashboard: React.FC = () => {
           {/* Role Specific Stats Grid */}
           {loadingStats ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-              <LoadingSpinner />
+              <CircularProgress />
             </div>
           ) : (
             <StatsGrid stats={stats} />
@@ -141,7 +143,12 @@ const HODDashboard: React.FC = () => {
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
 
       {/* Profile Modal */}
-      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <ProfileModal 
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
 
       {/* Pending Cards Overlay */}
       <PendingSampleCards
