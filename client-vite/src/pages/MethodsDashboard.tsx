@@ -9,13 +9,14 @@ import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { CircularProgress } from '@mui/material';
 
 const MethodsDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const [stats, setStats] = useState<StatItem[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
@@ -50,6 +51,7 @@ const MethodsDashboard: React.FC = () => {
         setShowNotifications={setShowNotifications}
         setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
+        photoRefreshKey={headerRefreshKey}
       />
       <main className="dashboard-content" style={{ padding: '20px' }}>
         <div className="welcome-section">
@@ -104,7 +106,7 @@ const MethodsDashboard: React.FC = () => {
 
             {loadingStats ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <LoadingSpinner />
+                <CircularProgress />
               </div>
             ) : (
               <StatsGrid stats={stats} />
@@ -117,7 +119,12 @@ const MethodsDashboard: React.FC = () => {
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
 
       {/* Profile Modal */}
-      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <ProfileModal 
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
     </div>
   );
 };
