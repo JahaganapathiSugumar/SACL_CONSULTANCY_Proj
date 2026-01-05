@@ -67,7 +67,7 @@ SELECT * FROM master_card;
 CREATE TABLE trial_cards (
     trial_id NVARCHAR(255) PRIMARY KEY,
     part_name VARCHAR(100) NOT NULL,
-    pattern_code VARCHAR(50) NOT NULL,
+    pattern_code VARCHAR(150) NOT NULL,
     material_grade VARCHAR(50) NOT NULL,
     initiated_by VARCHAR(50) NOT NULL,
     date_of_sampling DATE NOT NULL,
@@ -81,7 +81,8 @@ CREATE TABLE trial_cards (
     sample_traceability VARCHAR(50),
     mould_correction NVARCHAR(MAX),
     CONSTRAINT chk_trial_status CHECK (status IN ('CREATED', 'IN_PROGRESS', 'CLOSED')),
-    FOREIGN KEY (current_department_id) REFERENCES departments(department_id)
+    FOREIGN KEY (current_department_id) REFERENCES departments(department_id),
+    CONSTRAINT fk_trial_master_pattern FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
