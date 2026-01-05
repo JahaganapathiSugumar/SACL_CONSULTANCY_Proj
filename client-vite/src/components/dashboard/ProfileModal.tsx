@@ -25,11 +25,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const loadProfilePhoto = async () => {
     try {
       const response = await apiService.getProfilePhoto();
-      if (response.profilePhoto) {
+      if (response && response.profilePhoto) {
         setProfilePhoto(response.profilePhoto);
       }
-    } catch (err) {
-      console.error('Error loading profile photo:', err);
+    } catch (err: any) {
+      // Silently fail if endpoint doesn't exist yet (404) - backend not deployed
+      if (err.message && !err.message.includes('404')) {
+        console.error('Error loading profile photo:', err);
+      }
     }
   };
 
