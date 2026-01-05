@@ -115,6 +115,26 @@ class ApiService {
     });
   }
 
+  async updateUsername(username: string) {
+    return this.request('/users/update-username', {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+    });
+  }
+
+  async uploadProfilePhoto(photoBase64: string) {
+    return this.request('/users/upload-photo', {
+      method: 'POST',
+      body: JSON.stringify({ photoBase64 }),
+    });
+  }
+
+  async getProfilePhoto() {
+    return this.request('/users/get-photo', {
+      method: 'GET',
+    });
+  }
+
   async getMasterList(): Promise<any[]> {
     const response = await this.request('/master-list', {
       method: 'GET',

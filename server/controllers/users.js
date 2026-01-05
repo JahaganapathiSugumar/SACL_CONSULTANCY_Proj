@@ -118,6 +118,33 @@ export const changePassword = async (req, res, next) => {
     return res.json({ success: true, message: 'Password updated' });
 };
 
+export const updateUsername = async (req, res, next) => {
+    const { username } = req.body || {};
+    const user = req.user;
+    
+    if (!username) throw new CustomError('Username is required', 400);
+    if (typeof username !== 'string' || username.trim().length === 0) throw new CustomError('Username cannot be empty', 400);
+    if (username === user.username) throw new CustomError('New username must be different from current username', 400);
+    
+    // Check if username already exists
+    const [existing] = await Client.query('SELECT TOP 1 user_id FROM users WHERE username = @username', { username });
+    if (existing && existing.length > 0) {
+        throw new CustomError('Username already in use', 409);
+    }
+
+    await Client.query('UPDATE users SET username = @username WHERE user_id = @user_id', { username, user_id: user.user_id });
+
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
+    await Client.query(audit_sql, {
+        user_id: user.user_id,
+        department_id: user.department_id,
+        action: 'Username updated',
+        remarks: `Username changed from ${user.username} to ${username}`
+    });
+
+    return res.json({ success: true, message: 'Username updated successfully' });
+};
+
 export const changeStatus = async (req, res, next) => {
     const { userId, status } = req.body || {};
     if (!userId) throw new CustomError('User ID and status are required', 400);
@@ -126,4 +153,50 @@ export const changeStatus = async (req, res, next) => {
     await Client.query('UPDATE users SET is_active = @is_active WHERE user_id = @user_id', { is_active: status, user_id: userId });
 
     return res.json({ success: true, message: 'User status updated' });
+};
+
+export const uploadProfilePhoto = async (req, res, next) => {
+    const { photoBase64 } = req.body || {};
+    const user = req.user;
+    
+    if (!photoBase64) throw new CustomError('Photo is required', 400);
+    if (typeof photoBase64 !== 'string') throw new CustomError('Photo must be a base64 string', 400);
+    
+    // Validate base64 format (basic check)
+    if (!photoBase64.startsWith('data:image')) throw new CustomError('Invalid image format. Please upload a valid image.', 400);
+    
+    // Optional: Limit photo size (max 5MB = 5242880 bytes)
+    const maxPhotoSize = 5242880;
+    if (photoBase64.length > maxPhotoSize) {
+        throw new CustomError('Photo size exceeds maximum limit of 5MB', 400);
+    }
+
+    await Client.query('UPDATE users SET profile_photo = @profile_photo WHERE user_id = @user_id', { 
+        profile_photo: photoBase64, 
+        user_id: user.user_id 
+    });
+
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
+    await Client.query(audit_sql, {
+        user_id: user.user_id,
+        department_id: user.department_id,
+        action: 'Profile photo updated',
+        remarks: `Profile photo updated by ${user.username}`
+    });
+
+    return res.json({ success: true, message: 'Profile photo uploaded successfully' });
+};
+
+export const getProfilePhoto = async (req, res, next) => {
+    const user = req.user;
+    
+    const [rows] = await Client.query('SELECT profile_photo FROM users WHERE user_id = @user_id', { user_id: user.user_id });
+    
+    if (!rows || rows.length === 0) {
+        throw new CustomError('User not found', 404);
+    }
+
+    const profilePhoto = rows[0].profile_photo;
+    
+    return res.json({ success: true, profilePhoto: profilePhoto || null });
 };

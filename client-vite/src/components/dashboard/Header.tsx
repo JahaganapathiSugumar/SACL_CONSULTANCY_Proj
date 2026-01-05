@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Paper, Chip, Typography, Box } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { apiService } from '../../services/commonService';
 import { COLORS } from '../../theme/appTheme';
 
 interface HeaderProps {
@@ -29,6 +30,26 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
     const { user, logout } = useAuth();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+    const [photoLoading, setPhotoLoading] = useState(true);
+
+    // Load profile photo on mount
+    useEffect(() => {
+        loadProfilePhoto();
+    }, []);
+
+    const loadProfilePhoto = async () => {
+        try {
+            const response = await apiService.getProfilePhoto();
+            if (response.profilePhoto) {
+                setProfilePhoto(response.profilePhoto);
+            }
+        } catch (err) {
+            console.error('Error loading profile photo:', err);
+        } finally {
+            setPhotoLoading(false);
+        }
+    };
 
     // Default colors
     const defaultTextColor = '#333';
@@ -172,73 +193,73 @@ const Header: React.FC<HeaderProps> = ({
                     </Paper>
                 </Box>
 
-                {/* Right side - Icons and Profile */}
-                <div className="header-right">
-                    {/* Profile Section */}
-                    <div style={{ position: 'relative' }}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                cursor: 'pointer',
-                                padding: '8px 12px',
-                                borderRadius: '6px',
-                                transition: 'background-color 0.2s'
-                            }}
-                            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                            <div style={{
-                                width: '32px',
-                                height: '32px',
-                                backgroundColor: '#007bff',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '14px'
-                            }}>
-                                {user?.username?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                            <div className="profile-username" style={{ textAlign: 'left' }}>
-                                <div style={{
-                                    fontSize: '14px',
-                                    fontWeight: '500',
-                                    color: currentTextColor
-                                }}>
-                                    {user?.username || 'User'}
-                                </div>
-                                <div style={{
-                                    fontSize: '12px',
-                                    color: currentTextColor,
-                                    opacity: 0.8
-                                }}>
-                                    {user?.role || 'User Role'}
-                                    {departmentInfo.showDepartment && departmentInfo.displayText && (
-                                        <span> • {departmentInfo.displayText}</span>
-                                    )}
-                                </div>
-                            </div>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                style={{
-                                    transform: showProfileDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                                    transition: 'transform 0.2s',
-                                    color: currentTextColor
-                                }}
-                            >
-                                <path d="m6 9 6 6 6-6" />
-                            </svg>
+            {/* Right side - Icons and Profile */}
+            <div className="header-right">
+                {/* Profile Section */}
+                <div style={{ position: 'relative' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            backgroundColor: '#007bff',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '14px'
+                        }}>
+                            {user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
+                        <div className="profile-username" style={{ textAlign: 'left' }}>
+                            <div style={{
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                color: currentTextColor
+                            }}>
+                                {user?.username || 'User'}
+                            </div>
+                            <div style={{
+                                fontSize: '12px',
+                                color: currentTextColor,
+                                opacity: 0.8
+                            }}>
+                                {user?.role || 'User Role'}
+                                {departmentInfo.showDepartment && departmentInfo.displayText && (
+                                    <span> • {departmentInfo.displayText}</span>
+                                )}
+                            </div>
+                        </div>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            style={{
+                                transform: showProfileDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s',
+                                color: currentTextColor
+                            }}
+                        >
+                            <path d="m6 9 6 6 6-6" />
+                        </svg>
+                    </div>
 
                         {/* Profile Dropdown */}
                         {showProfileDropdown && (

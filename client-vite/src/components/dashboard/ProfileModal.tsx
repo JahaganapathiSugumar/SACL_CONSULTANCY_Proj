@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/commonService';
 import { getDepartmentInfo } from '../../utils/dashboardUtils';
@@ -10,6 +10,84 @@ interface ProfileModalProps {
 const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const { user, updateUser } = useAuth();
   const departmentInfo = getDepartmentInfo(user);
+
+  // Photo upload states
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const [photoSuccess, setPhotoSuccess] = useState('');
+
+  // Load profile photo on mount
+  useEffect(() => {
+    loadProfilePhoto();
+  }, []);
+
+  const loadProfilePhoto = async () => {
+    try {
+      const response = await apiService.getProfilePhoto();
+      if (response && response.profilePhoto) {
+        setProfilePhoto(response.profilePhoto);
+      }
+    } catch (err: any) {
+      // Silently fail if endpoint doesn't exist yet (404) - backend not deployed
+      if (err.message && !err.message.includes('404')) {
+        console.error('Error loading profile photo:', err);
+      }
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxFileSize) {
+      setPhotoError('Image size must be less than 5MB');
+      return;
+    }
+
+    setPhotoLoading(true);
+    setPhotoError('');
+    setPhotoSuccess('');
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64String = e.target?.result as string;
+        try {
+          await apiService.uploadProfilePhoto(base64String);
+          setProfilePhoto(base64String);
+          setPhotoSuccess('Profile photo updated successfully!');
+          setTimeout(() => {
+            setPhotoSuccess('');
+          }, 3000);
+        } catch (err: any) {
+          setPhotoError(err.message || 'Failed to upload photo');
+        } finally {
+          setPhotoLoading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      setPhotoError(err.message || 'Failed to process image');
+      setPhotoLoading(false);
+    }
+  };
+
+  // Username editing states
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [usernameLoading, setUsernameLoading] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameSuccess, setUsernameSuccess] = useState('');
+
 
   // Email editing states
   const [isEditingEmail, setIsEditingEmail] = useState(false);
@@ -113,6 +191,52 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     setOtpTimer(0);
   };
 
+  const handleUpdateUsername = async () => {
+    if (!newUsername || newUsername.trim().length === 0) {
+      setUsernameError('Username cannot be empty');
+      return;
+    }
+    if (newUsername === user?.username) {
+      setUsernameError('New username must be different from current username');
+      return;
+    }
+    setUsernameLoading(true);
+    setUsernameError('');
+    setUsernameSuccess('');
+    try {
+      await apiService.updateUsername(newUsername);
+      setUsernameSuccess('Username updated successfully!');
+      // Update user in context and localStorage
+      if (updateUser) {
+        updateUser({ ...user, username: newUsername });
+      }
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        parsed.username = newUsername;
+        localStorage.setItem('user', JSON.stringify(parsed));
+      }
+      // Reset states after success
+      setTimeout(() => {
+        setIsEditingUsername(false);
+        setNewUsername('');
+        setUsernameSuccess('');
+      }, 2000);
+    } catch (err: any) {
+      console.error('Username update error:', err);
+      setUsernameError(err.message || 'Failed to update username. Please try again.');
+    } finally {
+      setUsernameLoading(false);
+    }
+  };
+
+  const handleCancelUsernameEdit = () => {
+    setIsEditingUsername(false);
+    setNewUsername('');
+    setUsernameError('');
+    setUsernameSuccess('');
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -165,24 +289,91 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
           >
             ×
           </button>
-          {/* Avatar */}
-          <div style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            backgroundColor: '#fff',
-            margin: '0 auto 15px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '36px',
-            color: '#667eea',
-            fontWeight: 700,
-            boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
-          }}>
-            {user?.username?.charAt(0).toUpperCase() || 'U'}
+          {/* Avatar with Photo Upload */}
+          <div style={{ position: 'relative', margin: '0 auto 15px', display: 'inline-block' }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              backgroundColor: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '36px',
+              color: '#667eea',
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+              overflow: 'hidden',
+              backgroundImage: profilePhoto ? `url(${profilePhoto})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}>
+              {!profilePhoto && (user?.username?.charAt(0).toUpperCase() || 'U')}
+            </div>
+            {/* Photo Upload Button */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              disabled={photoLoading}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                opacity: 0,
+                cursor: photoLoading ? 'not-allowed' : 'pointer'
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                cursor: photoLoading ? 'not-allowed' : 'pointer',
+                pointerEvents: 'none'
+              }}
+            >
+              📷
+            </div>
           </div>
-          <h2 style={{ margin: 0, color: '#fff', fontSize: '22px', fontWeight: 600 }}>
+          {photoError && (
+            <div style={{
+              marginTop: '8px',
+              padding: '8px 12px',
+              backgroundColor: 'rgba(255,0,0,0.1)',
+              borderRadius: '6px',
+              color: '#dc3545',
+              fontSize: '12px',
+              textAlign: 'center'
+            }}>
+              {photoError}
+            </div>
+          )}
+          {photoSuccess && (
+            <div style={{
+              marginTop: '8px',
+              padding: '8px 12px',
+              backgroundColor: 'rgba(40,167,69,0.1)',
+              borderRadius: '6px',
+              color: '#28a745',
+              fontSize: '12px',
+              textAlign: 'center'
+            }}>
+              {photoSuccess}
+            </div>
+          )}
+          <h2 style={{ margin: '10px 0 0 0', color: '#fff', fontSize: '22px', fontWeight: 600 }}>
             {user?.username || 'User'}
           </h2>
           <span style={{
@@ -202,6 +393,127 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         {/* Profile Details */}
         <div style={{ padding: '25px 30px' }}>
           <div style={{ marginBottom: '20px' }}>
+            {/* Username Section */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '10px',
+              marginBottom: '12px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                backgroundColor: '#e3f2fd',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '15px',
+                fontSize: '18px'
+              }}>
+                👤
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '12px', color: '#888', fontWeight: 500, marginBottom: '2px' }}>
+                  Username
+                </div>
+                {!isEditingUsername ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ fontSize: '15px', color: '#333', fontWeight: 500 }}>
+                      {user?.username || 'N/A'}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsEditingUsername(true);
+                        setNewUsername(user?.username || '');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#667eea',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f0ff')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="Enter new username"
+                        style={{
+                          flex: 1,
+                          minWidth: '180px',
+                          padding: '10px 12px',
+                          border: '1px solid #ddd',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = '#667eea')}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = '#ddd')}
+                      />
+                      <button
+                        onClick={handleUpdateUsername}
+                        disabled={usernameLoading}
+                        style={{
+                          padding: '10px 16px',
+                          backgroundColor: usernameLoading ? '#ccc' : '#28a745',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: usernameLoading ? 'not-allowed' : 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {usernameLoading ? 'Updating...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={handleCancelUsernameEdit}
+                        style={{
+                          padding: '10px 16px',
+                          backgroundColor: '#f0f0f0',
+                          color: '#666',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {usernameError && (
+                      <div style={{ marginTop: '8px', padding: '8px 12px', backgroundColor: '#fee', borderRadius: '6px', color: '#c00', fontSize: '13px' }}>
+                        {usernameError}
+                      </div>
+                    )}
+                    {usernameSuccess && (
+                      <div style={{ marginTop: '8px', padding: '8px 12px', backgroundColor: '#efe', borderRadius: '6px', color: '#070', fontSize: '13px' }}>
+                        {usernameSuccess}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Email Section - Editable */}
             <div style={{
               padding: '15px',
@@ -429,46 +741,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 </div>
                 <div style={{ fontSize: '15px', color: '#333', fontWeight: 500 }}>
                   {departmentInfo.displayText || 'N/A'}
-                </div>
-              </div>
-            </div>
-
-            {/* Access Level */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '15px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '10px'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                backgroundColor: '#e8f5e9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: '15px',
-                fontSize: '18px'
-              }}>
-                🔑
-              </div>
-              <div>
-                <div style={{ fontSize: '12px', color: '#888', fontWeight: 500, marginBottom: '2px' }}>
-                  Access Level
-                </div>
-                <div style={{ fontSize: '15px', color: '#333', fontWeight: 500 }}>
-                  <span style={{
-                    padding: '4px 12px',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    backgroundColor: user?.role === 'Admin' ? '#d4edda' : user?.role === 'HOD' ? '#fff3cd' : '#cfe2ff',
-                    color: user?.role === 'Admin' ? '#155724' : user?.role === 'HOD' ? '#856404' : '#084298'
-                  }}>
-                    {user?.role === 'Admin' ? 'Full Access' : user?.role === 'HOD' ? 'Department Head' : 'Standard Access'}
-                  </span>
                 </div>
               </div>
             </div>
