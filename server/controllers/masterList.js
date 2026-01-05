@@ -423,32 +423,52 @@ export const updateMasterList = async (req, res, next) => {
 };
 
 export const bulkDeleteMasterList = async (req, res, next) => {
-    const { ids } = req.body;
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        throw new CustomError('No IDs provided for deletion', 400);
-    }
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            throw new CustomError('No IDs provided for deletion', 400);
+        }
 
-    await Client.transaction(async (trx) => {
         const params = {};
         const placeholders = ids.map((id, index) => {
             const paramName = `id${index}`;
             params[paramName] = id;
             return `@${paramName}`;
         });
-        const sql = `DELETE FROM master_card WHERE id IN (${placeholders.join(',')})`;
-        await trx.query(sql, params);
-    });
 
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'Master list bulk delete',
-        remarks: `Deleted ${ids.length} master list items by ${req.user.username}`
-    });
+        const getPatternsSql = `SELECT pattern_code FROM master_card WHERE id IN (${placeholders.join(',')})`;
 
-    res.status(200).json({
-        success: true,
-        message: `${ids.length} items deleted successfully`
-    });
+        const [patterns] = await Client.query(getPatternsSql, params);
+
+        await Client.transaction(async (trx) => {
+            const deleteMasterSql = `DELETE FROM master_card WHERE id IN (${placeholders.join(',')})`;
+            await trx.query(deleteMasterSql, params);
+
+            if (patterns.length > 0) {
+                const patternCodes = patterns.map(p => `'${p.pattern_code}'`).join(',');
+                if (patternCodes) {
+                    const deleteTrialsSql = `DELETE FROM trial_cards WHERE pattern_code IN (${patternCodes})`;
+                    await trx.query(deleteTrialsSql);
+                }
+            }
+
+            const auditSql = `
+                INSERT INTO audit_log (user_id, department_id, action, remarks)
+                VALUES (@user_id, @department_id, 'Master list bulk delete', @remarks)
+            `;
+            await trx.query(auditSql, {
+                user_id: req.user.user_id,
+                department_id: req.user.department_id,
+                remarks: `Deleted ${ids.length} master list items and their related trials by ${req.user.username}`
+            });
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `${ids.length} items and related trials deleted successfully`
+        });
+
+    } catch (error) {
+        next(error);
+    }
 };
