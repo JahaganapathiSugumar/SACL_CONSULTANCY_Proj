@@ -12,7 +12,7 @@ import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { CircularProgress } from '@mui/material';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -26,6 +26,7 @@ const DashboardPage: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [stats, setStats] = useState<StatItem[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
 
   const departmentInfo = getDepartmentInfo(user);
 
@@ -81,6 +82,7 @@ const DashboardPage: React.FC = () => {
         customStyle={{ backgroundColor: '#ffffff', color: '#333', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
         textColor="#333"
         logoTextColors={{ title: '#000000', subtitle: '#666' }}
+        photoRefreshKey={headerRefreshKey}
       />
 
       <main className="dashboard-content">
@@ -88,7 +90,7 @@ const DashboardPage: React.FC = () => {
           <div style={{
             position: 'sticky',
             top: 0,
-            zIndex: 900,
+            zIndex: 1100,
             backgroundColor: '#f8f9fa',
             padding: '10px 0',
             width: '100%',
@@ -258,7 +260,7 @@ const DashboardPage: React.FC = () => {
             {/* Overview Section */}
             {loadingStats ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <LoadingSpinner />
+                <CircularProgress />
               </div>
             ) : (
               <StatsGrid stats={stats} />
@@ -294,7 +296,12 @@ const DashboardPage: React.FC = () => {
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
 
       {/* Profile Modal */}
-      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <ProfileModal 
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
     </div>
   );
 };
