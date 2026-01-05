@@ -18,6 +18,7 @@ interface HeaderProps {
         subtitle: string;
     };
     setShowProfile?: (show: boolean) => void;
+    photoRefreshKey?: number;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -26,17 +27,18 @@ const Header: React.FC<HeaderProps> = ({
     customStyle,
     textColor,
     logoTextColors,
-    setShowProfile
+    setShowProfile,
+    photoRefreshKey = 0
 }) => {
     const { user, logout } = useAuth();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
     const [photoLoading, setPhotoLoading] = useState(true);
 
-    // Load profile photo on mount
+    // Load profile photo on mount and when refreshKey changes
     useEffect(() => {
         loadProfilePhoto();
-    }, []);
+    }, [photoRefreshKey]);
 
     const loadProfilePhoto = async () => {
         try {
@@ -70,8 +72,6 @@ const Header: React.FC<HeaderProps> = ({
                         border-bottom: 1px solid #e0e0e0;
                         flex-wrap: wrap;
                         gap: 15px;
-                        position: relative;
-                        z-index: 1200;
                     }
                     .header-left {
                         display: flex;
@@ -116,82 +116,82 @@ const Header: React.FC<HeaderProps> = ({
                 `}
             </style>
             <header className="dashboard-header" style={customStyle}>
-                {/* Left side - Logo/Brand and Department Info */}
-                <Box className="header-left">
-                    {/* SACL Logo Section */}
+            {/* Left side - Logo/Brand and Department Info */}
+            <Box className="header-left">
+                {/* SACL Logo Section */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
                     <Box
+                        component="img"
+                        src="/assets/SACL-LOGO-01.jpg"
+                        alt="SACL Logo"
+                        className="header-logo"
                         sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
+                            height: 40,
+                            width: "auto",
+                            borderRadius: 1,
+                        }}
+                    />
+                    <Typography
+                        variant="h6"
+                        className="company-name-text"
+                        sx={{
+                            fontWeight: 700,
+                            color: COLORS.primary,
+                            letterSpacing: 1,
                         }}
                     >
-                        <Box
-                            component="img"
-                            src="/assets/SACL-LOGO-01.jpg"
-                            alt="SACL Logo"
-                            className="header-logo"
-                            sx={{
-                                height: 40,
-                                width: "auto",
-                                borderRadius: 1,
-                            }}
-                        />
-                        <Typography
-                            variant="h6"
-                            className="company-name-text"
-                            sx={{
-                                fontWeight: 700,
-                                color: COLORS.primary,
-                                letterSpacing: 1,
-                            }}
-                        >
-                            SAKTHI AUTO COMPONENT LIMITED
-                        </Typography>
-                    </Box>
+                        SAKTHI AUTO COMPONENT LIMITED
+                    </Typography>
+                </Box>
 
-                    {/* Department and Role Info */}
-                    <Paper
-                        elevation={1}
-                        className="header-dept-info"
+                {/* Department and Role Info */}
+                <Paper
+                    elevation={1}
+                    className="header-dept-info"
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        backgroundColor: '#f8f9fa',
+                        border: '1px solid #e0e0e0'
+                    }}
+                >
+                    <Chip
+                        label={user?.role?.toUpperCase() || 'USER'}
+                        size="small"
                         sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            px: 2,
-                            py: 1,
-                            borderRadius: 2,
-                            backgroundColor: '#f8f9fa',
-                            border: '1px solid #e0e0e0'
+                            backgroundColor: COLORS.primary,
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.75rem'
                         }}
-                    >
-                        <Chip
-                            label={user?.role?.toUpperCase() || 'USER'}
-                            size="small"
-                            sx={{
-                                backgroundColor: COLORS.primary,
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '0.75rem'
-                            }}
-                        />
-                        {/* Only show department separator and name for non-Admin/Methods users */}
-                        {departmentInfo.showDepartment && departmentInfo.displayText && (
-                            <>
-                                <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>|</Typography>
-                                <Typography sx={{ color: '#555', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    {departmentInfo.displayText}
-                                </Typography>
-                            </>
-                        )}
-                        {/* Fallback if showDepartment is false but we still want to show displayText */}
-                        {!departmentInfo.showDepartment && departmentInfo.displayText && (
+                    />
+                    {/* Only show department separator and name for non-Admin/Methods users */}
+                    {departmentInfo.showDepartment && departmentInfo.displayText && (
+                        <>
+                            <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>|</Typography>
                             <Typography sx={{ color: '#555', fontSize: '0.875rem', fontWeight: 500 }}>
                                 {departmentInfo.displayText}
                             </Typography>
-                        )}
-                    </Paper>
-                </Box>
+                        </>
+                    )}
+                    {/* Fallback if showDepartment is false but we still want to show displayText */}
+                    {!departmentInfo.showDepartment && departmentInfo.displayText && (
+                        <Typography sx={{ color: '#555', fontSize: '0.875rem', fontWeight: 500 }}>
+                            {departmentInfo.displayText}
+                        </Typography>
+                    )}
+                </Paper>
+            </Box>
 
             {/* Right side - Icons and Profile */}
             <div className="header-right">
@@ -221,9 +221,13 @@ const Header: React.FC<HeaderProps> = ({
                             justifyContent: 'center',
                             color: 'white',
                             fontWeight: 'bold',
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            overflow: 'hidden',
+                            backgroundImage: profilePhoto ? `url(${profilePhoto})` : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
                         }}>
-                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                            {!profilePhoto && (user?.username?.charAt(0).toUpperCase() || 'U')}
                         </div>
                         <div className="profile-username" style={{ textAlign: 'left' }}>
                             <div style={{
@@ -261,73 +265,73 @@ const Header: React.FC<HeaderProps> = ({
                         </svg>
                     </div>
 
-                        {/* Profile Dropdown */}
-                        {showProfileDropdown && (
+                    {/* Profile Dropdown */}
+                    {showProfileDropdown && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: '0',
+                            backgroundColor: 'white',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            minWidth: '200px',
+                            zIndex: 1000,
+                            marginTop: '5px'
+                        }}>
                             <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                right: '0',
-                                backgroundColor: 'white',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                minWidth: '200px',
-                                zIndex: 1000,
-                                marginTop: '5px'
+                                padding: '12px 16px',
+                                borderBottom: '1px solid #f0f0f0'
                             }}>
-                                <div style={{
-                                    padding: '12px 16px',
-                                    borderBottom: '1px solid #f0f0f0'
-                                }}>
-                                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
-                                        {user?.username}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                                        {user?.role}
-                                        {departmentInfo.showDepartment && departmentInfo.displayText && (
-                                            <span> • {departmentInfo.displayText}</span>
-                                        )}
-                                    </div>
+                                <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
+                                    {user?.username}
                                 </div>
-                                {setShowProfile && (
-                                    <div
-                                        style={{
-                                            padding: '12px 16px',
-                                            cursor: 'pointer',
-                                            fontSize: '14px',
-                                            color: '#333',
-                                            transition: 'background-color 0.2s',
-                                            borderBottom: '1px solid #f0f0f0'
-                                        }}
-                                        onClick={() => {
-                                            setShowProfile(true);
-                                            setShowProfileDropdown(false);
-                                        }}
-                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
-                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                                    >
-                                        👤 View Profile
-                                    </div>
-                                )}
+                                <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                                    {user?.role}
+                                    {departmentInfo.showDepartment && departmentInfo.displayText && (
+                                        <span> • {departmentInfo.displayText}</span>
+                                    )}
+                                </div>
+                            </div>
+                            {setShowProfile && (
                                 <div
                                     style={{
                                         padding: '12px 16px',
                                         cursor: 'pointer',
                                         fontSize: '14px',
                                         color: '#333',
-                                        transition: 'background-color 0.2s'
+                                        transition: 'background-color 0.2s',
+                                        borderBottom: '1px solid #f0f0f0'
                                     }}
-                                    onClick={logout}
+                                    onClick={() => {
+                                        setShowProfile(true);
+                                        setShowProfileDropdown(false);
+                                    }}
                                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
                                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                                 >
-                                    🚪 Logout
+                                    👤 View Profile
                                 </div>
+                            )}
+                            <div
+                                style={{
+                                    padding: '12px 16px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    color: '#333',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onClick={logout}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                            >
+                                🚪 Logout
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
-            </header>
+            </div>
+        </header>
         </>
     );
 };
