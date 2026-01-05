@@ -10,7 +10,6 @@ import {
     TableRow,
     Button,
     Alert,
-    CircularProgress,
     Chip,
     Dialog,
     DialogTitle,
@@ -22,6 +21,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { COLORS } from '../theme/appTheme';
 import departmentProgressService from '../services/departmentProgressService';
+import LoadingState from '../components/common/LoadingState';
 
 interface PendingCard {
     trial_id: string;
@@ -67,7 +67,7 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
     const fetchPendingCards = async () => {
         try {
             setLoading(true);
-            const pendingCards = await departmentProgressService.getProgress(username);            
+            const pendingCards = await departmentProgressService.getProgress(username);
             setPendingCards(pendingCards);
             setError(null);
         } catch (err) {
@@ -132,7 +132,7 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
                     {/* Loading State */}
                     {loading && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-                            <CircularProgress size={60} />
+                            <LoadingState size={60} />
                         </Box>
                     )}
 

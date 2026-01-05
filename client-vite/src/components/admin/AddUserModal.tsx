@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/commonService';
+import GearSpinner from '../common/GearSpinner';
 import './AddUserModal.css';
 
 interface AddUserModalProps {
@@ -252,7 +253,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
 
           <div className="form-actions">
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Creating...' : 'Create User'}
+              {loading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <div style={{ transform: 'scale(0.4)', height: '20px', width: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><GearSpinner /></div>
+                  <span>Creating...</span>
+                </div>
+              ) : 'Create User'}
             </button>
             <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
               Cancel

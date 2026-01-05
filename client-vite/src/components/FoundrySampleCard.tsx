@@ -18,7 +18,6 @@ import {
   createTheme,
   Button,
   Alert,
-  CircularProgress,
   IconButton,
   Grid,
   Container,
@@ -59,6 +58,7 @@ import { AlertMessage } from './common/AlertMessage';
 import { useAuth } from '../context/AuthContext';
 import DepartmentHeader from "./common/DepartmentHeader";
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
+import GearSpinner from './common/GearSpinner';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface PartData {
@@ -717,7 +717,7 @@ function FoundrySampleCard() {
                             endAdornment: user?.role !== 'HOD' ? (
                               <InputAdornment position="end">
                                 <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
-                                  {trialLoading ? <CircularProgress size={20} /> : <RefreshIcon fontSize="small" />}
+                                  {trialLoading ? <div style={{ transform: 'scale(0.7)' }}><GearSpinner /></div> : <RefreshIcon fontSize="small" />}
                                 </IconButton>
                               </InputAdornment>
                             ) : undefined

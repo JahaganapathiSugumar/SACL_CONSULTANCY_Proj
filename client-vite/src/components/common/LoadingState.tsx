@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import GearSpinner from './GearSpinner';
 
 interface LoadingStateProps {
     message?: string;
@@ -19,7 +20,9 @@ const LoadingState: React.FC<LoadingStateProps> = ({
             gap={2}
             p={10}
         >
-            <CircularProgress size={size} />
+            <div style={{ transform: `scale(${size / 24})` }}>
+                <GearSpinner />
+            </div>
             {message && (
                 <Typography variant="body2" color="text.secondary">
                     {message}

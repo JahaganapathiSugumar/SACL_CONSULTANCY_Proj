@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Button, CircularProgress } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import GearSpinner from './GearSpinner';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
@@ -60,7 +61,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 >
                     {loading ? (
                         <>
-                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                            <div style={{ transform: 'scale(0.7)', display: 'inline-block', marginRight: '4px' }}>
+                                <GearSpinner />
+                            </div>
                             Processing...
                         </>
                     ) : (
@@ -79,7 +82,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 >
                     {loading ? (
                         <>
-                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                            <div style={{ transform: 'scale(0.7)', display: 'inline-block', marginRight: '4px' }}>
+                                <GearSpinner />
+                            </div>
                             Submitting...
                         </>
                     ) : (

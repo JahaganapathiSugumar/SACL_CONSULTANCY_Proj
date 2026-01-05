@@ -11,10 +11,10 @@ import {
     Button,
     Container,
     ThemeProvider,
-    CircularProgress,
     TextField,
     InputAdornment
 } from '@mui/material';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -32,7 +32,7 @@ export default function AllTrialsPage() {
     const [trials, setTrials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     const isMyTrials = searchParams.get('myTrials') === 'true';
 
     useEffect(() => {
@@ -64,18 +64,18 @@ export default function AllTrialsPage() {
                 <Container maxWidth="xl">
                     <SaclHeader />
 
-                    <Box sx={{ 
-                        mt: 4, 
-                        mb: 3, 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                    <Box sx={{
+                        mt: 4,
+                        mb: 3,
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
                         flexDirection: { xs: 'column', sm: 'column', md: 'row' },
                         gap: { xs: 2, md: 0 }
                     }}>
-                        <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: 2,
                             flexDirection: { xs: 'column', sm: 'row' },
                             width: { xs: '100%', md: 'auto' }
@@ -84,21 +84,21 @@ export default function AllTrialsPage() {
                                 variant="contained"
                                 startIcon={<ArrowBackIcon />}
                                 onClick={() => navigate('/dashboard')}
-                                sx={{ 
-                                    textTransform: 'none', 
-                                    bgcolor: '#5a6c7d', 
-                                    color: 'white', 
+                                sx={{
+                                    textTransform: 'none',
+                                    bgcolor: '#5a6c7d',
+                                    color: 'white',
                                     '&:hover': { bgcolor: '#4a5c6d' },
                                     width: { xs: '100%', sm: 'auto' }
                                 }}
                             >
                                 Back to Dashboard
                             </Button>
-                            <Typography 
-                                variant="h4" 
-                                fontWeight="bold" 
+                            <Typography
+                                variant="h4"
+                                fontWeight="bold"
                                 color="primary"
-                                sx={{ 
+                                sx={{
                                     fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
                                     textAlign: { xs: 'center', sm: 'left' },
                                     width: { xs: '100%', sm: 'auto' }
@@ -112,8 +112,8 @@ export default function AllTrialsPage() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             size="small"
-                            sx={{ 
-                                bgcolor: 'white', 
+                            sx={{
+                                bgcolor: 'white',
                                 minWidth: 300,
                                 width: { xs: '100%', md: 300 }
                             }}
@@ -127,23 +127,23 @@ export default function AllTrialsPage() {
                         />
                     </Box>
 
-                    <Paper sx={{ 
-                        width: '100%', 
-                        overflow: 'hidden', 
-                        boxShadow: 3, 
+                    <Paper sx={{
+                        width: '100%',
+                        overflow: 'hidden',
+                        boxShadow: 3,
                         borderRadius: 2,
                         overflowX: { xs: 'auto', md: 'hidden' }
                     }}>
                         {loading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                                <CircularProgress />
+                                <LoadingSpinner />
                             </Box>
                         ) : (
-                            <Box sx={{ 
-                                maxHeight: { xs: '60vh', md: '70vh' }, 
+                            <Box sx={{
+                                maxHeight: { xs: '60vh', md: '70vh' },
                                 overflow: 'auto'
                             }}>
-                                <Table 
+                                <Table
                                     stickyHeader
                                     sx={{
                                         minWidth: { xs: 500, md: '100%' }
@@ -151,46 +151,46 @@ export default function AllTrialsPage() {
                                 >
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell sx={{ 
-                                                fontWeight: 'bold', 
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Trial ID</TableCell>
-                                            <TableCell sx={{ 
-                                                fontWeight: 'bold', 
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Part Name</TableCell>
-                                            <TableCell sx={{ 
-                                                fontWeight: 'bold', 
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Pattern Code</TableCell>
-                                            <TableCell sx={{ 
-                                                fontWeight: 'bold', 
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Grade</TableCell>
-                                            <TableCell sx={{ 
-                                                fontWeight: 'bold', 
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Date</TableCell>
                                             {!isMyTrials && (
                                                 <>
-                                                    <TableCell sx={{ 
-                                                        fontWeight: 'bold', 
+                                                    <TableCell sx={{
+                                                        fontWeight: 'bold',
                                                         bgcolor: '#f8fafc',
                                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                     }}>Dept</TableCell>
-                                                    <TableCell sx={{ 
-                                                        fontWeight: 'bold', 
+                                                    <TableCell sx={{
+                                                        fontWeight: 'bold',
                                                         bgcolor: '#f8fafc',
                                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                     }}>Status</TableCell>
-                                                    <TableCell sx={{ 
-                                                        fontWeight: 'bold', 
-                                                        bgcolor: '#f8fafc', 
+                                                    <TableCell sx={{
+                                                        fontWeight: 'bold',
+                                                        bgcolor: '#f8fafc',
                                                         textAlign: 'center',
                                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                     }}>Actions</TableCell>
@@ -202,7 +202,7 @@ export default function AllTrialsPage() {
                                         {filteredTrials.length > 0 ? (
                                             filteredTrials.map((trial) => (
                                                 <TableRow key={trial.trial_id} hover>
-                                                    <TableCell sx={{ 
+                                                    <TableCell sx={{
                                                         fontWeight: 'bold',
                                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                     }}>{trial.trial_id}</TableCell>
@@ -249,8 +249,8 @@ export default function AllTrialsPage() {
                                                                     size="small"
                                                                     startIcon={<DescriptionIcon />}
                                                                     onClick={() => navigate(`/full-report?trial_id=${trial.trial_id}`)}
-                                                                    sx={{ 
-                                                                        borderRadius: 2, 
+                                                                    sx={{
+                                                                        borderRadius: 2,
                                                                         textTransform: 'none',
                                                                         fontSize: { xs: '0.7rem', sm: '0.875rem' },
                                                                         padding: { xs: '4px 8px', sm: '6px 12px' }

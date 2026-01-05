@@ -6,11 +6,11 @@ import {
   Button,
   Typography,
   Alert,
-  CircularProgress,
   Container,
   ThemeProvider,
   createTheme,
 } from '@mui/material';
+import GearSpinner from '../components/common/GearSpinner';
 import EmailIcon from '@mui/icons-material/Email';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import KeyIcon from '@mui/icons-material/Key';
@@ -88,7 +88,7 @@ const DECORATIVE_ICONS = [
   CheckCircleIcon,
 ];
 
-const DecorativeBackground: React.FC<{boxRef?: React.RefObject<HTMLDivElement>}> = ({ boxRef }) => {
+const DecorativeBackground: React.FC<{ boxRef?: React.RefObject<HTMLDivElement> }> = ({ boxRef }) => {
   // More positions for icons around the box
   const positions = [
     // Corners
@@ -317,7 +317,7 @@ const UpdateEmailPage: React.FC = () => {
                     disabled={loading || otpSent}
                     sx={{ mt: 2, py: 1.5, fontWeight: 700, fontSize: '1.1rem', background: '#f39b03', color: '#fff', '&:hover': { background: '#e38c02' }, '&:disabled': { background: '#E5E7EB', color: '#374151' } }}
                   >
-                    {loading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : otpSent ? '✓ OTP Sent' : 'Send OTP'}
+                    {loading ? <div style={{ transform: 'scale(0.4)', height: '20px', width: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><GearSpinner /></div> : otpSent ? '✓ OTP Sent' : 'Send OTP'}
                   </Button>
                 </Box>
 
@@ -355,7 +355,7 @@ const UpdateEmailPage: React.FC = () => {
                       disabled={loading || otp.length !== 6}
                       sx={{ mt: 2, py: 1.5, fontWeight: 700, fontSize: '1.1rem', background: '#f39b03', color: '#fff', '&:hover': { background: '#e38c02' }, '&:disabled': { background: '#E5E7EB', color: '#374151' } }}
                     >
-                      {loading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Verify OTP'}
+                      {loading ? <div style={{ transform: 'scale(0.4)', height: '20px', width: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><GearSpinner /></div> : 'Verify OTP'}
                     </Button>
                   </Box>
                 )}

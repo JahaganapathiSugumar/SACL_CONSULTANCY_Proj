@@ -6,13 +6,13 @@ import {
   Button,
   Typography,
   Alert,
-  CircularProgress,
   Container,
   ThemeProvider,
   InputAdornment,
   IconButton,
   LinearProgress,
 } from '@mui/material';
+import GearSpinner from '../components/common/GearSpinner';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import EmailIcon from '@mui/icons-material/Email';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -514,7 +514,7 @@ const ChangePasswordPage: React.FC = () => {
                   }}
                 >
                   {loading ? (
-                    <CircularProgress size={20} sx={{ color: COLORS.surface }} />
+                    <div style={{ transform: 'scale(0.4)', height: '20px', width: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><GearSpinner /></div>
                   ) : (
                     'Update Password'
                   )}

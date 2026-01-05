@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Grid,
   Paper,
   Table,
@@ -20,6 +19,8 @@ import {
   Button,
   Collapse,
 } from "@mui/material";
+import LoadingState from "./LoadingState";
+import GearSpinner from "./GearSpinner";
 import { COLORS, appTheme } from "../../theme/appTheme";
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import ConstructionIcon from '@mui/icons-material/Construction';
@@ -206,7 +207,7 @@ const PatternDatasheetSection = ({ patternCode }: { patternCode: string }) => {
     }
   }, [patternCode]);
 
-  if (loading) return <Box sx={{ p: 2, textAlign: 'center' }}><CircularProgress size={20} /></Box>;
+  if (loading) return <Box sx={{ p: 2, textAlign: 'center' }}><div style={{ display: 'inline-block', transform: 'scale(0.8)' }}><GearSpinner /></div></Box>;
   if (!patternData || Object.keys(patternData).length === 0) {
     return (
       <Box sx={{ p: 2, textAlign: 'center', fontStyle: 'italic', color: 'text.secondary' }}>
@@ -410,7 +411,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
 
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-              <CircularProgress size={60} />
+              <LoadingState size={60} />
             </Box>
           ) : (
             <>

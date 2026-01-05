@@ -3,6 +3,7 @@ import type { User } from '../../types/user';
 import { apiService } from '../../services/commonService.ts';
 import UserTable from './UserTable.tsx';
 import AddUserModal from './AddUserModal.tsx';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import './UserManagement.css';
 
 const UserManagement: React.FC = () => {
@@ -40,7 +41,7 @@ const UserManagement: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading users...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

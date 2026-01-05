@@ -9,7 +9,6 @@ import {
     TableHead,
     TableRow,
     Alert,
-    CircularProgress,
     Chip,
     Dialog,
     DialogTitle,
@@ -21,6 +20,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { COLORS } from '../theme/appTheme';
 import departmentProgressService, { type ProgressItem } from '../services/departmentProgressService';
+import LoadingState from '../components/common/LoadingState';
 
 interface CompletedTrialsModalProps {
     open: boolean;
@@ -102,7 +102,7 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
                     {/* Loading State */}
                     {loading && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-                            <CircularProgress size={60} />
+                            <LoadingState size={60} />
                         </Box>
                     )}
 

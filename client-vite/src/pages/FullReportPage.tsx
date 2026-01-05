@@ -4,7 +4,6 @@ import {
     Paper,
     Typography,
     Divider,
-    CircularProgress,
     Button,
     Table,
     TableBody,
@@ -17,6 +16,7 @@ import {
     useMediaQuery,
     useTheme
 } from "@mui/material";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useLocation, useNavigate } from "react-router-dom";
 import PrintIcon from '@mui/icons-material/Print';
 import { inspectionService } from "../services/inspectionService";
@@ -177,7 +177,7 @@ export default function FullReportPage() {
         window.print();
     };
 
-    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><CircularProgress /></Box>;
+    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><LoadingSpinner /></Box>;
     if (error) return <Box sx={{ p: 4, textAlign: 'center', color: 'red' }}><Typography variant="h5">{error}</Typography></Box>;
     if (!data) return null;
 

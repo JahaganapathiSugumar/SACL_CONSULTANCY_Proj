@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, CircularProgress, Paper } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, Paper } from '@mui/material';
+import GearSpinner from './GearSpinner';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -88,7 +89,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
         return <DescriptionIcon />;
     };
 
-    if (loading) return <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}><CircularProgress size={20} /><Typography variant="body2">Loading documents...</Typography></Box>;
+    if (loading) return <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}><div style={{ transform: 'scale(0.4)', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><GearSpinner /></div><Typography variant="body2">Loading documents...</Typography></Box>;
 
     if (documents.length === 0) {
         return (

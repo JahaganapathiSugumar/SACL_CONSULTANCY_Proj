@@ -11,7 +11,7 @@ import { type StatItem } from '../data/dashboardData';
 import PendingSampleCards from './PendingSampleCards';
 import CompletedTrialsModal from './CompletedTrialsModal';
 import { getDashboardStats } from '../services/statsService';
-import { CircularProgress } from '@mui/material';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const HODDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -129,7 +129,7 @@ const HODDashboard: React.FC = () => {
           {/* Role Specific Stats Grid */}
           {loadingStats ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-              <CircularProgress />
+              <LoadingSpinner />
             </div>
           ) : (
             <StatsGrid stats={stats} />

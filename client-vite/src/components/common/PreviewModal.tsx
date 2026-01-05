@@ -3,6 +3,7 @@ import { Box, Paper, IconButton, Button, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PrintIcon from '@mui/icons-material/Print';
 import { COLORS } from '../../theme/appTheme';
+import GearSpinner from './GearSpinner';
 
 interface PreviewModalProps {
     open: boolean;
@@ -112,7 +113,14 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
                             onClick={onSubmit}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? "Submitting..." : "Confirm & Submit"}
+                            {isSubmitting ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ transform: 'scale(0.7)' }}>
+                                        <GearSpinner />
+                                    </div>
+                                    <span>Submitting...</span>
+                                </div>
+                            ) : "Confirm & Submit"}
                         </Button>
                     )}
                 </Box>

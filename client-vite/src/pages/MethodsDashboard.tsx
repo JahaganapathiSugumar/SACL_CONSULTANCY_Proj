@@ -9,7 +9,7 @@ import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
-import { CircularProgress } from '@mui/material';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const MethodsDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -104,7 +104,7 @@ const MethodsDashboard: React.FC = () => {
 
             {loadingStats ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <CircularProgress />
+                <LoadingSpinner />
               </div>
             ) : (
               <StatsGrid stats={stats} />

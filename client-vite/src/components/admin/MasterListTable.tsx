@@ -8,7 +8,6 @@ import {
     TableRow,
     Paper,
     IconButton,
-    CircularProgress,
     Alert,
     TextField,
     Box,
@@ -19,6 +18,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { masterListService } from '../../services/masterListService';
 import DeleteMasterModal from './DeleteMasterModal';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 interface MasterListTableProps {
     onEdit: (data: any) => void;
@@ -117,7 +117,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
         }
     };
 
-    if (loading) return <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>;
+    if (loading) return <Box display="flex" justifyContent="center" p={4}><LoadingSpinner /></Box>;
     if (error) return <Alert severity="error">{error}</Alert>;
 
     return (

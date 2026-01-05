@@ -5,6 +5,8 @@ import { apiService } from '../../services/commonService';
 import './Login.css';
 import './ForgotPasswordModal.css';
 
+import GearSpinner from '../common/GearSpinner';
+
 const Login: React.FC = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -374,7 +376,7 @@ const Login: React.FC = () => {
             <button type="submit" disabled={loading || !credentials.username || !credentials.password} className="login-button">
               {loading ? (
                 <>
-                  <span className="spinner"></span>
+                  <GearSpinner className="gear-white" />
                   Signing in...
                 </>
               ) : 'Login'}
@@ -436,7 +438,12 @@ const Login: React.FC = () => {
                       required
                     />
                     <button type="submit" disabled={forgotLoading}>
-                      {forgotLoading ? 'Sending...' : 'Send OTP'}
+                      {forgotLoading ? (
+                        <>
+                          <GearSpinner />
+                          Sending...
+                        </>
+                      ) : 'Send OTP'}
                     </button>
                     {forgotError && <span className="forgot-error">{forgotError}</span>}
                     {forgotSuccess && <span className="forgot-success">{forgotSuccess}</span>}
@@ -533,7 +540,12 @@ const Login: React.FC = () => {
                       </button>
                     </div>
                     <button type="submit" disabled={forgotLoading}>
-                      {forgotLoading ? 'Updating...' : 'Reset Password'}
+                      {forgotLoading ? (
+                        <>
+                          <GearSpinner />
+                          Updating...
+                        </>
+                      ) : 'Reset Password'}
                     </button>
                     {forgotError && <span className="forgot-error">{forgotError}</span>}
                     {forgotSuccess && <span className="forgot-success">{forgotSuccess}</span>}
