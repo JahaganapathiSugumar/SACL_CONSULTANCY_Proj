@@ -11,12 +11,13 @@ import { type StatItem } from '../data/dashboardData';
 import PendingSampleCards from './PendingSampleCards';
 import CompletedTrialsModal from './CompletedTrialsModal';
 import { getDashboardStats } from '../services/statsService';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { CircularProgress } from '@mui/material';
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const [showPendingCards, setShowPendingCards] = useState(false);
   const [showCompletedTrials, setShowCompletedTrials] = useState(false);
   const [stats, setStats] = useState<StatItem[]>([]);
@@ -63,6 +64,7 @@ const UserDashboard: React.FC = () => {
         setShowNotifications={setShowNotifications}
         setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
+        photoRefreshKey={headerRefreshKey}
       />
       <main className="dashboard-content" style={{ padding: '20px' }}>
         <div className="welcome-section">
@@ -115,7 +117,7 @@ const UserDashboard: React.FC = () => {
           {/* User Specific Stats Grid */}
           {loadingStats ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-              <LoadingSpinner />
+              <CircularProgress />
             </div>
           ) : (
             <StatsGrid stats={stats} />
@@ -127,7 +129,12 @@ const UserDashboard: React.FC = () => {
       {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
 
       {/* Profile Modal */}
-      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <ProfileModal 
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
 
       {/* Pending Cards Overlay */}
       <PendingSampleCards
