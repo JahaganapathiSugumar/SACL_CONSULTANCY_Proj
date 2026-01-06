@@ -642,9 +642,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     placeholder="Actual"
                                                                     value={noOfMouldPoured}
                                                                     onChange={(e: any) => setNoOfMouldPoured(e.target.value)}
-                                                                    readOnly={true}
-                                                                    InputProps={{ readOnly: true, sx: { bgcolor: '#f1f5f9' } }}
-                                                                    disabled={false}
+                                                                    disabled={user?.role === 'HOD' && !isEditing}
                                                                     sx={{ width: '100px' }}
                                                                 />
                                                             </Box>

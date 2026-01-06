@@ -1204,8 +1204,8 @@ function FoundrySampleCard() {
                             value={actualMoulds}
                             onChange={(e) => setActualMoulds(e.target.value)}
                             size="small"
-                            placeholder="25"
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            placeholder="Get from Pouring"
+                            disabled={true}
                             InputLabelProps={{ shrink: true }}
                             sx={{
                               bgcolor: '#FFF59D',

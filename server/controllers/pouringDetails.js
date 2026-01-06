@@ -21,6 +21,13 @@ export const createPouringDetails = async (req, res, next) => {
         remarks,
         no_of_mould_poured
     });
+    
+    // Sync actual_moulds in trial_cards
+    const updateTrialSql = 'UPDATE trial_cards SET actual_moulds = @actual_moulds WHERE trial_id = @trial_id';
+    await Client.query(updateTrialSql, {
+        actual_moulds: no_of_mould_poured,
+        trial_id
+    });
 
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -54,6 +61,14 @@ export const updatePouringDetails = async (req, res, next) => {
         no_of_mould_poured,
         trial_id
     });
+
+    // Sync actual_moulds in trial_cards
+    const updateTrialSql = 'UPDATE trial_cards SET actual_moulds = @actual_moulds WHERE trial_id = @trial_id';
+    await Client.query(updateTrialSql, {
+        actual_moulds: no_of_mould_poured,
+        trial_id
+    });
+
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql, {
         user_id: req.user.user_id,
