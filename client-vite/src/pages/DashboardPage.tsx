@@ -88,13 +88,12 @@ const DashboardPage: React.FC = () => {
       <main className="dashboard-content">
         {(showUserDetails || showMasterList) && (
           <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 1100,
             backgroundColor: '#f8f9fa',
             padding: '10px 0',
             width: '100%',
-            marginBottom: '10px'
+            marginBottom: '10px',
+            display: 'flex',
+            alignItems: 'center'
           }}>
             <button
               className="btn-back"
@@ -297,7 +296,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Profile Modal */}
       {showProfile && (
-        <ProfileModal 
+        <ProfileModal
           onClose={() => setShowProfile(false)}
           onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
         />

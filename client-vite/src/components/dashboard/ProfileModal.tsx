@@ -458,31 +458,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                   Username
                 </div>
                 {!isEditingUsername ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ fontSize: '15px', color: '#333', fontWeight: 500 }}>
-                      {user?.username || 'N/A'}
-                    </div>
-                    <button
-                      onClick={() => {
-                        setIsEditingUsername(true);
-                        setNewUsername(user?.username || '');
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#667eea',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f0ff')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
-                    >
-                      ✏️ Edit
-                    </button>
+                  <div style={{ fontSize: '15px', color: '#333', fontWeight: 500 }}>
+                    {user?.username || 'N/A'}
                   </div>
                 ) : (
                   <div style={{ marginTop: '10px' }}>
@@ -578,31 +555,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                     Email Address
                   </div>
                   {!isEditingEmail ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ fontSize: '15px', color: '#333', fontWeight: 500, wordBreak: 'break-all' }}>
-                        {user?.email || 'Not set'}
-                      </div>
-                      <button
-                        onClick={() => {
-                          setIsEditingEmail(true);
-                          setNewEmail(user?.email || '');
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#667eea',
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f0ff')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
-                      >
-                        ✏️ Edit
-                      </button>
+                    <div style={{ fontSize: '15px', color: '#333', fontWeight: 500, wordBreak: 'break-all' }}>
+                      {user?.email || 'Not set'}
                     </div>
                   ) : (
                     <div style={{ marginTop: '10px' }}>

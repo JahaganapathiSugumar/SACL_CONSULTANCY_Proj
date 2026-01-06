@@ -89,8 +89,15 @@ class ApiService {
 
   async updateUserStatus(userId: number, status: boolean): Promise<void> {
     return this.request('/users/change-status', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({ userId, status })
+    });
+  }
+
+  async adminUpdateUser(userId: number, userData: Partial<User>): Promise<void> {
+    return this.request(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData)
     });
   }
 

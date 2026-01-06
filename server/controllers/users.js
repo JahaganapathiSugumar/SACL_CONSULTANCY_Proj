@@ -121,11 +121,11 @@ export const changePassword = async (req, res, next) => {
 export const updateUsername = async (req, res, next) => {
     const { username } = req.body || {};
     const user = req.user;
-    
+
     if (!username) throw new CustomError('Username is required', 400);
     if (typeof username !== 'string' || username.trim().length === 0) throw new CustomError('Username cannot be empty', 400);
     if (username === user.username) throw new CustomError('New username must be different from current username', 400);
-    
+
     // Check if username already exists
     const [existing] = await Client.query('SELECT TOP 1 user_id FROM users WHERE username = @username', { username });
     if (existing && existing.length > 0) {
@@ -158,22 +158,22 @@ export const changeStatus = async (req, res, next) => {
 export const uploadProfilePhoto = async (req, res, next) => {
     const { photoBase64 } = req.body || {};
     const user = req.user;
-    
+
     if (!photoBase64) throw new CustomError('Photo is required', 400);
     if (typeof photoBase64 !== 'string') throw new CustomError('Photo must be a base64 string', 400);
-    
+
     // Validate base64 format (basic check)
     if (!photoBase64.startsWith('data:image')) throw new CustomError('Invalid image format. Please upload a valid image.', 400);
-    
+
     // Optional: Limit photo size (max 5MB = 5242880 bytes)
     const maxPhotoSize = 5242880;
     if (photoBase64.length > maxPhotoSize) {
         throw new CustomError('Photo size exceeds maximum limit of 5MB', 400);
     }
 
-    await Client.query('UPDATE users SET profile_photo = @profile_photo WHERE user_id = @user_id', { 
-        profile_photo: photoBase64, 
-        user_id: user.user_id 
+    await Client.query('UPDATE users SET profile_photo = @profile_photo WHERE user_id = @user_id', {
+        profile_photo: photoBase64,
+        user_id: user.user_id
     });
 
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
@@ -189,14 +189,71 @@ export const uploadProfilePhoto = async (req, res, next) => {
 
 export const getProfilePhoto = async (req, res, next) => {
     const user = req.user;
-    
+
     const [rows] = await Client.query('SELECT profile_photo FROM users WHERE user_id = @user_id', { user_id: user.user_id });
-    
+
     if (!rows || rows.length === 0) {
         throw new CustomError('User not found', 404);
     }
 
     const profilePhoto = rows[0].profile_photo;
-    
+
     return res.json({ success: true, profilePhoto: profilePhoto || null });
+};
+
+export const adminUpdateUser = async (req, res, next) => {
+    const { userId } = req.params;
+    const { username, full_name, email, department_id, role, password } = req.body;
+
+    // Ensure userId is valid
+    if (!userId || isNaN(userId)) {
+        throw new CustomError('Valid User ID is required', 400);
+    }
+
+    // Check if user exists
+    const [existingUser] = await Client.query('SELECT * FROM users WHERE user_id = @userId', { userId });
+    if (!existingUser || existingUser.length === 0) {
+        throw new CustomError('User not found', 404);
+    }
+
+    // Check unique username if updated
+    if (username && username !== existingUser[0].username) {
+        const [duplicate] = await Client.query('SELECT user_id FROM users WHERE username = @username AND user_id != @userId', { username, userId });
+        if (duplicate && duplicate.length > 0) {
+            throw new CustomError('Username already in use', 409);
+        }
+    }
+
+    // Build update query dynamically
+    let sql = 'UPDATE users SET ';
+    const params = { userId };
+    const updates = [];
+
+    if (username) { updates.push('username = @username'); params.username = username; }
+    if (full_name) { updates.push('full_name = @full_name'); params.full_name = full_name; }
+    if (email !== undefined) { updates.push('email = @email'); params.email = email; }
+    if (department_id) { updates.push('department_id = @department_id'); params.department_id = department_id; }
+    if (role) { updates.push('role = @role'); params.role = role; }
+    if (password) {
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+        const hash = await bcrypt.hash(password, saltRounds);
+        updates.push('password_hash = @password_hash');
+        params.password_hash = hash;
+    }
+
+    if (updates.length > 0) {
+        sql += updates.join(', ') + ' WHERE user_id = @userId';
+        await Client.query(sql, params);
+
+        // Audit log
+        const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@admin_id, @admin_dept, @action, @remarks)';
+        await Client.query(audit_sql, {
+            admin_id: req.user.user_id,
+            admin_dept: req.user.department_id,
+            action: 'Admin Update User',
+            remarks: `Admin ${req.user.username} updated user ${username || existingUser[0].username} (ID: ${userId})`
+        });
+    }
+
+    res.json({ success: true, message: 'User updated successfully' });
 };

@@ -3,6 +3,7 @@ import type { User } from '../../types/user';
 import { apiService } from '../../services/commonService.ts';
 import UserTable from './UserTable.tsx';
 import AddUserModal from './AddUserModal.tsx';
+import EditUserModal from './EditUserModal.tsx';
 import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import './UserManagement.css';
 
@@ -13,6 +14,9 @@ const UserManagement: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
 
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const loadUsers = async () => {
     try {
@@ -40,6 +44,11 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -58,13 +67,25 @@ const UserManagement: React.FC = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      <UserTable users={users} onToggleStatus={handleToggleStatus} />
+      <UserTable users={users} onToggleStatus={handleToggleStatus} onEdit={handleEdit} />
 
       {showCreateModal && (
         <AddUserModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onUserCreated={loadUsers}
+        />
+      )}
+
+      {showEditModal && selectedUser && (
+        <EditUserModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedUser(null);
+          }}
+          onUserUpdated={loadUsers}
+          user={selectedUser}
         />
       )}
     </div>

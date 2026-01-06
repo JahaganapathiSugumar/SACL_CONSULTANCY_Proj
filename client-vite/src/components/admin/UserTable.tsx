@@ -2,10 +2,13 @@ import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import { getDepartmentName } from '../../utils/dashboardUtils';
 import './UserTable.css';
+import { IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface UserTableProps {
   users: User[];
   onToggleStatus: (userId: number, currentStatus: boolean) => void;
+  onEdit: (user: User) => void;
 }
 
 // Department mapping for filter options (unchanged)
@@ -22,7 +25,7 @@ const departmentOptions = [
   { id: 10, name: 'QA' }
 ];
 
-const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, onEdit }) => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
 
@@ -135,6 +138,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus }) => {
             <th>Role</th>
             <th>Department</th>
             <th>Status</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -169,11 +173,16 @@ const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus }) => {
                   {user.is_active ? 'Active' : 'Inactive'}
                 </button>
               </td>
+              <td style={{ textAlign: 'center' }}>
+                <IconButton onClick={() => onEdit(user)} size="small" style={{ color: '#1976d2' }}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </td>
             </tr>
           ))}
           {filteredUsers.length === 0 && (
             <tr>
-              <td colSpan={7} className="no-data">
+              <td colSpan={8} className="no-data">
                 No users found
               </td>
             </tr>
