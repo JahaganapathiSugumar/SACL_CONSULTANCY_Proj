@@ -1051,6 +1051,7 @@ export default function MetallurgicalInspection() {
           await updateDepartmentRole({
             trial_id: trialId,
             current_department_id: 9,
+            next_department_id: 5,
             username: user?.username || "user",
             role: "user",
             remarks: "Completed by user"

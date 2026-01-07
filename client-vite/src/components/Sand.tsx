@@ -243,6 +243,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             await updateDepartmentRole({
               trial_id: trialId,
               current_department_id: 4,
+              next_department_id: 6,
               username: user?.username || "user",
               role: "user",
               remarks: "Completed by user"

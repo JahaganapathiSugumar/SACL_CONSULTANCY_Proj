@@ -529,6 +529,7 @@ export default function VisualInspection({
                     await updateDepartmentRole({
                         trial_id: urlTrialId,
                         current_department_id: 5,
+                        next_department_id: 10,
                         username: user?.username || "user",
                         role: "user",
                         remarks: "Completed by user"

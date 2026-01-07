@@ -1,16 +1,13 @@
 import Client from '../config/connection.js';
 
 export const createTrial = async (req, res, next) => {
-    const { trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
+    const { trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
 
-    // Fallback: if no_of_moulds is not provided but plan_moulds is, use plan_moulds
-    const moulds = no_of_moulds || plan_moulds;
-
-    if (!trial_id || !part_name || !pattern_code || !material_grade || !initiated_by || !date_of_sampling || !moulds || !reason_for_sampling || !current_department_id || !disa || !sample_traceability) {
+    if (!trial_id || !part_name || !pattern_code || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !current_department_id || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
-    const sql = 'INSERT INTO trial_cards (trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, no_of_moulds, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_id, @part_name, @pattern_code, @material_grade, @initiated_by, @date_of_sampling, @no_of_moulds, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks)';
+    const sql = 'INSERT INTO trial_cards (trial_id, part_name, pattern_code, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_id, @part_name, @pattern_code, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks)';
     await Client.query(sql, {
         trial_id,
         part_name,
@@ -18,16 +15,15 @@ export const createTrial = async (req, res, next) => {
         material_grade,
         initiated_by,
         date_of_sampling,
-        no_of_moulds: moulds,
-        plan_moulds: plan_moulds || moulds, // Ensure plan_moulds is set
-        actual_moulds: actual_moulds || null,
+        plan_moulds,
+        actual_moulds,
         reason_for_sampling,
         status: status || 'CREATED',
         current_department_id,
         disa,
         sample_traceability,
         mould_correction: mouldJson,
-        tooling_modification: tooling_modification || null,
+        tooling_modification: tooling_modification,
         remarks: remarks || null
     });
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';

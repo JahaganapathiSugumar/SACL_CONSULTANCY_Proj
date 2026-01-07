@@ -93,7 +93,7 @@ export const updateDepartment = async (req, res, next) => {
 };
 
 export const updateRole = async (req, res, next) => {
-    const { trial_id, current_department_id, username, role, remarks } = req.body;
+    const { trial_id, current_department_id, next_department_id, username, role, remarks } = req.body;
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql_completion, {
         user_id: req.user.user_id,
@@ -107,51 +107,102 @@ export const updateRole = async (req, res, next) => {
         { current_department_id }
     );
     const current_department_hod = current_department_hod_result[0];
-    if (current_department_hod.length === 0) {
-        throw new CustomError("No HOD found for the department.");
+    if (current_department_hod.length !== 0) {
+        const current_department_hod_username = current_department_hod[0].username;
+        await Client.query(
+            `UPDATE department_progress SET username = @current_department_hod_username, remarks = @remarks, approval_status = 'pending' WHERE trial_id = @trial_id`,
+            { current_department_hod_username, remarks, trial_id }
+        );
+        const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
+        await Client.query(audit_sql_assignment, {
+            user_id: req.user.user_id,
+            department_id: req.user.department_id,
+            trial_id,
+            action: 'Department progress updated',
+            remarks: `Department progress for trial ${trial_id} assigned to HOD ${current_department_hod_username} by ${req.user.username}`
+        });
+        const user_result = await Client.query(
+            `SELECT * FROM users WHERE username = @username`,
+            { username: current_department_hod_username }
+        );
+        const user = user_result[0];
+        const mailOptions = {
+            to: user[0].email,
+            subject: 'A new request assigned',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
+                    <h2 style="color: #2950bb;">New Request Assigned</h2>
+                    <p>Hello,</p>
+                    <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${req.user.username}</strong>.</p>
+                    <p>Please check the progress by logging into the application.</p>
+                    <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                </div>
+            `,
+            attachments: [{
+                filename: 'SACL-LOGO-01.jpg',
+                path: path.resolve(__dirname, '../assets/SACL-LOGO-01.jpg'),
+                cid: 'sacllogo'
+            }]
+        };
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({
+            success: true,
+            data: "Department progress updated successfully"
+        });
+    } else {
+        const next_department_user_result = await Client.query(
+            `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1`,
+            { next_department_id }
+        );
+        const next_department_user = next_department_user_result[0];
+        console.log(next_department_user[0]);
+        if (next_department_user.length === 0) {
+            throw new CustomError("No user found for updating progress");
+        }
+        const next_department_username = next_department_user[0].username;
+        await Client.query(
+            `UPDATE department_progress SET username = @next_department_username, remarks = @remarks, approval_status = 'pending' WHERE trial_id = @trial_id`,
+            { next_department_username, remarks, trial_id }
+        );
+        const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
+        await Client.query(audit_sql_assignment, {
+            user_id: req.user.user_id,
+            department_id: req.user.department_id,
+            trial_id,
+            action: 'Department progress updated',
+            remarks: `Department progress for trial ${trial_id} assigned to user ${next_department_username} by ${req.user.username}`
+        });
+        const user_result = await Client.query(
+            `SELECT * FROM users WHERE username = @username`,
+            { username: next_department_username }
+        );
+        const user = user_result[0];
+        const mailOptions = {
+            to: user[0].email,
+            subject: 'A new request assigned',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
+                    <h2 style="color: #2950bb;">New Request Assigned</h2>
+                    <p>Hello,</p>
+                    <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${req.user.username}</strong>.</p>
+                    <p>Please check the progress by logging into the application.</p>
+                    <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                </div>
+            `,
+            attachments: [{
+                filename: 'SACL-LOGO-01.jpg',
+                path: path.resolve(__dirname, '../assets/SACL-LOGO-01.jpg'),
+                cid: 'sacllogo'
+            }]
+        };
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({
+            success: true,
+            data: "Department progress updated successfully"
+        });
     }
-    const current_department_hod_username = current_department_hod[0].username;
-    await Client.query(
-        `UPDATE department_progress SET username = @current_department_hod_username, remarks = @remarks, approval_status = 'pending' WHERE trial_id = @trial_id`,
-        { current_department_hod_username, remarks, trial_id }
-    );
-    const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
-    await Client.query(audit_sql_assignment, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        trial_id,
-        action: 'Department progress updated',
-        remarks: `Department progress for trial ${trial_id} assigned to HOD ${current_department_hod_username} by ${req.user.username}`
-    });
-    const user_result = await Client.query(
-        `SELECT * FROM users WHERE username = @username`,
-        { username: current_department_hod_username }
-    );
-    const user = user_result[0];
-    const mailOptions = {
-        to: user[0].email,
-        subject: 'A new request assigned',
-        html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
-                <h2 style="color: #2950bb;">New Request Assigned</h2>
-                <p>Hello,</p>
-                <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${req.user.username}</strong>.</p>
-                <p>Please check the progress by logging into the application.</p>
-                <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
-            </div>
-        `,
-        attachments: [{
-            filename: 'SACL-LOGO-01.jpg',
-            path: path.resolve(__dirname, '../assets/SACL-LOGO-01.jpg'),
-            cid: 'sacllogo'
-        }]
-    };
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({
-        success: true,
-        data: "Department progress updated successfully"
-    });
 };
 
 export const approveProgress = async (req, res, next) => {

@@ -365,6 +365,7 @@ export default function DimensionalInspection({
                     await updateDepartmentRole({
                         trial_id: trialId,
                         current_department_id: 10,
+                        next_department_id: 8,
                         username: user?.username || "user",
                         role: "user",
                         remarks: "Completed by user"

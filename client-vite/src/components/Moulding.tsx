@@ -250,6 +250,7 @@ function MouldingTable() {
           await updateDepartmentRole({
             trial_id: trialId,
             current_department_id: 6,
+            next_department_id: 9,
             username: user?.username || "user",
             role: "user",
             remarks: "Completed by user"

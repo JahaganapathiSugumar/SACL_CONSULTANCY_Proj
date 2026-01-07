@@ -455,6 +455,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     await updateDepartmentRole({
                         trial_id: trialId,
                         current_department_id: 7,
+                        next_department_id: 4,
                         username: user?.username || "user",
                         role: "user",
                         remarks: "Completed by user"

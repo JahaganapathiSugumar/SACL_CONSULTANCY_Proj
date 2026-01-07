@@ -77,6 +77,7 @@ export async function updateDepartment(payload: {
 export async function updateDepartmentRole(payload: {
   trial_id: string;
   current_department_id: number;
+  next_department_id?: number;
   username: string;
   role: string;
   remarks: string;

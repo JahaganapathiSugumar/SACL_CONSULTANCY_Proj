@@ -30,7 +30,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  RadioGroup,
+  FormControlLabel,
+  Radio
 } from "@mui/material";
 import Swal from 'sweetalert2';
 import Autocomplete from "@mui/material/Autocomplete";
@@ -254,6 +257,7 @@ function FoundrySampleCard() {
 
   const MACHINES = ["DISA - 1", "DISA - 2", "DISA - 3", "DISA - 4", "DISA - 5"];
   const SAMPLING_REASONS = ["First trial", "Metallurgical Trial", "Others"];
+  const TRIAL_TYPES = ["INHOUSE MACHINING(NPD)", "INHOUSE MACHINING(REGULAR)", "MACHINING - CUSTOMER END"];
   const [samplingDate, setSamplingDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [planMoulds, setPlanMoulds] = useState("");
   const [actualMoulds, setActualMoulds] = useState("");
@@ -262,6 +266,7 @@ function FoundrySampleCard() {
   const [customReason, setCustomReason] = useState("");
   const [reason_for_sampling, setReasonForSampling] = useState("");
   const [sampleTraceability, setSampleTraceability] = useState("");
+  const [trialType, setTrialType] = useState("");
   const [toolingModification, setToolingModification] = useState("");
   const [toolingFiles, setToolingFiles] = useState<File[]>([]);
   const handleToolingFilesChange = (newFiles: File[]) => {
@@ -320,11 +325,12 @@ function FoundrySampleCard() {
             setTrialId(data.trial_id || trialIdFromUrl);
             setTrialNo(data.trial_id?.split('-').pop() || '');
             setSamplingDate(data.date_of_sampling || new Date().toISOString().split("T")[0]);
-            setPlanMoulds(data.plan_moulds || data.no_of_moulds || '');
+            setPlanMoulds(data.plan_moulds || '');
             setActualMoulds(data.actual_moulds || '');
             setMachine(data.disa || '');
             setReason(data.reason_for_sampling || '');
             setSampleTraceability(data.sample_traceability && data.sample_traceability !== 'null' && data.sample_traceability !== 'undefined' ? data.sample_traceability : '');
+            setTrialType(data.trial_type && data.trial_type !== 'null' && data.trial_type !== 'undefined' ? data.trial_type : '');
             setToolingModification(data.tooling_modification && data.tooling_modification !== 'null' && data.tooling_modification !== 'undefined' ? data.tooling_modification : '');
             setRemarks(data.remarks && data.remarks !== 'null' && data.remarks !== 'undefined' ? data.remarks : '');
 
@@ -478,11 +484,11 @@ function FoundrySampleCard() {
       date_of_sampling: samplingDate,
       status: "CREATED",
       current_department_id: 3,
-      no_of_moulds: planMoulds, // Fallback
       plan_moulds: planMoulds,
       actual_moulds: actualMoulds,
       reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
       sample_traceability: sampleTraceability,
+      trial_type: trialType,
       mould_correction: mouldCorrections,
       disa: machine,
       initiated_by: user?.username || "Unknown",
@@ -511,12 +517,12 @@ function FoundrySampleCard() {
               pattern_code: selectedPart?.pattern_code,
               material_grade: selectedPart?.material_grade,
               date_of_sampling: samplingDate,
-              no_of_moulds: planMoulds, // Fallback
               plan_moulds: planMoulds,
               actual_moulds: actualMoulds,
               reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
               disa: machine,
               sample_traceability: sampleTraceability,
+              trial_type: trialType,
               mould_correction: mouldCorrections,
               tooling_modification: toolingModification,
               remarks: remarks
@@ -632,6 +638,7 @@ function FoundrySampleCard() {
         await updateDepartmentRole({
           trial_id: trialId,
           current_department_id: 2,
+          next_department_id: 3,
           username: user?.username || "HOD",
           role: "HOD",
           remarks: "Approved by HOD"
@@ -1149,6 +1156,7 @@ function FoundrySampleCard() {
                         "DISA / FOUNDRY-A",
                         "Reason For Sampling",
                         "Sample Traceability",
+                        "Trial Type",
                         "Pattern Data Sheet",
                       ].map((head) => (
                         <TableCell
@@ -1277,6 +1285,25 @@ function FoundrySampleCard() {
                           placeholder="Enter option"
                           disabled={user?.role === 'HOD' && !isEditing}
                         />
+                      </TableCell>
+                      <TableCell>
+                        <FormControl component="fieldset" fullWidth>
+                          <RadioGroup
+                            value={trialType}
+                            onChange={(e) => setTrialType(e.target.value)}
+                          >
+                            {TRIAL_TYPES.map((type) => (
+                              <FormControlLabel
+                                key={type}
+                                value={type}
+                                control={<Radio size="small" />}
+                                label={<Typography variant="caption">{type}</Typography>}
+                                disabled={user?.role === 'HOD' && !isEditing}
+                                sx={{ mb: 0.5 }}
+                              />
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
                       </TableCell>
                       <TableCell align="center">
                         <Button

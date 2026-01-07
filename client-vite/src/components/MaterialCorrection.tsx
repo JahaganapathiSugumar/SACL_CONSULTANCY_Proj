@@ -234,6 +234,7 @@ export default function MaterialCorrection() {
                         await updateDepartmentRole({
                             trial_id: trialId,
                             current_department_id: 3,
+                            next_department_id: 7,
                             username: user?.username || "user",
                             role: "HOD",
                             remarks: "Completed by user"
