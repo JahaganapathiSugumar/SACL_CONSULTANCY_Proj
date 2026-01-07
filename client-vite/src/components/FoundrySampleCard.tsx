@@ -550,7 +550,6 @@ function FoundrySampleCard() {
             trial_id: trialIdFromUrl,
             next_department_id: 3,
             username: user.username,
-            current_form: "MATERIAL_CORRECTION",
             role: user.role,
             remarks: "Approved by HOD"
           };
@@ -629,7 +628,6 @@ function FoundrySampleCard() {
           trial_id: trialId,
           department_id: 2,
           username: user?.username || "Unknown",
-          current_form: "METALLURGICAL_SPECIFICATION",
           approval_status: "pending",
           remarks: "Trial Initiated",
           completed_at: new Date().toISOString().slice(0, 19).replace('T', ' ')

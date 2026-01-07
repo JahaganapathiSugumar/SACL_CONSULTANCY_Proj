@@ -391,7 +391,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         trial_id: trialId,
                         next_department_id: 4,
                         username: user.username,
-                        current_form: "SANDPLANT",
                         role: user.role,
                         remarks: "Approved by HOD"
                     };

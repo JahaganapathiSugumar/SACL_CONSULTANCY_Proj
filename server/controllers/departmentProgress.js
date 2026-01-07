@@ -8,10 +8,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const createProgress = async (req, res, next) => {
-    const { trial_id, department_id, completed_at, approval_status, current_form, remarks, username } = req.body;
+    const { trial_id, department_id, completed_at, approval_status, remarks, username } = req.body;
     await Client.query(
-        `INSERT INTO department_progress (trial_id, department_id, completed_at, approval_status, current_form, remarks, username) VALUES (@trial_id, @department_id, @completed_at, @approval_status, @current_form, @remarks, @username)`,
-        { trial_id, department_id, completed_at, approval_status, current_form, remarks, username }
+        `INSERT INTO department_progress (trial_id, department_id, completed_at, approval_status, remarks, username) VALUES (@trial_id, @department_id, @completed_at, @approval_status, @remarks, @username)`,
+        { trial_id, department_id, completed_at, approval_status, remarks, username }
     );
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -28,7 +28,7 @@ export const createProgress = async (req, res, next) => {
 };
 
 export const updateDepartment = async (req, res, next) => {
-    const { trial_id, next_department_id, username, current_form, role, remarks } = req.body;
+    const { trial_id, next_department_id, username, role, remarks } = req.body;
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql_completion, {
         user_id: req.user.user_id,
@@ -48,8 +48,8 @@ export const updateDepartment = async (req, res, next) => {
     }
     const next_department_username = next_department_user[0].username;
     await Client.query(
-        `UPDATE department_progress SET department_id = @next_department_id, username = @next_department_username, remarks = @remarks, current_form = @current_form WHERE trial_id = @trial_id`,
-        { next_department_id, next_department_username, remarks, trial_id, current_form }
+        `UPDATE department_progress SET department_id = @next_department_id, username = @next_department_username, remarks = @remarks WHERE trial_id = @trial_id`,
+        { next_department_id, next_department_username, remarks, trial_id }
     );
 
     await Client.query(
@@ -156,14 +156,17 @@ export const updateRole = async (req, res, next) => {
             { next_department_id }
         );
         const next_department_user = next_department_user_result[0];
-        console.log(next_department_user[0]);
         if (next_department_user.length === 0) {
             throw new CustomError("No user found for updating progress");
         }
         const next_department_username = next_department_user[0].username;
         await Client.query(
-            `UPDATE department_progress SET username = @next_department_username, remarks = @remarks, approval_status = 'pending' WHERE trial_id = @trial_id`,
-            { next_department_username, remarks, trial_id }
+            `UPDATE department_progress SET department_id = @next_department_id, username = @next_department_username, remarks = @remarks WHERE trial_id = @trial_id`,
+            { next_department_id, next_department_username, remarks, trial_id }
+        );
+        await Client.query(
+            `UPDATE trial_cards SET current_department_id = @next_department_id WHERE trial_id = @trial_id`,
+            { next_department_id, trial_id }
         );
         const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
         await Client.query(audit_sql_assignment, {
@@ -234,6 +237,7 @@ export const getProgress = async (req, res, next) => {
          WHERE department_progress.username = @username AND department_progress.approval_status = 'pending'`,
         { username }
     );
+    console.log(result);
     res.status(200).json({
         success: true,
         data: result

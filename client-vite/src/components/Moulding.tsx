@@ -199,7 +199,6 @@ function MouldingTable() {
           trial_id: trialId,
           next_department_id: 9,
           username: user.username,
-          current_form: "METALLURGICAL_INSPECTION",
           role: user.role,
           remarks: "Approved by HOD"
         };

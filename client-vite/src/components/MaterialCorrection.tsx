@@ -186,7 +186,6 @@ export default function MaterialCorrection() {
                         trial_id: trialId,
                         next_department_id: 7,
                         username: user.username,
-                        current_form: "POURING",
                         role: user.role,
                         remarks: "Approved by HOD"
                     };

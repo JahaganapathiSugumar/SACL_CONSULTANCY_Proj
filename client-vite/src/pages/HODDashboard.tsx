@@ -31,7 +31,7 @@ const HODDashboard: React.FC = () => {
 
   const handlePendingCardSelect = (card: any) => {
     setShowPendingCards(false);
-    const route = getPendingRoute(card.current_form);
+    const route = getPendingRoute(card.department_id);
     navigate(`${route}?trial_id=${card.trial_id}`);
   };
 

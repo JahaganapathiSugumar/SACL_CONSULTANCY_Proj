@@ -34,22 +34,20 @@ export const getDepartmentInfo = (user: any) => {
     }
 };
 
-export const getPendingRoute = (currentForm: string | undefined): string => {
-    if (!currentForm) return '/dashboard';
+export const getPendingRoute = (departmentId: number | undefined): string => {
+    if (!departmentId) return '/dashboard';
 
-    const departmentRoutes: Record<string, string> = {
-        'DIMENSIONAL_INSPECTION': '/dimensional-inspection',
-        'METALLURGICAL_INSPECTION': '/metallurgical-inspection',
-        'MC_SHOP': '/mc-shop',
-        'MOULDING': '/moulding',
-        'POURING': '/pouring',
-        'MATERIAL_CORRECTION': '/material-correction',
-        'SANDPLANT': '/sand',
-        'VISUAL_INSPECTION': '/visual-inspection',
-        'METALLURGICAL_SPECIFICATION': '/foundry-sample-card'
+    const departmentRoutes: Record<number, string> = {
+        10: '/dimensional-inspection',
+        9: '/metallurgical-inspection',
+        8: '/mc-shop',
+        6: '/moulding',
+        7: '/pouring',
+        3: '/material-correction',
+        4: '/sand',
+        5: '/visual-inspection',
+        2: '/foundry-sample-card'
     };
 
-    // METALLURGICAL_SPECIFICATION, MATERIAL_CORRECTION, POURING, SANDPLANT, MOULDING, METALLURGICAL_INSPECTION, VISUAL_INSPECTION, DIMENSIONAL_INSPECTION, MC_SHOP
-
-    return departmentRoutes[currentForm] || '/dashboard';
+    return departmentRoutes[departmentId] || '/dashboard';
 };
