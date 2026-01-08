@@ -55,7 +55,6 @@ import { appTheme, COLORS } from "../theme/appTheme";
 import { trialService } from "../services/trialService";
 import { ipService } from "../services/ipService";
 import { uploadFiles } from '../services/fileUploadHelper';
-import { specificationService } from "../services/specificationService";
 import departmentProgressService, { updateDepartment, updateDepartmentRole } from "../services/departmentProgressService";
 import { validateFileSizes, fileToBase64 } from '../utils/fileHelpers';
 import { useAlert } from '../hooks/useAlert';
@@ -527,23 +526,6 @@ function FoundrySampleCard() {
               tooling_modification: toolingModification,
               remarks: remarks
             });
-            await specificationService.updateMetallurgicalSpecs({
-              trial_id: trialIdFromUrl,
-              chemical_composition: chemState,
-              microstructure: microState
-            });
-            await specificationService.updateMechanicalProperties({
-              trial_id: trialIdFromUrl,
-              tensile_strength: tensileState.tensileStrength,
-              yield_strength: tensileState.yieldStrength,
-              elongation: tensileState.elongation,
-              impact_strength_cold: tensileState.impactCold,
-              impact_strength_room: tensileState.impactRoom,
-              hardness_surface: hardnessState.surface,
-              hardness_core: hardnessState.core,
-              x_ray_inspection: selectedPart?.xray || "N/A",
-              mpi: selectedPart?.mpi || "N/A"
-            });
           }
 
           const approvalPayload = {
@@ -578,25 +560,6 @@ function FoundrySampleCard() {
       }
 
       await trialService.submitTrial(previewPayload);
-
-      await specificationService.submitMetallurgicalSpecs({
-        trial_id: trialId,
-        chemical_composition: chemState,
-        microstructure: microState
-      });
-
-      await specificationService.submitMechanicalProperties({
-        trial_id: trialId,
-        tensile_strength: tensileState.tensileStrength,
-        yield_strength: tensileState.yieldStrength,
-        elongation: tensileState.elongation,
-        impact_strength_cold: tensileState.impactCold,
-        impact_strength_room: tensileState.impactRoom,
-        hardness_surface: hardnessState.surface,
-        hardness_core: hardnessState.core,
-        x_ray_inspection: selectedPart?.xray || "N/A",
-        mpi: selectedPart?.mpi || "N/A"
-      });
 
       try {
         await uploadFiles(
@@ -904,7 +867,7 @@ function FoundrySampleCard() {
             title="Verify Specification"
             subtitle="Foundry Sample Card - Review your data"
             submitted={submitted}
-            isSubmitting={isSubmitting} // Pass loading state to PreviewModal if it supports it, or handle in parent
+            isSubmitting={isSubmitting}
           >
             <Box sx={{ p: { xs: 2, md: 4 } }}>
               <AlertMessage alert={alert} />

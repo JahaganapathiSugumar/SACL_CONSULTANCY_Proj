@@ -5,92 +5,13 @@ export const getMasterList = async (req, res, next) => {
     const query = `
         SELECT 
             m.*,
-            t.id as tooling_id,
-            t.number_of_cavity,
-            t.cavity_identification,
-            t.pattern_material,
-            t.core_weight,
-            t.core_mask_thickness,
-            t.estimated_casting_weight,
-            t.estimated_bunch_weight,
-            t.pattern_plate_thickness_sp,
-            t.pattern_plate_weight_sp,
-            t.core_mask_weight_sp,
-            t.crush_pin_height_sp,
-            t.calculated_yield_sp,
-            t.pattern_plate_thickness_pp,
-            t.pattern_plate_weight_pp,
-            t.core_mask_weight_pp,
-            t.crush_pin_height_pp,
-            t.calculated_yield_pp,
-            t.yield_label,
-            t.remarks as tooling_remarks,
-            t.created_at as tooling_created_at,
-            t.updated_at as tooling_updated_at
+            t.*
         FROM master_card m
         LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id
     `;
     const [rows] = await Client.query(query);
 
-    const data = rows.map(row => {
-        const {
-            tooling_id,
-            number_of_cavity,
-            cavity_identification,
-            pattern_material,
-            core_weight,
-            core_mask_thickness,
-            estimated_casting_weight,
-            estimated_bunch_weight,
-            pattern_plate_thickness_sp,
-            pattern_plate_weight_sp,
-            core_mask_weight_sp,
-            crush_pin_height_sp,
-            calculated_yield_sp,
-            pattern_plate_thickness_pp,
-            pattern_plate_weight_pp,
-            core_mask_weight_pp,
-            crush_pin_height_pp,
-            calculated_yield_pp,
-            yield_label,
-            tooling_remarks,
-            tooling_created_at,
-            tooling_updated_at,
-            ...masterData
-        } = row;
-
-        const tooling = tooling_id ? {
-            id: tooling_id,
-            number_of_cavity,
-            cavity_identification,
-            pattern_material,
-            core_weight,
-            core_mask_thickness,
-            estimated_casting_weight,
-            estimated_bunch_weight,
-            pattern_plate_thickness_sp,
-            pattern_plate_weight_sp,
-            core_mask_weight_sp,
-            crush_pin_height_sp,
-            calculated_yield_sp,
-            pattern_plate_thickness_pp,
-            pattern_plate_weight_pp,
-            core_mask_weight_pp,
-            crush_pin_height_pp,
-            calculated_yield_pp,
-            yield_label,
-            remarks: tooling_remarks,
-            created_at: tooling_created_at,
-            updated_at: tooling_updated_at
-        } : null;
-
-        return {
-            ...masterData,
-            tooling
-        };
-    });
-
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ success: true, data: rows });
 };
 
 export const getMasterByPatternCode = async (req, res, next) => {
@@ -103,97 +24,26 @@ export const getMasterByPatternCode = async (req, res, next) => {
     const query = `
         SELECT 
             m.*,
-            t.id as tooling_id,
-            t.number_of_cavity,
-            t.cavity_identification,
-            t.pattern_material,
-            t.core_weight,
-            t.core_mask_thickness,
-            t.estimated_casting_weight,
-            t.estimated_bunch_weight,
-            t.pattern_plate_thickness_sp,
-            t.pattern_plate_weight_sp,
-            t.core_mask_weight_sp,
-            t.crush_pin_height_sp,
-            t.calculated_yield_sp,
-            t.pattern_plate_thickness_pp,
-            t.pattern_plate_weight_pp,
-            t.core_mask_weight_pp,
-            t.crush_pin_height_pp,
-            t.calculated_yield_pp,
-            t.yield_label,
-            t.remarks as tooling_remarks,
-            t.created_at as tooling_created_at,
-            t.updated_at as tooling_updated_at
+            t.*
         FROM master_card m
         LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id
         WHERE m.pattern_code = @pattern_code
     `;
     const [rows] = await Client.query(query, { pattern_code });
 
-    const data = rows.map(row => {
-        const {
-            tooling_id,
-            number_of_cavity,
-            cavity_identification,
-            pattern_material,
-            core_weight,
-            core_mask_thickness,
-            estimated_casting_weight,
-            estimated_bunch_weight,
-            pattern_plate_thickness_sp,
-            pattern_plate_weight_sp,
-            core_mask_weight_sp,
-            crush_pin_height_sp,
-            calculated_yield_sp,
-            pattern_plate_thickness_pp,
-            pattern_plate_weight_pp,
-            core_mask_weight_pp,
-            crush_pin_height_pp,
-            calculated_yield_pp,
-            yield_label,
-            tooling_remarks,
-            tooling_created_at,
-            tooling_updated_at,
-            ...masterData
-        } = row;
-
-        const tooling = tooling_id ? {
-            id: tooling_id,
-            number_of_cavity,
-            cavity_identification,
-            pattern_material,
-            core_weight,
-            core_mask_thickness,
-            estimated_casting_weight,
-            estimated_bunch_weight,
-            pattern_plate_thickness_sp,
-            pattern_plate_weight_sp,
-            core_mask_weight_sp,
-            crush_pin_height_sp,
-            calculated_yield_sp,
-            pattern_plate_thickness_pp,
-            pattern_plate_weight_pp,
-            core_mask_weight_pp,
-            crush_pin_height_pp,
-            calculated_yield_pp,
-            yield_label,
-            remarks: tooling_remarks,
-            created_at: tooling_created_at,
-            updated_at: tooling_updated_at
-        } : null;
-
-        return {
-            ...masterData,
-            tooling
-        };
-    });
-
-    res.status(200).json({ success: true, data: data[0] || null });
+    res.status(200).json({ success: true, data: rows[0] || null });
 };
 
 export const createMasterList = async (req, res, next) => {
-    const { pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray, tooling } = req.body || {};
+    const {
+        pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray,
+        number_of_cavity, cavity_identification, pattern_material, core_weight, core_mask_thickness,
+        estimated_casting_weight, estimated_bunch_weight, pattern_plate_thickness_sp, pattern_plate_weight_sp,
+        core_mask_weight_sp, crush_pin_height_sp, calculated_yield_sp, pattern_plate_thickness_pp,
+        pattern_plate_weight_pp, core_mask_weight_pp, crush_pin_height_pp, calculated_yield_pp,
+        yield_label, remarks
+    } = req.body || {};
+
     if (
         !pattern_code ||
         !part_name ||
@@ -233,10 +83,32 @@ export const createMasterList = async (req, res, next) => {
 
         const masterId = masterResult[0][0]?.id;
 
-        if (masterId && tooling) {
-            const toolingSql = `
-                INSERT INTO tooling_pattern_data (
-                    master_card_id,
+        if (masterId) {
+            try {
+                const toolingSql = `
+                    INSERT INTO tooling_pattern_data (
+                        master_card_id,
+                        number_of_cavity, cavity_identification, pattern_material,
+                        core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
+                        pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
+                        crush_pin_height_sp, calculated_yield_sp,
+                        pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
+                        crush_pin_height_pp, calculated_yield_pp,
+                        yield_label, remarks
+                    ) VALUES (
+                        @master_card_id,
+                        @number_of_cavity, @cavity_identification, @pattern_material,
+                        @core_weight, @core_mask_thickness, @estimated_casting_weight, @estimated_bunch_weight,
+                        @pattern_plate_thickness_sp, @pattern_plate_weight_sp, @core_mask_weight_sp,
+                        @crush_pin_height_sp, @calculated_yield_sp,
+                        @pattern_plate_thickness_pp, @pattern_plate_weight_pp, @core_mask_weight_pp,
+                        @crush_pin_height_pp, @calculated_yield_pp,
+                        @yield_label, @remarks
+                    )
+                `;
+
+                await trx.query(toolingSql, {
+                    master_card_id: masterId,
                     number_of_cavity, cavity_identification, pattern_material,
                     core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
                     pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
@@ -244,40 +116,10 @@ export const createMasterList = async (req, res, next) => {
                     pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
                     crush_pin_height_pp, calculated_yield_pp,
                     yield_label, remarks
-                ) VALUES (
-                    @master_card_id,
-                    @number_of_cavity, @cavity_identification, @pattern_material,
-                    @core_weight, @core_mask_thickness, @estimated_casting_weight, @estimated_bunch_weight,
-                    @pattern_plate_thickness_sp, @pattern_plate_weight_sp, @core_mask_weight_sp,
-                    @crush_pin_height_sp, @calculated_yield_sp,
-                    @pattern_plate_thickness_pp, @pattern_plate_weight_pp, @core_mask_weight_pp,
-                    @crush_pin_height_pp, @calculated_yield_pp,
-                    @yield_label, @remarks
-                )
-            `;
-
-            await trx.query(toolingSql, {
-                master_card_id: masterId,
-                number_of_cavity: tooling.number_of_cavity,
-                cavity_identification: tooling.cavity_identification,
-                pattern_material: tooling.pattern_material,
-                core_weight: tooling.core_weight,
-                core_mask_thickness: tooling.core_mask_thickness,
-                estimated_casting_weight: tooling.estimated_casting_weight,
-                estimated_bunch_weight: tooling.estimated_bunch_weight,
-                pattern_plate_thickness_sp: tooling.pattern_plate_thickness_sp,
-                pattern_plate_weight_sp: tooling.pattern_plate_weight_sp,
-                core_mask_weight_sp: tooling.core_mask_weight_sp,
-                crush_pin_height_sp: tooling.crush_pin_height_sp,
-                calculated_yield_sp: tooling.calculated_yield_sp,
-                pattern_plate_thickness_pp: tooling.pattern_plate_thickness_pp,
-                pattern_plate_weight_pp: tooling.pattern_plate_weight_pp,
-                core_mask_weight_pp: tooling.core_mask_weight_pp,
-                crush_pin_height_pp: tooling.crush_pin_height_pp,
-                calculated_yield_pp: tooling.calculated_yield_pp,
-                yield_label: tooling.yield_label,
-                remarks: tooling.remarks
-            });
+                });
+            } catch (err) {
+                throw new CustomError(`Failed to insert tooling data: ${err.message}`, 500);
+            }
         }
     });
 
@@ -288,6 +130,7 @@ export const createMasterList = async (req, res, next) => {
         action: 'Master list created',
         remarks: `Master list ${pattern_code} created by ${req.user.username} with part name ${part_name}`
     });
+
     res.status(201).json({
         success: true,
         message: "Master list created successfully."
@@ -295,8 +138,21 @@ export const createMasterList = async (req, res, next) => {
 };
 
 export const updateMasterList = async (req, res, next) => {
-    const { id } = req.params;
-    const { pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray, tooling } = req.body || {};
+    let { id } = req.params;
+
+    if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ success: false, message: 'Invalid ID provided' });
+    }
+    id = parseInt(id);
+
+    const {
+        pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray,
+        number_of_cavity, cavity_identification, pattern_material, core_weight, core_mask_thickness,
+        estimated_casting_weight, estimated_bunch_weight, pattern_plate_thickness_sp, pattern_plate_weight_sp,
+        core_mask_weight_sp, crush_pin_height_sp, calculated_yield_sp, pattern_plate_thickness_pp,
+        pattern_plate_weight_pp, core_mask_weight_pp, crush_pin_height_pp, calculated_yield_pp,
+        yield_label, remarks
+    } = req.body || {};
 
     if (!pattern_code || !part_name) {
         throw new CustomError('Missing required fields', 400);
@@ -321,7 +177,7 @@ export const updateMasterList = async (req, res, next) => {
             id
         });
 
-        if (tooling) {
+        try {
             const checkSql = 'SELECT id FROM tooling_pattern_data WHERE master_card_id = @id';
             const checkResult = await trx.query(checkSql, { id });
 
@@ -339,25 +195,13 @@ export const updateMasterList = async (req, res, next) => {
                     WHERE master_card_id=@id
                 `;
                 await trx.query(updateToolingSql, {
-                    number_of_cavity: tooling.number_of_cavity,
-                    cavity_identification: tooling.cavity_identification,
-                    pattern_material: tooling.pattern_material,
-                    core_weight: tooling.core_weight,
-                    core_mask_thickness: tooling.core_mask_thickness,
-                    estimated_casting_weight: tooling.estimated_casting_weight,
-                    estimated_bunch_weight: tooling.estimated_bunch_weight,
-                    pattern_plate_thickness_sp: tooling.pattern_plate_thickness_sp,
-                    pattern_plate_weight_sp: tooling.pattern_plate_weight_sp,
-                    core_mask_weight_sp: tooling.core_mask_weight_sp,
-                    crush_pin_height_sp: tooling.crush_pin_height_sp,
-                    calculated_yield_sp: tooling.calculated_yield_sp,
-                    pattern_plate_thickness_pp: tooling.pattern_plate_thickness_pp,
-                    pattern_plate_weight_pp: tooling.pattern_plate_weight_pp,
-                    core_mask_weight_pp: tooling.core_mask_weight_pp,
-                    crush_pin_height_pp: tooling.crush_pin_height_pp,
-                    calculated_yield_pp: tooling.calculated_yield_pp,
-                    yield_label: tooling.yield_label,
-                    remarks: tooling.remarks,
+                    number_of_cavity, cavity_identification, pattern_material,
+                    core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
+                    pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
+                    crush_pin_height_sp, calculated_yield_sp,
+                    pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
+                    crush_pin_height_pp, calculated_yield_pp,
+                    yield_label, remarks,
                     id
                 });
             } else {
@@ -384,27 +228,17 @@ export const updateMasterList = async (req, res, next) => {
                 `;
                 await trx.query(insertToolingSql, {
                     id,
-                    number_of_cavity: tooling.number_of_cavity,
-                    cavity_identification: tooling.cavity_identification,
-                    pattern_material: tooling.pattern_material,
-                    core_weight: tooling.core_weight,
-                    core_mask_thickness: tooling.core_mask_thickness,
-                    estimated_casting_weight: tooling.estimated_casting_weight,
-                    estimated_bunch_weight: tooling.estimated_bunch_weight,
-                    pattern_plate_thickness_sp: tooling.pattern_plate_thickness_sp,
-                    pattern_plate_weight_sp: tooling.pattern_plate_weight_sp,
-                    core_mask_weight_sp: tooling.core_mask_weight_sp,
-                    crush_pin_height_sp: tooling.crush_pin_height_sp,
-                    calculated_yield_sp: tooling.calculated_yield_sp,
-                    pattern_plate_thickness_pp: tooling.pattern_plate_thickness_pp,
-                    pattern_plate_weight_pp: tooling.pattern_plate_weight_pp,
-                    core_mask_weight_pp: tooling.core_mask_weight_pp,
-                    crush_pin_height_pp: tooling.crush_pin_height_pp,
-                    calculated_yield_pp: tooling.calculated_yield_pp,
-                    yield_label: tooling.yield_label,
-                    remarks: tooling.remarks
+                    number_of_cavity, cavity_identification, pattern_material,
+                    core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
+                    pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
+                    crush_pin_height_sp, calculated_yield_sp,
+                    pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
+                    crush_pin_height_pp, calculated_yield_pp,
+                    yield_label, remarks
                 });
             }
+        } catch (err) {
+            throw new CustomError(`Failed to update tooling data: ${err.message}`, 500);
         }
     });
 

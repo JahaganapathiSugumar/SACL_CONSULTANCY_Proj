@@ -54,26 +54,23 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         hardness_core: '',
         xray: '',
         mpi: '',
-        tooling: {
-            number_of_cavity: '',
-            pattern_plate_thickness_sp: '',
-            pattern_plate_thickness_pp: '',
-            cavity_identification: '',
-            pattern_plate_weight_sp: '',
-            pattern_plate_weight_pp: '',
-            pattern_material: '',
-            crush_pin_height_sp: '',
-            crush_pin_height_pp: '',
-            core_weight: '',
-            core_mask_weight_sp: '',
-            core_mask_weight_pp: '',
-            core_mask_thickness: '',
-
-            estimated_casting_weight: '',
-            estimated_bunch_weight: '',
-            yield_label: '',
-            remarks: ''
-        }
+        number_of_cavity: '',
+        pattern_plate_thickness_sp: '',
+        pattern_plate_thickness_pp: '',
+        cavity_identification: '',
+        pattern_plate_weight_sp: '',
+        pattern_plate_weight_pp: '',
+        pattern_material: '',
+        crush_pin_height_sp: '',
+        crush_pin_height_pp: '',
+        core_weight: '',
+        core_mask_weight_sp: '',
+        core_mask_weight_pp: '',
+        core_mask_thickness: '',
+        estimated_casting_weight: '',
+        estimated_bunch_weight: '',
+        yield_label: '',
+        remarks: ''
     });
     const [loading, setLoading] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
@@ -92,16 +89,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             chemical_composition: {
                 ...prev.chemical_composition,
                 [element]: value
-            }
-        }));
-    };
-
-    const handleToolingChange = (field: string, value: string) => {
-        setFormData((prev: any) => ({
-            ...prev,
-            tooling: {
-                ...prev.tooling,
-                [field]: value
             }
         }));
     };
@@ -220,7 +207,23 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 hardness_core: hardCore,
                 xray: xrayVal,
                 mpi: mpiVal,
-                tooling: initialData.tooling || { ...formData.tooling }
+                number_of_cavity: initialData.number_of_cavity || '',
+                pattern_plate_thickness_sp: initialData.pattern_plate_thickness_sp || '',
+                pattern_plate_thickness_pp: initialData.pattern_plate_thickness_pp || '',
+                cavity_identification: initialData.cavity_identification || '',
+                pattern_plate_weight_sp: initialData.pattern_plate_weight_sp || '',
+                pattern_plate_weight_pp: initialData.pattern_plate_weight_pp || '',
+                pattern_material: initialData.pattern_material || '',
+                crush_pin_height_sp: initialData.crush_pin_height_sp || '',
+                crush_pin_height_pp: initialData.crush_pin_height_pp || '',
+                core_weight: initialData.core_weight || '',
+                core_mask_weight_sp: initialData.core_mask_weight_sp || '',
+                core_mask_weight_pp: initialData.core_mask_weight_pp || '',
+                core_mask_thickness: initialData.core_mask_thickness || '',
+                estimated_casting_weight: initialData.estimated_casting_weight || '',
+                estimated_bunch_weight: initialData.estimated_bunch_weight || '',
+                yield_label: initialData.yield_label || '',
+                remarks: initialData.tooling_remarks || initialData.remarks || ''
             });
         } else {
             setFormData({
@@ -238,26 +241,23 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 hardness_core: '',
                 xray: '',
                 mpi: '',
-                tooling: {
-                    number_of_cavity: '',
-                    pattern_plate_thickness_sp: '',
-                    pattern_plate_thickness_pp: '',
-                    cavity_identification: '',
-                    pattern_plate_weight_sp: '',
-                    pattern_plate_weight_pp: '',
-                    pattern_material: '',
-                    crush_pin_height_sp: '',
-                    crush_pin_height_pp: '',
-                    core_weight: '',
-                    core_mask_weight_sp: '',
-                    core_mask_weight_pp: '',
-                    core_mask_thickness: '',
-
-                    estimated_casting_weight: '',
-                    estimated_bunch_weight: '',
-                    yield_label: '',
-                    remarks: ''
-                }
+                number_of_cavity: '',
+                pattern_plate_thickness_sp: '',
+                pattern_plate_thickness_pp: '',
+                cavity_identification: '',
+                pattern_plate_weight_sp: '',
+                pattern_plate_weight_pp: '',
+                pattern_material: '',
+                crush_pin_height_sp: '',
+                crush_pin_height_pp: '',
+                core_weight: '',
+                core_mask_weight_sp: '',
+                core_mask_weight_pp: '',
+                core_mask_thickness: '',
+                estimated_casting_weight: '',
+                estimated_bunch_weight: '',
+                yield_label: '',
+                remarks: ''
             });
             setAttachments([]);
         }
@@ -312,7 +312,23 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 impact: impact,
                 hardness: hardness,
                 xray: xray,
-                tooling: formData.tooling
+                number_of_cavity: formData.number_of_cavity,
+                pattern_plate_thickness_sp: formData.pattern_plate_thickness_sp,
+                pattern_plate_thickness_pp: formData.pattern_plate_thickness_pp,
+                cavity_identification: formData.cavity_identification,
+                pattern_plate_weight_sp: formData.pattern_plate_weight_sp,
+                pattern_plate_weight_pp: formData.pattern_plate_weight_pp,
+                pattern_material: formData.pattern_material,
+                crush_pin_height_sp: formData.crush_pin_height_sp,
+                crush_pin_height_pp: formData.crush_pin_height_pp,
+                core_weight: formData.core_weight,
+                core_mask_weight_sp: formData.core_mask_weight_sp,
+                core_mask_weight_pp: formData.core_mask_weight_pp,
+                core_mask_thickness: formData.core_mask_thickness,
+                estimated_casting_weight: formData.estimated_casting_weight,
+                estimated_bunch_weight: formData.estimated_bunch_weight,
+                yield_label: formData.yield_label,
+                remarks: formData.remarks
             };
 
             let response: Response;
@@ -379,24 +395,21 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         };
 
         const calculatedYield = calculateYield(
-            formData.tooling.number_of_cavity,
-            formData.tooling.estimated_casting_weight,
-            formData.tooling.estimated_bunch_weight
+            formData.number_of_cavity,
+            formData.estimated_casting_weight,
+            formData.estimated_bunch_weight
         );
 
-        if (calculatedYield !== formData.tooling.yield_label) {
+        if (calculatedYield !== formData.yield_label) {
             setFormData((prev: any) => ({
                 ...prev,
-                tooling: {
-                    ...prev.tooling,
-                    yield_label: calculatedYield
-                }
+                yield_label: calculatedYield
             }));
         }
     }, [
-        formData.tooling.number_of_cavity,
-        formData.tooling.estimated_casting_weight,
-        formData.tooling.estimated_bunch_weight
+        formData.number_of_cavity,
+        formData.estimated_casting_weight,
+        formData.estimated_bunch_weight
     ]);
 
     const chemicalElements = ['C', 'Si', 'Mn', 'P', 'S', 'Mg', 'Cr', 'Cu', 'Nodularity', 'Pearlite', 'Carbide'];
@@ -716,8 +729,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                     <TableCell colSpan={1} sx={{ p: 0.5 }}>
                                                         <TextField
                                                             fullWidth
-                                                            value={formData.tooling[row.fieldLeft] || ""}
-                                                            onChange={(e) => handleToolingChange(row.fieldLeft, e.target.value)}
+                                                            value={formData[row.fieldLeft] || ""}
+                                                            onChange={(e) => handleInputChange(row.fieldLeft, e.target.value)}
                                                             size="small"
                                                         />
                                                     </TableCell>
@@ -729,8 +742,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                     <TableCell sx={{ p: 0.5 }}>
                                                         <TextField
                                                             fullWidth
-                                                            value={formData.tooling[row.fieldLeft] || ""}
-                                                            onChange={(e) => handleToolingChange(row.fieldLeft, e.target.value)}
+                                                            value={formData[row.fieldLeft] || ""}
+                                                            onChange={(e) => handleInputChange(row.fieldLeft, e.target.value)}
                                                             size="small"
                                                         />
                                                     </TableCell>
@@ -738,8 +751,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                     <TableCell sx={{ p: 0.5 }}>
                                                         <TextField
                                                             fullWidth
-                                                            value={formData.tooling[row.fieldRight || row.sp] || ""}
-                                                            onChange={(e) => handleToolingChange(row.fieldRight || row.sp, e.target.value)}
+                                                            value={formData[row.fieldRight || row.sp] || ""}
+                                                            onChange={(e) => handleInputChange(row.fieldRight || row.sp, e.target.value)}
                                                             size="small"
                                                         />
                                                     </TableCell>
@@ -749,7 +762,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                                 <Typography variant="body2" fontWeight={600}>Yield:</Typography>
                                                                 <TextField
                                                                     fullWidth
-                                                                    value={formData.tooling.yield_label ? `${formData.tooling.yield_label}%` : ""}
+                                                                    value={formData.yield_label ? `${formData.yield_label}%` : ""}
                                                                     size="small"
                                                                     InputProps={{
                                                                         readOnly: true,
@@ -763,8 +776,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                         ) : (
                                                             <TextField
                                                                 fullWidth
-                                                                value={formData.tooling[row.pp] || ""}
-                                                                onChange={(e) => handleToolingChange(row.pp, e.target.value)}
+                                                                value={formData[row.pp] || ""}
+                                                                onChange={(e) => handleInputChange(row.pp, e.target.value)}
                                                                 size="small"
                                                             />
                                                         )}
@@ -780,8 +793,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                 fullWidth
                                                 multiline
                                                 rows={4}
-                                                value={formData.tooling.remarks || ""}
-                                                onChange={(e) => handleToolingChange("remarks", e.target.value)}
+                                                value={formData.remarks || ""}
+                                                onChange={(e) => handleInputChange("remarks", e.target.value)}
                                                 size="small"
                                             />
                                         </TableCell>

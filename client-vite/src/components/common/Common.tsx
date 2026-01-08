@@ -32,7 +32,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { trialService } from "../../services/trialService";
-import { specificationService } from "../../services/specificationService";
 
 // Helper component for consistent input styling
 const SpecInput = (props: any) => (
@@ -101,61 +100,102 @@ const parseChemicalComposition = (composition: any) => {
   if (!composition) return blank;
   let obj: any = composition;
   if (typeof composition === "string") {
-    try { obj = JSON.parse(composition); } catch (e) { return blank; }
+    try {
+      obj = JSON.parse(composition);
+    } catch (e) {
+      const result = { ...blank };
+      const parts = composition.split(/\s+(?=[A-Z][a-z]?[a-z]?\s*:)/);
+      parts.forEach(part => {
+        const match = part.match(/^([A-Za-z]+)\s*:\s*(.+?)(?:%|$)/);
+        if (match) {
+          const element = match[1].toLowerCase().trim();
+          const value = match[2].trim();
+          if (element === 'c') result.c = value;
+          else if (element === 'si' || element === 'silicon') result.si = value;
+          else if (element === 'mn') result.mn = value;
+          else if (element === 'p') result.p = value;
+          else if (element === 's') result.s = value;
+          else if (element === 'mg') result.mg = value;
+          else if (element === 'cr') result.cr = value;
+          else if (element === 'cu') result.cu = value;
+        }
+      });
+      return result;
+    }
   }
   if (typeof obj !== "object" || obj === null) return blank;
   const map: Record<string, any> = {};
   Object.keys(obj).forEach((k) => {
     if (typeof k === "string") { map[k.toLowerCase().replace(/\s+/g, "")] = obj[k]; }
   });
+  const siKeyCandidates = ["si", "silicon"];
+  const getFirst = (keys: string[]) => {
+    for (const k of keys) {
+      if (map[k] !== undefined && map[k] !== null) return String(map[k]);
+    }
+    return "";
+  };
   return {
-    c: map["c"] || "",
-    si: map["si"] || map["silicon"] || "",
-    mn: map["mn"] || "",
-    p: map["p"] || "",
-    s: map["s"] || "",
-    mg: map["mg"] || "",
-    cr: map["cr"] || "",
-    cu: map["cu"] || ""
+    c: getFirst(["c"]), si: getFirst(siKeyCandidates), mn: getFirst(["mn"]), p: getFirst(["p"]),
+    s: getFirst(["s"]), mg: getFirst(["mg"]), cr: getFirst(["cr"]), cu: getFirst(["cu"]),
   };
 };
 
 const parseTensileData = (tensile: string) => {
-  const lines = tensile ? tensile.split("\n") : [];
+  if (!tensile) return { tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" };
   let tensileStrength = "", yieldStrength = "", elongation = "", impactCold = "", impactRoom = "";
+  const spaceSepMatches = tensile.match(/([≥>=]+)?\s*(\d+)\s*(?:MPa|N\/mm²|N\/mm2)?/g);
+  if (spaceSepMatches && spaceSepMatches.length >= 2) {
+    const first = spaceSepMatches[0].match(/([≥>=]+)?\s*(\d+)/);
+    if (first) tensileStrength = (first[1] || "≥") + first[2];
+    const second = spaceSepMatches[1].match(/([≥>=]+)?\s*(\d+)/);
+    if (second) yieldStrength = (second[1] || "≥") + second[2];
+    if (spaceSepMatches.length >= 3) {
+      const third = spaceSepMatches[2].match(/([≥>=]+)?\s*(\d+)/);
+      if (third) elongation = (third[1] || "≥") + third[2];
+    }
+    return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
+  }
+  const lines = tensile.split("\n");
   lines.forEach((line) => {
     const cleanLine = line.trim();
-    if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile")) {
-      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
-      if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
+    if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile") || cleanLine.match(/[≥>]\s*\d+/)) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
     }
     if (cleanLine.includes("Yield")) {
-      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
-      if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
     }
     if (cleanLine.includes("Elongation") || cleanLine.includes("%")) {
-      const match = cleanLine.match(/([≥>]?)\s*(\d+)/);
-      if (match && !elongation) elongation = `${match[1]}${match[2]}`;
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !elongation) elongation = `${match[1]}${match[2]}`;
     }
   });
   return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
 };
 
 const parseMicrostructureData = (microstructure: string) => {
-  const lines = microstructure ? microstructure.split("\n") : [];
+  if (!microstructure) return { nodularity: "--", pearlite: "--", carbide: "--" };
   let nodularity = "", pearlite = "", carbide = "";
+  const lines = microstructure.split("\n");
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
-    if (cleanLine.includes("nodularity")) {
+    if (cleanLine.includes("nodularity") || cleanLine.includes("spheroidization")) {
       const match = cleanLine.match(/([≥≤]?)\s*(\d+)/);
       if (match) nodularity = `${match[1]}${match[2]}`;
     }
-    if (cleanLine.includes("pearlite")) {
+    else if (cleanLine.includes("shape") && cleanLine.match(/(\d+)\s*%/)) {
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)\s*%/);
+      if (match && !nodularity) nodularity = `${match[1] || "≥"}${match[2]}`;
+    }
+    if (cleanLine.includes("pearlite") || cleanLine.includes("pearlitic")) {
       const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
       if (match) pearlite = `${match[1]}${match[2]}`;
     }
+    else if (cleanLine.includes("matrix") && cleanLine.includes("ferrite")) {
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)\s*%/);
+      if (match && !pearlite) pearlite = `${match[1] || "≥"}${match[2]}`;
+    }
     if (cleanLine.includes("carbide")) {
-      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)/);
       if (match) carbide = `${match[1]}${match[2]}`;
     }
   });
@@ -163,41 +203,44 @@ const parseMicrostructureData = (microstructure: string) => {
 };
 
 const parseHardnessData = (hardness: string) => {
-  const lines = hardness ? hardness.split("\n") : [];
+  if (!hardness) return { surface: "--", core: "--" };
+  const lines = hardness.split("\n");
   let surface = "", core = "";
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
     if (cleanLine.includes("surface")) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) surface = match[1];
-    } else if (cleanLine.includes("core")) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) core = match[1];
-    } else if (!surface) {
-      const match = cleanLine.match(/(\d+\s*-\s*\d+|\d+)/);
-      if (match) surface = match[1];
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) surface = match[1].replace(/\s+/g, ' ');
+    }
+    else if (cleanLine.includes("core")) {
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) core = match[1].replace(/\s+/g, ' ');
+    }
+    else if (!surface) {
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
+      if (match) surface = match[1].replace(/\s+/g, ' ');
     }
   });
   return { surface: surface || "--", core: core || "--" };
 };
 
-const PatternDatasheetSection = ({ patternCode }: { patternCode: string }) => {
-  const [patternData, setPatternData] = useState<any | null>(null);
+const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, data?: any }) => {
+  const [patternData, setPatternData] = useState<any | null>(data || null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (data) {
+      setPatternData(data);
+      return;
+    }
+
     const fetchPatternData = async () => {
       setLoading(true);
       try {
         const masterData = await trialService.getMasterListByPatternCode(patternCode);
-        console.log("Master Data:", masterData);
 
         if (masterData) {
-          let tooling = masterData.tooling;
-          if (typeof tooling === 'string') {
-            try { tooling = JSON.parse(tooling); } catch { }
-          }
-          setPatternData(tooling || {});
+          setPatternData(masterData);
         }
       } catch (e) {
         console.error("Failed to fetch pattern data", e);
@@ -208,7 +251,7 @@ const PatternDatasheetSection = ({ patternCode }: { patternCode: string }) => {
     if (patternCode) {
       fetchPatternData();
     }
-  }, [patternCode]);
+  }, [patternCode, data]);
 
   if (loading) return <Box sx={{ p: 2, textAlign: 'center' }}><div style={{ display: 'inline-block', transform: 'scale(0.8)' }}><GearSpinner /></div></Box>;
 
@@ -307,7 +350,6 @@ interface CommonProps {
 }
 
 const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
-  // Read trial ID from URL if not provided as prop
   const urlParams = new URLSearchParams(window.location.search);
   const urlTrialId = urlParams.get('trial_id') || "";
   const effectiveTrialId = initialTrialId || urlTrialId;
@@ -315,6 +357,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TrialData | null>(null);
+  const [masterListTooling, setMasterListTooling] = useState<any | null>(null);
   const [userIP, setUserIP] = useState<string>("");
   const [showSpecifications, setShowSpecifications] = useState(false);
 
@@ -354,56 +397,55 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
           }
         });
 
+        // Fetch Master List Data for Specification
+        if (parsedTrial.pattern_code) {
+          try {
+            const masterData = await trialService.getMasterListByPatternCode(parsedTrial.pattern_code);
+            if (masterData) {
 
-        try {
-          const metallurgicalSpecs = await specificationService.getMetallurgicalSpecs(id);
-          if (metallurgicalSpecs) {
-            if (metallurgicalSpecs.chemical_composition) {
-              parsedTrial.chemical_composition = parseChemicalComposition(metallurgicalSpecs.chemical_composition);
-            }
-            if (metallurgicalSpecs.microstructure) {
-              try {
-                const parsedMicro = typeof metallurgicalSpecs.microstructure === 'string'
-                  ? JSON.parse(metallurgicalSpecs.microstructure)
-                  : metallurgicalSpecs.microstructure;
+              setMasterListTooling(masterData);
 
-                if (parsedMicro && (parsedMicro.nodularity || parsedMicro.pearlite || parsedMicro.carbide)) {
-                  parsedTrial.micro_structure = {
-                    nodularity: parsedMicro.nodularity || "--",
-                    pearlite: parsedMicro.pearlite || "--",
-                    carbide: parsedMicro.carbide || "--"
-                  };
-                } else {
-                  parsedTrial.micro_structure = parseMicrostructureData(metallurgicalSpecs.microstructure);
+              if (masterData.chemical_composition) {
+                console.log("Raw Chemical Composition:", masterData.chemical_composition);
+                parsedTrial.chemical_composition = parseChemicalComposition(masterData.chemical_composition);
+                console.log("Parsed Chemical Composition:", parsedTrial.chemical_composition);
+              } else {
+                console.log("No Chemical Composition in Master Data");
+              }
+
+              if (masterData.micro_structure) {
+                try {
+                  const parsedMicro = typeof masterData.micro_structure === 'string'
+                    ? JSON.parse(masterData.micro_structure)
+                    : masterData.micro_structure;
+                  if (parsedMicro && typeof parsedMicro === 'object') {
+                    parsedTrial.micro_structure = {
+                      nodularity: parsedMicro.nodularity || "--",
+                      pearlite: parsedMicro.pearlite || "--",
+                      carbide: parsedMicro.carbide || "--"
+                    };
+                  } else {
+                    parsedTrial.micro_structure = parseMicrostructureData(String(masterData.micro_structure));
+                  }
+                } catch (e) {
+                  parsedTrial.micro_structure = parseMicrostructureData(String(masterData.micro_structure));
                 }
-              } catch (e) {
-                parsedTrial.micro_structure = parseMicrostructureData(metallurgicalSpecs.microstructure);
+              }
+
+              if (masterData.tensile) {
+                parsedTrial.tensile = parseTensileData(masterData.tensile);
+              }
+              if (masterData.hardness) {
+                parsedTrial.hardness = parseHardnessData(masterData.hardness);
+              }
+
+              if (masterData.xray) {
+                parsedTrial.xray = masterData.xray;
               }
             }
+          } catch (masterError) {
+            console.error("Failed to fetch master list data:", masterError);
           }
-        } catch (specError) {
-          console.error("Failed to fetch specific metallurgical specs:", specError);
-        }
-
-        try {
-          const mechanicalProps = await specificationService.getMechanicalProperties(id);
-          if (mechanicalProps) {
-            parsedTrial.tensile = {
-              tensileStrength: mechanicalProps.tensile_strength,
-              yieldStrength: mechanicalProps.yield_strength,
-              elongation: mechanicalProps.elongation,
-              impactCold: mechanicalProps.impact_strength_cold,
-              impactRoom: mechanicalProps.impact_strength_room
-            };
-            parsedTrial.hardness = {
-              surface: mechanicalProps.hardness_surface,
-              core: mechanicalProps.hardness_core
-            };
-            parsedTrial.xray = mechanicalProps.x_ray_inspection;
-            parsedTrial.mpi = mechanicalProps.mpi;
-          }
-        } catch (mechError) {
-          console.error("Failed to fetch specific mechanical properties:", mechError);
         }
 
         setData(parsedTrial);
@@ -504,7 +546,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
                     <Grid size={12}>
                       <Paper sx={{ p: { xs: 2, md: 3 } }}>
                         <SectionHeader icon={<FactoryIcon />} title="Pattern Datasheet Details" color={COLORS.primary} />
-                        <PatternDatasheetSection patternCode={data.pattern_code} />
+                        <PatternDatasheetSection patternCode={data.pattern_code} data={masterListTooling} />
                       </Paper>
                     </Grid>
                   )}

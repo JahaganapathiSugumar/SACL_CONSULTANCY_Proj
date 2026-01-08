@@ -71,7 +71,7 @@ CREATE TABLE trial_cards (
     part_name VARCHAR(100) NOT NULL,
     pattern_code VARCHAR(150) NOT NULL,
     material_grade VARCHAR(50) NOT NULL,
-    trial_type VARCHAR(50) NOT NULL,
+    trial_type VARCHAR(50) NOT NULL, --ALTER TABLE trial_cards ADD trial_type VARCHAR(50) NOT NULL;
     initiated_by VARCHAR(50) NOT NULL,
     date_of_sampling DATE NOT NULL,
     no_of_moulds INT CHECK (no_of_moulds > 0),
@@ -96,29 +96,6 @@ CREATE INDEX idx_trial_status ON trial_cards(status);
 CREATE INDEX idx_trial_department ON trial_cards(current_department_id);
 GO
 
-CREATE TABLE mechanical_properties (
-    trial_id NVARCHAR(255) PRIMARY KEY,
-    tensile_strength NVARCHAR(MAX),
-    yield_strength NVARCHAR(MAX),
-    elongation NVARCHAR(MAX),
-    impact_strength_cold NVARCHAR(MAX),
-    impact_strength_room NVARCHAR(MAX),
-    hardness_surface NVARCHAR(MAX),
-    hardness_core NVARCHAR(MAX),
-    x_ray_inspection NVARCHAR(MAX),
-    mpi NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
-);
-GO
-
-CREATE TABLE metallurgical_specifications (
-    trial_id NVARCHAR(255) PRIMARY KEY,
-    chemical_composition NVARCHAR(MAX),
-    microstructure NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
-);
-GO
-
 CREATE TABLE material_correction (
     trial_id NVARCHAR(255) PRIMARY KEY,
     chemical_composition NVARCHAR(MAX),
@@ -133,6 +110,7 @@ CREATE TABLE pouring_details (
     pour_date DATE NOT NULL,
     heat_code NVARCHAR(MAX),
     composition NVARCHAR(MAX),
+    no_of_mould_poured INT,
     pouring_temp_c DECIMAL(6,2) CHECK (pouring_temp_c > 0),
     pouring_time_sec INT CHECK (pouring_time_sec > 0),
     inoculation NVARCHAR(MAX),
@@ -268,6 +246,7 @@ CREATE TABLE users (
     email VARCHAR(100) DEFAULT NULL,
     department_id INT DEFAULT NULL,
     role VARCHAR(20) NOT NULL,
+    machine_shop_user_type VARCHAR(50) DEFAULT 'N/A', --ALTER TABLE users ADD COLUMN machine_shop_user_type VARCHAR(50) DEFAULT 'N/A';
     is_active BIT DEFAULT 1,
     created_at DATETIME2 NULL DEFAULT GETDATE(),
     last_login DATETIME2 NULL DEFAULT NULL,
