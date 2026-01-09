@@ -26,7 +26,7 @@ export const createDepartmentProgress = async (trial_id, user, part_name, trx) =
             department_id: user.department_id,
             trial_id,
             action: 'Department progress added',
-            remarks: `Department progress for trial ${trial_id} added by ${user.username} to department ${user.department_id}`
+            remarks: `Department progress for trial ${trial_id} added by ${user.username} in ${user.department_name} department`
         });
 
     }
@@ -46,7 +46,7 @@ const assignToNextDepartmentUser = async (trial_id, next_department_id, user, tr
     const next_department_username = next_department_user[0].username;
 
     await trx.query(
-        `UPDATE department_progress SET department_id = @next_department_id, username = @next_department_username, remarks = 'User submission pending', approval_status = 'pending' WHERE trial_id = @trial_id`,
+        `INSERT INTO department_progress (department_id, username, remarks, approval_status, trial_id) VALUES (@next_department_id, @next_department_username, 'User submission pending', 'pending', @trial_id)`,
         { next_department_id, next_department_username, trial_id }
     );
 
@@ -60,8 +60,8 @@ const assignToNextDepartmentUser = async (trial_id, next_department_id, user, tr
         user_id: user.user_id,
         department_id: user.department_id,
         trial_id,
-        action: 'Department progress updated',
-        remarks: `Department progress for trial ${trial_id} assigned to user ${next_department_username} by ${user.username}`
+        action: 'Department progress added',
+        remarks: `Department progress for trial ${trial_id} added by ${user.username} in ${user.department_name} department`
     });
 
     const mailOptions = {
@@ -84,21 +84,26 @@ const assignToNextDepartmentUser = async (trial_id, next_department_id, user, tr
         }]
     };
     await transporter.sendMail(mailOptions);
-    return "Department progress updated successfully";
+    return "Department progress added successfully";
 };
 
 export const updateDepartment = async (trial_id, user, trx) => {
+    await trx.query(
+        `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE trial_id = @trial_id`,
+        { trial_id, completed_at: new Date(), approval_status: 'approved', remarks: `Approved by HOD` }
+    );
+
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await trx.query(audit_sql_completion, {
         user_id: user.user_id,
         department_id: user.department_id,
         trial_id,
-        action: 'Department progress updated',
-        remarks: `Department progress for trial ${trial_id} updated by ${user.username} as completed at ${user.department_name}`
+        action: 'Department progress approved',
+        remarks: `Department progress for trial ${trial_id} approved by ${user.username} at ${user.department_name} department`
     });
 
     const [currentDepartment] = await trx.query(
-        `SELECT department_id FROM department_progress WHERE trial_id = @trial_id`,
+        `SELECT current_department_id FROM trial_cards WHERE trial_id = @trial_id`,
         { trial_id }
     );
 
@@ -108,11 +113,11 @@ export const updateDepartment = async (trial_id, user, trx) => {
             JOIN department_flow df2
             ON df2.sequence_no = df1.sequence_no + 1
             WHERE df1.department_id = @currentDepartmentId`,
-        { currentDepartmentId: currentDepartment[0].department_id }
+        { currentDepartmentId: currentDepartment[0].current_department_id }
     );
 
     if (!rows || rows.length === 0) {
-        await approveProgress(trial_id, user, trx);
+        await approveProgress(currentDepartment[0].department_id, trial_id, user, trx);
         return;
     }
     const next_department_id = rows[0].next_department_id;
@@ -126,16 +131,16 @@ export const updateRole = async (trial_id, user, trx) => {
         user_id: user.user_id,
         department_id: user.department_id,
         trial_id,
-        action: 'Department progress completed',
-        remarks: `Department progress for trial ${trial_id} marked as completed by ${user.username}`
+        action: 'Department progress updated',
+        remarks: `Department progress for trial ${trial_id} updated by ${user.username} in ${user.department_name} department`
     });
     const [currentDepartment] = await trx.query(
-        `SELECT department_id FROM department_progress WHERE trial_id = @trial_id`,
+        `SELECT current_department_id FROM trial_cards WHERE trial_id = @trial_id`,
         { trial_id }
     );
     const [current_department_hod] = await trx.query(
         `SELECT TOP 1 * FROM users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1`,
-        { current_department_id: currentDepartment[0].department_id }
+        { current_department_id: currentDepartment[0].current_department_id }
     );
     if (current_department_hod && current_department_hod.length > 0) {
         const current_department_hod_username = current_department_hod[0].username;
@@ -149,7 +154,7 @@ export const updateRole = async (trial_id, user, trx) => {
             department_id: user.department_id,
             trial_id,
             action: 'Department progress updated',
-            remarks: `Department progress for trial ${trial_id} assigned to HOD ${current_department_hod_username} by ${user.username}`
+            remarks: `Department progress for trial ${trial_id} updated by ${user.username} in ${user.department_name} department`
         });
         const user_result = await trx.query(
             `SELECT * FROM users WHERE username = @username`,
@@ -188,7 +193,7 @@ export const updateRole = async (trial_id, user, trx) => {
         );
 
         if (!rows || rows.length === 0) {
-            await approveProgress(trial_id, user, trx);
+            await approveProgress(currentDepartment[0].department_id, trial_id, user, trx);
             return;
         }
         const next_department_id = rows[0].next_department_id;
@@ -197,12 +202,12 @@ export const updateRole = async (trial_id, user, trx) => {
     }
 };
 
-export const approveProgress = async (trial_id, user, trx) => {
+export const approveProgress = async (department_id, trial_id, user, trx) => {
     await trx.query(
-        `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id`,
-        { trial_id }
+        `UPDATE department_progress SET approval_status = 'approved' WHERE department_id = @department_id AND trial_id = @trial_id`,
+        { department_id, trial_id }
     );
-    await generateAndStoreReport(trial_id);
+    await generateAndStoreReport(trial_id, trx);
     await updateTrialStatus(trial_id, 'CLOSED', user, trx);
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await trx.query(audit_sql, {

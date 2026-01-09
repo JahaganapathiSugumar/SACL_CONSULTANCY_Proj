@@ -481,7 +481,6 @@ function FoundrySampleCard() {
       material_grade: selectedPart.material_grade,
       date_of_sampling: samplingDate,
       status: "CREATED",
-      current_department_id: 3,
       plan_moulds: planMoulds,
       actual_moulds: actualMoulds,
       reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,

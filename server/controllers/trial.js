@@ -3,9 +3,9 @@ import { createDepartmentProgress, updateDepartment, updateRole } from '../servi
 import { updateTrialStatus } from '../services/trial.js';
 
 export const createTrial = async (req, res, next) => {
-    const { trial_id, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
+    const { trial_id, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
 
-    if (!trial_id || !part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !current_department_id || !disa || !sample_traceability) {
+    if (!trial_id || !part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
@@ -24,7 +24,7 @@ export const createTrial = async (req, res, next) => {
             actual_moulds,
             reason_for_sampling,
             status: status || 'CREATED',
-            current_department_id,
+            current_department_id: 2,
             disa,
             sample_traceability,
             mould_correction: mouldJson,

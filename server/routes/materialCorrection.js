@@ -5,9 +5,9 @@ import * as materialCorrectionController from '../controllers/materialCorrection
 
 const router = express.Router();
 
-router.post('/', verifyToken, asyncErrorHandler(materialCorrectionController.createCorrection));
-router.put('/', verifyToken, asyncErrorHandler(materialCorrectionController.updateCorrection));
-router.get('/', verifyToken, asyncErrorHandler(materialCorrectionController.getCorrections));
-router.get('/trial_id', verifyToken, asyncErrorHandler(materialCorrectionController.getCorrectionByTrialId));
+router.post('/', verifyToken, asyncErrorHandler(materialCorrectionController.createMaterialCorrection));
+router.put('/', verifyToken, asyncErrorHandler(materialCorrectionController.updateMaterialCorrection));
+router.get('/', verifyToken, asyncErrorHandler(materialCorrectionController.getMaterialCorrections));
+router.get('/trial_id', verifyToken, asyncErrorHandler(materialCorrectionController.getMaterialCorrectionByTrialId));
 
 export default router;

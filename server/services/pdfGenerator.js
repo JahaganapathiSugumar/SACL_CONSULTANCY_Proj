@@ -1,33 +1,32 @@
 import PDFDocument from 'pdfkit';
-import Client from '../config/connection.js';
 
 // Helper to fetch data (extracted from the controller logic)
-export const fetchTrialData = async (trial_id) => {
+export const fetchTrialData = async (trial_id, trx) => {
     if (!trial_id) return null;
     trial_id = trial_id.replace(/['"]+/g, '');
 
-    const [trial_cards] = await Client.query(
+    const [trial_cards] = await trx.query(
         `SELECT * FROM trial_cards WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [pouring_details] = await Client.query(
+    const [pouring_details] = await trx.query(
         `SELECT * FROM pouring_details WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [sand_properties] = await Client.query(
+    const [sand_properties] = await trx.query(
         `SELECT * FROM sand_properties WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [mould_correction] = await Client.query(
+    const [mould_correction] = await trx.query(
         `SELECT * FROM mould_correction WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [metallurgical_inspection] = await Client.query(
+    const [metallurgical_inspection] = await trx.query(
         `SELECT * FROM metallurgical_inspection WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [visual_inspection] = await Client.query(
+    const [visual_inspection] = await trx.query(
         `SELECT * FROM visual_inspection WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [dimensional_inspection] = await Client.query(
+    const [dimensional_inspection] = await trx.query(
         `SELECT * FROM dimensional_inspection WHERE trial_id = @trial_id`, { trial_id }
     );
-    const [machine_shop] = await Client.query(
+    const [machine_shop] = await trx.query(
         `SELECT * FROM machine_shop WHERE trial_id = @trial_id`, { trial_id }
     );
 
@@ -46,7 +45,7 @@ export const fetchTrialData = async (trial_id) => {
 export const getAllData = async (req, res, next) => {
     let trial_id = req.query.trial_id;
     try {
-        const data = await fetchTrialData(trial_id);
+        const data = await fetchTrialData(trial_id, trx);
         res.status(200).json({
             success: true,
             data
@@ -154,8 +153,8 @@ const drawSectionTitle = (doc, title, x, y) => {
     return y + 20;
 };
 
-export const generateAndStoreReport = async (trial_id) => {
-    const data = await fetchTrialData(trial_id);
+export const generateAndStoreReport = async (trial_id, trx) => {
+    const data = await fetchTrialData(trial_id, trx);
     if (!data) throw new Error("No data found for trial id " + trial_id);
 
     const trialCard = data.trial_cards?.[0] || {};
@@ -395,7 +394,7 @@ export const generateAndStoreReport = async (trial_id) => {
             const fileName = `Trial_Report_${trial_id}.pdf`;
 
             try {
-                await Client.query(
+                await trx.query(
                     `INSERT INTO trial_reports (trial_id, document_type, file_name, file_base64) 
                      VALUES (@trial_id, 'FULL_REPORT', @file_name, @file_base64)`,
                     { trial_id, file_name: fileName, file_base64: base64PDF }

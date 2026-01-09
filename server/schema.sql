@@ -204,6 +204,7 @@ CREATE TABLE machine_shop (
 GO
 
 CREATE TABLE department_progress (
+    progress_id INT IDENTITY(1,1) PRIMARY KEY,
     trial_id NVARCHAR(255) NOT NULL,
     department_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,

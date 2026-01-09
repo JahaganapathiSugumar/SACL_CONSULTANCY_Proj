@@ -2,7 +2,7 @@ import Client from '../config/connection.js';
 
 import { updateDepartment, updateRole } from '../services/departmentProgress.js';
 
-export const createCorrection = async (req, res, next) => {
+export const createMaterialCorrection = async (req, res, next) => {
     const { trial_id, chemical_composition, process_parameters, remarks } = req.body || {};
     if (!trial_id || !chemical_composition || !process_parameters) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -31,7 +31,7 @@ export const createCorrection = async (req, res, next) => {
     });
 };
 
-export const updateCorrection = async (req, res, next) => {
+export const updateMaterialCorrection = async (req, res, next) => {
     const { trial_id, chemical_composition, process_parameters, remarks, is_edit } = req.body || {};
 
     if (!trial_id) {
@@ -42,7 +42,7 @@ export const updateCorrection = async (req, res, next) => {
     const processParametersJson = process_parameters ? JSON.stringify(process_parameters) : null;
 
     await Client.transaction(async (trx) => {
-        if(is_edit){
+        if (is_edit) {
             const sql = `UPDATE material_correction SET 
                 chemical_composition = COALESCE(@chemical_composition, chemical_composition),
                 process_parameters = COALESCE(@process_parameters, process_parameters),
@@ -74,12 +74,12 @@ export const updateCorrection = async (req, res, next) => {
     });
 };
 
-export const getCorrections = async (req, res, next) => {
+export const getMaterialCorrections = async (req, res, next) => {
     const [rows] = await Client.query('SELECT * FROM material_correction');
     res.status(200).json({ success: true, data: rows });
 };
 
-export const getCorrectionByTrialId = async (req, res, next) => {
+export const getMaterialCorrectionByTrialId = async (req, res, next) => {
     let trial_id = req.query.trial_id;
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
