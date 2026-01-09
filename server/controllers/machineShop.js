@@ -1,6 +1,6 @@
 import Client from '../config/connection.js';
 
-import { approveProgress, updateRole } from '../services/departmentProgress.js';
+import { updateDepartment, updateRole } from '../services/departmentProgress.js';
 
 export const createMachineShop = async (req, res, next) => {
     const { trial_id, inspection_date, inspections, remarks } = req.body || {};
@@ -51,7 +51,7 @@ export const updateMachineShop = async (req, res, next) => {
                 remarks: `Machine shop ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
             });
         }
-        await approveProgress(trial_id, req.user, trx);
+        await updateDepartment(trial_id, req.user, trx);
     });
 
     res.status(201).json({

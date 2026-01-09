@@ -178,6 +178,33 @@ export const trialService = {
     },
 
     /**
+     * Fetches all trial reports
+     * @returns Promise resolving to array of all trial reports
+     */
+    async getAllTrialReports(): Promise<any[]> {
+        try {
+            const response = await fetch(`${API_BASE}/trial/trial-reports`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('authToken') || ''
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(data.data);
+            return data.data || [];
+        } catch (error) {
+            console.error('Failed to fetch all trial reports:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Updates trial status
      * @param payload - { trial_id, status }
      * @returns Promise resolving to API response
@@ -273,13 +300,13 @@ export const trialService = {
     },
 
     /**
-     * Deletes multiple trials
+     * Deletes multiple trial reports
      * @param trialIds - Array of trial IDs to delete
      * @returns Promise resolving to API response
      */
-    async deleteTrials(trialIds: string[]): Promise<any> {
+    async deleteTrialReports(trialIds: string[]): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/trial/delete`, {
+            const response = await fetch(`${API_BASE}/trial/delete-reports`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -297,7 +324,7 @@ export const trialService = {
 
             return data;
         } catch (error) {
-            console.error('Failed to delete trials:', error);
+            console.error('Failed to delete trial reports:', error);
             throw error;
         }
     },

@@ -63,6 +63,11 @@ export const getTrialById = async (req, res, next) => {
     res.status(200).json({ success: true, data: rows });
 };
 
+export const getTrialReports = async (req, res, next) => {
+    const [rows] = await Client.query('SELECT t.*, c.part_name, c.pattern_code, c.current_department_id, c.material_grade, c.date_of_sampling FROM trial_reports t JOIN trial_cards c ON t.trial_id = c.trial_id');
+    res.status(200).json({ success: true, data: rows });
+};
+
 export const generateTrialId = async (req, res, next) => {
     let part_name = req.query.part_name;
     if (!part_name) {

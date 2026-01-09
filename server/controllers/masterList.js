@@ -301,18 +301,33 @@ export const bulkDeleteMasterList = async (req, res, next) => {
 export const toggleMasterListStatus = async (req, res, next) => {
     const { id, is_active } = req.body;
 
-    if (!id || typeof is_active !== 'boolean') {
+    if ((!id && id !== 0) || typeof is_active !== 'boolean') {
         throw new CustomError('Valid ID and status are required', 400);
     }
 
-    await Client.query('UPDATE master_card SET is_active = @is_active WHERE id = @id', { is_active, id });
+    const ids = Array.isArray(id) ? id : [id];
+
+    if (ids.length === 0) {
+        throw new CustomError('No IDs provided', 400);
+    }
+
+    // Use parameterized query for array
+    const params = { is_active };
+    const placeholders = ids.map((val, index) => {
+        const paramName = `id${index}`;
+        params[paramName] = val;
+        return `@${paramName}`;
+    });
+
+    const sql = `UPDATE master_card SET is_active = @is_active WHERE id IN (${placeholders.join(',')})`;
+    await Client.query(sql, params);
 
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
     await Client.query(audit_sql, {
         user_id: req.user.user_id,
         department_id: req.user.department_id,
         action: 'Master list status updated',
-        remarks: `Master list item ${id} status changed to ${is_active ? 'Active' : 'Inactive'} by ${req.user.username}`
+        remarks: `Master list items [${ids.join(', ')}] status changed to ${is_active ? 'Active' : 'Inactive'} by ${req.user.username}`
     });
 
     res.status(200).json({

@@ -42,18 +42,18 @@ export default function AllTrialsPage() {
     const isMyTrials = searchParams.get('myTrials') === 'true';
 
     useEffect(() => {
-        const fetchTrials = async () => {
+        const fetchTrialReports = async () => {
             try {
-                const data = await trialService.getAllTrials();
+                const data = await trialService.getAllTrialReports();
                 setTrials(data);
             } catch (error) {
-                console.error("Error fetching trials:", error);
+                console.error("Error fetching trial reports:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTrials();
+        fetchTrialReports();
     }, []);
 
     const filteredTrials = trials
@@ -111,15 +111,15 @@ export default function AllTrialsPage() {
         if (result.isConfirmed) {
             try {
                 setLoading(true);
-                const response = await trialService.deleteTrials(selectedTrials);
+                const response = await trialService.deleteTrialReports(selectedTrials);
                 if (response.success) {
                     Swal.fire(
                         'Deleted!',
-                        'Trials have been deleted.',
+                        'Trial reports have been deleted.',
                         'success'
                     );
                     // Refresh trials
-                    const data = await trialService.getAllTrials();
+                    const data = await trialService.getAllTrialReports();
                     setTrials(data);
                     setSelectedTrials([]);
                 } else {

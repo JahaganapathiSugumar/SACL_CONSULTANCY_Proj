@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import CustomError from '../utils/customError.js';
 import transporter from '../utils/mailSender.js';
 import { generateAndStoreReport } from './pdfGenerator.js';
+import { updateTrialStatus } from './trial.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -111,7 +112,8 @@ export const updateDepartment = async (trial_id, user, trx) => {
     );
 
     if (!rows || rows.length === 0) {
-        throw new CustomError("Next department not found in flow.");
+        await approveProgress(trial_id, user, trx);
+        return;
     }
     const next_department_id = rows[0].next_department_id;
 
@@ -186,7 +188,8 @@ export const updateRole = async (trial_id, user, trx) => {
         );
 
         if (!rows || rows.length === 0) {
-            throw new CustomError("Next department not found in flow.");
+            await approveProgress(trial_id, user, trx);
+            return;
         }
         const next_department_id = rows[0].next_department_id;
 

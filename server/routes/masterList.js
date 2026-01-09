@@ -8,8 +8,8 @@ const router = express.Router();
 router.get('/search', verifyToken, asyncErrorHandler(masterListController.getMasterByPatternCode));
 router.get('/', verifyToken, asyncErrorHandler(masterListController.getMasterList));
 router.post('/', verifyToken, asyncErrorHandler(masterListController.createMasterList));
+router.put('/toggle-status', verifyToken, asyncErrorHandler(masterListController.toggleMasterListStatus));
 router.put('/:id', verifyToken, asyncErrorHandler(masterListController.updateMasterList));
 router.delete('/bulk', verifyToken, asyncErrorHandler(masterListController.bulkDeleteMasterList));
-router.put('/toggle-status', verifyToken, asyncErrorHandler(masterListController.toggleMasterListStatus));
 
 export default router;

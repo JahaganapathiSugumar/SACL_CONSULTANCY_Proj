@@ -322,7 +322,7 @@ function FoundrySampleCard() {
             const data = response.data;
             setTrialId(data.trial_id || trialIdFromUrl);
             setTrialNo(data.trial_id?.split('-').pop() || '');
-            setSamplingDate(data.date_of_sampling || new Date().toISOString().split("T")[0]);
+            setSamplingDate(data.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
             setPlanMoulds(data.plan_moulds || '');
             setActualMoulds(data.actual_moulds || '');
             setMachine(data.disa || '');
