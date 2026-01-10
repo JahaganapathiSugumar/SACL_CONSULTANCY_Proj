@@ -234,12 +234,6 @@ export default function MaterialCorrection() {
                     }
                 }
 
-                if (trialId) {
-                    try {
-                        await trialService.updateTrialStatus({
-                            trial_id: trialId,
-                            status: "IN_PROGRESS"
-                        });
                         setSubmitted(true);
                         setPreviewOpen(false);
                         await Swal.fire({
@@ -247,20 +241,9 @@ export default function MaterialCorrection() {
                             title: 'Success',
                             text: 'Material correction created successfully.'
                         });
-                    } catch (roleError) {
-                        console.error("Failed to update role progress or trial status:", roleError);
-                    }
                 }
 
                 navigate('/dashboard');
-
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: response.message || "Failed to submit material correction. Please try again."
-                });
-            }
         } catch (error) {
             console.error(error);
             Swal.fire({

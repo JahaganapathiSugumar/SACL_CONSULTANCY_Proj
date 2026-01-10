@@ -205,36 +205,6 @@ export const trialService = {
     },
 
     /**
-     * Updates trial status
-     * @param payload - { trial_id, status }
-     * @returns Promise resolving to API response
-     */
-    async updateTrialStatus(payload: { trial_id: string; status: string }): Promise<any> {
-        try {
-            const response = await fetch(`${API_BASE}/trial/update-status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}`);
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Failed to update trial status:', error);
-            throw error;
-        }
-    },
-
-    /**
      * Fetches trial by ID (alias for getTrialByTrialId)
      * @param trialId - Trial ID to fetch
      * @returns Promise resolving to trial data
