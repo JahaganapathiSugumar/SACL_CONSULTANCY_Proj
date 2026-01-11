@@ -33,6 +33,16 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                     .stat-card:hover {
                         transform: translateY(-2px);
                         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                        background-color: #FF9C00;
+                    }
+                    .stat-card:hover .stat-value {
+                        color: white;
+                    }
+                    .stat-card:hover .stat-label {
+                        color: white;
+                    }
+                    .stat-card:hover .stat-description {
+                        color: rgba(255, 255, 255, 0.8);
                     }
                     .stat-value {
                         font-size: 28px;
