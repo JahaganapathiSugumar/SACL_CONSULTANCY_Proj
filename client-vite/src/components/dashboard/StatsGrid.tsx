@@ -97,7 +97,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
                     <div
                         key={index}
                         className="stat-card"
-                        style={{ borderLeft: `4px solid ${stat.color}` }}
+                        style={{ borderLeft: `4px solid #6C757D` }}
                     >
                         <div className="stat-value">{stat.value}</div>
                         <div className="stat-label">{stat.label}</div>
