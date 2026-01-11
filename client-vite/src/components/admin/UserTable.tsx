@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import { getDepartmentName } from '../../utils/dashboardUtils';
 import './UserTable.css';
-import { IconButton, Checkbox } from '@mui/material';
+import { IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
 interface UserTableProps {
@@ -138,80 +138,85 @@ const UserTable: React.FC<UserTableProps> = ({
         </span>
       </div>
 
-      <table className="user-table">
-        <thead>
-          <tr>
-            <th style={{ width: '50px' }}>
-              <Checkbox
-                checked={users.length > 0 && selectedUsers.size === users.length}
-                indeterminate={selectedUsers.size > 0 && selectedUsers.size < users.length}
-                onChange={onSelectAllUsers}
-              />
-            </th>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Department</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map(user => (
-            <tr key={user.user_id} style={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f0f0f0' : 'transparent' }}>
-              <td style={{ width: '50px' }}>
+      <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)', overflow: 'auto', marginTop: '20px' }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              <TableCell sx={{ width: '50px' }}>
                 <Checkbox
-                  checked={selectedUsers.has(user.user_id)}
-                  onChange={() => onSelectUser(user.user_id)}
+                  checked={users.length > 0 && selectedUsers.size === users.length}
+                  indeterminate={selectedUsers.size > 0 && selectedUsers.size < users.length}
+                  onChange={onSelectAllUsers}
                 />
-              </td>
-              <td>{user.user_id}</td>
-              <td>{user.username}</td>
-              <td>{user.full_name}</td>
-              <td>{user.email}</td>
-              <td>
-                <span className={`role-badge role-${user.role.toLowerCase()}`}>
-                  {user.role}
-                </span>
-              </td>
-              <td>{getDepartmentName(user.department_id) || 'N/A'}</td>
-              <td>
-                <button
-                  onClick={() => onToggleStatus(user.user_id, !!user.is_active)}
-                  className={`status-toggle ${user.is_active ? 'active' : 'inactive'}`}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    backgroundColor: user.is_active ? '#e6f4ea' : '#fce8e6',
-                    color: user.is_active ? '#1e7e34' : '#c62828',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {user.is_active ? 'Active' : 'Inactive'}
-                </button>
-              </td>
-              <td style={{ textAlign: 'center' }}>
-                <IconButton onClick={() => onEdit(user)} size="small" style={{ color: '#1976d2' }}>
-                  <EditIcon fontSize="small" />
-                </IconButton>
-              </td>
-            </tr>
-          ))}
-          {filteredUsers.length === 0 && (
-            <tr>
-              <td colSpan={9} className="no-data">
-                No users found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Username</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Full Name</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredUsers.map(user => (
+              <TableRow 
+                key={user.user_id} 
+                sx={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f0f0f0' : 'transparent' }}
+              >
+                <TableCell sx={{ width: '50px' }}>
+                  <Checkbox
+                    checked={selectedUsers.has(user.user_id)}
+                    onChange={() => onSelectUser(user.user_id)}
+                  />
+                </TableCell>
+                <TableCell>{user.user_id}</TableCell>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.full_name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <span className={`role-badge role-${user.role.toLowerCase()}`}>
+                    {user.role}
+                  </span>
+                </TableCell>
+                <TableCell>{getDepartmentName(user.department_id) || 'N/A'}</TableCell>
+                <TableCell>
+                  <button
+                    onClick={() => onToggleStatus(user.user_id, !!user.is_active)}
+                    className={`status-toggle ${user.is_active ? 'active' : 'inactive'}`}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '20px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      backgroundColor: user.is_active ? '#e6f4ea' : '#fce8e6',
+                      color: user.is_active ? '#1e7e34' : '#c62828',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {user.is_active ? 'Active' : 'Inactive'}
+                  </button>
+                </TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
+                  <IconButton onClick={() => onEdit(user)} size="small" style={{ color: '#1976d2' }}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+            {filteredUsers.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} sx={{ textAlign: 'center', padding: '30px', color: '#999' }}>
+                  No users found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };
