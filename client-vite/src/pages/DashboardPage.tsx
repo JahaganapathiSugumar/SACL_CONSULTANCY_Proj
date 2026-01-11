@@ -19,6 +19,7 @@ const DashboardPage: React.FC = () => {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showMasterList, setShowMasterList] = useState(false);
+  const [showAllTrials, setShowAllTrials] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
   const [editingMasterItem, setEditingMasterItem] = useState<any>(null);
