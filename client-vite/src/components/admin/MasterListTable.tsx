@@ -117,6 +117,21 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
         }
     };
 
+    // Bulk Status Handlers
+    const handleBulkStatusChange = async (status: boolean) => {
+        try {
+            const selectedIds = Array.from(selectedItems);
+            for (const id of selectedIds) {
+                await masterListService.toggleStatus(id, status);
+            }
+            // Refresh data and clear selection
+            await fetchData();
+            setSelectedItems(new Set());
+        } catch (err: any) {
+            setError(err.message || `Failed to update status`);
+        }
+    };
+
     if (loading) return <Box display="flex" justifyContent="center" p={4}><LoadingSpinner /></Box>;
     if (error) return <Alert severity="error">{error}</Alert>;
 
@@ -137,25 +152,72 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                         Master List Entries
                     </Typography>
                     {selectedItems.size > 0 && (
-                        <button
-                            onClick={handleDeleteClick}
-                            style={{
-                                padding: '6px 16px',
-                                backgroundColor: '#dc3545',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px'
-                            }}
-                        >
-                            <DeleteIcon fontSize="small" />
-                            Delete Selected ({selectedItems.size})
-                        </button>
+                        <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                            <button
+                                onClick={() => handleBulkStatusChange(true)}
+                                style={{
+                                    padding: '6px 16px',
+                                    backgroundColor: '#28a745',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#218838')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#28a745')}
+                            >
+                                ✓ Activate ({selectedItems.size})
+                            </button>
+                            <button
+                                onClick={() => handleBulkStatusChange(false)}
+                                style={{
+                                    padding: '6px 16px',
+                                    backgroundColor: '#ffc107',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0a800')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffc107')}
+                            >
+                                ✕ Deactivate ({selectedItems.size})
+                            </button>
+                            <button
+                                onClick={handleDeleteClick}
+                                style={{
+                                    padding: '6px 16px',
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#c82333')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#dc3545')}
+                            >
+                                <DeleteIcon fontSize="small" />
+                                Delete ({selectedItems.size})
+                            </button>
+                        </Box>
                     )}
                 </Box>
                 <TextField
