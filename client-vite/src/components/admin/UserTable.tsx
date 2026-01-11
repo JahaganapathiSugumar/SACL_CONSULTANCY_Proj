@@ -2,13 +2,16 @@ import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import { getDepartmentName } from '../../utils/dashboardUtils';
 import './UserTable.css';
-import { IconButton } from '@mui/material';
+import { IconButton, Checkbox } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
 interface UserTableProps {
   users: User[];
   onToggleStatus: (userId: number, currentStatus: boolean) => void;
   onEdit: (user: User) => void;
+  selectedUsers?: Set<number>;
+  onSelectUser?: (userId: number) => void;
+  onSelectAllUsers?: () => void;
 }
 
 // Department mapping for filter options (unchanged)
@@ -25,7 +28,14 @@ const departmentOptions = [
   { id: 10, name: 'QA' }
 ];
 
-const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, onEdit }) => {
+const UserTable: React.FC<UserTableProps> = ({ 
+  users, 
+  onToggleStatus, 
+  onEdit,
+  selectedUsers = new Set(),
+  onSelectUser = () => {},
+  onSelectAllUsers = () => {}
+}) => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
 
@@ -131,6 +141,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, onEdit }) 
       <table className="user-table">
         <thead>
           <tr>
+            <th style={{ width: '50px' }}>
+              <Checkbox
+                checked={users.length > 0 && selectedUsers.size === users.length}
+                indeterminate={selectedUsers.size > 0 && selectedUsers.size < users.length}
+                onChange={onSelectAllUsers}
+              />
+            </th>
             <th>ID</th>
             <th>Username</th>
             <th>Full Name</th>
@@ -143,7 +160,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, onEdit }) 
         </thead>
         <tbody>
           {filteredUsers.map(user => (
-            <tr key={user.user_id}>
+            <tr key={user.user_id} style={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f0f0f0' : 'transparent' }}>
+              <td style={{ width: '50px' }}>
+                <Checkbox
+                  checked={selectedUsers.has(user.user_id)}
+                  onChange={() => onSelectUser(user.user_id)}
+                />
+              </td>
               <td>{user.user_id}</td>
               <td>{user.username}</td>
               <td>{user.full_name}</td>
@@ -182,7 +205,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, onEdit }) 
           ))}
           {filteredUsers.length === 0 && (
             <tr>
-              <td colSpan={8} className="no-data">
+              <td colSpan={9} className="no-data">
                 No users found
               </td>
             </tr>
