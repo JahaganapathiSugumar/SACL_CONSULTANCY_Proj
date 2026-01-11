@@ -42,9 +42,9 @@ const BackButton: React.FC<BackButtonProps> = ({
         left: 0,
         right: 0,
         paddingLeft: '20px',
-        zIndex: 100,
+        zIndex: 1000,
         borderBottom: '1px solid #e0e0e0',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
       }}>
         <button
           onClick={handleClick}
