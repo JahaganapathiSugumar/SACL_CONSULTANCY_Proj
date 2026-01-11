@@ -154,21 +154,21 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </Box>
-            <TableContainer>
-                <Table size="small">
+            <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)', overflow: 'auto' }}>
+                <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow sx={{ bgcolor: '#eee' }}>
-                            <TableCell padding="checkbox">
+                            <TableCell padding="checkbox" sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}>
                                 <Checkbox
                                     checked={filteredData.length > 0 && selectedItems.size === filteredData.length}
                                     indeterminate={selectedItems.size > 0 && selectedItems.size < filteredData.length}
                                     onChange={handleSelectAll}
                                 />
                             </TableCell>
-                            <TableCell><b>Pattern Code</b></TableCell>
-                            <TableCell><b>Part Name</b></TableCell>
-                            <TableCell><b>Material Grade</b></TableCell>
-                            <TableCell align="center"><b>Status / Actions</b></TableCell>
+                            <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Pattern Code</b></TableCell>
+                            <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Part Name</b></TableCell>
+                            <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Material Grade</b></TableCell>
+                            <TableCell align="center" sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Status / Actions</b></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
