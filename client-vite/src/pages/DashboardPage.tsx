@@ -3,7 +3,6 @@ import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
 import MasterListTable from '../components/admin/MasterListTable';
-import BackButton from '../components/common/BackButton';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import NotificationModal from '../components/dashboard/NotificationModal';
@@ -65,23 +64,14 @@ const DashboardPage: React.FC = () => {
           .dashboard-content {
             padding: 20px;
           }
-          .dashboard-content.with-fixed-back {
-            padding-top: 80px;
-          }
           @media (max-width: 768px) {
             .dashboard-content {
               padding: 15px;
-            }
-            .dashboard-content.with-fixed-back {
-              padding-top: 70px;
             }
           }
           @media (max-width: 480px) {
             .dashboard-content {
               padding: 10px;
-            }
-            .dashboard-content.with-fixed-back {
-              padding-top: 60px;
             }
           }
         `}
@@ -97,18 +87,7 @@ const DashboardPage: React.FC = () => {
         photoRefreshKey={headerRefreshKey}
       />
 
-      <main className={`dashboard-content ${(showUserDetails || showMasterList) ? 'with-fixed-back' : ''}`}>
-        {(showUserDetails || showMasterList) && (
-          <BackButton 
-            label="Back" 
-            variant="fixed"
-            onClick={() => {
-              setShowUserDetails(false);
-              setShowMasterList(false);
-            }}
-          />
-        )}
-
+      <main className="dashboard-content">
         {showUserDetails ? (
           <>
             <WelcomeSection
