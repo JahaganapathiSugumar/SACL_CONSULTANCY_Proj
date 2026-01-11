@@ -137,17 +137,6 @@ const Header: React.FC<HeaderProps> = ({
                             borderRadius: 1,
                         }}
                     />
-                    <Typography
-                        variant="h6"
-                        className="company-name-text"
-                        sx={{
-                            fontWeight: 700,
-                            color: COLORS.primary,
-                            letterSpacing: 1,
-                        }}
-                    >
-                        SAKTHI AUTO COMPONENT LIMITED
-                    </Typography>
                 </Box>
 
                 {/* Department and Role Info */}
