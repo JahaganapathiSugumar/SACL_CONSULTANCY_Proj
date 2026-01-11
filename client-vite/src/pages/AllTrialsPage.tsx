@@ -26,7 +26,6 @@ import DocumentViewer from '../components/common/DocumentViewer';
 import BackButton from '../components/common/BackButton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DescriptionIcon from '@mui/icons-material/Description';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from 'sweetalert2';
