@@ -110,7 +110,141 @@ const DashboardPage: React.FC = () => {
         )}
 
         {showUserDetails ? (
-          <UserManagement />
+          <>
+            <WelcomeSection
+              title="Admin Dashboard"
+              description={`Welcome back, ${user?.username}!`}
+              titleColor="#333"
+              descriptionColor="#666"
+            >
+              {user?.role === 'Admin' && (
+                <>
+                  <button
+                    className="btn-manage-master"
+                    onClick={(e) => setMasterListMenuAnchor(e.currentTarget)}
+                    style={{
+                      backgroundImage: 'none',
+                      backgroundColor: '#9c27b0',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      transition: 'background-color 0.2s',
+                      boxShadow: '0 2px 4px rgba(156, 39, 176, 0.2)'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#7b1fa2')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#9c27b0')}
+                  >
+                    Manage Master List ▼
+                  </button>
+                  <Menu
+                    anchorEl={masterListMenuAnchor}
+                    open={Boolean(masterListMenuAnchor)}
+                    onClose={() => setMasterListMenuAnchor(null)}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        setEditingMasterItem(null);
+                        setIsAddMasterModalOpen(true);
+                        setMasterListMenuAnchor(null);
+                      }}
+                    >
+                      Add to Master List
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setShowMasterList(true);
+                        setMasterListMenuAnchor(null);
+                      }}
+                    >
+                      View details in Master List
+                    </MenuItem>
+                  </Menu>
+                  <button
+                    className="btn-manage-users"
+                    onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                    style={{
+                      backgroundImage: 'none',
+                      backgroundColor: '#FF9C00',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      marginLeft: '10px',
+                      transition: 'background-color 0.2s',
+                      boxShadow: '0 2px 4px rgba(255, 156, 0, 0.2)'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e57f00')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FF9C00')}
+                  >
+                    Manage Users ▼
+                  </button>
+                  <Menu
+                    anchorEl={userMenuAnchor}
+                    open={Boolean(userMenuAnchor)}
+                    onClose={() => setUserMenuAnchor(null)}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        setIsAddUserModalOpen(true);
+                        setUserMenuAnchor(null);
+                      }}
+                    >
+                      Add User Profiles
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setShowUserDetails(true);
+                        setUserMenuAnchor(null);
+                      }}
+                    >
+                      View User Details
+                    </MenuItem>
+                  </Menu>
+                </>
+              )}
+              <button
+                className="btn-view-trials"
+                onClick={() => window.location.href = '/trials'}
+                style={{
+                  backgroundImage: 'none',
+                  backgroundColor: '#6f42c1',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  marginLeft: '10px',
+                  transition: 'background-color 0.2s',
+                  boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+              >
+                View All Trials
+              </button>
+            </WelcomeSection>
+
+            {/* Overview Section */}
+            {loadingStats ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                <CircularProgress />
+              </div>
+            ) : (
+              <StatsGrid stats={stats} />
+            )}
+
+            {/* User Management Section */}
+            <UserManagement />
+          </>
         ) : showMasterList ? (
           <MasterListTable
             key={refreshKey}
