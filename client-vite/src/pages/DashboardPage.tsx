@@ -121,7 +121,7 @@ const DashboardPage: React.FC = () => {
                 <>
                   <DropdownButton
                     label="Manage Master List"
-                    onClick={(e) => setMasterListMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(masterListMenuAnchor)}
                     color="purple"
                   />
@@ -150,7 +150,7 @@ const DashboardPage: React.FC = () => {
                   </Menu>
                   <DropdownButton
                     label="Manage Users"
-                    onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(userMenuAnchor)}
                     color="orange"
                     marginLeft="10px"
@@ -196,8 +196,8 @@ const DashboardPage: React.FC = () => {
                   transition: 'background-color 0.2s',
                   boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
               >
                 View All Trials
               </button>
@@ -227,7 +227,7 @@ const DashboardPage: React.FC = () => {
                 <>
                   <DropdownButton
                     label="Manage Master List"
-                    onClick={(e) => setMasterListMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(masterListMenuAnchor)}
                     color="purple"
                   />
@@ -256,7 +256,7 @@ const DashboardPage: React.FC = () => {
                   </Menu>
                   <DropdownButton
                     label="Manage Users"
-                    onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(userMenuAnchor)}
                     color="orange"
                     marginLeft="10px"
@@ -302,8 +302,8 @@ const DashboardPage: React.FC = () => {
                   transition: 'background-color 0.2s',
                   boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
               >
                 View All Trials
               </button>
@@ -339,7 +339,7 @@ const DashboardPage: React.FC = () => {
                 <>
                   <DropdownButton
                     label="Manage Master List"
-                    onClick={(e) => setMasterListMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(masterListMenuAnchor)}
                     color="purple"
                   />
@@ -368,7 +368,7 @@ const DashboardPage: React.FC = () => {
                   </Menu>
                   <DropdownButton
                     label="Manage Users"
-                    onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(userMenuAnchor)}
                     color="orange"
                     marginLeft="10px"
@@ -414,8 +414,8 @@ const DashboardPage: React.FC = () => {
                   transition: 'background-color 0.2s',
                   boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
               >
                 View All Trials
               </button>
@@ -454,7 +454,7 @@ const DashboardPage: React.FC = () => {
                 <>
                   <DropdownButton
                     label="Manage Master List"
-                    onClick={(e) => setMasterListMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(masterListMenuAnchor)}
                     color="purple"
                   />
@@ -483,7 +483,7 @@ const DashboardPage: React.FC = () => {
                   </Menu>
                   <DropdownButton
                     label="Manage Users"
-                    onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
                     isOpen={Boolean(userMenuAnchor)}
                     color="orange"
                     marginLeft="10px"
@@ -529,8 +529,8 @@ const DashboardPage: React.FC = () => {
                   transition: 'background-color 0.2s',
                   boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
               >
                 View All Trials
               </button>
@@ -544,6 +544,18 @@ const DashboardPage: React.FC = () => {
             ) : (
               <StatsGrid stats={stats} />
             )}
+
+            {/* All Trials Section */}
+            <h4 style={{
+              marginTop: '30px',
+              marginBottom: '20px',
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              color: '#1976d2'
+            }}>
+              View All Trials
+            </h4>
+            <TrialsTable />
           </>
         )}
       </main>
