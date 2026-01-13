@@ -3,7 +3,12 @@
  * Handles API calls for all inspection types (Metallurgical, Visual, Dimensional, etc.)
  */
 
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
+/**
+ * Inspection Service
+ * Handles API calls for all inspection types (Metallurgical, Visual, Dimensional, etc.)
+ */
+
+import { apiService } from './commonService';
 
 export const inspectionService = {
     /**
@@ -13,23 +18,10 @@ export const inspectionService = {
      */
     async submitMetallurgicalInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/metallurgical-inspection`, {
+            return await apiService.request('/metallurgical-inspection', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to submit metallurgical inspection');
-            }
-
-            return data;
         } catch (error) {
             console.error('Error submitting metallurgical inspection:', error);
             throw error;
@@ -43,23 +35,10 @@ export const inspectionService = {
      */
     async submitVisualInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/visual-inspection`, {
+            return await apiService.request('/visual-inspection', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to submit visual inspection');
-            }
-
-            return data;
         } catch (error) {
             console.error('Error submitting visual inspection:', error);
             throw error;
@@ -73,23 +52,10 @@ export const inspectionService = {
      */
     async submitDimensionalInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/dimensional-inspection`, {
+            return await apiService.request('/dimensional-inspection', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to submit dimensional inspection');
-            }
-
-            return data;
         } catch (error) {
             console.error('Error submitting dimensional inspection:', error);
             throw error;
@@ -103,23 +69,10 @@ export const inspectionService = {
      */
     async submitMachineShopInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/machine-shop`, {
+            return await apiService.request('/machine-shop', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to submit machine shop inspection');
-            }
-
-            return data;
         } catch (error) {
             console.error('Error submitting machine shop inspection:', error);
             throw error;
@@ -133,19 +86,12 @@ export const inspectionService = {
      */
     async submitPouringDetails(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/pouring-details`, {
+            const data = await apiService.request('/pouring-details', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.message || 'Failed to save pouring details');
             }
 
@@ -163,18 +109,12 @@ export const inspectionService = {
      */
     async submitSandProperties(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/sand-properties`, {
+            const data = await apiService.request('/sand-properties', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json().catch(() => null);
-
-            if (!response.ok || !data?.success) {
+            if (!data?.success) {
                 throw new Error(data?.message || 'Failed to submit sand properties');
             }
 
@@ -192,18 +132,12 @@ export const inspectionService = {
      */
     async submitMouldingCorrection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/moulding-correction`, {
+            const data = await apiService.request('/moulding-correction', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json().catch(() => null);
-
-            if (!response.ok || !data?.success) {
+            if (!data?.success) {
                 throw new Error(data?.message || 'Failed to save mould correction');
             }
 
@@ -217,176 +151,114 @@ export const inspectionService = {
     // Sand Properties
     async getSandProperties(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/sand-properties/trial_id?trial_id=${trialId}`, {
-                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/sand-properties/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching sand properties:', error); throw error; }
     },
     async updateSandProperties(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/sand-properties`, {
+            return await apiService.request('/sand-properties', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update sand properties');
-            return data;
         } catch (error) { console.error('Error updating sand properties:', error); throw error; }
     },
 
     // Moulding Correction
     async getMouldingCorrection(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/moulding-correction/trial_id?trial_id=${trialId}`, {
-                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/moulding-correction/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching moulding correction:', error); throw error; }
     },
     async updateMouldingCorrection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/moulding-correction`, {
+            return await apiService.request('/moulding-correction', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update moulding correction');
-            return data;
         } catch (error) { console.error('Error updating moulding correction:', error); throw error; }
     },
 
     // Visual Inspection
     async getVisualInspection(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/visual-inspection/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/visual-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching visual inspection:', error); throw error; }
     },
     async updateVisualInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/visual-inspection`, {
+            return await apiService.request('/visual-inspection', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update visual inspection');
-            return data;
         } catch (error) { console.error('Error updating visual inspection:', error); throw error; }
     },
 
     // Dimensional Inspection
     async getDimensionalInspection(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/dimensional-inspection/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/dimensional-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching dimensional inspection:', error); throw error; }
     },
     async updateDimensionalInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/dimensional-inspection`, {
+            return await apiService.request('/dimensional-inspection', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update dimensional inspection');
-            return data;
         } catch (error) { console.error('Error updating dimensional inspection:', error); throw error; }
     },
 
     // Metallurgical Inspection
     async getMetallurgicalInspection(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/metallurgical-inspection/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/metallurgical-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching metallurgical inspection:', error); throw error; }
     },
     async updateMetallurgicalInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/metallurgical-inspection`, {
+            return apiService.request('/metallurgical-inspection', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update metallurgical inspection');
-            return data;
         } catch (error) { console.error('Error updating metallurgical inspection:', error); throw error; }
     },
 
     // Pouring Details
     async getPouringDetails(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/pouring-details/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/pouring-details/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching pouring details:', error); throw error; }
     },
     async updatePouringDetails(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/pouring-details`, {
+            return await apiService.request('/pouring-details', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update pouring details');
-            return data;
         } catch (error) { console.error('Error updating pouring details:', error); throw error; }
     },
 
     // Machine Shop
     async getMachineShopInspection(trialId: string): Promise<any> {
         try {
-            // Machine shop might not have specific route in list, deducing from post route
-            const response = await fetch(`${API_BASE}/machine-shop/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/machine-shop/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching machine shop inspection:', error); throw error; }
     },
     async updateMachineShopInspection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/machine-shop`, {
+            return await apiService.request('/machine-shop', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update machine shop inspection');
-            return data;
         } catch (error) { console.error('Error updating machine shop inspection:', error); throw error; }
     },
     // Material Correction
     async submitMaterialCorrection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/material-correction`, {
+            return await apiService.request('/material-correction', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to submit material correction');
-            }
-
-            return data;
         } catch (error) {
             console.error('Error submitting material correction:', error);
             throw error;
@@ -395,23 +267,16 @@ export const inspectionService = {
 
     async getMaterialCorrection(trialId: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/material-correction/trial_id?trial_id=${trialId}`, {
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' }
-            });
-            return await response.json();
+            return await apiService.request(`/material-correction/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching material correction:', error); throw error; }
     },
 
     async updateMaterialCorrection(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/material-correction`, {
+            return await apiService.request('/material-correction', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to update material correction');
-            return data;
         } catch (error) { console.error('Error updating material correction:', error); throw error; }
     }
 };

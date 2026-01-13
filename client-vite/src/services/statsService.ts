@@ -1,21 +1,5 @@
 import { type StatItem } from '../data/dashboardData';
-
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
-
-async function handleResponse(res: Response) {
-    const text = await res.text();
-    let json;
-    try {
-        json = text ? JSON.parse(text) : {};
-    } catch {
-        throw new Error(`Invalid JSON response: ${text}`);
-    }
-    if (!res.ok) {
-        const msg = json?.message || res.statusText || "API error";
-        throw new Error(msg);
-    }
-    return json;
-}
+import { apiService } from './commonService';
 
 export interface DashboardStatsParams {
     role: string;
@@ -35,18 +19,11 @@ export async function getDashboardStats(params: DashboardStatsParams): Promise<S
         queryParams.append('statsType', params.statsType);
     }
 
-    const url = `${API_BASE}/stats/dashboard?${queryParams.toString()}`;
-    const res = await fetch(url, {
-        method: "GET",
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': localStorage.getItem('authToken') || ''
-        },
-        credentials: "include"
+    const data = await apiService.request(`/stats/dashboard?${queryParams.toString()}`, {
+        method: "GET"
     });
 
-    const json = await handleResponse(res);
-    return json.data?.stats || [];
+    return data.data?.stats || [];
 }
 
 export default { getDashboardStats };

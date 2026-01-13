@@ -32,3 +32,5 @@ View progress button
 Remove delete option in master card
 
 Similar to Hod in department forms for Admin
+
+Add option to view progress and edit all department data for Admin

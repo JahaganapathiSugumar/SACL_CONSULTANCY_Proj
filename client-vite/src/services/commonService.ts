@@ -5,11 +5,20 @@ const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:
 class ApiService {
   async request(endpoint: string, options: RequestInit = {}) {
     const token = localStorage.getItem('authToken');
+
+    const defaultHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+
+    if (options.body instanceof FormData) {
+      delete defaultHeaders['Content-Type'];
+    }
+
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
+        ...defaultHeaders,
+        ...options.headers as Record<string, string>,
       },
       ...options,
     };
@@ -18,6 +27,13 @@ class ApiService {
       let response = await fetch(`${API_BASE}${endpoint}`, config);
 
       if (response.status === 401) {
+        const handleSessionExpiry = () => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        };
+
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           try {
@@ -26,22 +42,38 @@ class ApiService {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken })
             });
+
             if (refreshRes.ok) {
               const refreshData = await refreshRes.json();
               if (refreshData.token) {
                 localStorage.setItem('authToken', refreshData.token);
+
+                const newHeaders = {
+                  ...(config.headers as Record<string, string>),
+                  Authorization: `Bearer ${refreshData.token}`
+                };
+
                 const retryConfig = {
                   ...config,
-                  headers: {
-                    ...(config.headers as Record<string, string>),
-                    Authorization: `Bearer ${refreshData.token}`
-                  }
+                  headers: newHeaders
                 };
+
                 response = await fetch(`${API_BASE}${endpoint}`, retryConfig);
+              } else {
+                handleSessionExpiry();
+                throw new Error('Session expired: Invalid refresh token');
               }
+            } else {
+              handleSessionExpiry();
+              throw new Error('Session expired: Refresh failed');
             }
           } catch (err) {
+            handleSessionExpiry();
+            throw err;
           }
+        } else {
+          handleSessionExpiry();
+          throw new Error('Session expired: No refresh token');
         }
       }
 

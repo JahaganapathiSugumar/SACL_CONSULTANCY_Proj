@@ -1,10 +1,9 @@
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
+import { apiService } from './commonService';
 
 export const masterListService = {
   submitMasterListJson(payload: Record<string, unknown>) {
-    return fetch(`${API_BASE}/master-list`, {
+    return apiService.request('/master-list', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('authToken') || '' },
       body: JSON.stringify(payload),
     });
   },
@@ -16,54 +15,35 @@ export const masterListService = {
       formData.append('attachments', file, file.name);
     });
 
-    return fetch(`${API_BASE}/master-list`, {
+    return apiService.request('/master-list', {
       method: 'POST',
-      headers: {
-        'Authorization': localStorage.getItem('authToken') || ''
-      },
       body: formData,
     });
   },
 
   getAllMasterLists() {
-    return fetch(`${API_BASE}/master-list`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('authToken') || ''
-      }
+    return apiService.request('/master-list', {
+      method: 'GET'
     });
   },
 
   updateMasterList(id: string | number, payload: Record<string, unknown>) {
-    return fetch(`${API_BASE}/master-list/${id}`, {
+    return apiService.request(`/master-list/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('authToken') || ''
-      },
       body: JSON.stringify(payload)
     });
   },
 
   deleteMasterLists(ids: number[]) {
-    return fetch(`${API_BASE}/master-list/bulk`, {
+    return apiService.request('/master-list/bulk', {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('authToken') || ''
-      },
       body: JSON.stringify({ ids })
     });
   },
 
   toggleStatus(id: number, isActive: boolean) {
-    return fetch(`${API_BASE}/master-list/toggle-status`, {
+    return apiService.request('/master-list/toggle-status', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('authToken') || ''
-      },
       body: JSON.stringify({ id, is_active: isActive })
     });
   }

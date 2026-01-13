@@ -2,7 +2,11 @@
  * Trial Management Service
  * Handles API calls related to trials, master lists, and sample cards
  */
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
+/**
+ * Trial Management Service
+ * Handles API calls related to trials, master lists, and sample cards
+ */
+import { apiService } from './commonService';
 
 export const trialService = {
     /**
@@ -11,19 +15,7 @@ export const trialService = {
      */
     async getMasterList(): Promise<any[]> {
         try {
-            const response = await fetch(`${API_BASE}/master-list`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
+            const data = await apiService.request('/master-list');
             return data.data || data || [];
         } catch (error) {
             console.error('Failed to fetch master list:', error);
@@ -38,19 +30,7 @@ export const trialService = {
      */
     async getMasterListByPatternCode(patternCode: string): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/master-list/search?pattern_code=${encodeURIComponent(patternCode)}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
+            const data = await apiService.request(`/master-list/search?pattern_code=${encodeURIComponent(patternCode)}`);
             return data.data || null;
         } catch (error) {
             console.error('Failed to fetch master list item:', error);
@@ -65,22 +45,7 @@ export const trialService = {
      */
     async getTrialIdByPartName(partName: string): Promise<any> {
         try {
-            const response = await fetch(
-                `${API_BASE}/trial/id?part_name=${encodeURIComponent(partName)}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            return data;
+            return await apiService.request(`/trial/id?part_name=${encodeURIComponent(partName)}`);
         } catch (error) {
             console.error('Failed to fetch trial by part name:', error);
             throw error;
@@ -94,26 +59,10 @@ export const trialService = {
      */
     async getTrialByTrialId(trialId: string): Promise<any> {
         try {
-            const response = await fetch(
-                `${API_BASE}/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-
+            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`);
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 return data.data[0];
             }
-
             return null;
         } catch (error) {
             console.error('Failed to fetch trial by trial ID:', error);
@@ -128,23 +77,10 @@ export const trialService = {
      */
     async submitTrial(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/trial`, {
+            return await apiService.request('/trial', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}`);
-            }
-
-            return data;
         } catch (error) {
             console.error('Failed to submit trial :', error);
             throw error;
@@ -157,19 +93,7 @@ export const trialService = {
      */
     async getAllTrials(): Promise<any[]> {
         try {
-            const response = await fetch(`${API_BASE}/trial`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
+            const data = await apiService.request('/trial');
             return data.data || [];
         } catch (error) {
             console.error('Failed to fetch all trials:', error);
@@ -183,19 +107,7 @@ export const trialService = {
      */
     async getAllTrialReports(): Promise<any[]> {
         try {
-            const response = await fetch(`${API_BASE}/trial/trial-reports`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
+            const data = await apiService.request('/trial/trial-reports');
             console.log(data.data);
             return data.data || [];
         } catch (error) {
@@ -211,26 +123,10 @@ export const trialService = {
      */
     async getTrialById(trialId: string): Promise<any> {
         try {
-            const response = await fetch(
-                `${API_BASE}/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include'
-            }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-
+            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`);
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 return { success: true, data: data.data[0] };
             }
-
             return { success: false, data: null };
         } catch (error) {
             console.error('Failed to fetch trial by ID:', error);
@@ -245,26 +141,12 @@ export const trialService = {
      */
     async updateTrial(payload: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/trial/update`, {
+            return await apiService.request('/trial/update', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}`);
-            }
-
-            return data;
         } catch (error) {
             console.error('Failed to update trial:', error);
-            throw error;
             throw error;
         }
     },
@@ -276,23 +158,10 @@ export const trialService = {
      */
     async deleteTrialReports(trialIds: string[]): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE}/trial/delete-reports`, {
+            return await apiService.request('/trial/delete-reports', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('authToken') || ''
-                },
-                credentials: 'include',
                 body: JSON.stringify({ trial_ids: trialIds })
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}`);
-            }
-
-            return data;
         } catch (error) {
             console.error('Failed to delete trial reports:', error);
             throw error;

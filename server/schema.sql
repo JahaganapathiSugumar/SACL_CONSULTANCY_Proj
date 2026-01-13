@@ -300,8 +300,7 @@ INSERT INTO departments(department_name) VALUES
 ('PROCESS CONTROL(QC)'),
 ('MACHINESHOP'),
 ('METALLURGICAL INSPECTION(QC)'),
-('QA'),
-('CUSTOMER');
+('QA');
 GO
 
 CREATE TABLE audit_log (
