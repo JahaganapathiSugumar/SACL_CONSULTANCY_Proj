@@ -32,12 +32,24 @@ export const getCompletedTrials = async (req, res, next) => {
          JOIN trial_cards t ON a.trial_id = t.trial_id
          JOIN departments d ON a.department_id = d.department_id
          WHERE a.department_id = @department_id 
-         AND (a.action = 'Department progress approved')
+         AND (a.action = 'Department progress approved' OR a.action = 'Department progress completed')
          AND a.trial_id IS NOT NULL
          ORDER BY a.action_timestamp DESC`,
         { department_id: req.user.department_id }
     );
 
+    res.status(200).json({
+        success: true,
+        data: result
+    });
+};
+
+export const getProgressByTrialId = async (req, res, next) => {
+    const trial_id = req.query.trial_id;
+    const [result] = await Client.query(
+        `SELECT dp.*, d.department_name FROM department_progress dp JOIN departments d ON dp.department_id = d.department_id WHERE dp.trial_id = @trial_id AND dp.approval_status = 'approved';`,
+        { trial_id }
+    );
     res.status(200).json({
         success: true,
         data: result

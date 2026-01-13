@@ -93,7 +93,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   useEffect(() => {
     const fetchData = async () => {
       const urlTrialId = new URLSearchParams(window.location.search).get('trial_id');
-      if (user?.role === 'HOD' && urlTrialId) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && urlTrialId) {
         try {
           const response = await inspectionService.getSandProperties(urlTrialId);
           if (response.success && response.data && response.data.length > 0) {
@@ -162,7 +162,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     try {
       const trialId = new URLSearchParams(window.location.search).get('trial_id') || "trial_id";
 
-      if (user?.role === 'HOD' && trialId) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
         const payload = {
           trial_id: trialId,
           date: sandDate,
@@ -247,7 +247,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: user?.role === 'HOD' ? 'Failed to approve sand properties. Please try again.' : 'Failed to save sand properties. Please try again.'
+        text: user?.role === 'HOD' || user?.role === 'Admin' ? 'Failed to approve sand properties. Please try again.' : 'Failed to save sand properties. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -356,7 +356,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                         <SpecInput
                           value={(sandProps as any)[key]}
                           onChange={(e: any) => handleChange(key, e.target.value)}
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         />
                       </TableCell>
                     ))}
@@ -369,7 +369,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                         placeholder="Enter remarks..."
                         value={sandProps.remarks}
                         onChange={(e) => handleChange("remarks", e.target.value)}
-                        disabled={user?.role === 'HOD' && !isEditing}
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         sx={{ bgcolor: '#fff' }}
                       />
                     </TableCell>
@@ -379,7 +379,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             </Box>
 
             <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              {(user?.role !== 'HOD' || isEditing) && (
+              {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                 <>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                     Attach PDF / Image Files
@@ -398,7 +398,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
 
             <Box sx={{ p: 3, display: "flex", flexDirection: { xs: 'column', sm: 'row' }, justifyContent: "flex-end", alignItems: "flex-end", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-                {user?.role !== 'HOD' && (
+                {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                   <Button
                     variant="outlined"
                     onClick={handleReset}
@@ -418,7 +418,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                   </Button>
                 )}
 
-                {user?.role === 'HOD' && (
+                {(user?.role === 'HOD' || user?.role === 'Admin') && (
                   <Button
                     variant="outlined"
                     onClick={() => setIsEditing(!isEditing)}
@@ -432,14 +432,14 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                   variant="contained"
                   onClick={handleSaveAndContinue}
                   fullWidth={isMobile}
-                  startIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                  startIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                   sx={{
                     bgcolor: COLORS.secondary,
                     color: 'white',
                     '&:hover': { bgcolor: '#c2410c' }
                   }}
                 >
-                  {user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
+                  {user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                 </Button>
               </Box>
             </Box>

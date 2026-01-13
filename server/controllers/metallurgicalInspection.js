@@ -94,7 +94,9 @@ export const createInspection = async (req, res, next) => {
             action: 'Metallurgical inspection created',
             remarks: `Metallurgical inspection for trial ${trial_id} created by ${req.user.username}`
         });
-        await updateRole(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateRole(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({ success: true, message: 'Metallurgical inspection created successfully.' });
@@ -182,7 +184,9 @@ export const updateInspection = async (req, res, next) => {
                 remarks: `Metallurgical inspection for trial ${trial_id} updated by ${req.user.username}`
             });
         }
-        await updateDepartment(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateDepartment(trial_id, req.user, trx);
+        }
     });
 
     res.status(200).json({

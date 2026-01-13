@@ -261,7 +261,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
     useEffect(() => {
         const fetchData = async () => {
-            if (user?.role === 'HOD' && trialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
                 try {
                     const response = await inspectionService.getPouringDetails(trialId);
                     if (response.success && response.data && response.data.length > 0) {
@@ -349,7 +349,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         try {
             setLoading(true);
 
-            if (user?.role === 'HOD' && trialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
                 try {
                     const updatePayload = {
                         trial_id: trialId,
@@ -571,7 +571,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                 value={pouringDate}
                                                                 onChange={(e: any) => setPouringDate(e.target.value)}
                                                                 inputStyle={{ textAlign: 'left' }}
-                                                                disabled={user?.role === 'HOD'}
+                                                                disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                                                             />
                                                         </Box>
                                                         <Box>
@@ -580,7 +580,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                 placeholder="Code"
                                                                 value={heatCode}
                                                                 onChange={(e: any) => setHeatCode(e.target.value)}
-                                                                disabled={user?.role === 'HOD' && !isEditing}
+                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                             />
                                                         </Box>
                                                     </Box>
@@ -596,7 +596,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     <SpecInput
                                                                         value={(chemState as any)[el.toLowerCase()]}
                                                                         onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
-                                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     />
                                                                 </Box>
                                                             </Grid>
@@ -610,7 +610,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     <SpecInput
                                                                         value={(chemState as any)[el.toLowerCase()]}
                                                                         onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
-                                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     />
                                                                 </Box>
                                                             </Grid>
@@ -623,7 +623,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     placeholder="Actual"
                                                                     value={noOfMouldPoured}
                                                                     onChange={(e: any) => setNoOfMouldPoured(e.target.value)}
-                                                                    disabled={user?.role === 'HOD' && !isEditing}
+                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     sx={{ width: '100px' }}
                                                                 />
                                                             </Box>
@@ -642,7 +642,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                 InputProps={{
                                                                     endAdornment: <InputAdornment position="end">°C</InputAdornment>,
                                                                 }}
-                                                                disabled={user?.role === 'HOD' && !isEditing}
+                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                             />
                                                         </Box>
                                                         <Divider sx={{ borderStyle: 'dashed' }} />
@@ -654,7 +654,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                     value={inoculationText}
                                                                     onChange={(e: any) => setInoculationText(e.target.value)}
                                                                     sx={{ width: 80 }}
-                                                                    disabled={user?.role === 'HOD' && !isEditing}
+                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                 />
                                                             </Box>
                                                             <Grid container spacing={1} sx={{ mt: 0.5 }}>
@@ -666,7 +666,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                             placeholder="gms"
                                                                             value={inoculationStream}
                                                                             onChange={(e: any) => setInoculationStream(e.target.value)}
-                                                                            disabled={user?.role === 'HOD' && !isEditing}
+                                                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                         />
                                                                     </Box>
                                                                 </Grid>
@@ -678,7 +678,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                                             placeholder="gms"
                                                                             value={inoculationInmould}
                                                                             onChange={(e: any) => setInoculationInmould(e.target.value)}
-                                                                            disabled={user?.role === 'HOD' && !isEditing}
+                                                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                         />
                                                                     </Box>
                                                                 </Grid>
@@ -693,7 +693,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                         placeholder="Sec"
                                                         value={pouringTime}
                                                         onChange={(e: any) => setPouringTime(e.target.value)}
-                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                     />
                                                 </TableCell>
 
@@ -703,19 +703,19 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                                         <Grid size={{ xs: 12 }}>
                                                             <Box display="flex" alignItems="center" gap={1}>
                                                                 <Typography variant="caption" noWrap minWidth={90}>F/C & Heat No:</Typography>
-                                                                <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                                                                <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                                                             </Box>
                                                         </Grid>
                                                         <Grid size={{ xs: 12 }}>
                                                             <Box display="flex" alignItems="center" gap={1}>
                                                                 <Typography variant="caption" noWrap minWidth={90}>PP Code :</Typography>
-                                                                <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                                                                <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                                                             </Box>
                                                         </Grid>
                                                         <Grid size={{ xs: 12 }}>
                                                             <Box display="flex" alignItems="center" gap={1}>
                                                                 <Typography variant="caption" noWrap minWidth={90}>Followed by :</Typography>
-                                                                <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                                                                <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                                                             </Box>
                                                         </Grid>
                                                         <Grid size={{ xs: 12 }}>
@@ -736,7 +736,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
 
                         <Grid size={{ xs: 12 }}>
                             <Paper sx={{ p: 3, mb: 3 }}>
-                                {(user?.role !== 'HOD' || isEditing) && (
+                                {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                                     <>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase" }}>
                                             Attach PDF / Image Files
@@ -747,7 +747,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                             onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                                             showAlert={showAlert}
                                             label="Upload Files"
-                                            disabled={user?.role === 'HOD' && !isEditing}
+                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                         />
                                     </>
                                 )}
@@ -766,7 +766,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                                     value={remarksText}
                                     onChange={(e) => setRemarksText(e.target.value)}
                                     sx={{ bgcolor: "white" }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                             </FormSection>
                         </Grid>
@@ -776,13 +776,13 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2}>
                                 <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                                     <ActionButtons
-                                        {...(user?.role !== 'HOD' ? { onReset: () => window.location.reload() } : {})}
+                                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
                                         onSave={handleSaveAndContinue}
                                         showSubmit={false}
-                                        saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                                        saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                                        saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                        saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                     >
-                                        {user?.role === 'HOD' && (
+                                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                             <Button
                                                 variant="outlined"
                                                 onClick={() => setIsEditing(!isEditing)}

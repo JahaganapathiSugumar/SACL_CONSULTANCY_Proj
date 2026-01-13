@@ -98,7 +98,7 @@ export default function DimensionalInspection({
 
     useEffect(() => {
         const fetchData = async () => {
-            if (user?.role === 'HOD' && trialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
                 try {
                     const response = await inspectionService.getDimensionalInspection(trialId);
                     if (response.success && response.data && response.data.length > 0) {
@@ -261,7 +261,7 @@ export default function DimensionalInspection({
         if (!previewPayload) return;
         setSaving(true);
 
-        if (user?.role === 'HOD' && trialId) {
+        if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
             try {
                 const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
                 const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
@@ -423,7 +423,7 @@ export default function DimensionalInspection({
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={user?.role === 'HOD'}
+                                    disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 3 }}>
@@ -435,7 +435,7 @@ export default function DimensionalInspection({
                                     value={weightTarget}
                                     onChange={(e) => setWeightTarget(e.target.value)}
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 2 }}>
@@ -447,7 +447,7 @@ export default function DimensionalInspection({
                                     value={bunchWeight}
                                     onChange={(e) => setBunchWeight(e.target.value)}
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 2 }}>
@@ -460,7 +460,7 @@ export default function DimensionalInspection({
                                     value={numberOfCavity}
                                     onChange={(e) => setNumberOfCavity(e.target.value)}
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 2 }}>
@@ -502,9 +502,9 @@ export default function DimensionalInspection({
                                                         onChange={(e) => updateCavityLabel(ci, e.target.value)}
                                                         InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                         sx={{ input: { textAlign: 'center' } }}
-                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                     />
-                                                    <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
+                                                    <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
                                                 </Box>
@@ -528,7 +528,7 @@ export default function DimensionalInspection({
                                                         onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
                                                         variant="outlined"
                                                         sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                     />
                                                 </TableCell>
                                             ))}
@@ -543,7 +543,7 @@ export default function DimensionalInspection({
                             onClick={addCavity}
                             startIcon={<AddCircleIcon />}
                             sx={{ mt: 1, color: COLORS.secondary }}
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         >
                             Add Column
                         </Button>
@@ -579,7 +579,7 @@ export default function DimensionalInspection({
                             value={remarks}
                             onChange={(e) => setRemarks(e.target.value)}
                             sx={{ bgcolor: '#fff' }}
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         />
                     </Paper>
 
@@ -587,13 +587,13 @@ export default function DimensionalInspection({
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                             <ActionButtons
-                                {...(user?.role !== 'HOD' ? { onReset: resetAll } : {})}
+                                {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
                                 onSave={handleSaveAndContinue}
                                 showSubmit={false}
-                                saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                                saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                                saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                             >
-                                {user?.role === 'HOD' && (
+                                {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                     <Button
                                         variant="outlined"
                                         onClick={() => setIsEditing(!isEditing)}

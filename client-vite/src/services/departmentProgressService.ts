@@ -29,4 +29,11 @@ export async function getCompletedTrials(username: string): Promise<ProgressItem
   return Array.isArray(data.data) ? data.data as ProgressItem[] : [];
 }
 
-export default { getProgress, getCompletedTrials };
+export async function getProgressByTrialId(trial_id: string): Promise<ProgressItem[]> {
+  const data = await apiService.request(`/department-progress/get-progress-by-trial-id?trial_id=${encodeURIComponent(trial_id)}`, {
+    method: "GET"
+  });
+  return Array.isArray(data.data) ? data.data as ProgressItem[] : [];
+}
+
+export default { getProgress, getCompletedTrials, getProgressByTrialId };

@@ -135,20 +135,17 @@ export default function VisualInspection({
 
     useEffect(() => {
         const fetchData = async () => {
-            if (user?.role === 'HOD' && urlTrialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin') && urlTrialId) {
                 try {
                     const response = await inspectionService.getVisualInspection(urlTrialId);
 
                     let docsMap: Record<string, any> = {};
                     try {
                         const docRes = await documentService.getDocument(urlTrialId);
-                        if (docRes.ok) {
-                            const docData = await docRes.json();
-                            if (docData.success && Array.isArray(docData.data)) {
-                                docData.data.forEach((d: any) => {
-                                    if (d.document_type === 'VISUAL_INSPECTION') docsMap[d.file_name] = d;
-                                });
-                            }
+                        if (docRes && docRes.success && Array.isArray(docRes.data)) {
+                            docRes.data.forEach((d: any) => {
+                                if (d.document_type === 'VISUAL_INSPECTION') docsMap[d.file_name] = d;
+                            });
                         }
                     } catch (e) { console.error(e); }
 
@@ -392,7 +389,7 @@ export default function VisualInspection({
         setSaving(true);
         setMessage(null);
 
-        if (user?.role === 'HOD' && urlTrialId) {
+        if ((user?.role === 'HOD' || user?.role === 'Admin') && urlTrialId) {
             try {
                 const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
                 const cavityRow = findRow('cavity number');
@@ -601,13 +598,13 @@ export default function VisualInspection({
                                                         InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                         size="small"
                                                         sx={{ input: { textAlign: 'center' } }}
-                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                     />
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => removeColumn(ci)}
                                                         sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}
-                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                     >
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
@@ -645,7 +642,7 @@ export default function VisualInspection({
                                                 const isRejectedInvalid = rejectedValue === 'Invalid';
 
                                                 const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r.values[ci] ?? "");
-                                                const isFieldDisabled = (user?.role === 'HOD' && !isEditing) ||
+                                                const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
                                                     (isAcceptedQty && !inspectedValue) ||
                                                     isRejectedQty ||
                                                     isRejectionPercentage;
@@ -735,8 +732,8 @@ export default function VisualInspection({
                                                             value={groupMeta.ok === null ? "" : String(groupMeta.ok)}
                                                             onChange={(e) => setGroupMeta((g) => ({ ...g, ok: e.target.value === "true" }))}
                                                         >
-                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
-                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
+                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                                                         </RadioGroup>
                                                     </TableCell>
 
@@ -756,7 +753,7 @@ export default function VisualInspection({
                                                                 onChange={(e) => setGroupMeta((g) => ({ ...g, remarks: e.target.value }))}
                                                                 variant="outlined"
                                                                 sx={{ bgcolor: 'white' }}
-                                                                disabled={user?.role === 'HOD' && !isEditing}
+                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                             />
 
                                                             <Box display="flex" alignItems="center" gap={1} mt="auto">
@@ -777,7 +774,7 @@ export default function VisualInspection({
                                                                         }
                                                                         setGroupMeta((g) => ({ ...g, attachment: file }));
                                                                     }}
-                                                                    disabled={user?.role === 'HOD' && !isEditing}
+                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                 />
                                                                 <label htmlFor="visual-group-file">
                                                                     <Button
@@ -786,7 +783,7 @@ export default function VisualInspection({
                                                                         component="span"
                                                                         startIcon={<UploadFileIcon />}
                                                                         sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                                                                        disabled={user?.role === 'HOD' && !isEditing}
+                                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     >
                                                                         Attach PDF
                                                                     </Button>
@@ -801,7 +798,7 @@ export default function VisualInspection({
                                                                             size="small"
                                                                             variant="outlined"
                                                                             sx={{ maxWidth: 140 }}
-                                                                            disabled={user?.role === 'HOD' && !isEditing}
+                                                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                         />
                                                                         <IconButton size="small" onClick={() => viewAttachment(groupMeta.attachment)}>
                                                                             <VisibilityIcon fontSize="small" />
@@ -828,13 +825,13 @@ export default function VisualInspection({
                             onClick={addColumn}
                             startIcon={<AddCircleIcon />}
                             sx={{ mt: 1, color: COLORS.secondary }}
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         >
                             Add Column
                         </Button>
 
                         <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-                            {(user?.role !== 'HOD' || isEditing) && (
+                            {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                                 <>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                                         Attach PDF / Image Files
@@ -845,7 +842,7 @@ export default function VisualInspection({
                                         onFileRemove={removeAttachedFile}
                                         showAlert={showAlert}
                                         label="Attach PDF"
-                                        disabled={user?.role === 'HOD' && !isEditing}
+                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                     />
                                 </>
                             )}
@@ -856,13 +853,13 @@ export default function VisualInspection({
                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
                             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                                 <ActionButtons
-                                    {...(user?.role !== 'HOD' ? { onReset: reset } : {})}
+                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: reset } : {})}
                                     onSave={handleSaveAndContinue}
                                     showSubmit={false}
-                                    saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                                    saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                                    saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                    saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                 >
-                                    {user?.role === 'HOD' && (
+                                    {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                         <Button
                                             variant="outlined"
                                             onClick={() => setIsEditing(!isEditing)}

@@ -42,7 +42,9 @@ export const createTrial = async (req, res, next) => {
         });
 
         await createDepartmentProgress(trial_id, req.user, part_name, trx);
-        await updateRole(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateRole(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({ success: true, message: 'Trial created successfully.' });
@@ -155,7 +157,9 @@ export const updateTrial = async (req, res, next) => {
                 remarks: `Trial ${trial_id} updated by ${req.user.username}`
             });
         }
-        await updateDepartment(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateDepartment(trial_id, req.user, trx);
+        }
     });
 
     res.status(200).json({ success: true, message: 'Trial updated successfully.' });

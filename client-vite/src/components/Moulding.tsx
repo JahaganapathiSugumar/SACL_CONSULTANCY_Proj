@@ -75,7 +75,7 @@ function MouldingTable() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user?.role === 'HOD' && trialId) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
         try {
           const response = await inspectionService.getMouldingCorrection(trialId);
           if (response.success && response.data && response.data.length > 0) {
@@ -180,7 +180,7 @@ function MouldingTable() {
   const handleFinalSave = async () => {
     setLoading(true);
     try {
-      if (user?.role === 'HOD' && trialId) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
 
         const payload = {
           mould_thickness: mouldState.thickness,
@@ -255,7 +255,7 @@ function MouldingTable() {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: user?.role === 'HOD' ? 'Failed to update moulding correction. Please try again.' : 'Failed to save moulding details. Please try again.'
+        text: user?.role === 'HOD' || user?.role === 'Admin' ? 'Failed to update moulding correction. Please try again.' : 'Failed to save moulding details. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -298,7 +298,7 @@ function MouldingTable() {
                   value={mouldDate}
                   onChange={(e) => setMouldDate(e.target.value)}
                   sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
-                  disabled={user?.role === 'HOD' && !isEditing}
+                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                 />
               </Box>
             </Box>
@@ -326,11 +326,11 @@ function MouldingTable() {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
-                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                    <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
                     <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                      <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                     </TableCell>
 
                     <TableCell>
@@ -338,7 +338,7 @@ function MouldingTable() {
                         value={mouldState.remarks}
                         onChange={(e: any) => handleChange('remarks', e.target.value)}
                         placeholder="--"
-                        disabled={user?.role === 'HOD' && !isEditing}
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                       />
                     </TableCell>
                   </TableRow>
@@ -346,7 +346,7 @@ function MouldingTable() {
               </Table>
             </Box>
             <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              {(user?.role !== 'HOD' || isEditing) && (
+              {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                 <>
                   <Typography
                     variant="subtitle2"
@@ -361,7 +361,7 @@ function MouldingTable() {
                     onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                     showAlert={showAlert}
                     label="Attach PDF"
-                    disabled={user?.role === 'HOD' && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                   />
                 </>
               )}
@@ -372,13 +372,13 @@ function MouldingTable() {
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
               <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                 <ActionButtons
-                  {...(user?.role !== 'HOD' ? { onReset: handleReset } : {})}
+                  {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                   onSave={handleSaveAndContinue}
                   showSubmit={false}
-                  saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                  saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                  saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                  saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                 >
-                  {user?.role === 'HOD' && (
+                  {(user?.role === 'HOD' || user?.role === 'Admin') && (
                     <Button
                       variant="outlined"
                       onClick={() => setIsEditing(!isEditing)}

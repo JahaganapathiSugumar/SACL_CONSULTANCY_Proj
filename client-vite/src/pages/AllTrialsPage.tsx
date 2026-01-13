@@ -34,6 +34,12 @@ import { appTheme, COLORS } from '../theme/appTheme';
 import { trialService } from '../services/trialService';
 import { useAuth } from '../context/AuthContext';
 
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { Collapse, Grid, Card, CardContent, Chip } from '@mui/material';
+import departmentProgressService, { type ProgressItem } from '../services/departmentProgressService';
+import { getPendingRoute } from '../utils/dashboardUtils';
+
 export default function AllTrialsPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -43,6 +49,10 @@ export default function AllTrialsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTrials, setSelectedTrials] = useState<string[]>([]);
 
+    // New state for expandable rows
+    const [expandedTrialId, setExpandedTrialId] = useState<string | null>(null);
+    const [trialProgressData, setTrialProgressData] = useState<Record<string, ProgressItem[]>>({});
+    const [loadingProgress, setLoadingProgress] = useState<Record<string, boolean>>({});
 
 
     useEffect(() => {
@@ -79,7 +89,7 @@ export default function AllTrialsPage() {
         setSelectedTrials([]);
     };
 
-    const handleClick = (event: React.MouseEvent<unknown>, trialId: string) => {
+    const handleClick = (event: any, trialId: string) => { // Fixed type to allow event.target usage nicely
         const selectedIndex = selectedTrials.indexOf(trialId);
         let newSelected: string[] = [];
 
@@ -162,6 +172,27 @@ export default function AllTrialsPage() {
             trialId: trial.trial_id,
             documents: [document]
         });
+    };
+
+    const handleExpandRow = async (trialId: string) => {
+        if (expandedTrialId === trialId) {
+            setExpandedTrialId(null);
+            return;
+        }
+
+        setExpandedTrialId(trialId);
+
+        if (!trialProgressData[trialId]) {
+            setLoadingProgress(prev => ({ ...prev, [trialId]: true }));
+            try {
+                const data = await departmentProgressService.getProgressByTrialId(trialId);
+                setTrialProgressData(prev => ({ ...prev, [trialId]: data }));
+            } catch (error) {
+                console.error("Error fetching trial progress:", error);
+            } finally {
+                setLoadingProgress(prev => ({ ...prev, [trialId]: false }));
+            }
+        }
     };
 
     const isSelected = (trialId: string) => selectedTrials.indexOf(trialId) !== -1;
@@ -253,6 +284,7 @@ export default function AllTrialsPage() {
                                 >
                                     <TableHead>
                                         <TableRow>
+                                            <TableCell />
                                             {canDelete && (
                                                 <TableCell sx={{
                                                     fontWeight: 'bold',
@@ -317,84 +349,159 @@ export default function AllTrialsPage() {
                                     <TableBody>
                                         {filteredTrials.length > 0 ? (
                                             filteredTrials.map((trial) => (
-                                                <TableRow
-                                                    key={trial.trial_id}
-                                                    hover
-                                                    onClick={(event) => canDelete && handleClick(event, trial.trial_id)}
-                                                    role="checkbox"
-                                                    aria-checked={isSelected(trial.trial_id)}
-                                                    selected={isSelected(trial.trial_id)}
-                                                    sx={{ cursor: canDelete ? 'pointer' : 'default' }}
-                                                >
-                                                    {canDelete && (
-                                                        <TableCell padding="checkbox">
-                                                            <Checkbox
-                                                                color="primary"
-                                                                checked={isSelected(trial.trial_id)}
-                                                                inputProps={{
-                                                                    'aria-labelledby': `enhanced-table-checkbox-${trial.trial_id}`,
-                                                                }}
-                                                            />
-                                                        </TableCell>
-                                                    )}
-                                                    <TableCell sx={{
-                                                        fontWeight: 'bold',
-                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                    }}>{trial.trial_id}</TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                        <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                            {trial.part_name}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.pattern_code}</TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.material_grade}</TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                        <Box sx={{
-                                                            display: 'inline-block',
-                                                            px: 1, py: 0.3,
-                                                            borderRadius: 5,
-                                                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                            bgcolor: '#e0f2fe',
-                                                            color: '#0369a1',
-                                                            fontWeight: 500,
-                                                            whiteSpace: 'nowrap'
-                                                        }}>
-                                                            {trial.department || 'N/A'}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                        <Box sx={{
-                                                            display: 'inline-block',
-                                                            px: 1, py: 0.3,
-                                                            borderRadius: 5,
-                                                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                            bgcolor: trial.status === 'CLOSED' ? '#dcfce7' : '#fff7ed',
-                                                            color: trial.status === 'CLOSED' ? '#166534' : '#9a3412',
-                                                            whiteSpace: 'nowrap'
-                                                        }}>
-                                                            {trial.status || 'In Progress'}
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                        {trial.status === 'CLOSED' && trial.file_base64 && (
-                                                            <Button
-                                                                variant="outlined"
+                                                <React.Fragment key={trial.trial_id}>
+                                                    <TableRow
+                                                        hover
+                                                        selected={isSelected(trial.trial_id)}
+                                                    >
+                                                        <TableCell>
+                                                            <IconButton
+                                                                aria-label="expand row"
                                                                 size="small"
-                                                                startIcon={<DescriptionIcon />}
-                                                                onClick={() => handleViewReport(trial)}
-                                                                sx={{
-                                                                    borderRadius: 2,
-                                                                    textTransform: 'none',
-                                                                    fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                                                                    padding: { xs: '4px 8px', sm: '6px 12px' }
-                                                                }}
+                                                                onClick={() => handleExpandRow(trial.trial_id)}
                                                             >
-                                                                Report
-                                                            </Button>
+                                                                {expandedTrialId === trial.trial_id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                                            </IconButton>
+                                                        </TableCell>
+                                                        {canDelete && (
+                                                            <TableCell padding="checkbox">
+                                                                <Checkbox
+                                                                    color="primary"
+                                                                    checked={isSelected(trial.trial_id)}
+                                                                    onChange={(event) => handleClick(event, trial.trial_id)}
+                                                                    inputProps={{
+                                                                        'aria-labelledby': `enhanced-table-checkbox-${trial.trial_id}`,
+                                                                    }}
+                                                                />
+                                                            </TableCell>
                                                         )}
-                                                    </TableCell>
-                                                </TableRow>
+                                                        <TableCell sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                        }}>{trial.trial_id}</TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                {trial.part_name}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.pattern_code}</TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.material_grade}</TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <Box sx={{
+                                                                display: 'inline-block',
+                                                                px: 1, py: 0.3,
+                                                                borderRadius: 5,
+                                                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                                bgcolor: '#e0f2fe',
+                                                                color: '#0369a1',
+                                                                fontWeight: 500,
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {trial.department || 'N/A'}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <Box sx={{
+                                                                display: 'inline-block',
+                                                                px: 1, py: 0.3,
+                                                                borderRadius: 5,
+                                                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                                bgcolor: trial.status === 'CLOSED' ? '#dcfce7' : '#fff7ed',
+                                                                color: trial.status === 'CLOSED' ? '#166534' : '#9a3412',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {trial.status || 'In Progress'}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            {trial.status === 'CLOSED' && trial.file_base64 && (
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    size="small"
+                                                                    startIcon={<DescriptionIcon />}
+                                                                    onClick={() => handleViewReport(trial)}
+                                                                    sx={{
+                                                                        borderRadius: 2,
+                                                                        textTransform: 'none',
+                                                                        fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                                                                        padding: { xs: '4px 8px', sm: '6px 12px' }
+                                                                    }}
+                                                                >
+                                                                    Report
+                                                                </Button>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    <TableRow>
+                                                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={canDelete ? 10 : 9}>
+                                                            <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
+                                                                <Box sx={{ margin: 2, bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
+                                                                    <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
+                                                                        Detailed Progress History
+                                                                    </Typography>
+                                                                    {loadingProgress[trial.trial_id] ? (
+                                                                        <LoadingSpinner />
+                                                                    ) : (trialProgressData[trial.trial_id] && trialProgressData[trial.trial_id].length > 0) ? (
+                                                                        <Grid container spacing={2}>
+                                                                            {trialProgressData[trial.trial_id].map((progress: ProgressItem, index: number) => (
+                                                                                <Grid key={index} size={{ xs: 12 }}>
+                                                                                    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                                                                                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                                                            <Grid container alignItems="center" spacing={2}>
+                                                                                                <Grid size={{ xs: 12, sm: 3 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Department</Typography>
+                                                                                                    <Typography variant="body2" fontWeight="medium">{progress.department_name || `Dept ID: ${progress.department_id}`}</Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                                                                                    <Chip
+                                                                                                        label={progress.approval_status}
+                                                                                                        size="small"
+                                                                                                        color={progress.approval_status === 'approved' ? 'success' : 'warning'}
+                                                                                                        variant="outlined"
+                                                                                                        sx={{ textTransform: 'capitalize' }}
+                                                                                                    />
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 3 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Completed At</Typography>
+                                                                                                    <Typography variant="body2">
+                                                                                                        {progress.completed_at ? new Date(progress.completed_at).toLocaleString() : '-'}
+                                                                                                    </Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Remarks</Typography>
+                                                                                                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                                                                                        {progress.remarks || 'No remarks'}
+                                                                                                    </Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                                                                    <Button
+                                                                                                        variant="contained"
+                                                                                                        size="small"
+                                                                                                        color="primary"
+                                                                                                        onClick={() => navigate(`${getPendingRoute(progress.department_id)}?trial_id=${trial.trial_id}`)}
+                                                                                                        sx={{ textTransform: 'none' }}
+                                                                                                    >
+                                                                                                        View Details
+                                                                                                    </Button>
+                                                                                                </Grid>
+                                                                                            </Grid>
+                                                                                        </CardContent>
+                                                                                    </Card>
+                                                                                </Grid>
+                                                                            ))}
+                                                                        </Grid>
+                                                                    ) : (
+                                                                        <Typography variant="body2" color="textSecondary" align="center">
+                                                                            No progress data available.
+                                                                        </Typography>
+                                                                    )}
+                                                                </Box>
+                                                            </Collapse>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </React.Fragment>
                                             ))
                                         ) : (
                                             <TableRow>
@@ -412,7 +519,8 @@ export default function AllTrialsPage() {
                     <Box sx={{ mt: 3, textAlign: 'right' }}>
                     </Box>
                 </Container>
-            </Box >
+            </Box>
+
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
                 <DialogTitle>
                     Trial Report - {viewReport?.trialId}
@@ -429,6 +537,6 @@ export default function AllTrialsPage() {
                     <Button onClick={() => setViewReport(null)}>Close</Button>
                 </DialogActions>
             </Dialog>
-        </ThemeProvider >
+        </ThemeProvider>
     );
 }

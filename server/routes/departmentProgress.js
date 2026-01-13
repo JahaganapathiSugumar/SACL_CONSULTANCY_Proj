@@ -7,5 +7,6 @@ const router = express.Router();
 
 router.get('/get-progress', verifyToken, asyncErrorHandler(departmentProgressController.getProgress));
 router.get('/get-completed-trials', verifyToken, asyncErrorHandler(departmentProgressController.getCompletedTrials));
+router.get('/get-progress-by-trial-id', verifyToken, asyncErrorHandler(departmentProgressController.getProgressByTrialId));
 
 export default router;

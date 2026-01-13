@@ -20,7 +20,9 @@ export const createCorrection = async (req, res, next) => {
             action: 'Mould correction created',
             remarks: `Mould correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
         });
-        await updateRole(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateRole(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({ success: true, message: 'Mould correction created successfully.' });
@@ -61,7 +63,9 @@ export const updateCorrection = async (req, res, next) => {
             action: 'Mould correction updated',
             remarks: `Mould correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
         });
-        await updateDepartment(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateDepartment(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({

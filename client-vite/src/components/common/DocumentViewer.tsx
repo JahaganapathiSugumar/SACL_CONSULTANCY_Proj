@@ -45,17 +45,14 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
             try {
                 console.log(`DocumentViewer: Fetching docs for trialId: ${trialId}`);
                 const response = await documentService.getDocument(trialId);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && Array.isArray(data.data)) {
-                        let docs = data.data;
-                        if (category) {
-                            docs = docs.filter((d: Document) => d.document_type?.trim().toUpperCase() === category.trim().toUpperCase());
-                        }
-                        setDocuments(docs);
+                if (response && response.success && Array.isArray(response.data)) {
+                    let docs = response.data;
+                    if (category) {
+                        docs = docs.filter((d: Document) => d.document_type?.trim().toUpperCase() === category.trim().toUpperCase());
                     }
+                    setDocuments(docs);
                 } else {
-                    console.error("Failed to fetch documents");
+                    console.error("Failed to fetch documents", response);
                     setError("Failed to fetch documents");
                 }
             } catch (err) {

@@ -268,9 +268,9 @@ function SectionTable({
                       variant="standard"
                       InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                       sx={{ input: { textAlign: 'center' } }}
-                      disabled={user?.role === 'HOD' && !isEditing}
+                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                     />
-                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
+                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
@@ -300,7 +300,7 @@ function SectionTable({
                     onChange={(e) => cavityRow && updateCell(cavityRow.id, ci, e.target.value)}
                     variant="outlined"
                     sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                    disabled={user?.role === 'HOD' && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                   />
                 </TableCell>
               ))}
@@ -310,8 +310,8 @@ function SectionTable({
               <TableCell rowSpan={rows.length + (title === "NDT INSPECTION ANALYSIS" ? 2 : 1)} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <RadioGroup row sx={{ justifyContent: 'center' }} value={groupMeta.ok === null ? "" : String(groupMeta.ok)} onChange={(e) => updateGroupMeta({ ok: e.target.value === "true" })}>
-                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
-                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
+                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                   </RadioGroup>
                 </Box>
               </TableCell>
@@ -328,13 +328,13 @@ function SectionTable({
                     placeholder="Enter remarks..."
                     variant="outlined"
                     sx={{ bgcolor: 'white' }}
-                    disabled={user?.role === 'HOD' && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                   />
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateGroupMeta({ attachment: file }); }} disabled={user?.role === 'HOD' && !isEditing} />
+                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateGroupMeta({ attachment: file }); }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                     <label htmlFor={`${title}-group-file`}>
-                      <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={user?.role === 'HOD' && !isEditing}>
+                      <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                         Attach PDF
                       </Button>
                     </label>
@@ -351,7 +351,7 @@ function SectionTable({
                           size="small"
                           variant="outlined"
                           sx={{ maxWidth: 120 }}
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                         />
                       </Box>
                     )}
@@ -386,7 +386,7 @@ function SectionTable({
                     const rejectedValue = isRejectedQty ? (values[r.id]?.[ci] ?? "") : "";
                     const isRejectedInvalid = rejectedValue === 'Invalid';
 
-                    const isFieldDisabled = (user?.role === 'HOD' && !isEditing) ||
+                    const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
                       (title === "NDT INSPECTION ANALYSIS" && isAcceptedOrRejected && !inspectedValue) ||
                       (title === "NDT INSPECTION ANALYSIS" && isRejectedQty);
 
@@ -426,7 +426,7 @@ function SectionTable({
                         placeholder="Enter reason for rejection..."
                         variant="outlined"
                         sx={{ "& .MuiInputBase-input": { fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                        disabled={user?.role === 'HOD' && !isEditing}
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                       />
                     </TableCell>
                   )}
@@ -519,7 +519,7 @@ function SectionTable({
         onClick={addColumn}
         startIcon={<AddCircleIcon />}
         sx={{ mt: 1, color: COLORS.secondary }}
-        disabled={user?.role === 'HOD' && !isEditing}
+        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
       >
         Add Column
       </Button>
@@ -615,9 +615,9 @@ function MicrostructureTable({
                       variant="standard"
                       InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                       sx={{ input: { textAlign: 'center' } }}
-                      disabled={user?.role === 'HOD' && !isEditing}
+                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                     />
-                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing}>
+                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
@@ -643,7 +643,7 @@ function MicrostructureTable({
                       onChange={(e) => updateCell(param, ci, e.target.value)}
                       variant="outlined"
                       sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                      disabled={user?.role === 'HOD' && !isEditing}
+                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                     />
                   </TableCell>
                 ))}
@@ -657,8 +657,8 @@ function MicrostructureTable({
                         value={meta["group"]?.ok === null ? "" : String(meta["group"]?.ok)}
                         onChange={(e) => updateMeta("group", { ok: e.target.value === "true" })}
                       >
-                        <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
-                        <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={user?.role === 'HOD' && !isEditing} />
+                        <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                        <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                       </RadioGroup>
                     </TableCell>
 
@@ -678,9 +678,9 @@ function MicrostructureTable({
                         />
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`micro-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateMeta('group', { attachment: file }); }} disabled={user?.role === 'HOD' && !isEditing} />
+                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`micro-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateMeta('group', { attachment: file }); }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                           <label htmlFor={`micro-group-file`}>
-                            <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={user?.role === 'HOD' && !isEditing}>
+                            <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                               Attach PDF
                             </Button>
                           </label>
@@ -697,7 +697,7 @@ function MicrostructureTable({
                                 size="small"
                                 variant="outlined"
                                 sx={{ maxWidth: 120 }}
-                                disabled={user?.role === 'HOD' && !isEditing}
+                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               />
                             </Box>
                           )}
@@ -711,7 +711,7 @@ function MicrostructureTable({
           </TableBody>
         </Table>
       </Box>
-      <Button size="small" onClick={addColumn} startIcon={<AddCircleIcon />} sx={{ mt: 1, color: COLORS.secondary }} disabled={user?.role === 'HOD' && !isEditing}>Add Column</Button>
+      <Button size="small" onClick={addColumn} startIcon={<AddCircleIcon />} sx={{ mt: 1, color: COLORS.secondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>Add Column</Button>
     </Box>
   );
 }
@@ -776,7 +776,7 @@ export default function MetallurgicalInspection() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user?.role === 'HOD' && trialId) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
         try {
           const response = await inspectionService.getMetallurgicalInspection(trialId);
 
@@ -784,15 +784,12 @@ export default function MetallurgicalInspection() {
           if (trialId) {
             try {
               const docRes = await documentService.getDocument(trialId);
-              if (docRes.ok) {
-                const docData = await docRes.json();
-                if (docData.success && Array.isArray(docData.data)) {
-                  docData.data.forEach((d: any) => {
-                    if (d.document_type === 'METALLURGICAL_INSPECTION') {
-                      docsMap[d.file_name] = d;
-                    }
-                  });
-                }
+              if (docRes && docRes.success && Array.isArray(docRes.data)) {
+                docRes.data.forEach((d: any) => {
+                  if (d.document_type === 'METALLURGICAL_INSPECTION') {
+                    docsMap[d.file_name] = d;
+                  }
+                });
               }
             } catch (e) { console.error(e); }
           }
@@ -1002,7 +999,7 @@ export default function MetallurgicalInspection() {
       };
     };
 
-    if (user?.role === 'HOD' && trialId) {
+    if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
       setSending(true);
       try {
         const serverPayload = transformToServerPayload(previewPayload);
@@ -1362,7 +1359,7 @@ export default function MetallurgicalInspection() {
             </Grid>
 
             <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              {(user?.role !== 'HOD' || isEditing) && (
+              {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                 <>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                     Attach PDF / Image Files
@@ -1373,7 +1370,7 @@ export default function MetallurgicalInspection() {
                     onFileRemove={removeAttachedFile}
                     showAlert={showAlert}
                     label="Attach PDF"
-                    disabled={user?.role === 'HOD' && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                   />
                 </>
               )}
@@ -1384,13 +1381,13 @@ export default function MetallurgicalInspection() {
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
               <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                 <ActionButtons
-                  {...(user?.role !== 'HOD' ? { onReset: () => window.location.reload() } : {})}
+                  {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
                   onSave={handleSaveAndContinue}
                   showSubmit={false}
-                  saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                  saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                  saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                  saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                 >
-                  {user?.role === 'HOD' && (
+                  {(user?.role === 'HOD' || user?.role === 'Admin') && (
                     <Button
                       variant="outlined"
                       onClick={() => setIsEditing(!isEditing)}

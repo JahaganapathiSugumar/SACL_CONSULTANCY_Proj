@@ -268,7 +268,7 @@ export default function McShopInspection({
 
     setSaving(true);
 
-    if (user?.role === 'HOD' && trialId) {
+    if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
       try {
         const payload = buildPayload();
         const receivedRow = rows[1];
@@ -442,7 +442,7 @@ export default function McShopInspection({
                   onChange={(e) => setDate(e.target.value)}
                   fullWidth
                   sx={{ bgcolor: 'white' }}
-                  disabled={user?.role === 'HOD'}
+                  disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                 />
               </Grid>
 
@@ -463,9 +463,9 @@ export default function McShopInspection({
                             InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
                             size="small"
                             sx={{ input: { textAlign: 'center' } }}
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
-                          <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={user?.role === 'HOD' && !isEditing} >
+                          <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -508,7 +508,7 @@ export default function McShopInspection({
                                   onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                   variant="outlined"
                                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
-                                  disabled={user?.role === 'HOD' && !isEditing}
+                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                               </TableCell>
                             ))}
@@ -531,7 +531,7 @@ export default function McShopInspection({
                                 onChange={(e) => setGroupMeta((g) => ({ ...g, remarks: e.target.value }))}
                                 variant="outlined"
                                 sx={{ bgcolor: 'white' }}
-                                disabled={user?.role === 'HOD' && !isEditing}
+                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               />
 
                               <Box display="flex" alignItems="center" gap={1} mt="auto">
@@ -552,7 +552,7 @@ export default function McShopInspection({
                                     }
                                     setGroupMeta((g) => ({ ...g, attachment: file }));
                                   }}
-                                  disabled={user?.role === 'HOD' && !isEditing}
+                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 />
                                 <label htmlFor="mcshop-attach-file">
                                   <Button
@@ -561,7 +561,7 @@ export default function McShopInspection({
                                     component="span"
                                     startIcon={<UploadFileIcon />}
                                     sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                   >
                                     Attach
                                   </Button>
@@ -575,7 +575,7 @@ export default function McShopInspection({
                                     size="small"
                                     variant="outlined"
                                     sx={{ maxWidth: 140 }}
-                                    disabled={user?.role === 'HOD' && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                   />
                                 ) : (
                                   <Typography variant="caption" color="text.secondary">
@@ -598,13 +598,13 @@ export default function McShopInspection({
               onClick={addColumn}
               startIcon={<AddCircleIcon />}
               sx={{ mt: 1, color: COLORS.secondary }}
-              disabled={user?.role === 'HOD' && !isEditing}
+              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
             >
               Add Column
             </Button>
 
             <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-              {(user?.role !== 'HOD' || isEditing) && (
+              {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
                 <>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
                     Attach PDF / Image Files
@@ -615,7 +615,7 @@ export default function McShopInspection({
                     onFileRemove={removeAttachedFile}
                     showAlert={showAlert}
                     label="Attach PDF"
-                    disabled={user?.role === 'HOD' && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                   />
                 </>
               )}
@@ -626,13 +626,13 @@ export default function McShopInspection({
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
               <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                 <ActionButtons
-                  {...(user?.role !== 'HOD' ? { onReset: resetAll } : {})}
+                  {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
                   onSave={handleSaveAndContinue}
                   showSubmit={false}
-                  saveLabel={user?.role === 'HOD' ? 'Approve' : 'Save & Continue'}
-                  saveIcon={user?.role === 'HOD' ? <CheckCircleIcon /> : <SaveIcon />}
+                  saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                  saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                 >
-                  {user?.role === 'HOD' && (
+                  {(user?.role === 'HOD' || user?.role === 'Admin') && (
                     <Button
                       variant="outlined"
                       onClick={() => setIsEditing(!isEditing)}

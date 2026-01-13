@@ -34,8 +34,8 @@ export const createDepartmentProgress = async (trial_id, user, part_name, trx) =
 
 const assignToNextDepartmentUser = async (current_department_id, trial_id, next_department_id, user, trx) => {
     await trx.query(
-        `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE trial_id = @trial_id`,
-        { trial_id, completed_at: new Date(), approval_status: 'approved', remarks: `Approved by ${user.role}` }
+        `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE department_id = @department_id AND trial_id = @trial_id`,
+        { department_id: current_department_id, trial_id, completed_at: new Date(), approval_status: 'approved', remarks: `Approved by ${user.role}` }
     );
 
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
@@ -101,9 +101,14 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, next_
 };
 
 export const updateDepartment = async (trial_id, user, trx) => {
+    const [currentDepartment] = await trx.query(
+        `SELECT current_department_id FROM trial_cards WHERE trial_id = @trial_id`,
+        { trial_id }
+    );
+
     await trx.query(
-        `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE trial_id = @trial_id`,
-        { trial_id, completed_at: new Date(), approval_status: 'approved', remarks: `Approved by HOD` }
+        `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE department_id = @department_id AND trial_id = @trial_id`,
+        { department_id: currentDepartment[0].current_department_id, trial_id, completed_at: new Date(), approval_status: 'approved', remarks: `Approved by HOD` }
     );
 
     const audit_sql_completion = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
@@ -114,11 +119,6 @@ export const updateDepartment = async (trial_id, user, trx) => {
         action: 'Department progress approved',
         remarks: `Department progress for trial ${trial_id} approved by ${user.username} at ${user.department_name} department`
     });
-
-    const [currentDepartment] = await trx.query(
-        `SELECT current_department_id FROM trial_cards WHERE trial_id = @trial_id`,
-        { trial_id }
-    );
 
     const [rows] = await trx.query(
         `SELECT df2.department_id AS next_department_id
@@ -158,8 +158,8 @@ export const updateRole = async (trial_id, user, trx) => {
     if (current_department_hod && current_department_hod.length > 0) {
         const current_department_hod_username = current_department_hod[0].username;
         await trx.query(
-            `UPDATE department_progress SET username = @current_department_hod_username, remarks = 'HOD approval pending', approval_status = 'pending' WHERE trial_id = @trial_id`,
-            { current_department_hod_username, trial_id }
+            `UPDATE department_progress SET username = @current_department_hod_username, remarks = 'HOD approval pending', approval_status = 'pending' WHERE department_id = @department_id AND trial_id = @trial_id`,
+            { current_department_hod_username, department_id: currentDepartment[0].current_department_id, trial_id }
         );
         const audit_sql_assignment = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
         await trx.query(audit_sql_assignment, {
@@ -217,8 +217,8 @@ export const updateRole = async (trial_id, user, trx) => {
 
 export const approveProgress = async (department_id, trial_id, user, trx) => {
     await trx.query(
-        `UPDATE department_progress SET approval_status = 'approved' WHERE department_id = @department_id AND trial_id = @trial_id`,
-        { department_id, trial_id }
+        `UPDATE department_progress SET approval_status = 'approved', completed_at = @completed_at, remarks = @remarks WHERE department_id = @department_id AND trial_id = @trial_id`,
+        { department_id, trial_id, completed_at: new Date(), remarks: `Approved by ${user.role}` }
     );
     await generateAndStoreReport(trial_id, trx);
     await updateTrialStatus(trial_id, 'CLOSED', user, trx);

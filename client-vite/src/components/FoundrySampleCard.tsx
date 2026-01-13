@@ -315,7 +315,7 @@ function FoundrySampleCard() {
 
   useEffect(() => {
     const fetchTrialDataForHOD = async () => {
-      if (user?.role === 'HOD' && trialIdFromUrl) {
+      if (user?.role === 'HOD' || user?.role === 'Admin' && trialIdFromUrl) {
         try {
           const response = await trialService.getTrialById(trialIdFromUrl);
           if (response && response.data) {
@@ -390,7 +390,7 @@ function FoundrySampleCard() {
           showAlert("error", "Failed to load existing trial data.");
           setAssigned(false);
         }
-      } else if (user?.role === 'HOD') {
+      } else if (user?.role === 'HOD' || user?.role === 'Admin') {
         setAssigned(false);
       }
     };
@@ -503,7 +503,7 @@ function FoundrySampleCard() {
   const handleFinalSave = async () => {
     setIsSubmitting(true);
     try {
-      if (user?.role === 'HOD' && trialIdFromUrl) {
+      if (user?.role === 'HOD' || user?.role === 'Admin' && trialIdFromUrl) {
         try {
           await trialService.updateTrial({
             trial_id: trialIdFromUrl,
@@ -638,9 +638,9 @@ function FoundrySampleCard() {
 
           {loading ? (
             <LoadingState message="Loading trial data..." />
-          ) : user?.role === 'HOD' && assigned === null ? (
+          ) : user?.role === 'HOD' || user?.role === 'Admin' && assigned === null ? (
             <LoadingState message="Checking assigned work..." />
-          ) : user?.role === 'HOD' && !assigned ? (
+          ) : user?.role === 'HOD' || user?.role === 'Admin' && !assigned ? (
             <EmptyState title="No pending works at the moment" severity="warning" />
           ) : (
             <Grid container spacing={3}>
@@ -657,7 +657,7 @@ function FoundrySampleCard() {
                           value={selectedPattern}
                           onChange={(_, v) => handlePatternChange(v)}
                           getOptionLabel={(o) => o.pattern_code}
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                           renderInput={(params) => <TextField {...params} placeholder="Select Pattern" />}
                         />
                       </Grid>
@@ -668,7 +668,7 @@ function FoundrySampleCard() {
                           value={selectedPart}
                           onChange={(_, v) => handlePartChange(v)}
                           getOptionLabel={(o) => o.part_name}
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                           renderInput={(params) => <TextField {...params} placeholder="Select Part" />}
                         />
                       </Grid>
@@ -681,7 +681,7 @@ function FoundrySampleCard() {
                           InputProps={{
                             readOnly: true,
                             sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
-                            endAdornment: user?.role !== 'HOD' ? (
+                            endAdornment: user?.role !== 'HOD' || user?.role !== 'Admin' ? (
                               <InputAdornment position="end">
                                 <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
                                   {trialLoading ? <div style={{ transform: 'scale(0.7)' }}><GearSpinner /></div> : <RefreshIcon fontSize="small" />}
@@ -1064,7 +1064,7 @@ function FoundrySampleCard() {
           </PreviewModal>
 
           {/* Show these sections only when not in empty state for HOD */}
-          {!(user?.role === 'HOD' && !assigned) && !loading && (
+          {!(user?.role === 'HOD' || user?.role === 'Admin' && !assigned) && !loading && (
             <React.Fragment>
               <Paper sx={{ overflowX: "auto", mb: 3, p: 2 }}>
                 <Table size="small" sx={{ minWidth: 900 }}>
@@ -1103,7 +1103,7 @@ function FoundrySampleCard() {
                           value={samplingDate}
                           onChange={(e) => setSamplingDate(e.target.value)}
                           size="small"
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                         />
                       </TableCell>
                       <TableCell>
@@ -1116,7 +1116,7 @@ function FoundrySampleCard() {
                             onChange={(e) => setPlanMoulds(e.target.value)}
                             size="small"
                             placeholder="20"
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                             InputLabelProps={{ shrink: true }}
                             sx={{
                               bgcolor: '#FFF59D',
@@ -1150,7 +1150,7 @@ function FoundrySampleCard() {
                             value={machine}
                             onChange={(e) => setMachine(e.target.value)}
                             displayEmpty
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                           >
                             <MenuItem value="" disabled>
                               Select
@@ -1172,7 +1172,7 @@ function FoundrySampleCard() {
                               if (e.target.value !== 'Others') setCustomReason("");
                             }}
                             displayEmpty
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                           >
                             <MenuItem value="" disabled>
                               Select
@@ -1192,7 +1192,7 @@ function FoundrySampleCard() {
                             value={customReason}
                             onChange={e => setCustomReason(e.target.value)}
                             sx={{ mt: 1 }}
-                            disabled={user?.role === 'HOD' && !isEditing}
+                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                           />
                         )}
                       </TableCell>
@@ -1203,7 +1203,7 @@ function FoundrySampleCard() {
                           onChange={(e) => setSampleTraceability(e.target.value)}
                           size="small"
                           placeholder="Enter option"
-                          disabled={user?.role === 'HOD' && !isEditing}
+                          disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                         />
                       </TableCell>
                       <TableCell>
@@ -1218,7 +1218,7 @@ function FoundrySampleCard() {
                                 value={type}
                                 control={<Radio size="small" />}
                                 label={<Typography variant="caption">{type}</Typography>}
-                                disabled={user?.role === 'HOD' && !isEditing}
+                                disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                                 sx={{ mb: 0.5 }}
                               />
                             ))}
@@ -1264,14 +1264,14 @@ function FoundrySampleCard() {
                       value={toolingModification}
                       onChange={(e) => setToolingModification(e.target.value)}
                       sx={{ bgcolor: '#fff' }}
-                      disabled={user?.role === 'HOD' && !isEditing}
+                      disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
                       Tooling Files
                     </Typography>
-                    {(user?.role !== 'HOD' || isEditing) && (
+                    {(user?.role !== 'HOD' || user?.role !== 'Admin' || isEditing) && (
                       <FileUploadSection
                         files={toolingFiles}
                         onFilesChange={handleToolingFilesChange}
@@ -1312,16 +1312,16 @@ function FoundrySampleCard() {
                     {mouldCorrections.map((row) => (
                       <TableRow key={row.id}>
                         <TableCell>
-                          <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                          <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                         </TableCell>
                         <TableCell>
-                          <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                          <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                         </TableCell>
                         <TableCell>
-                          <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} disabled={user?.role === 'HOD' && !isEditing} />
+                          <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                         </TableCell>
                         <TableCell align="center">
-                          {mouldCorrections.length > 1 && !(user?.role === 'HOD' && !isEditing) && (
+                          {mouldCorrections.length > 1 && !((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) && (
                             <IconButton size="small" onClick={() => removeMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
                               <DeleteIcon />
                             </IconButton>
@@ -1346,17 +1346,17 @@ function FoundrySampleCard() {
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   sx={{ bgcolor: "#fff" }}
-                  disabled={user?.role === 'HOD' && !isEditing}
+                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                 />
               </Paper>
 
               <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} sx={{ mt: 2, mb: 4, justifyContent: 'flex-end' }}>
-                {user?.role !== 'HOD' && (
+                {!(user?.role === 'HOD' || user?.role === 'Admin') && (
                   <Button variant="outlined" color="inherit" fullWidth={isMobile} onClick={() => window.location.reload()}>
                     Reset Form
                   </Button>
                 )}
-                {user?.role === 'HOD' && trialIdFromUrl && (
+                {(user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl && (
                   <Button
                     variant="outlined"
                     onClick={() => setIsEditing(!isEditing)}
@@ -1369,14 +1369,14 @@ function FoundrySampleCard() {
                   variant="contained"
                   onClick={handleSaveAndContinue}
                   fullWidth={isMobile}
-                  startIcon={(user?.role === 'HOD' && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
+                  startIcon={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
                   sx={{
                     bgcolor: COLORS.secondary,
                     color: 'white',
                     '&:hover': { bgcolor: '#c2410c' }
                   }}
                 >
-                  {(user?.role === 'HOD' && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
+                  {((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
                 </Button>
               </Box>
 

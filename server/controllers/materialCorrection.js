@@ -22,7 +22,9 @@ export const createMaterialCorrection = async (req, res, next) => {
             action: 'Material correction created',
             remarks: `Material correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
         });
-        await updateRole(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateRole(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({
@@ -65,7 +67,9 @@ export const updateMaterialCorrection = async (req, res, next) => {
                 remarks: `Material correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
             });
         }
-        await updateDepartment(trial_id, req.user, trx);
+        if(req.user.role !== 'Admin'){
+            await updateDepartment(trial_id, req.user, trx);
+        }
     });
 
     res.status(201).json({
