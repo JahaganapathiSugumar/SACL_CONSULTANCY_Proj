@@ -81,7 +81,7 @@ const MethodsDashboard: React.FC = () => {
               </button>
               <button
                 className="btn-view-history"
-                onClick={() => navigate('/trials?myTrials=true')}
+                onClick={() => navigate('/trials')}
                 style={{
                   backgroundColor: '#28a745',
                   color: 'white',

@@ -17,7 +17,6 @@ import {
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { trialService } from '../../services/trialService';
-import { getDepartmentName } from '../../utils/dashboardUtils';
 import DocumentViewer from '../common/DocumentViewer';
 
 interface Trial {
@@ -26,7 +25,7 @@ interface Trial {
   pattern_code: string;
   material_grade: string;
   date_of_sampling: string;
-  current_department_id: number;
+  department: string;
   status: string;
   file_base64?: string;
   file_name?: string;
@@ -130,7 +129,7 @@ const TrialsTable: React.FC = () => {
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {getDepartmentName(trial.current_department_id) || 'N/A'}
+                      {trial.department || 'N/A'}
                     </Box>
                   </TableCell>
                   <TableCell>
@@ -141,30 +140,34 @@ const TrialsTable: React.FC = () => {
                         py: 0.3,
                         borderRadius: 5,
                         fontSize: '0.75rem',
-                        bgcolor: trial.status === 'Completed' ? '#dcfce7' : '#fff7ed',
-                        color: trial.status === 'Completed' ? '#166534' : '#9a3412',
+                        bgcolor: trial.status === 'CLOSED' ? '#dcfce7' : '#fff7ed',
+                        color: trial.status === 'CLOSED' ? '#166534' : '#9a3412',
                         whiteSpace: 'nowrap'
                       }}
                     >
                       {trial.status || 'In Progress'}
                     </Box>
                   </TableCell>
-                  <TableCell align="center">
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<DescriptionIcon />}
-                      onClick={() => handleViewReport(trial)}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontSize: '0.875rem',
-                        padding: '6px 12px'
-                      }}
-                    >
-                      Report
-                    </Button>
-                  </TableCell>
+                  {
+                    trial.status === 'CLOSED' && trial.file_base64 && (
+                      <TableCell align="center">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<DescriptionIcon />}
+                          onClick={() => handleViewReport(trial)}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontSize: '0.875rem',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          Report
+                        </Button>
+                      </TableCell>
+                    )
+                  }
                 </TableRow>
               ))
             ) : (

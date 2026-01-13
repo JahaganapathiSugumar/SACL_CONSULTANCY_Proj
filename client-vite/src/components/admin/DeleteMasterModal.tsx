@@ -1,5 +1,5 @@
 import React from 'react';
-import './DeleteModal.css'; // Reusing styles from DeleteUserModal
+import './DeleteModal.css';
 
 interface DeleteMasterModalProps {
     isOpen: boolean;

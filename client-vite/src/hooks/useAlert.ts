@@ -14,8 +14,6 @@ export function useAlert() {
         message: string,
         duration?: number
     ) => {
-        // We are disabling the inline alert by not setting the state
-        // setAlert({ severity, message, duration });
 
         if (severity === 'success') {
             return Swal.fire({

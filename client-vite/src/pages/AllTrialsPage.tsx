@@ -33,7 +33,6 @@ import SaclHeader from '../components/common/SaclHeader';
 import { appTheme, COLORS } from '../theme/appTheme';
 import { trialService } from '../services/trialService';
 import { useAuth } from '../context/AuthContext';
-import { getDepartmentName } from '../utils/dashboardUtils';
 
 export default function AllTrialsPage() {
     const navigate = useNavigate();
@@ -44,7 +43,7 @@ export default function AllTrialsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTrials, setSelectedTrials] = useState<string[]>([]);
 
-    const isMyTrials = searchParams.get('myTrials') === 'true';
+
 
     useEffect(() => {
         const fetchTrialReports = async () => {
@@ -69,7 +68,7 @@ export default function AllTrialsPage() {
         )
         .sort((a, b) => new Date(b.date_of_sampling).getTime() - new Date(a.date_of_sampling).getTime());
 
-    const canDelete = isMyTrials || user?.role === 'Admin';
+    const canDelete = user?.role === 'Admin';
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
@@ -200,7 +199,7 @@ export default function AllTrialsPage() {
                                     width: { xs: '100%', sm: 'auto' }
                                 }}
                             >
-                                {isMyTrials ? 'Initiated Trials' : 'All Trials Repository'}
+                                All Trials Repository
                             </Typography>
                             {canDelete && selectedTrials.length > 0 && (
                                 <Tooltip title="Delete Selected">
@@ -297,26 +296,22 @@ export default function AllTrialsPage() {
                                                 bgcolor: '#f8fafc',
                                                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}>Date</TableCell>
-                                            {!isMyTrials && (
-                                                <>
-                                                    <TableCell sx={{
-                                                        fontWeight: 'bold',
-                                                        bgcolor: '#f8fafc',
-                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                    }}>Dept</TableCell>
-                                                    <TableCell sx={{
-                                                        fontWeight: 'bold',
-                                                        bgcolor: '#f8fafc',
-                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                    }}>Status</TableCell>
-                                                    <TableCell sx={{
-                                                        fontWeight: 'bold',
-                                                        bgcolor: '#f8fafc',
-                                                        textAlign: 'center',
-                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                    }}>Actions</TableCell>
-                                                </>
-                                            )}
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
+                                                bgcolor: '#f8fafc',
+                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                            }}>Dept</TableCell>
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
+                                                bgcolor: '#f8fafc',
+                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                            }}>Status</TableCell>
+                                            <TableCell sx={{
+                                                fontWeight: 'bold',
+                                                bgcolor: '#f8fafc',
+                                                textAlign: 'center',
+                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                            }}>Actions</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -354,53 +349,51 @@ export default function AllTrialsPage() {
                                                     <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.pattern_code}</TableCell>
                                                     <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.material_grade}</TableCell>
                                                     <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
-                                                    {!isMyTrials && (
-                                                        <>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                                <Box sx={{
-                                                                    display: 'inline-block',
-                                                                    px: 1, py: 0.3,
-                                                                    borderRadius: 5,
-                                                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                                    bgcolor: '#e0f2fe',
-                                                                    color: '#0369a1',
-                                                                    fontWeight: 500,
-                                                                    whiteSpace: 'nowrap'
-                                                                }}>
-                                                                    {getDepartmentName(trial.current_department_id) || 'N/A'}
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                                <Box sx={{
-                                                                    display: 'inline-block',
-                                                                    px: 1, py: 0.3,
-                                                                    borderRadius: 5,
-                                                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                                    bgcolor: trial.status === 'Completed' ? '#dcfce7' : '#fff7ed',
-                                                                    color: trial.status === 'Completed' ? '#166534' : '#9a3412',
-                                                                    whiteSpace: 'nowrap'
-                                                                }}>
-                                                                    {trial.status || 'In Progress'}
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                                <Button
-                                                                    variant="outlined"
-                                                                    size="small"
-                                                                    startIcon={<DescriptionIcon />}
-                                                                    onClick={() => handleViewReport(trial)}
-                                                                    sx={{
-                                                                        borderRadius: 2,
-                                                                        textTransform: 'none',
-                                                                        fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                                                                        padding: { xs: '4px 8px', sm: '6px 12px' }
-                                                                    }}
-                                                                >
-                                                                    Report
-                                                                </Button>
-                                                            </TableCell>
-                                                        </>
-                                                    )}
+                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                        <Box sx={{
+                                                            display: 'inline-block',
+                                                            px: 1, py: 0.3,
+                                                            borderRadius: 5,
+                                                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                            bgcolor: '#e0f2fe',
+                                                            color: '#0369a1',
+                                                            fontWeight: 500,
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
+                                                            {trial.department || 'N/A'}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                        <Box sx={{
+                                                            display: 'inline-block',
+                                                            px: 1, py: 0.3,
+                                                            borderRadius: 5,
+                                                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                            bgcolor: trial.status === 'CLOSED' ? '#dcfce7' : '#fff7ed',
+                                                            color: trial.status === 'CLOSED' ? '#166534' : '#9a3412',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
+                                                            {trial.status || 'In Progress'}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                        {trial.status === 'CLOSED' && trial.file_base64 && (
+                                                            <Button
+                                                                variant="outlined"
+                                                                size="small"
+                                                                startIcon={<DescriptionIcon />}
+                                                                onClick={() => handleViewReport(trial)}
+                                                                sx={{
+                                                                    borderRadius: 2,
+                                                                    textTransform: 'none',
+                                                                    fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                                                                    padding: { xs: '4px 8px', sm: '6px 12px' }
+                                                                }}
+                                                            >
+                                                                Report
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (

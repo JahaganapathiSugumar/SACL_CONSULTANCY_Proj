@@ -177,7 +177,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
                 ))}
               </select>
             </div>
-            {formData.role !== 'Methods' && formData.role !== 'Admin' && (
+            {formData.role !== 'Admin' && (
               <div className="form-group">
                 <label htmlFor="department_id">Department</label>
                 <select

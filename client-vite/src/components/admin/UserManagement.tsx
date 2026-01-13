@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import type { User } from '../../types/user';
-import { apiService } from '../../services/commonService.ts';
-import UserTable from './UserTable.tsx';
-import AddUserModal from './AddUserModal.tsx';
-import EditUserModal from './EditUserModal.tsx';
-import LoadingSpinner from '../common/LoadingSpinner.tsx';
+import { apiService } from '../../services/commonService';
+import UserTable from './UserTable';
+import AddUserModal from './AddUserModal';
+import EditUserModal from './EditUserModal';
+import LoadingSpinner from '../common/LoadingSpinner';
 import './UserManagement.css';
+import Swal from 'sweetalert2';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -22,7 +22,12 @@ const UserManagement: React.FC = () => {
       const userList = await apiService.getUsers();
       setUsers(userList);
     } catch (err: any) {
-      setError(err.message || 'Failed to load users');
+      Swal.fire({
+        title: 'Error',
+        text: err.message || 'Failed to load users',
+        icon: 'error',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
@@ -36,9 +41,21 @@ const UserManagement: React.FC = () => {
   const handleToggleStatus = async (userId: number, currentStatus: boolean) => {
     try {
       await apiService.updateUserStatus(userId, !currentStatus);
-      await loadUsers(); // Refresh the list to show updated status
+      await loadUsers();
+      Swal.fire({
+        title: 'Success',
+        text: `Successfully ${currentStatus ? 'activated' : 'deactivated'} user.`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (err: any) {
-      setError(err.message || 'Failed to update user status');
+      Swal.fire({
+        title: 'Error',
+        text: err.message || 'Failed to update user status',
+        icon: 'error',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -73,25 +90,57 @@ const UserManagement: React.FC = () => {
       }
       await loadUsers();
       setSelectedUsers(new Set());
+      Swal.fire({
+        title: 'Success',
+        text: `Successfully ${status ? 'activated' : 'deactivated'} ${selectedIds.length} users.`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (err: any) {
-      setError(err.message || `Failed to update user status`);
+      Swal.fire({
+        title: 'Error',
+        text: err.message || `Failed to update user status`,
+        icon: 'error',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedUsers.size === 0) return;
-    if (!window.confirm(`Are you sure you want to delete ${selectedUsers.size} user(s)? This action cannot be undone.`)) {
-      return;
-    }
-    try {
-      const selectedIds = Array.from(selectedUsers);
-      for (const userId of selectedIds) {
-        await apiService.deleteUser(userId);
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete ${selectedUsers.size} user(s). This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete them!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const selectedIds = Array.from(selectedUsers);
+        for (const userId of selectedIds) {
+          await apiService.deleteUser(userId);
+        }
+        await loadUsers();
+        setSelectedUsers(new Set());
+        Swal.fire(
+          'Deleted!',
+          'Users have been deleted.',
+          'success'
+        );
+      } catch (err: any) {
+        Swal.fire({
+          title: 'Error',
+          text: err.message || 'Failed to delete users',
+          icon: 'error',
+          confirmButtonColor: '#d33'
+        });
       }
-      await loadUsers();
-      setSelectedUsers(new Set());
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete users');
     }
   };
 
@@ -110,8 +159,6 @@ const UserManagement: React.FC = () => {
           Create New User
         </button>
       </div>
-
-      {error && <div className="error-message">{error}</div>}
 
       {selectedUsers.size > 0 && (
         <div style={{
@@ -184,9 +231,9 @@ const UserManagement: React.FC = () => {
         </div>
       )}
 
-      <UserTable 
-        users={users} 
-        onToggleStatus={handleToggleStatus} 
+      <UserTable
+        users={users}
+        onToggleStatus={handleToggleStatus}
         onEdit={handleEdit}
         selectedUsers={selectedUsers}
         onSelectUser={handleSelectUser}

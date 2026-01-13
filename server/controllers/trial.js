@@ -64,7 +64,7 @@ export const getTrialById = async (req, res, next) => {
 };
 
 export const getTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query('SELECT t.*, c.part_name, c.pattern_code, c.current_department_id, c.material_grade, c.date_of_sampling FROM trial_reports t JOIN trial_cards c ON t.trial_id = c.trial_id');
+    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id LEFT JOIN departments d ON c.current_department_id = d.department_id");
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -110,7 +110,7 @@ export const updateTrial = async (req, res, next) => {
 
 
     await Client.transaction(async (trx) => {
-        if(is_edit){
+        if (is_edit) {
             const sql = `UPDATE trial_cards SET 
                 part_name = COALESCE(@part_name, part_name),
                 pattern_code = COALESCE(@pattern_code, pattern_code),

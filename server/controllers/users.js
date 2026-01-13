@@ -9,7 +9,7 @@ export const getAllUsers = async (req, res, next) => {
     SELECT u.user_id, u.username, u.full_name, u.email, u.department_id, 
            d.department_name, u.role, u.is_active, u.created_at 
     FROM users u 
-    LEFT JOIN departments d ON u.department_id = d.department_id
+    LEFT JOIN departments d ON u.department_id = d.department_id WHERE u.role NOT IN ('Admin')
   `);
     res.status(200).json({ users: rows });
 };
@@ -31,6 +31,22 @@ export const createUser = async (req, res, next) => {
         remarks: `User ${username} created by ${req.user.username}`
     });
     res.status(201).json({ success: true, message: 'User created successfully.' });
+};
+
+export const deleteUser = async (req, res, next) => {
+    const { userId } = req.params;
+    const user = req.user;
+    if (!userId) throw new CustomError('User ID is required', 400);
+    const sql = 'DELETE FROM users WHERE user_id = @user_id';
+    await Client.query(sql, { user_id: userId });
+    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
+    await Client.query(audit_sql, {
+        user_id: user.user_id,
+        department_id: user.department_id,
+        action: 'User deleted',
+        remarks: `User ${userId} deleted by ${user.username}`
+    });
+    res.status(200).json({ success: true, message: 'User deleted successfully.' });
 };
 
 export const sendOtp = async (req, res, next) => {

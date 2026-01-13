@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
@@ -18,6 +19,7 @@ import { CircularProgress, Menu, MenuItem } from '@mui/material';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showMasterList, setShowMasterList] = useState(false);
@@ -59,9 +61,7 @@ const DashboardPage: React.FC = () => {
   }, [user]);
 
   const handleViewTrials = () => {
-    setShowAllTrials(true);
-    setShowUserDetails(false);
-    setShowMasterList(false);
+    navigate('/trials');
   };
 
   const handleViewMasterList = () => {

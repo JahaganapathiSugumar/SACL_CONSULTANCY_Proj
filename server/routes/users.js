@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.get('/', verifyToken, asyncErrorHandler(userController.getAllUsers));
 router.post('/', verifyToken, asyncErrorHandler(userController.createUser));
+router.delete('/:userId', verifyToken, asyncErrorHandler(userController.deleteUser));
 router.post('/send-otp', verifyToken, asyncErrorHandler(userController.sendOtp));
 router.post('/verify-otp', verifyToken, asyncErrorHandler(userController.verifyOtp));
 router.post('/change-password', verifyToken, asyncErrorHandler(userController.changePassword));

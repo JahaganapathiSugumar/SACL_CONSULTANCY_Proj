@@ -268,66 +268,70 @@ export const generateAndStoreReport = async (trial_id, trx) => {
 
     // --- 5. Metallurgical ---
     if (meta && Object.keys(meta).length > 0) {
-        // Check space
-        if (doc.page.height - nextY < 200) { doc.addPage(); nextY = 30; }
-
-        nextY = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, nextY);
-
         const mechRows = safeParse(meta.mech_properties, []);
         const impactRows = safeParse(meta.impact_strength, []);
         const hardRows = safeParse(meta.hardness, []);
         const ndtRows = safeParse(meta.ndt_inspection, []);
         const microRows = safeParse(meta.micro_structure, []);
 
-        const subTableWidth = 250;
-        let metaY1 = nextY;
-        let metaY2 = nextY;
+        const hasMetaData = mechRows.length > 0 || impactRows.length > 0 || hardRows.length > 0 || ndtRows.length > 0 || microRows.length > 0;
 
-        // Mechanical
-        if (mechRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(8).text("Mechanical Properties", col1X, metaY1);
-            metaY1 += 12;
-            metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
-        }
-
-        // Hardness
-        if (hardRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(8).text("Hardness", col2X, metaY2);
-            metaY2 += 12;
-            metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
-        }
-
-        // Next sub-row
-        let nextSubY = Math.max(metaY1, metaY2);
-        metaY1 = nextSubY;
-        metaY2 = nextSubY;
-
-        // Impact
-        if (impactRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(8).text("Impact Strength", col1X, metaY1);
-            metaY1 += 12;
-            metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
-        }
-
-        // NDT
-        if (ndtRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(8).text("NDT Inspection", col2X, metaY2);
-            metaY2 += 12;
-            metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
-        }
-
-        nextY = Math.max(metaY1, metaY2);
-
-        // Microstructure (Full width)
-        if (microRows.length > 0) {
+        if (hasMetaData) {
+            // Check space
             if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 30; }
-            doc.font('Helvetica-Bold').fontSize(8).text("Microstructure Examination", col1X, nextY);
-            nextY += 12;
-            nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 180]) + 10;
+
+            nextY = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, nextY);
+
+            const subTableWidth = 250;
+            let metaY1 = nextY;
+            let metaY2 = nextY;
+
+            // Mechanical
+            if (mechRows.length > 0) {
+                doc.font('Helvetica-Bold').fontSize(8).text("Mechanical Properties", col1X, metaY1);
+                metaY1 += 12;
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
+            }
+
+            // Hardness
+            if (hardRows.length > 0) {
+                doc.font('Helvetica-Bold').fontSize(8).text("Hardness", col2X, metaY2);
+                metaY2 += 12;
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
+            }
+
+            // Next sub-row
+            let nextSubY = Math.max(metaY1, metaY2);
+            metaY1 = nextSubY;
+            metaY2 = nextSubY;
+
+            // Impact
+            if (impactRows.length > 0) {
+                doc.font('Helvetica-Bold').fontSize(8).text("Impact Strength", col1X, metaY1);
+                metaY1 += 12;
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
+            }
+
+            // NDT
+            if (ndtRows.length > 0) {
+                doc.font('Helvetica-Bold').fontSize(8).text("NDT Inspection", col2X, metaY2);
+                metaY2 += 12;
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
+            }
+
+            nextY = Math.max(metaY1, metaY2);
+
+            // Microstructure (Full width)
+            if (microRows.length > 0) {
+                if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
+                doc.font('Helvetica-Bold').fontSize(8).text("Microstructure Examination", col1X, nextY);
+                nextY += 12;
+                nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 180]) + 10;
+            }
         }
     }
 
-    if (doc.page.height - nextY < 150) { doc.addPage(); nextY = 30; }
+    if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
 
     // --- ROW 3 ---
     yRow1Start = nextY;
@@ -366,7 +370,7 @@ export const generateAndStoreReport = async (trial_id, trx) => {
     }
 
     nextY = Math.max(y1, y2) + 20;
-    if (doc.page.height - nextY < 150) { doc.addPage(); nextY = 30; }
+    if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
 
     // 8. Machine Shop
     if (Object.keys(mcShop).length > 0) {

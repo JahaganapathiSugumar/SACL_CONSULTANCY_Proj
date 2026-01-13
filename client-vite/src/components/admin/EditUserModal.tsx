@@ -17,7 +17,7 @@ interface Department {
     department_name: string;
 }
 
-const ROLES = ['HOD', 'User', 'Admin', 'Methods'];
+const ROLES = ['HOD', 'User'];
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onUserUpdated, user }) => {
     const [formData, setFormData] = useState({
@@ -201,25 +201,23 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onUserUp
                                 ))}
                             </select>
                         </div>
-                        {formData.role !== 'Methods' && formData.role !== 'Admin' && (
-                            <div className="form-group">
-                                <label htmlFor="department_id">Department</label>
-                                <select
-                                    id="department_id"
-                                    name="department_id"
-                                    value={formData.department_id}
-                                    onChange={handleChange}
-                                    disabled={loading}
-                                >
-                                    <option value="">Select Department</option>
-                                    {departments.map((dept) => (
-                                        <option key={dept.department_id} value={String(dept.department_id)}>
-                                            {dept.department_name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                        <div className="form-group">
+                            <label htmlFor="department_id">Department</label>
+                            <select
+                                id="department_id"
+                                name="department_id"
+                                value={formData.department_id}
+                                onChange={handleChange}
+                                disabled={loading}
+                            >
+                                <option value="">Select Department</option>
+                                {departments.map((dept) => (
+                                    <option key={dept.department_id} value={String(dept.department_id)}>
+                                        {dept.department_name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="form-row">

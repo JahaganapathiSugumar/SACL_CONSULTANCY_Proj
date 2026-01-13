@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
-import { getDepartmentName } from '../../utils/dashboardUtils';
 import './UserTable.css';
 import { IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -14,27 +13,13 @@ interface UserTableProps {
   onSelectAllUsers?: () => void;
 }
 
-// Department mapping for filter options (unchanged)
-const departmentOptions = [
-  { id: 1, name: 'ADMIN' },
-  { id: 2, name: 'METHODS' },
-  { id: 3, name: 'NPD QC' },
-  { id: 4, name: 'SANDPLANT' },
-  { id: 5, name: 'FETTLING & VISUAL INSPECTION' },
-  { id: 6, name: 'MOULDING' },
-  { id: 7, name: 'QUALITY' },
-  { id: 8, name: 'MACHINESHOP' },
-  { id: 9, name: 'NDT QC' },
-  { id: 10, name: 'QA' }
-];
-
-const UserTable: React.FC<UserTableProps> = ({ 
-  users, 
-  onToggleStatus, 
+const UserTable: React.FC<UserTableProps> = ({
+  users,
+  onToggleStatus,
   onEdit,
   selectedUsers = new Set(),
-  onSelectUser = () => {},
-  onSelectAllUsers = () => {}
+  onSelectUser = () => { },
+  onSelectAllUsers = () => { }
 }) => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
@@ -43,6 +28,20 @@ const UserTable: React.FC<UserTableProps> = ({
   const roleOptions = useMemo(() => {
     const roles = [...new Set(users.map(user => user.role))];
     return roles.sort();
+  }, [users]);
+
+  // Get unique departments from users
+  const departmentOptions = useMemo(() => {
+    const uniqueDepts = new Map();
+    users.forEach(user => {
+      if (user.department_id && user.department_name) {
+        uniqueDepts.set(user.department_id, user.department_name);
+      }
+    });
+
+    return Array.from(uniqueDepts.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [users]);
 
   // Filter users based on selected filters
@@ -161,8 +160,8 @@ const UserTable: React.FC<UserTableProps> = ({
           </TableHead>
           <TableBody>
             {filteredUsers.map(user => (
-              <TableRow 
-                key={user.user_id} 
+              <TableRow
+                key={user.user_id}
                 sx={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f0f0f0' : 'transparent' }}
               >
                 <TableCell sx={{ width: '50px' }}>
@@ -180,7 +179,7 @@ const UserTable: React.FC<UserTableProps> = ({
                     {user.role}
                   </span>
                 </TableCell>
-                <TableCell>{getDepartmentName(user.department_id) || 'N/A'}</TableCell>
+                <TableCell>{user.department_name || 'N/A'}</TableCell>
                 <TableCell>
                   <button
                     onClick={() => onToggleStatus(user.user_id, !!user.is_active)}
