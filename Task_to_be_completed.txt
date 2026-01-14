@@ -1,13 +1,8 @@
 *Tasks to be completed:-*
 
-->Add Authorization in backend (both role and department)
-
 ->Use comments consistently or remove if unnecessary through out the project
 
 ->Update remarks and actions consistently in all departments
-
-->Department level restrictions
-AuthorizeDepartment(1, I)
 
 ->Create a readme for the project
 

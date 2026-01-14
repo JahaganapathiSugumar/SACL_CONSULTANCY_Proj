@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
 import {
     Paper,
@@ -41,7 +40,6 @@ import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaclHeader from "./common/SaclHeader";
-import NoAccess from "./common/NoAccess";
 import { ipService } from '../services/ipService';
 import { inspectionService } from '../services/inspectionService';
 import { documentService } from '../services/documentService';

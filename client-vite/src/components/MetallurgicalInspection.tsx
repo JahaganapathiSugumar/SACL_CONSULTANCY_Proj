@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 
-import NoPendingWorks from "./common/NoPendingWorks";
 import { useAuth } from "../context/AuthContext";
 import type { Dispatch, SetStateAction } from "react";
 import {
