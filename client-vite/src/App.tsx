@@ -21,7 +21,6 @@ import McShopInspection from './components/MCShop';
 import MouldingTable from './components/Moulding';
 import FoundrySampleCard from './components/FoundrySampleCard';
 import PouringDetailsTable from './components/PouringDetailsTable';
-import type { PouringDetails, SubmittedData } from './components/PouringDetailsTable';
 import SandTable from './components/Sand';
 import NotificationPage from './pages/NotificationPage';
 import Common from './components/dashboard/BasicInfo';
@@ -44,36 +43,6 @@ const AppRoutes: React.FC = () => {
     }
   };
 
-  const emptyPouringDetails: PouringDetails = {
-    date: '',
-    heatCode: '',
-    cComposition: '',
-    siComposition: '',
-    mnComposition: '',
-    pComposition: '',
-    sComposition: '',
-    mgComposition: '',
-    crComposition: '',
-    cuComposition: '',
-    pouringTempDegC: '',
-    pouringTimeSec: '',
-    ficHeatNo: '',
-    ppCode: '',
-    followedBy: '',
-    userName: '',
-  };
-
-  const emptySubmittedData: SubmittedData = {
-    selectedPart: null,
-    selectedPattern: null,
-    machine: '',
-    reason: '',
-    trialNo: '',
-    samplingDate: '',
-    mouldCount: '',
-    sampleTraceability: '',
-  };
-
   return (
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
@@ -86,18 +55,16 @@ const AppRoutes: React.FC = () => {
         <ProtectedRoute requiredRole="Admin"><UsersPage /></ProtectedRoute>
       } />
 
-      <Route path="/common" element={<Common trialId='trial_id' />} />
-
       <Route path="/metallurgical-inspection" element={
-        <ProtectedRoute><MetallurgicalInspection /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 9]}><MetallurgicalInspection /></ProtectedRoute>
       } />
 
       <Route path="/material-correction" element={
-        <ProtectedRoute><MaterialCorrection /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 3]}><MaterialCorrection /></ProtectedRoute>
       } />
 
       <Route path="/visual-inspection" element={
-        <ProtectedRoute><VisualInspection /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 5]}><VisualInspection /></ProtectedRoute>
       } />
 
       <Route path="/trials" element={
@@ -105,49 +72,32 @@ const AppRoutes: React.FC = () => {
       } />
 
       <Route path="/dimensional-inspection" element={
-        <ProtectedRoute><DimensionalInspection /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 10]}><DimensionalInspection /></ProtectedRoute>
       } />
 
       <Route path="/mc-shop" element={
-        <ProtectedRoute><McShopInspection /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 8]}><McShopInspection /></ProtectedRoute>
       } />
 
-      <Route path="/foundry-sample-card" element={<ProtectedRoute><FoundrySampleCard /></ProtectedRoute>} />
+      <Route path="/foundry-sample-card" element={
+        <ProtectedRoute requiredDepartment={[1, 2]}><FoundrySampleCard /></ProtectedRoute>
+      } />
 
-      <Route path="/foundry-sample" element={<Navigate to="/foundry-sample-card" replace />} />
+      <Route path="/notifications" element={
+        <ProtectedRoute><NotificationPage /></ProtectedRoute>
+      } />
 
-      <Route path="/notifications" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
+      <Route path="/moulding" element={
+        <ProtectedRoute requiredDepartment={[1, 6]}><MouldingTable /></ProtectedRoute>
+      } />
 
-      <Route
-        path="/moulding"
-        element={
-          <ProtectedRoute>
-            <MouldingTable />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/pouring" element={
+        <ProtectedRoute requiredDepartment={[1, 7]}><PouringDetailsTable /></ProtectedRoute>
+      } />
 
-      <Route
-        path="/pouring"
-        element={
-          <ProtectedRoute>
-            <PouringDetailsTable
-              pouringDetails={emptyPouringDetails}
-              onPouringDetailsChange={() => { }}
-              submittedData={emptySubmittedData}
-            />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/sand"
-        element={
-          <ProtectedRoute>
-            <SandTable />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/sand" element={
+        <ProtectedRoute requiredDepartment={[1, 4]}><SandTable /></ProtectedRoute>
+      } />
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

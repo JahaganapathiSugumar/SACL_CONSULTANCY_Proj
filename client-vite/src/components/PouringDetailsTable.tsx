@@ -152,51 +152,15 @@ const LabelText = ({ children }: { children: React.ReactNode }) => (
     </Typography>
 );
 
-export interface PouringDetails {
-    date: string;
-    heatCode: string;
-    cComposition: string;
-    siComposition: string;
-    mnComposition: string;
-    pComposition: string;
-    sComposition: string;
-    mgComposition: string;
-    crComposition: string;
-    cuComposition: string;
-    pouringTempDegC: string;
-    pouringTimeSec: string;
-    ficHeatNo: string;
-    ppCode: string;
-    followedBy: string;
-    userName: string;
-}
-
-export interface SubmittedData {
-    selectedPart: any | null;
-    selectedPattern: any | null;
-    machine: string;
-    reason: string;
-    trialNo: string;
-    samplingDate: string;
-    mouldCount: string;
-    sampleTraceability: string;
-}
-
-interface PouringDetailsTableProps {
-    pouringDetails?: PouringDetails;
-    onPouringDetailsChange?: (details: PouringDetails) => void;
-    submittedData?: SubmittedData;
-}
-
-function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submittedData }: PouringDetailsTableProps) {
+function PouringDetailsTable() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
     const [loading, setLoading] = useState(false);
 
-    const [pouringDate, setPouringDate] = useState<string>(pouringDetails?.date || new Date().toISOString().split('T')[0]);
-    const [heatCode, setHeatCode] = useState<string>(pouringDetails?.heatCode || "");
+    const [pouringDate, setPouringDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [heatCode, setHeatCode] = useState<string>("");
     const [userIP, setUserIP] = useState<string>("Loading...");
     const [actualMoulds, setActualMoulds] = useState<string>("");
     const [noOfMouldPoured, setNoOfMouldPoured] = useState<string>("");
@@ -216,8 +180,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                     const response = await trialService.getTrialById(trialId);
                     if (response && response.data) {
                         setActualMoulds(response.data.actual_moulds || "");
-                        // Only set if not already set by existing pouring data (which is fetched in the other useEffect)
-                        // Actually, it's safer to check if we are creating new
                         setNoOfMouldPoured(prev => prev || response.data.actual_moulds || "");
                     }
                 } catch (error) {
@@ -229,24 +191,17 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     }, [trialId]);
 
     const [chemState, setChemState] = useState({
-        c: pouringDetails?.cComposition || "",
-        si: pouringDetails?.siComposition || "",
-        mn: pouringDetails?.mnComposition || "",
-        p: pouringDetails?.pComposition || "",
-        s: pouringDetails?.sComposition || "",
-        mg: pouringDetails?.mgComposition || "",
-        cr: pouringDetails?.crComposition || "",
-        cu: pouringDetails?.cuComposition || ""
+        c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: ""
     });
-    const [pouringTemp, setPouringTemp] = useState<string>(pouringDetails?.pouringTempDegC || "");
-    const [pouringTime, setPouringTime] = useState<string>(pouringDetails?.pouringTimeSec || "");
+    const [pouringTemp, setPouringTemp] = useState<string>("");
+    const [pouringTime, setPouringTime] = useState<string>("");
     const [inoculationText, setInoculationText] = useState<string>("");
     const [inoculationStream, setInoculationStream] = useState<string>("");
     const [inoculationInmould, setInoculationInmould] = useState<string>("");
 
-    const [ficHeatNo, setFicHeatNo] = useState<string>(pouringDetails?.ficHeatNo || "");
-    const [ppCode, setPpCode] = useState<string>(pouringDetails?.ppCode || "");
-    const [followedBy, setFollowedBy] = useState<string>(pouringDetails?.followedBy || "");
+    const [ficHeatNo, setFicHeatNo] = useState<string>("");
+    const [ppCode, setPpCode] = useState<string>("");
+    const [followedBy, setFollowedBy] = useState<string>("");
     const [userName] = useState<string>(user?.username || "Admin_User");
     const [remarksText, setRemarksText] = useState<string>("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -256,8 +211,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
     const [submitted, setSubmitted] = useState(false);
     const { alert, showAlert } = useAlert();
     const [isEditing, setIsEditing] = useState(false);
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -305,28 +258,7 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
         if (trialId) fetchData();
     }, [user, trialId]);
 
-    useEffect(() => {
-        if (onPouringDetailsChange) {
-            onPouringDetailsChange({
-                date: pouringDate,
-                heatCode,
-                cComposition: chemState.c,
-                siComposition: chemState.si,
-                mnComposition: chemState.mn,
-                pComposition: chemState.p,
-                sComposition: chemState.s,
-                mgComposition: chemState.mg,
-                crComposition: chemState.cr,
-                cuComposition: chemState.cu,
-                pouringTempDegC: pouringTemp,
-                pouringTimeSec: pouringTime,
-                ficHeatNo,
-                ppCode,
-                followedBy,
-                userName
-            });
-        }
-    }, [pouringDate, heatCode, chemState, pouringTemp, pouringTime, ficHeatNo, ppCode, followedBy, userName, onPouringDetailsChange]);
+
 
     const handleSaveAndContinue = () => {
         const payload = {
@@ -510,29 +442,6 @@ function PouringDetailsTable({ pouringDetails, onPouringDetailsChange, submitted
                         icon={<FactoryIcon sx={{ fontSize: 32 }} />}
                         userIP={userIP}
                         user={user}
-                        extra={
-                            <Box display="flex" gap={2} alignItems="center">
-                                {submittedData?.trialNo && (
-                                    <Chip
-                                        label={`Trial: ${submittedData.trialNo}`}
-                                        color="secondary"
-                                        size="small"
-                                        sx={{ fontWeight: 600 }}
-                                    />
-                                )}
-                                {actualMoulds && (
-                                    <Chip
-                                        label={`No. of mould poured: ${actualMoulds}`}
-                                        sx={{
-                                            bgcolor: '#FDE68A',
-                                            color: '#854d0e',
-                                            fontWeight: 'bold',
-                                            border: '1px solid #854d0e'
-                                        }}
-                                    />
-                                )}
-                            </Box>
-                        }
                     />
 
                     <Common trialId={trialId} />

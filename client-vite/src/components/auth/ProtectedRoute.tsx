@@ -6,9 +6,10 @@ import LoadingSpinner from '../common/LoadingSpinner.tsx';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: string;
+  requiredDepartment?: Array<number>;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole, requiredDepartment }) => {
   const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
@@ -20,6 +21,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   }
 
   if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  if (requiredDepartment && !requiredDepartment.includes(user?.department_id)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
