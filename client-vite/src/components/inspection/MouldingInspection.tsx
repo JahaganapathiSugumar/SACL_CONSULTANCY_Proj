@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -34,19 +34,19 @@ import EngineeringIcon from '@mui/icons-material/Engineering';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from "@mui/icons-material/Person";
-import SaclHeader from "./common/SaclHeader";
-import { ipService } from '../services/ipService';
-import { inspectionService } from '../services/inspectionService';
-import { uploadFiles } from '../services/fileUploadHelper';
-import { COLORS, appTheme } from '../theme/appTheme';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, validateFileSizes } from '../utils';
-import type { InspectionRow, GroupMetadata } from '../types/inspection';
-import DepartmentHeader from "./common/DepartmentHeader";
-import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
-import departmentProgressService from "../services/departmentProgressService";
+import SaclHeader from "../common/SaclHeader";
+import { ipService } from '../../services/ipService';
+import { inspectionService } from '../../services/inspectionService';
+import { uploadFiles } from '../../services/fileUploadHelper';
+import { COLORS, appTheme } from '../../theme/appTheme';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import { fileToMeta, validateFileSizes, formatDate } from '../../utils';
+import type { InspectionRow, GroupMetadata } from '../../types/inspection';
+import DepartmentHeader from "../common/DepartmentHeader";
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
+import departmentProgressService from "../../services/departmentProgressService";
 
 function MouldingTable() {
   const { user } = useAuth();
@@ -498,7 +498,7 @@ function MouldingTable() {
                 <Typography variant="body1">Moulding Correction Report</Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                <Typography variant="body2">Date: {formatDate(new Date().toISOString())}</Typography>
                 <Typography variant="body2">IP: {userIP}</Typography>
               </Box>
             </Box>

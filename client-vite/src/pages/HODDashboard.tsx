@@ -2,21 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
-import NotificationModal from '../components/dashboard/NotificationModal';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo, getPendingRoute } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
-import PendingSampleCards from './PendingSampleCards';
-import CompletedTrialsModal from './CompletedTrialsModal';
+import PendingSampleCards from '../components/dashboard/PendingTrialsModal';
+import CompletedTrialsModal from '../components/dashboard/CompletedTrialsModal';
 import { getDashboardStats } from '../services/statsService';
 import { CircularProgress } from '@mui/material';
 
 const HODDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
 
@@ -79,7 +77,6 @@ const HODDashboard: React.FC = () => {
   return (
     <div className="dashboard" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <Header
-        setShowNotifications={setShowNotifications}
         setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
         photoRefreshKey={headerRefreshKey}
@@ -166,9 +163,6 @@ const HODDashboard: React.FC = () => {
           )}
         </div>
       </main>
-
-      {/* Notification Modal */}
-      {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
 
       {/* Profile Modal */}
       {showProfile && (

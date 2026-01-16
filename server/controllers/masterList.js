@@ -4,17 +4,68 @@ import CustomError from '../utils/customError.js';
 export const getMasterList = async (req, res, next) => {
     let query = `
         SELECT 
-            m.*,
-            t.*
+            m.id,
+            m.pattern_code,
+            m.part_name,
+            m.material_grade,
+            m.chemical_composition,
+            m.micro_structure,
+            m.tensile,
+            m.impact,
+            m.hardness,
+            m.xray,
+            t.id AS tooling_id,
+            t.number_of_cavity,
+            t.cavity_identification,
+            t.pattern_material,
+            t.core_weight,
+            t.core_mask_thickness,
+            t.estimated_casting_weight,
+            t.estimated_bunch_weight,
+            t.pattern_plate_thickness_sp,
+            t.pattern_plate_weight_sp,
+            t.core_mask_weight_sp,
+            t.crush_pin_height_sp,
+            t.pattern_plate_thickness_pp,
+            t.pattern_plate_weight_pp,
+            t.crush_pin_height_pp,
+            t.yield_label,
+            t.remarks
         FROM master_card m
-        LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id WHERE m.is_active = 1
+        LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id 
+        WHERE m.is_active = 1
     `;
 
     if (req.user.role === 'Admin') {
         query = `
             SELECT 
-                m.*,
-                t.*
+                m.id,
+                m.pattern_code,
+                m.part_name,
+                m.material_grade,
+                m.chemical_composition,
+                m.micro_structure,
+                m.tensile,
+                m.impact,
+                m.hardness,
+                m.xray,
+                t.id AS tooling_id,
+                t.number_of_cavity,
+                t.cavity_identification,
+                t.pattern_material,
+                t.core_weight,
+                t.core_mask_thickness,
+                t.estimated_casting_weight,
+                t.estimated_bunch_weight,
+                t.pattern_plate_thickness_sp,
+                t.pattern_plate_weight_sp,
+                t.core_mask_weight_sp,
+                t.crush_pin_height_sp,
+                t.pattern_plate_thickness_pp,
+                t.pattern_plate_weight_pp,
+                t.crush_pin_height_pp,
+                t.yield_label,
+                t.remarks
             FROM master_card m
             LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id
         `;
@@ -34,8 +85,33 @@ export const getMasterByPatternCode = async (req, res, next) => {
 
     const query = `
         SELECT 
-            m.*,
-            t.*
+            m.id,
+            m.pattern_code,
+            m.part_name,
+            m.material_grade,
+            m.chemical_composition,
+            m.micro_structure,
+            m.tensile,
+            m.impact,
+            m.hardness,
+            m.xray,
+            t.id AS tooling_id,
+            t.number_of_cavity,
+            t.cavity_identification,
+            t.pattern_material,
+            t.core_weight,
+            t.core_mask_thickness,
+            t.estimated_casting_weight,
+            t.estimated_bunch_weight,
+            t.pattern_plate_thickness_sp,
+            t.pattern_plate_weight_sp,
+            t.core_mask_weight_sp,
+            t.crush_pin_height_sp,
+            t.pattern_plate_thickness_pp,
+            t.pattern_plate_weight_pp,
+            t.crush_pin_height_pp,
+            t.yield_label,
+            t.remarks
         FROM master_card m
         LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id
         WHERE m.pattern_code = @pattern_code

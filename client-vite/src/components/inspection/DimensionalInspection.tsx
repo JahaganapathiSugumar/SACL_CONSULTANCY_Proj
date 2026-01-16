@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
     Paper,
@@ -37,19 +37,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import PrintIcon from '@mui/icons-material/Print';
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SaclHeader from "./common/SaclHeader";
-import { ipService } from '../services/ipService';
-import { inspectionService } from '../services/inspectionService';
-import { uploadFiles } from '../services/fileUploadHelper';
-import departmentProgressService from "../services/departmentProgressService";
-import { COLORS, appTheme } from '../theme/appTheme';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid, validateFileSizes } from '../utils';
-import type { InspectionRow, GroupMetadata } from '../types/inspection';
-import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
+import SaclHeader from "../common/SaclHeader";
+import { ipService } from '../../services/ipService';
+import { inspectionService } from '../../services/inspectionService';
+import { uploadFiles } from '../../services/fileUploadHelper';
+import departmentProgressService from "../../services/departmentProgressService";
+import { COLORS, appTheme } from '../../theme/appTheme';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import { fileToMeta, generateUid, validateFileSizes, formatDate } from '../../utils';
+import type { InspectionRow, GroupMetadata } from '../../types/inspection';
+import DepartmentHeader from "../common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
 
 type CavRow = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -652,7 +652,7 @@ export default function DimensionalInspection({
                             <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                                     <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Dimensional Inspection Report</Typography>
-                                    <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
+                                    <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
                                 </Box>
                                 <Divider sx={{ mb: 3 }} />
 
@@ -738,7 +738,7 @@ export default function DimensionalInspection({
                             </Box>
                             <Box sx={{ textAlign: 'right' }}>
                                 <Typography variant="body2">IP: {userIP}</Typography>
-                                {previewPayload && <Typography variant="body2">Date: {previewPayload.inspection_date}</Typography>}
+                                {previewPayload && <Typography variant="body2">Date: {formatDate(previewPayload.inspection_date)}</Typography>}
                             </Box>
                         </Box>
 

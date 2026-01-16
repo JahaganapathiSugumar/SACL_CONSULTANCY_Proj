@@ -5,7 +5,6 @@ import { apiService } from '../../services/commonService';
 import { COLORS } from '../../theme/appTheme';
 
 interface HeaderProps {
-    setShowNotifications?: (show: boolean) => void;
     departmentInfo: {
         displayText: string;
         showDepartment: boolean;
@@ -22,7 +21,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-    setShowNotifications,
     departmentInfo,
     customStyle,
     textColor,

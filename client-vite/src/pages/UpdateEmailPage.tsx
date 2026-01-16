@@ -143,7 +143,7 @@ const DecorativeBackground: React.FC<{ boxRef?: React.RefObject<HTMLDivElement> 
   );
 };
 
-const UpdateEmailPage: React.FC = () => {
+const UpdateEmail: React.FC = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('');
@@ -387,4 +387,4 @@ const UpdateEmailPage: React.FC = () => {
   );
 };
 
-export default UpdateEmailPage;
+export default UpdateEmail;

@@ -39,8 +39,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await masterListService.getAllMasterLists();
-            const result = await response.json();
+            const result = await masterListService.getAllMasterLists();
             if (result.success) {
                 setData(result.data);
             } else {

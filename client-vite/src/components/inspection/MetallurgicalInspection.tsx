@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import type { Dispatch, SetStateAction } from "react";
 import {
   Paper,
@@ -44,19 +44,19 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { inspectionService } from '../services/inspectionService';
-import { documentService } from '../services/documentService';
-import { uploadFiles } from '../services/fileUploadHelper';
-import departmentProgressService from "../services/departmentProgressService";
-import { COLORS, appTheme } from '../theme/appTheme';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid, validateFileSizes } from '../utils';
-import SaclHeader from "./common/SaclHeader";
-import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, PreviewModal, FileUploadSection, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
-import { ipService } from "../services/ipService";
+import { inspectionService } from '../../services/inspectionService';
+import { documentService } from '../../services/documentService';
+import { uploadFiles } from '../../services/fileUploadHelper';
+import departmentProgressService from "../../services/departmentProgressService";
+import { COLORS, appTheme } from '../../theme/appTheme';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import { fileToMeta, generateUid, validateFileSizes, formatDate } from '../../utils';
+import SaclHeader from "../common/SaclHeader";
+import DepartmentHeader from "../common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, PreviewModal, FileUploadSection, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
+import { ipService } from "../../services/ipService";
 
 interface Row {
   id: string;
@@ -1446,7 +1446,7 @@ export default function MetallurgicalInspection() {
               <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                   <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
-                  <Typography variant="body2" color="textSecondary">Date: {previewPayload?.inspection_date}</Typography>
+                  <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
 
@@ -1473,7 +1473,7 @@ export default function MetallurgicalInspection() {
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0 }}>METALLURGICAL INSPECTION REPORT</Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
-                <Typography variant="body2">Date: {date}</Typography>
+                <Typography variant="body2">Date: {formatDate(date)}</Typography>
               </Box>
             </Box>
 

@@ -50,19 +50,20 @@ import EditIcon from '@mui/icons-material/Edit';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import PersonIcon from "@mui/icons-material/Person";
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaclHeader from "./common/SaclHeader";
-import { appTheme, COLORS } from "../theme/appTheme";
-import { trialService } from "../services/trialService";
-import { ipService } from "../services/ipService";
-import departmentProgressService from "../services/departmentProgressService";
-import { uploadFiles } from '../services/fileUploadHelper';
-import { validateFileSizes, fileToBase64 } from '../utils/fileHelpers';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { useAuth } from '../context/AuthContext';
-import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
-import GearSpinner from './common/GearSpinner';
+import SaclHeader from "../common/SaclHeader";
+import { appTheme, COLORS } from "../../theme/appTheme";
+import { trialService } from "../../services/trialService";
+import { ipService } from "../../services/ipService";
+import departmentProgressService from "../../services/departmentProgressService";
+import { uploadFiles } from '../../services/fileUploadHelper';
+import { validateFileSizes, fileToBase64 } from '../../utils/fileHelpers';
+import { useAlert } from '../../hooks/useAlert';
+import { formatDate } from '../../utils/dateUtils';
+import { AlertMessage } from '../common/AlertMessage';
+import { useAuth } from '../../context/AuthContext';
+import DepartmentHeader from "../common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
+import GearSpinner from '../common/GearSpinner';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface PartData {
@@ -948,7 +949,7 @@ function FoundrySampleCard() {
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
                     <Typography variant="caption" color="text.secondary">Sampling Date</Typography>
-                    <Typography variant="subtitle1">{previewPayload?.date_of_sampling || previewPayload?.samplingDate || "-"}</Typography>
+                    <Typography variant="subtitle1">{formatDate(previewPayload?.date_of_sampling || previewPayload?.samplingDate) || "-"}</Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -1417,7 +1418,7 @@ function FoundrySampleCard() {
                   <Typography variant="body1">Trial Report & Specification Sheet</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                  <Typography variant="body2">Date: {formatDate(new Date().toISOString())}</Typography>
                   <Typography variant="body2">IP: {userIP}</Typography>
                 </Box>
               </Box>
@@ -1441,7 +1442,7 @@ function FoundrySampleCard() {
                 <Typography variant="h6" sx={{ borderBottom: "1px solid #ccc", mb: 1 }}>Sampling Details</Typography>
                 <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
                   <div>
-                    <strong>Date:</strong> {previewPayload.samplingDate || '-'}
+                    <strong>Date:</strong> {formatDate(previewPayload.samplingDate) || '-'}
                   </div>
                   <div>
                     <strong>No. of Moulds:</strong> <br />

@@ -32,6 +32,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { trialService } from "../../services/trialService";
+import { formatDate } from "../../utils/dateUtils";
 
 const SpecInput = (props: any) => (
   <TextField
@@ -739,7 +740,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                             <TextField
                               fullWidth
                               size="small"
-                              value={data.date_of_sampling ? new Date(data.date_of_sampling).toISOString().slice(0, 10) : '-'}
+                              value={formatDate(data.date_of_sampling) || '-'}
                               InputProps={{ readOnly: true, sx: { textAlign: 'center' } }}
                             />
                           </TableCell>

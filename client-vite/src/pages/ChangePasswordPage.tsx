@@ -146,7 +146,7 @@ const DecorativeBackground: React.FC = () => {
   );
 };
 
-const ChangePasswordPage: React.FC = () => {
+const ChangePassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -571,4 +571,4 @@ const ChangePasswordPage: React.FC = () => {
   );
 };
 
-export default ChangePasswordPage;
+export default ChangePassword;

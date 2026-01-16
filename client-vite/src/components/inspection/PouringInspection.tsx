@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
-import { uploadFiles } from '../services/fileUploadHelper';
+import { uploadFiles } from '../../services/fileUploadHelper';
 import {
     Paper,
     Typography,
@@ -36,16 +36,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from "@mui/icons-material/Person";
-import SaclHeader from "./common/SaclHeader";
-import { ipService } from '../services/ipService';
-import { inspectionService } from '../services/inspectionService';
-import { trialService } from '../services/trialService';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import departmentProgressService from "../services/departmentProgressService";
-import DepartmentHeader from "./common/DepartmentHeader";
-import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, EmptyState, LoadingState, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
+import SaclHeader from "../common/SaclHeader";
+import { ipService } from '../../services/ipService';
+import { inspectionService } from '../../services/inspectionService';
+import { trialService } from '../../services/trialService';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import departmentProgressService from "../../services/departmentProgressService";
+import DepartmentHeader from "../common/DepartmentHeader";
+import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, EmptyState, LoadingState, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
+import { formatDate } from "../../utils";
 
 
 
@@ -767,7 +768,7 @@ function PouringDetailsTable() {
                                 <tbody>
                                     <tr style={{ verticalAlign: 'top' }}>
                                         <td style={{ border: '1px solid black', padding: '12px' }}>
-                                            <div><strong>Date:</strong> <span style={dataFontStyle}>{previewPayload?.pouringDate}</span></div>
+                                            <div><strong>Date:</strong> <span style={dataFontStyle}>{formatDate(previewPayload?.pouringDate)}</span></div>
                                             <div style={{ marginTop: '15px' }}><strong>Heat Code:</strong><br /><span style={dataFontStyle}>{previewPayload?.heatCode}</span></div>
                                         </td>
                                         <td style={{ border: '1px solid black', padding: '12px' }}>

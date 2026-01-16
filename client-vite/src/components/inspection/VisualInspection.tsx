@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
     Paper,
     Typography,
@@ -38,22 +38,22 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SaclHeader from "./common/SaclHeader";
-import { ipService } from '../services/ipService';
-import { inspectionService } from '../services/inspectionService';
-import { documentService } from '../services/documentService';
-import { uploadFiles } from '../services/fileUploadHelper';
-import departmentProgressService from "../services/departmentProgressService";
+import SaclHeader from "../common/SaclHeader";
+import { ipService } from '../../services/ipService';
+import { inspectionService } from '../../services/inspectionService';
+import { documentService } from '../../services/documentService';
+import { uploadFiles } from '../../services/fileUploadHelper';
+import departmentProgressService from "../../services/departmentProgressService";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from "react-router-dom";
-import { COLORS, appTheme } from '../theme/appTheme';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, generateUid, validateFileSizes } from '../utils';
-import type { InspectionRow, GroupMetadata } from '../types/inspection';
-import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
+import { COLORS, appTheme } from '../../theme/appTheme';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import { fileToMeta, generateUid, validateFileSizes, formatDateTime } from '../../utils';
+import type { InspectionRow, GroupMetadata } from '../../types/inspection';
+import DepartmentHeader from "../common/DepartmentHeader";
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
 
 type Row = InspectionRow;
 type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
@@ -348,7 +348,7 @@ export default function VisualInspection({
 
     const buildPayload = () => {
         return {
-            created_at: new Date().toLocaleString(),
+            created_at: formatDateTime(new Date().toISOString()),
             cols: cols.slice(),
             rows: rows.map(r => {
                 if (r.label === "Rejection Percentage (%)") {

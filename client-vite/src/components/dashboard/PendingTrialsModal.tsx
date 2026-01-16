@@ -19,11 +19,12 @@ import {
     useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { COLORS } from '../theme/appTheme';
-import departmentProgressService from '../services/departmentProgressService';
-import LoadingState from '../components/common/LoadingState';
+import { COLORS } from '../../theme/appTheme';
+import departmentProgressService from '../../services/departmentProgressService';
+import LoadingState from '../common/LoadingState';
+import { formatDate } from '../../utils';
 
-interface PendingCard {
+interface PendingTrials {
     trial_id: string;
     part_name?: string;
     pattern_code?: string;
@@ -34,24 +35,15 @@ interface PendingCard {
     department_id: number;
 }
 
-interface PendingSampleCardsProps {
+interface PendingTrialsModalProps {
     open: boolean;
     onClose: () => void;
     username: string;
-    onCardSelect?: (card: PendingCard) => void;
-}
-// Format date as dd/mm/yyyy
-function formatDate(dateString: string): string {
-    const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    onCardSelect?: (card: PendingTrials) => void;
 }
 
-const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, username, onCardSelect }) => {
-    const [pendingCards, setPendingCards] = useState<PendingCard[]>([]);
+const PendingTrialsModal: React.FC<PendingTrialsModalProps> = ({ open, onClose, username, onCardSelect }) => {
+    const [pendingTrials, setPendingTrials] = useState<PendingTrials[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const theme = useTheme();
@@ -60,25 +52,25 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
 
     useEffect(() => {
         if (open && username) {
-            fetchPendingCards();
+            fetchPendingTrials();
         }
     }, [open, username]);
 
-    const fetchPendingCards = async () => {
+    const fetchPendingTrials = async () => {
         try {
             setLoading(true);
-            const pendingCards = await departmentProgressService.getProgress(username);
-            setPendingCards(pendingCards);
+            const pendingTrials = await departmentProgressService.getProgress(username);
+            setPendingTrials(pendingTrials);
             setError(null);
         } catch (err) {
             console.error('Error fetching pending cards:', err);
-            setPendingCards([]);
+            setPendingTrials([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCardClick = (card: PendingCard) => {
+    const handleCardClick = (card: PendingTrials) => {
         if (onCardSelect) {
             onCardSelect(card);
         }
@@ -159,8 +151,8 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {pendingCards.length > 0 ? (
-                                        pendingCards.map((card) => (
+                                    {pendingTrials.length > 0 ? (
+                                        pendingTrials.map((card) => (
                                             <TableRow
                                                 key={card.trial_id}
                                                 onClick={() => handleCardClick(card)}
@@ -212,4 +204,4 @@ const PendingSampleCards: React.FC<PendingSampleCardsProps> = ({ open, onClose, 
     );
 };
 
-export default PendingSampleCards;
+export default PendingTrialsModal;

@@ -18,9 +18,10 @@ import {
     useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { COLORS } from '../theme/appTheme';
-import departmentProgressService, { type ProgressItem } from '../services/departmentProgressService';
-import LoadingState from '../components/common/LoadingState';
+import { COLORS } from '../../theme/appTheme';
+import departmentProgressService, { type ProgressItem } from '../../services/departmentProgressService';
+import LoadingState from '../common/LoadingState';
+import { formatDate, formatDateTime } from '../../utils';
 
 interface CompletedTrialsModalProps {
     open: boolean;
@@ -57,25 +58,7 @@ const CompletedTrialsModal: React.FC<CompletedTrialsModalProps> = ({ open, onClo
         }
     };
 
-    const formatDate = (dateString: string) => {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
 
-    const formatDateTime = (dateString: string) => {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${day}/${month}/${year}, ${hours}:${minutes}`;
-    };
 
     return (
         <Dialog

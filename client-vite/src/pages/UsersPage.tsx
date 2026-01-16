@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../components/common/Header';
 import UserManagement from '../components/admin/UserManagement';
 
-const UsersPage: React.FC = () => {
+const Users: React.FC = () => {
   return (
     <div className="users-page">
       <Header />
@@ -13,4 +13,4 @@ const UsersPage: React.FC = () => {
   );
 };
 
-export default UsersPage;
+export default Users;

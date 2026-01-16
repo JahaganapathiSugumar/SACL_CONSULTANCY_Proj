@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { trialService } from "../services/trialService";
+import { trialService } from "../../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
     Box,
@@ -31,7 +31,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 
-import { appTheme, COLORS } from "../theme/appTheme";
+import { appTheme, COLORS } from "../../theme/appTheme";
 import {
     SaclHeader,
     DepartmentHeader,
@@ -40,15 +40,16 @@ import {
     SpecInput,
     FileUploadSection,
     DocumentViewer
-} from "./common";
-import BasicInfo from "./dashboard/BasicInfo";
-import { useAuth } from "../context/AuthContext";
-import { ipService } from "../services/ipService";
-import { inspectionService } from "../services/inspectionService";
-import { uploadFiles } from "../services/fileUploadHelper";
-import { ActionButtons, EmptyState } from "./common";
-import departmentProgressService from "../services/departmentProgressService";
-import { useAlert } from "../hooks/useAlert";
+} from "../common";
+import BasicInfo from "../dashboard/BasicInfo";
+import { useAuth } from "../../context/AuthContext";
+import { ipService } from "../../services/ipService";
+import { inspectionService } from "../../services/inspectionService";
+import { uploadFiles } from "../../services/fileUploadHelper";
+import { formatDate } from "../../utils";
+import { ActionButtons, EmptyState } from "../common";
+import departmentProgressService from "../../services/departmentProgressService";
+import { useAlert } from "../../hooks/useAlert";
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
@@ -521,7 +522,7 @@ export default function MaterialCorrection() {
                                             <Typography variant="body1">Trial Report & Specification Sheet</Typography>
                                         </Box>
                                         <Box sx={{ textAlign: 'right' }}>
-                                            <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                                            <Typography variant="body2">Date: {formatDate(new Date().toISOString())}</Typography>
                                             <Typography variant="body2">IP: {userIP}</Typography>
                                         </Box>
                                     </Box>

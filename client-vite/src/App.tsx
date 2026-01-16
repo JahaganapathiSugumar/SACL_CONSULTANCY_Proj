@@ -14,17 +14,15 @@ import UpdateEmailPage from './pages/UpdateEmailPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 
 import LoadingSpinner from './components/common/LoadingSpinner';
-import MetallurgicalInspection from './components/MetallurgicalInspection';
-import VisualInspection from './components/VisualInspection';
-import DimensionalInspection from './components/DimensionalInspection';
-import McShopInspection from './components/MCShop';
-import MouldingTable from './components/Moulding';
-import FoundrySampleCard from './components/FoundrySampleCard';
-import PouringDetailsTable from './components/PouringDetailsTable';
-import SandTable from './components/Sand';
-import NotificationPage from './pages/NotificationPage';
-import Common from './components/dashboard/BasicInfo';
-import MaterialCorrection from './components/MaterialCorrection';
+import MetallurgicalInspection from './components/inspection/MetallurgicalInspection';
+import VisualInspection from './components/inspection/VisualInspection';
+import DimensionalInspection from './components/inspection/DimensionalInspection';
+import McShopInspection from './components/inspection/MachineShopInspection';
+import MouldingTable from './components/inspection/MouldingInspection';
+import FoundrySampleCard from './components/inspection/FoundrySampleCard';
+import PouringDetailsTable from './components/inspection/PouringInspection';
+import SandTable from './components/inspection/SandPlantInspection';
+import MaterialCorrection from './components/inspection/MaterialCorrectionInspection';
 import AllTrialsPage from './pages/AllTrialsPage';
 
 const AppRoutes: React.FC = () => {
@@ -81,10 +79,6 @@ const AppRoutes: React.FC = () => {
 
       <Route path="/foundry-sample-card" element={
         <ProtectedRoute requiredDepartment={[1, 2]}><FoundrySampleCard /></ProtectedRoute>
-      } />
-
-      <Route path="/notifications" element={
-        <ProtectedRoute><NotificationPage /></ProtectedRoute>
       } />
 
       <Route path="/moulding" element={

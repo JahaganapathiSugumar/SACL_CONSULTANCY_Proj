@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -33,18 +33,18 @@ import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from "@mui/icons-material/Person";
-import SaclHeader from "./common/SaclHeader";
-import { ipService } from '../services/ipService';
-import { inspectionService } from '../services/inspectionService';
-import { uploadFiles } from '../services/fileUploadHelper';
-import { COLORS, appTheme } from '../theme/appTheme';
-import { useAlert } from '../hooks/useAlert';
-import { AlertMessage } from './common/AlertMessage';
-import { fileToMeta, validateFileSizes } from '../utils';
-import departmentProgressService from "../services/departmentProgressService";
-import DepartmentHeader from "./common/DepartmentHeader";
-import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from './common';
-import BasicInfo from "./dashboard/BasicInfo";
+import SaclHeader from "../common/SaclHeader";
+import { ipService } from '../../services/ipService';
+import { inspectionService } from '../../services/inspectionService';
+import { uploadFiles } from '../../services/fileUploadHelper';
+import { COLORS, appTheme } from '../../theme/appTheme';
+import { useAlert } from '../../hooks/useAlert';
+import { AlertMessage } from '../common/AlertMessage';
+import { fileToMeta, validateFileSizes, formatDate } from '../../utils';
+import departmentProgressService from "../../services/departmentProgressService";
+import DepartmentHeader from "../common/DepartmentHeader";
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from '../common';
+import BasicInfo from "../dashboard/BasicInfo";
 
 interface SandTableProps {
   submittedData?: {
@@ -557,7 +557,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               <Typography variant="body1">Sand Properties Specification Sheet</Typography>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="body2">Report Date: {new Date().toLocaleDateString()}</Typography>
+              <Typography variant="body2">Report Date: {formatDate(new Date().toISOString())}</Typography>
               <Typography variant="body2">IP: {userIP}</Typography>
             </Box>
           </Box>
@@ -570,7 +570,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               <tr>
                 <td colSpan={9} style={{ border: '1px solid black', borderRight: 'none', backgroundColor: '#fff' }}></td>
                 <td style={{ border: '1px solid black', padding: '10px', backgroundColor: COLORS.headerBg }}>
-                  <strong>Date:</strong> {sandDate}
+                  <strong>Date:</strong> {formatDate(sandDate)}
                 </td>
               </tr>
               <tr style={{ backgroundColor: COLORS.headerBg, textAlign: 'center' }}>

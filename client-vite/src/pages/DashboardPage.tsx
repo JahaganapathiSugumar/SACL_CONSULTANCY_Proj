@@ -8,7 +8,6 @@ import TrialsTable from '../components/admin/TrialsTable';
 import DropdownButton from '../components/dashboard/DropdownButton';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
-import NotificationModal from '../components/dashboard/NotificationModal';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import WelcomeSection from '../components/dashboard/WelcomeSection';
@@ -17,14 +16,13 @@ import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
 import { CircularProgress, Menu, MenuItem } from '@mui/material';
 
-const DashboardPage: React.FC = () => {
+const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showMasterList, setShowMasterList] = useState(false);
   const [showAllTrials, setShowAllTrials] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
   const [editingMasterItem, setEditingMasterItem] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -99,7 +97,6 @@ const DashboardPage: React.FC = () => {
       </style>
 
       <Header
-        setShowNotifications={setShowNotifications}
         setShowProfile={setShowProfile}
         departmentInfo={departmentInfo}
         customStyle={{ backgroundColor: '#ffffff', color: '#333', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', borderBottom: '2px solid #e0e0e0' }}
@@ -582,9 +579,6 @@ const DashboardPage: React.FC = () => {
         }}
       />
 
-      {/* Notification Modal */}
-      {showNotifications && <NotificationModal onClose={() => setShowNotifications(false)} />}
-
       {/* Profile Modal */}
       {showProfile && (
         <ProfileModal
@@ -596,4 +590,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default Dashboard;

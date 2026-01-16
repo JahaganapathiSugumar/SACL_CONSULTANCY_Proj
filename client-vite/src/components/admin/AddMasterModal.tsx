@@ -325,7 +325,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 remarks: formData.remarks
             };
 
-            let response: Response;
+            let response;
 
             if (initialData && initialData.id) {
                 // UPDATE MODE
@@ -339,15 +339,13 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 }
             }
 
-            const responseText = await response.text();
-
-            if (!response.ok) {
+            if (!response.success) {
                 let errorMessage = `Server error: ${response.status}`;
                 try {
-                    const errorData = JSON.parse(responseText);
+                    const errorData = JSON.parse(response);
                     errorMessage = errorData.message || errorMessage;
                 } catch {
-                    errorMessage = responseText || errorMessage;
+                    errorMessage = response || errorMessage;
                 }
                 throw new Error(errorMessage);
             }
