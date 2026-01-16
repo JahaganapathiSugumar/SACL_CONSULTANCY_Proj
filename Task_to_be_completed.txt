@@ -13,3 +13,5 @@
 ->If machine shop selected while user creation ask two different types(NPD OR REGULAR)
 
 ->Remove delete option in master card
+
+->fdyqa need critical dimension attachment mandatory
