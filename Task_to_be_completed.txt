@@ -6,16 +6,10 @@
 
 ->Create a readme for the project
 
-->Navbar fixed
-
 ->Create a log file
 
-->Make all fields mandatory in frontend
+->Make all fields mandatory in frontend and add validation for mandatory fields and show alert message
 
-->If machine shop ask two different types
+->If machine shop selected while user creation ask two different types(NPD OR REGULAR)
 
 ->Remove delete option in master card
-
-->The basic information should be showing always in all forms 
-
-->Reason for rejection cavity wise in machine shop department

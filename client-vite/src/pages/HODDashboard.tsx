@@ -35,6 +35,10 @@ const HODDashboard: React.FC = () => {
     navigate(`${route}?trial_id=${card.trial_id}`);
   };
 
+  const handleViewTrials = () => {
+    navigate('/trials');
+  };
+
   const departmentInfo = getDepartmentInfo(user);
 
   useEffect(() => {
@@ -125,6 +129,30 @@ const HODDashboard: React.FC = () => {
               >
                 ✅ Completed Trials
               </button>
+              {(user?.department_id === 2 || user?.department_id === 3) && (
+                <button
+                  className="btn-view-trials"
+                  onClick={handleViewTrials}
+                  style={{
+                    backgroundImage: 'none',
+                    backgroundColor: '#6f42c1',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    marginLeft: '10px',
+                    transition: 'background-color 0.2s',
+                    boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
+                  }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
+                >
+                  View All Trials
+                </button>
+              )}
             </div>
           </WelcomeSection>
 
@@ -144,7 +172,7 @@ const HODDashboard: React.FC = () => {
 
       {/* Profile Modal */}
       {showProfile && (
-        <ProfileModal 
+        <ProfileModal
           onClose={() => setShowProfile(false)}
           onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
         />

@@ -21,7 +21,7 @@ import {
     Grid,
     Chip,
     Divider,
-    GlobalStyles,
+    GlobalStyles
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
@@ -48,7 +48,8 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common, DocumentViewer } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 
 type CavRow = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -434,7 +435,7 @@ export default function DimensionalInspection({
                         />
                     ) : (
                         <>
-                            <Common trialId={trialId} />
+                            <BasicInfo trialId={trialId} />
                             <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
                                 <Box display="flex" alignItems="center" gap={1} mb={1}>

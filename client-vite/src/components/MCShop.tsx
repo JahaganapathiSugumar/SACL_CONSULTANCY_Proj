@@ -22,7 +22,7 @@ import {
   Grid,
   Chip,
   Divider,
-  GlobalStyles,
+  GlobalStyles
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
@@ -49,7 +49,8 @@ import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
 import departmentProgressService from "../services/departmentProgressService";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common, DocumentViewer } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 
 type Row = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -81,7 +82,8 @@ export default function McShopInspection({
     { id: `insp-${generateUid()}`, label: "Inspected Quantity", values: cavLabels.map(() => ""), total: null },
     { id: `accp-${generateUid()}`, label: "Accepted Quantity", values: cavLabels.map(() => ""), total: null },
     { id: `rej-${generateUid()}`, label: "Rejected Quantity", values: cavLabels.map(() => ""), total: null },
-    { id: `reason-${generateUid()}`, label: "Reason for rejection: cavity wise", values: cavLabels.map(() => ""), freeText: "" },
+    { id: `rej-perc-${generateUid()}`, label: "Rejection Percentage (%)", values: cavLabels.map(() => ""), total: null },
+    { id: `reason-${generateUid()}`, label: "Reason for rejection:", values: cavLabels.map(() => "") },
   ];
 
   const [rows, setRows] = useState<Row[]>(() => makeInitialRows(initialCavities));
@@ -217,14 +219,17 @@ export default function McShopInspection({
   };
 
   const updateCell = (rowId: string, colIndex: number, value: string) => {
-    setRows((prev) => prev.map((r) => {
-      if (r.id !== rowId) return r;
+    setRows((prev) => {
+      const updatedRows = [...prev];
+      const rIndex = updatedRows.findIndex(r => r.id === rowId);
+      if (rIndex === -1) return prev;
 
-      const newValues = r.values.map((v, i) => (i === colIndex ? value : v));
-      const isCavityOrReason = r.label.toLowerCase().includes("cavity details") || r.label.toLowerCase().includes("reason");
+      const newValues = updatedRows[rIndex].values.map((v, i) => (i === colIndex ? value : v));
+      const isCavityOrReason = updatedRows[rIndex].label.toLowerCase().includes("cavity details") || updatedRows[rIndex].label.toLowerCase().includes("reason");
 
       if (isCavityOrReason) {
-        return { ...r, values: newValues };
+        updatedRows[rIndex] = { ...updatedRows[rIndex], values: newValues };
+        return updatedRows;
       }
 
       const total = newValues.reduce((sum, val) => {
@@ -232,12 +237,61 @@ export default function McShopInspection({
         return sum + (isNaN(n) ? 0 : n);
       }, 0);
 
-      return { ...r, values: newValues, total };
-    }));
-  };
+      updatedRows[rIndex] = { ...updatedRows[rIndex], values: newValues, total };
 
-  const updateReasonFreeText = (id: string, text: string) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, freeText: text } : r)));
+      // Auto-calculation logic
+      let updated = [...updatedRows];
+      const inspectedRow = updated.find(r => r.label === "Inspected Quantity");
+      const acceptedRow = updated.find(r => r.label === "Accepted Quantity");
+      const rejectedRow = updated.find(r => r.label === "Rejected Quantity");
+      const percentageRow = updated.find(r => r.label === "Rejection Percentage (%)");
+
+      if (inspectedRow && acceptedRow && rejectedRow) {
+        const inspectedNum = parseFloat(String(inspectedRow.values[colIndex] || '').trim());
+        const acceptedNum = parseFloat(String(acceptedRow.values[colIndex] || '').trim());
+
+        if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
+          if (acceptedNum > inspectedNum) {
+            showAlert('error', `Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
+            const newRejectedValues = [...rejectedRow.values];
+            newRejectedValues[colIndex] = "Invalid";
+            updated = updated.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues } : r);
+          } else {
+            const calculatedRejected = inspectedNum - acceptedNum;
+            const newRejectedValues = [...rejectedRow.values];
+            newRejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
+            updated = updated.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues, total: newRejectedValues.reduce((s, v) => s + (parseFloat(v) || 0), 0) } : r);
+          }
+        }
+      }
+
+      const updatedRejectedRow = updated.find(r => r.label === "Rejected Quantity");
+
+      if (inspectedRow && updatedRejectedRow && percentageRow) {
+        const inspectedNum = parseFloat(String(inspectedRow.values[colIndex] || '').trim());
+        const rejectedNum = parseFloat(String(updatedRejectedRow.values[colIndex] || '').trim());
+        const newPercentageValues = [...percentageRow.values];
+
+        if (!isNaN(inspectedNum) && inspectedNum > 0 && !isNaN(rejectedNum)) {
+          const percentage = (rejectedNum / inspectedNum) * 100;
+          newPercentageValues[colIndex] = percentage.toFixed(2);
+        } else {
+          newPercentageValues[colIndex] = '';
+        }
+
+        const totalInspected = inspectedRow.values.reduce((acc, val) => acc + (parseFloat(String(val)) || 0), 0);
+        const totalRejected = updated.find(r => r.label === "Rejected Quantity")?.values.reduce((acc, val) => acc + (parseFloat(String(val)) || 0), 0) || 0;
+
+        let totalPercentage = null;
+        if (totalInspected > 0) {
+          totalPercentage = (totalRejected / totalInspected) * 100;
+        }
+
+        updated = updated.map(r => r.id === percentageRow.id ? { ...r, values: newPercentageValues, total: totalPercentage !== null ? parseFloat(totalPercentage.toFixed(2)) : null } : r);
+      }
+
+      return updated;
+    });
   };
 
   const resetAll = () => {
@@ -455,7 +509,7 @@ export default function McShopInspection({
             />
           ) : (
             <>
-              <Common trialId={trialId || ""} />
+              <BasicInfo trialId={trialId || ""} />
 
               <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
@@ -517,40 +571,22 @@ export default function McShopInspection({
                           <TableRow key={r.id}>
                             <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
 
-                            {isReasonRow ? (
-                              <TableCell colSpan={cavities.length + 1}>
+                            {r.values.map((val, ci) => (
+                              <TableCell key={ci}>
                                 <TextField
                                   size="small"
                                   fullWidth
-                                  multiline
-                                  rows={2}
-                                  placeholder="Cavity wise rejection reason..."
-                                  value={r.freeText ?? ""}
-                                  onChange={(e) => updateReasonFreeText(r.id, e.target.value)}
+                                  value={val ?? ""}
+                                  onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                   variant="outlined"
                                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
+                                  disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r.label.toLowerCase().includes("rejected quantity") || r.label.toLowerCase().includes("rejection percentage")}
                                 />
                               </TableCell>
-                            ) : (
-                              <>
-                                {r.values.map((val, ci) => (
-                                  <TableCell key={ci}>
-                                    <TextField
-                                      size="small"
-                                      fullWidth
-                                      value={val ?? ""}
-                                      onChange={(e) => updateCell(r.id, ci, e.target.value)}
-                                      variant="outlined"
-                                      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
-                                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                    />
-                                  </TableCell>
-                                ))}
-                                <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f1f5f9' }}>
-                                  {r.label.toLowerCase().includes("cavity details") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
-                                </TableCell>
-                              </>
-                            )}
+                            ))}
+                            <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f1f5f9' }}>
+                              {r.label.toLowerCase().includes("cavity details") || r.label.toLowerCase().includes("reason") ? "-" : (r.total !== null && r.total !== undefined ? r.total : "-")}
+                            </TableCell>
 
                             {ri === 0 && (
                               <TableCell rowSpan={rows.length} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2, minWidth: 240 }}>

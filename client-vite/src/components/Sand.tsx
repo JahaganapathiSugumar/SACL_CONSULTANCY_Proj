@@ -43,7 +43,8 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, validateFileSizes } from '../utils';
 import departmentProgressService from "../services/departmentProgressService";
 import DepartmentHeader from "./common/DepartmentHeader";
-import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, Common, DocumentViewer } from './common';
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 
 interface SandTableProps {
   submittedData?: {
@@ -91,25 +92,25 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
 
   useEffect(() => {
-      const checkAssignment = async () => {
-          if (user && trialId) {
-              if (user.role === 'Admin') {
-                  setIsAssigned(true);
-                  return;
-              }
-              try {
-                  const pending = await departmentProgressService.getProgress(user.username);
-                  const found = pending.find(p => p.trial_id === trialId);
-                  setIsAssigned(!!found);
-              } catch (error) {
-                  console.error("Failed to check assignment:", error);
-                  setIsAssigned(false);
-              }
-          } else {
-              setIsAssigned(false);
-          }
-      };
-      checkAssignment();
+    const checkAssignment = async () => {
+      if (user && trialId) {
+        if (user.role === 'Admin') {
+          setIsAssigned(true);
+          return;
+        }
+        try {
+          const pending = await departmentProgressService.getProgress(user.username);
+          const found = pending.find(p => p.trial_id === trialId);
+          setIsAssigned(!!found);
+        } catch (error) {
+          console.error("Failed to check assignment:", error);
+          setIsAssigned(false);
+        }
+      } else {
+        setIsAssigned(false);
+      }
+    };
+    checkAssignment();
   }, [user, trialId]);
 
   useEffect(() => {
@@ -311,7 +312,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
             />
           ) : (
             <>
-              <Common trialId={trialId || ""} />
+              <BasicInfo trialId={trialId || ""} />
 
               <Paper sx={{ p: { xs: 2, md: 4 } }}>
 

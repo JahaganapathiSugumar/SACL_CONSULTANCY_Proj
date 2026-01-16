@@ -33,7 +33,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { trialService } from "../../services/trialService";
 
-// Helper component for consistent input styling
 const SpecInput = (props: any) => (
   <TextField
     {...props}
@@ -345,11 +344,11 @@ const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, d
   );
 };
 
-interface CommonProps {
+interface BasicInfoProps {
   trialId?: string;
 }
 
-const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
+const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const urlTrialId = urlParams.get('trial_id') || "";
   const effectiveTrialId = initialTrialId || urlTrialId;
@@ -717,7 +716,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
                             "DISA / FOUNDRY-A",
                             "Reason For Sampling",
                             "Sample Traceability",
-                            "Pattern Data Sheet",
+
                           ].map((head) => (
                             <TableCell
                               key={head}
@@ -784,11 +783,7 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
                               InputProps={{ readOnly: true, sx: { textAlign: 'center' } }}
                             />
                           </TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                              <DocumentViewer trialId={effectiveTrialId} category="PATTERN_DATA_SHEET" label="" />
-                            </Box>
-                          </TableCell>
+
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -923,4 +918,4 @@ const Common: React.FC<CommonProps> = ({ trialId: initialTrialId = "" }) => {
   );
 };
 
-export default Common;
+export default BasicInfo;

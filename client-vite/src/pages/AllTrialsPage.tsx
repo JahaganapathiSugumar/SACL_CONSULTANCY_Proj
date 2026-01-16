@@ -19,7 +19,11 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    FormControl,
+    Select,
+    MenuItem,
+    InputLabel
 } from '@mui/material';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import DocumentViewer from '../components/common/DocumentViewer';
@@ -47,6 +51,7 @@ export default function AllTrialsPage() {
     const [trials, setTrials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
 
     // New state for expandable rows
     const [expandedTrialId, setExpandedTrialId] = useState<string | null>(null);
@@ -75,9 +80,11 @@ export default function AllTrialsPage() {
             trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             trial.pattern_code?.toLowerCase().includes(searchTerm.toLowerCase())
         )
+        .filter(trial => {
+            if (statusFilter === 'ALL') return true;
+            return trial.status === statusFilter;
+        })
         .sort((a, b) => new Date(b.date_of_sampling).getTime() - new Date(a.date_of_sampling).getTime());
-
-    const canDelete = user?.role === 'Admin';
 
     const handleDelete = async (trialId: string) => {
         const result = await Swal.fire({
@@ -201,24 +208,39 @@ export default function AllTrialsPage() {
                             </Typography>
 
                         </Box>
-                        <TextField
-                            placeholder="Search Trial ID, Part Name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            size="small"
-                            sx={{
-                                bgcolor: 'white',
-                                minWidth: 300,
-                                width: { xs: '100%', md: 300 }
-                            }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <SearchIcon color="action" />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', md: 'auto' } }}>
+                            <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    label="Status"
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <MenuItem value="ALL">All</MenuItem>
+                                    <MenuItem value="CREATED">Created</MenuItem>
+                                    <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+                                    <MenuItem value="CLOSED">Closed</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <TextField
+                                placeholder="Search Trial ID, Part Name..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                size="small"
+                                sx={{
+                                    bgcolor: 'white',
+                                    minWidth: 300,
+                                    width: { xs: '100%', md: 300 }
+                                }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon color="action" />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Box>
                     </Box>
 
                     <Paper sx={{
@@ -363,7 +385,7 @@ export default function AllTrialsPage() {
                                                                     Report
                                                                 </Button>
                                                             )}
-                                                            {canDelete && trial.file_base64 && (
+                                                            {user.role === 'Admin' && trial.file_base64 && (
                                                                 <Tooltip title="Delete Trial">
                                                                     <IconButton
                                                                         size="small"

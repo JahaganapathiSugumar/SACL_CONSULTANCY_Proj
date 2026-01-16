@@ -22,8 +22,7 @@ import {
     Grid,
     Chip,
     Divider,
-    GlobalStyles,
-    Collapse
+    GlobalStyles
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
@@ -46,7 +45,6 @@ import { documentService } from '../services/documentService';
 import { uploadFiles } from '../services/fileUploadHelper';
 import departmentProgressService from "../services/departmentProgressService";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from "react-router-dom";
 import { COLORS, appTheme } from '../theme/appTheme';
 import { useAlert } from '../hooks/useAlert';
@@ -54,7 +52,8 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, Common, DocumentViewer } from './common';
+import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 
 type Row = InspectionRow;
 type GroupMeta = { ok: boolean | null; remarks: string; attachment: File | null };
@@ -94,7 +93,7 @@ const viewAttachment = (file: any) => {
 };
 
 export default function VisualInspection({
-    initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection: cavity wise"],
+    initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection:"],
     initialCols = [""],
     onSave = async (payload: any) => {
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
@@ -123,7 +122,7 @@ export default function VisualInspection({
     const [submitted, setSubmitted] = useState(false);
     const [userIP, setUserIP] = useState<string>("Loading...");
     const [isEditing, setIsEditing] = useState(false);
-    const [showBasicInfo, setShowBasicInfo] = useState(false);
+
 
     const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
     const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
@@ -187,7 +186,7 @@ export default function VisualInspection({
 
                             setCols(loadedCols);
                             setRows(prevRows => prevRows.map(row => {
-                                const fieldName = row.label === "Reason for rejection: cavity wise" ? "Reason for rejection" : row.label;
+                                const fieldName = "Reason for rejection";
                                 return {
                                     ...row,
                                     values: inspections.map((item: any) => String(item[fieldName] || ''))
@@ -578,25 +577,7 @@ export default function VisualInspection({
                         />
                     ) : (
                         <>
-                            <Box sx={{ mb: 2 }}>
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    startIcon={showBasicInfo ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                    onClick={() => setShowBasicInfo(!showBasicInfo)}
-                                    sx={{
-                                        color: COLORS.primary,
-                                        borderColor: COLORS.primary,
-                                        '&:hover': { borderColor: COLORS.primary, bgcolor: 'rgba(0,0,0,0.04)' }
-                                    }}
-                                >
-                                    {showBasicInfo ? 'Hide' : 'Show'} Basic Information
-                                </Button>
-                            </Box>
-
-                            <Collapse in={showBasicInfo} timeout="auto" unmountOnExit>
-                                <Common trialId={trialId} />
-                            </Collapse>
+                            <BasicInfo trialId={trialId} />
 
                             <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 

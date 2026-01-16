@@ -68,7 +68,7 @@ const AppRoutes: React.FC = () => {
       } />
 
       <Route path="/trials" element={
-        <ProtectedRoute><AllTrialsPage /></ProtectedRoute>
+        <ProtectedRoute requiredDepartment={[1, 2, 3]}><AllTrialsPage /></ProtectedRoute>
       } />
 
       <Route path="/dimensional-inspection" element={

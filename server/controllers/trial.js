@@ -42,7 +42,7 @@ export const createTrial = async (req, res, next) => {
         });
 
         await createDepartmentProgress(trial_id, req.user, part_name, trx);
-        if(req.user.role !== 'Admin'){
+        if (req.user.role !== 'Admin') {
             await updateRole(trial_id, req.user, trx);
         }
     });
@@ -66,7 +66,7 @@ export const getTrialById = async (req, res, next) => {
 };
 
 export const getTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id LEFT JOIN departments d ON c.current_department_id = d.department_id");
+    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id LEFT JOIN departments d ON c.current_department_id = d.department_id");
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -152,7 +152,7 @@ export const updateTrial = async (req, res, next) => {
                 remarks: `Trial ${trial_id} updated by ${req.user.username}`
             });
         }
-        if(req.user.role !== 'Admin'){
+        if (req.user.role !== 'Admin') {
             await updateDepartment(trial_id, req.user, trx);
         }
     });

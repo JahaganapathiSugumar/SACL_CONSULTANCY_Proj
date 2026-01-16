@@ -33,6 +33,7 @@ import { useNavigate } from "react-router-dom";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import VisibilityIcon from '@mui/icons-material/Visibility';
+
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import FactoryIcon from '@mui/icons-material/Factory';
@@ -53,7 +54,8 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes } from '../utils';
 import SaclHeader from "./common/SaclHeader";
 import DepartmentHeader from "./common/DepartmentHeader";
-import { LoadingState, EmptyState, ActionButtons, PreviewModal, Common, FileUploadSection, DocumentViewer } from './common';
+import { LoadingState, EmptyState, ActionButtons, PreviewModal, FileUploadSection, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 import { ipService } from "../services/ipService";
 
 interface Row {
@@ -773,25 +775,25 @@ export default function MetallurgicalInspection() {
   }, []);
 
   useEffect(() => {
-      const checkAssignment = async () => {
-          if (user && trialId) {
-              if (user.role === 'Admin') {
-                  setIsAssigned(true);
-                  return;
-              }
-              try {
-                  const pending = await departmentProgressService.getProgress(user.username);
-                  const found = pending.find(p => p.trial_id === trialId);
-                  setIsAssigned(!!found);
-              } catch (error) {
-                  console.error("Failed to check assignment:", error);
-                  setIsAssigned(false);
-              }
-          } else {
-              setIsAssigned(false);
-          }
-      };
-      checkAssignment();
+    const checkAssignment = async () => {
+      if (user && trialId) {
+        if (user.role === 'Admin') {
+          setIsAssigned(true);
+          return;
+        }
+        try {
+          const pending = await departmentProgressService.getProgress(user.username);
+          const found = pending.find(p => p.trial_id === trialId);
+          setIsAssigned(!!found);
+        } catch (error) {
+          console.error("Failed to check assignment:", error);
+          setIsAssigned(false);
+        }
+      } else {
+        setIsAssigned(false);
+      }
+    };
+    checkAssignment();
   }, [user, trialId]);
 
   useEffect(() => {
@@ -1295,6 +1297,8 @@ export default function MetallurgicalInspection() {
             />
           ) : (
             <>
+              <BasicInfo trialId={trialId || ""} />
+
               <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
                 <Box

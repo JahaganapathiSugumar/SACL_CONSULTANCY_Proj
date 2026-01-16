@@ -44,7 +44,8 @@ import { AlertMessage } from './common/AlertMessage';
 import { fileToMeta, validateFileSizes } from '../utils';
 import type { InspectionRow, GroupMetadata } from '../types/inspection';
 import DepartmentHeader from "./common/DepartmentHeader";
-import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, Common, DocumentViewer } from './common';
+import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 import departmentProgressService from "../services/departmentProgressService";
 
 function MouldingTable() {
@@ -315,7 +316,7 @@ function MouldingTable() {
             />
           ) : (
             <>
-              <Common trialId={trialId || ""} />
+              <BasicInfo trialId={trialId || ""} />
 
               <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>

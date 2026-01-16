@@ -50,9 +50,8 @@ export const createMasterList = async (req, res, next) => {
         pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray,
         number_of_cavity, cavity_identification, pattern_material, core_weight, core_mask_thickness,
         estimated_casting_weight, estimated_bunch_weight, pattern_plate_thickness_sp, pattern_plate_weight_sp,
-        core_mask_weight_sp, crush_pin_height_sp, calculated_yield_sp, pattern_plate_thickness_pp,
-        pattern_plate_weight_pp, core_mask_weight_pp, crush_pin_height_pp, calculated_yield_pp,
-        yield_label, remarks
+        core_mask_weight_sp, crush_pin_height_sp, pattern_plate_thickness_pp,
+        pattern_plate_weight_pp, crush_pin_height_pp, yield_label, remarks
     } = req.body || {};
 
     if (
@@ -102,18 +101,18 @@ export const createMasterList = async (req, res, next) => {
                         number_of_cavity, cavity_identification, pattern_material,
                         core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
                         pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
-                        crush_pin_height_sp, calculated_yield_sp,
-                        pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
-                        crush_pin_height_pp, calculated_yield_pp,
+                        crush_pin_height_sp,
+                        pattern_plate_thickness_pp, pattern_plate_weight_pp,
+                        crush_pin_height_pp,
                         yield_label, remarks
                     ) VALUES (
                         @master_card_id,
                         @number_of_cavity, @cavity_identification, @pattern_material,
                         @core_weight, @core_mask_thickness, @estimated_casting_weight, @estimated_bunch_weight,
                         @pattern_plate_thickness_sp, @pattern_plate_weight_sp, @core_mask_weight_sp,
-                        @crush_pin_height_sp, @calculated_yield_sp,
-                        @pattern_plate_thickness_pp, @pattern_plate_weight_pp, @core_mask_weight_pp,
-                        @crush_pin_height_pp, @calculated_yield_pp,
+                        @crush_pin_height_sp,
+                        @pattern_plate_thickness_pp, @pattern_plate_weight_pp,
+                        @crush_pin_height_pp,
                         @yield_label, @remarks
                     )
                 `;
@@ -123,9 +122,9 @@ export const createMasterList = async (req, res, next) => {
                     number_of_cavity, cavity_identification, pattern_material,
                     core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
                     pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
-                    crush_pin_height_sp, calculated_yield_sp,
-                    pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
-                    crush_pin_height_pp, calculated_yield_pp,
+                    crush_pin_height_sp,
+                    pattern_plate_thickness_pp, pattern_plate_weight_pp,
+                    crush_pin_height_pp,
                     yield_label, remarks
                 });
             } catch (err) {
@@ -198,9 +197,9 @@ export const updateMasterList = async (req, res, next) => {
                         number_of_cavity=@number_of_cavity, cavity_identification=@cavity_identification, pattern_material=@pattern_material,
                         core_weight=@core_weight, core_mask_thickness=@core_mask_thickness, estimated_casting_weight=@estimated_casting_weight, estimated_bunch_weight=@estimated_bunch_weight,
                         pattern_plate_thickness_sp=@pattern_plate_thickness_sp, pattern_plate_weight_sp=@pattern_plate_weight_sp, core_mask_weight_sp=@core_mask_weight_sp,
-                        crush_pin_height_sp=@crush_pin_height_sp, calculated_yield_sp=@calculated_yield_sp,
-                        pattern_plate_thickness_pp=@pattern_plate_thickness_pp, pattern_plate_weight_pp=@pattern_plate_weight_pp, core_mask_weight_pp=@core_mask_weight_pp,
-                        crush_pin_height_pp=@crush_pin_height_pp, calculated_yield_pp=@calculated_yield_pp,
+                        crush_pin_height_sp=@crush_pin_height_sp,
+                        pattern_plate_thickness_pp=@pattern_plate_thickness_pp, pattern_plate_weight_pp=@pattern_plate_weight_pp,
+                        crush_pin_height_pp=@crush_pin_height_pp,
                         yield_label=@yield_label, remarks=@remarks,
                         updated_at=GETDATE()
                     WHERE master_card_id=@id
@@ -209,9 +208,9 @@ export const updateMasterList = async (req, res, next) => {
                     number_of_cavity, cavity_identification, pattern_material,
                     core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
                     pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
-                    crush_pin_height_sp, calculated_yield_sp,
-                    pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
-                    crush_pin_height_pp, calculated_yield_pp,
+                    crush_pin_height_sp,
+                    pattern_plate_thickness_pp, pattern_plate_weight_pp,
+                    crush_pin_height_pp,
                     yield_label, remarks,
                     id
                 });
@@ -222,18 +221,18 @@ export const updateMasterList = async (req, res, next) => {
                         number_of_cavity, cavity_identification, pattern_material,
                         core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
                         pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
-                        crush_pin_height_sp, calculated_yield_sp,
-                        pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
-                        crush_pin_height_pp, calculated_yield_pp,
+                        crush_pin_height_sp,
+                        pattern_plate_thickness_pp, pattern_plate_weight_pp,
+                        crush_pin_height_pp,
                         yield_label, remarks
                     ) VALUES (
                         @id,
                         @number_of_cavity, @cavity_identification, @pattern_material,
                         @core_weight, @core_mask_thickness, @estimated_casting_weight, @estimated_bunch_weight,
                         @pattern_plate_thickness_sp, @pattern_plate_weight_sp, @core_mask_weight_sp,
-                        @crush_pin_height_sp, @calculated_yield_sp,
-                        @pattern_plate_thickness_pp, @pattern_plate_weight_pp, @core_mask_weight_pp,
-                        @crush_pin_height_pp, @calculated_yield_pp,
+                        @crush_pin_height_sp,
+                        @pattern_plate_thickness_pp, @pattern_plate_weight_pp,
+                        @crush_pin_height_pp,
                         @yield_label, @remarks
                     )
                 `;
@@ -241,10 +240,10 @@ export const updateMasterList = async (req, res, next) => {
                     id,
                     number_of_cavity, cavity_identification, pattern_material,
                     core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
-                    pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
-                    crush_pin_height_sp, calculated_yield_sp,
-                    pattern_plate_thickness_pp, pattern_plate_weight_pp, core_mask_weight_pp,
-                    crush_pin_height_pp, calculated_yield_pp,
+                    pattern_plate_thickness_sp, pattern_plate_weight_sp,
+                    crush_pin_height_sp,
+                    pattern_plate_thickness_pp, pattern_plate_weight_pp,
+                    crush_pin_height_pp,
                     yield_label, remarks
                 });
             }

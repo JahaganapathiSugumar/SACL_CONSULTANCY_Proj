@@ -23,7 +23,6 @@ import {
     useMediaQuery,
     GlobalStyles,
     Divider,
-
     IconButton
 } from "@mui/material";
 import Swal from 'sweetalert2';
@@ -45,7 +44,8 @@ import { useAlert } from '../hooks/useAlert';
 import { AlertMessage } from './common/AlertMessage';
 import departmentProgressService from "../services/departmentProgressService";
 import DepartmentHeader from "./common/DepartmentHeader";
-import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, Common, EmptyState, LoadingState, DocumentViewer } from './common';
+import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, EmptyState, LoadingState, DocumentViewer } from './common';
+import BasicInfo from "./dashboard/BasicInfo";
 
 
 
@@ -158,6 +158,8 @@ function PouringDetailsTable() {
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
     const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
+
+
 
     useEffect(() => {
         const checkAssignment = async () => {
@@ -480,7 +482,7 @@ function PouringDetailsTable() {
                         />
                     ) : (
                         <>
-                            <Common trialId={trialId || ""} />
+                            <BasicInfo trialId={trialId || ""} />
 
                             <Grid container spacing={3}>
 
