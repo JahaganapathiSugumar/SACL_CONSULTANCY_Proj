@@ -6,7 +6,9 @@
 
 ->Create a readme for the project
 
-->Create a log file
+->Ask mandatory fields and add validation in frontend and backend
+
+->Change DB columns and frontend fields according to user input 
 
 ->Make all fields mandatory in frontend and add validation for mandatory fields and show alert message
 
