@@ -228,7 +228,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                             <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Pattern Code</b></TableCell>
                             <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Part Name</b></TableCell>
                             <TableCell sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Material Grade</b></TableCell>
-                            <TableCell align="center" sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Status / Actions</b></TableCell>
+                            <TableCell align="center" sx={{ backgroundColor: '#eee', position: 'sticky', top: 0, zIndex: 10 }}><b>Status</b></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
