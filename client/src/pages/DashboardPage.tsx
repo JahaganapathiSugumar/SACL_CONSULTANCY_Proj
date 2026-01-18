@@ -5,33 +5,39 @@ import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
 import MasterListTable from '../components/admin/MasterListTable';
 import TrialsTable from '../components/admin/TrialsTable';
-import DropdownButton from '../components/dashboard/DropdownButton';
+import AllTrialsPage from './AllTrialsPage';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
+import Sidebar from '../components/dashboard/Sidebar';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import StatsGrid from '../components/dashboard/StatsGrid';
-import WelcomeSection from '../components/dashboard/WelcomeSection';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
-import { CircularProgress, Menu, MenuItem } from '@mui/material';
+import { CircularProgress, Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import PostAddIcon from '@mui/icons-material/PostAdd';
+import PendingTrialsView from '../components/dashboard/PendingTrialsView';
+import CompletedTrialsView from '../components/dashboard/CompletedTrialsView';
+import FoundrySampleCard from '../components/inspection/FoundrySampleCard';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [currentView, setCurrentView] = useState<string>('dashboard');
+
+  // Modal states
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showMasterList, setShowMasterList] = useState(false);
-  const [showAllTrials, setShowAllTrials] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
   const [editingMasterItem, setEditingMasterItem] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
+
+  // Stats
   const [stats, setStats] = useState<StatItem[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
-  const [masterListMenuAnchor, setMasterListMenuAnchor] = useState<null | HTMLElement>(null);
-  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
 
   const departmentInfo = getDepartmentInfo(user);
 
@@ -40,11 +46,15 @@ const Dashboard: React.FC = () => {
       if (user?.username && user?.role) {
         try {
           setLoadingStats(true);
+          let statsType: 'admin_trials' | 'methods_dashboard' | undefined = undefined;
+          if (user.role === 'Admin') statsType = 'admin_trials';
+          else if (user.role === 'User' && user.department_id === 2) statsType = 'methods_dashboard';
+
           const statsData = await getDashboardStats({
             role: user.role,
             username: user.username,
             department_id: user.department_id,
-            statsType: 'admin_trials'
+            statsType
           });
           setStats(statsData);
         } catch (error) {
@@ -58,511 +68,191 @@ const Dashboard: React.FC = () => {
     fetchStats();
   }, [user]);
 
-  const handleViewTrials = () => {
-    navigate('/trials');
-  };
+  const getPageTitle = () => {
+    switch (currentView) {
+      case 'dashboard':
+        if (user?.role === 'Admin') return 'Admin Dashboard';
+        if (user?.role === 'User' && user?.department_id === 2) return 'Methods Dashboard';
+        if (user?.role === 'HOD') return 'HOD Dashboard';
+        return 'User Dashboard';
+      case 'employees': return 'Employee Management';
+      case 'master-list': return 'Master List Management';
+      case 'manage-trials': return 'All Trials Repository';
+      case 'pending-cards': return 'Pending Actions';
+      case 'completed-trials': return 'Completed History';
+      case 'all-trials': return 'Trial History';
+      default: return 'Dashboard';
+    }
+  }
 
-  const handleViewMasterList = () => {
-    setShowMasterList(true);
-    setShowUserDetails(false);
-    setShowAllTrials(false);
-  };
-
-  const handleViewUserDetails = () => {
-    setShowUserDetails(true);
-    setShowMasterList(false);
-    setShowAllTrials(false);
-  };
+  const getPageSubtitle = () => {
+    switch (currentView) {
+      case 'dashboard': return `Welcome back, ${user?.username}!`;
+      case 'employees': return 'Manage employee data and access';
+      case 'master-list': return 'Manage system master data and pattern codes';
+      case 'manage-trials': return 'View, search and manage all trial reports';
+      case 'pending-cards': return 'Sample cards waiting for your action';
+      case 'completed-trials': return 'View history of processed trials';
+      case 'all-trials': return 'Browse all trial records';
+      default: return '';
+    }
+  }
 
   return (
-    <div className="dashboard" style={{ background: 'linear-gradient(135deg, #FF9C00 0%, #FFFFFF 45%, #6C757D 100%)', minHeight: '100vh', fontFamily: "'Trebuchet MS', 'Lucida Grande', sans-serif" }}>
-      {/* Load Poppins Font Global */}
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <style>
-        {`
-          .dashboard-content {
-            padding: 20px;
-          }
-          @media (max-width: 768px) {
-            .dashboard-content {
-              padding: 15px;
-            }
-          }
-          @media (max-width: 480px) {
-            .dashboard-content {
-              padding: 10px;
-            }
-          }
-        `}
-      </style>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: '#f8f9fa' }}>
+      {/* Sidebar */}
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
 
-      <Header
-        setShowProfile={setShowProfile}
-        departmentInfo={departmentInfo}
-        customStyle={{ backgroundColor: '#ffffff', color: '#333', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', borderBottom: '2px solid #e0e0e0' }}
-        textColor="#333"
-        logoTextColors={{ title: '#000000', subtitle: '#666' }}
-        photoRefreshKey={headerRefreshKey}
-      />
+      {/* Main Content Area */}
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      <main className="dashboard-content">
-        {showUserDetails ? (
-          <>
-            <WelcomeSection
-              title="Admin Dashboard"
-              description={`Welcome back, ${user?.username}!`}
-              titleColor="#333"
-              descriptionColor="#666"
-            >
-              {user?.role === 'Admin' && (
+        {/* Header */}
+        <Header
+          setShowProfile={setShowProfile}
+          departmentInfo={departmentInfo}
+          photoRefreshKey={headerRefreshKey}
+        />
+
+        {/* Scrollable Content */}
+        <Box sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
+
+          {/* Page Title Section */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#2c3e50', mb: 0.5 }}>
+              {currentView === 'dashboard' ? 'Dashboard' : getPageTitle()}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#7f8c8d' }}>
+              {getPageSubtitle()}
+            </Typography>
+          </Box>
+
+          {currentView === 'dashboard' && (
+            <>
+              {/* Stats Grid */}
+              {loadingStats ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <StatsGrid stats={stats} />
+              )}
+
+              {/* Initiate Card Button for Dept 2 (Methods) */}
+              {(user?.department_id === 2 && user?.role === 'User') && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<PostAddIcon />}
+                    onClick={() => navigate('/foundry-sample-card')}
+                  >
+                    Initiate New Trial
+                  </Button>
+                </Box>
+              )}
+
+              {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && (
                 <>
-                  <DropdownButton
-                    label="Manage Master List"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(masterListMenuAnchor)}
-                    color="purple"
-                  />
-                  <Menu
-                    anchorEl={masterListMenuAnchor}
-                    open={Boolean(masterListMenuAnchor)}
-                    onClose={() => setMasterListMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setEditingMasterItem(null);
-                        setIsAddMasterModalOpen(true);
-                        setMasterListMenuAnchor(null);
+                  {/* Filters & Actions Bar */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+                    {/* Search */}
+                    <TextField
+                      placeholder="Search trials by title or ID..."
+                      size="small"
+                      sx={{ width: 300, bgcolor: 'white' }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon sx={{ color: '#95a5a6' }} />
+                          </InputAdornment>
+                        ),
                       }}
-                    >
-                      Add to Master List
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewMasterList();
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      View details in Master List
-                    </MenuItem>
-                  </Menu>
-                  <DropdownButton
-                    label="Manage Users"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(userMenuAnchor)}
-                    color="orange"
-                    marginLeft="10px"
-                  />
-                  <Menu
-                    anchorEl={userMenuAnchor}
-                    open={Boolean(userMenuAnchor)}
-                    onClose={() => setUserMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setIsAddUserModalOpen(true);
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      Add User Profiles
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewUserDetails();
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      View User Details
-                    </MenuItem>
-                  </Menu>
+                    />
+
+                    {/* Right Actions */}
+                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<RefreshIcon />}
+                        onClick={() => setRefreshKey(p => p + 1)}
+                        sx={{ textTransform: 'none', color: '#666', borderColor: '#ccc' }}
+                      >
+                        Refresh
+                      </Button>
+                    </Box>
+                  </Box>
+
+                  {/* Table Section */}
+                  <Box sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
+                    <Box sx={{ px: 3, py: 2, borderBottom: '1px solid #f0f0f0', bgcolor: '#fafafa' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#333' }}>
+                        Trials Directory
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#888' }}>
+                        All trials and reports
+                      </Typography>
+                    </Box>
+                    <TrialsTable key={refreshKey} />
+                  </Box>
                 </>
               )}
-              <button
-                className="btn-view-trials"
-                onClick={handleViewTrials}
-                style={{
-                  backgroundImage: 'none',
-                  backgroundColor: '#6f42c1',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  marginLeft: '10px',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
-              >
-                View All Trials
-              </button>
-            </WelcomeSection>
+            </>
+          )}
 
-            {/* Overview Section */}
-            {loadingStats ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <CircularProgress />
-              </div>
-            ) : (
-              <StatsGrid stats={stats} />
-            )}
+          {(user.role === 'User' || user.role === 'HOD') && currentView === 'pending-cards' && (
+            <PendingTrialsView username={user?.username || ''} />
+          )}
 
-            {/* User Management Section */}
+          {(user.role === 'User' || user.role === 'HOD') && currentView === 'completed-trials' && (
+            <CompletedTrialsView username={user?.username || ''} />
+          )}
+
+          {(user.role === 'Admin' && currentView === 'all-trials') && (
+            <AllTrialsPage embedded={true} />
+          )}
+
+          {user?.role === 'Admin' && currentView === 'master-list' && (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setEditingMasterItem(null);
+                    setIsAddMasterModalOpen(true);
+                  }}
+                  sx={{ textTransform: 'none', bgcolor: '#E67E22', '&:hover': { bgcolor: '#d35400' } }}
+                >
+                  Add to Master List
+                </Button>
+              </Box>
+              <Box sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
+                <MasterListTable
+                  key={refreshKey}
+                  onEdit={(item) => {
+                    setEditingMasterItem(item);
+                    setIsAddMasterModalOpen(true);
+                  }}
+                />
+              </Box>
+            </>
+          )}
+
+          {user?.role === 'Admin' && currentView === 'manage-trials' && (
+            <AllTrialsPage embedded={true} />
+          )}
+
+          {user?.role === 'Admin' && currentView === 'employees' && (
             <UserManagement />
-          </>
-        ) : showMasterList ? (
-          <>
-            <WelcomeSection
-              title="Admin Dashboard"
-              description={`Welcome back, ${user?.username}!`}
-              titleColor="#333"
-              descriptionColor="#666"
-            >
-              {user?.role === 'Admin' && (
-                <>
-                  <DropdownButton
-                    label="Manage Master List"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(masterListMenuAnchor)}
-                    color="purple"
-                  />
-                  <Menu
-                    anchorEl={masterListMenuAnchor}
-                    open={Boolean(masterListMenuAnchor)}
-                    onClose={() => setMasterListMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setEditingMasterItem(null);
-                        setIsAddMasterModalOpen(true);
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      Add to Master List
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewMasterList();
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      View details in Master List
-                    </MenuItem>
-                  </Menu>
-                  <DropdownButton
-                    label="Manage Users"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(userMenuAnchor)}
-                    color="orange"
-                    marginLeft="10px"
-                  />
-                  <Menu
-                    anchorEl={userMenuAnchor}
-                    open={Boolean(userMenuAnchor)}
-                    onClose={() => setUserMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setIsAddUserModalOpen(true);
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      Add User Profiles
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewUserDetails();
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      View User Details
-                    </MenuItem>
-                  </Menu>
-                </>
-              )}
-              <button
-                className="btn-view-trials"
-                onClick={handleViewTrials}
-                style={{
-                  backgroundImage: 'none',
-                  backgroundColor: '#6f42c1',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  marginLeft: '10px',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
-              >
-                View All Trials
-              </button>
-            </WelcomeSection>
+          )}
 
-            {/* Overview Section */}
-            {loadingStats ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <CircularProgress />
-              </div>
-            ) : (
-              <StatsGrid stats={stats} />
-            )}
-
-            {/* Master List Section */}
-            <MasterListTable
-              key={refreshKey}
-              onEdit={(item) => {
-                setEditingMasterItem(item);
-                setIsAddMasterModalOpen(true);
-              }}
-            />
-          </>
-        ) : showAllTrials ? (
-          <>
-            <WelcomeSection
-              title="Admin Dashboard"
-              description={`Welcome back, ${user?.username}!`}
-              titleColor="#333"
-              descriptionColor="#666"
-            >
-              {user?.role === 'Admin' && (
-                <>
-                  <DropdownButton
-                    label="Manage Master List"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(masterListMenuAnchor)}
-                    color="purple"
-                  />
-                  <Menu
-                    anchorEl={masterListMenuAnchor}
-                    open={Boolean(masterListMenuAnchor)}
-                    onClose={() => setMasterListMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setEditingMasterItem(null);
-                        setIsAddMasterModalOpen(true);
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      Add to Master List
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewMasterList();
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      View details in Master List
-                    </MenuItem>
-                  </Menu>
-                  <DropdownButton
-                    label="Manage Users"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(userMenuAnchor)}
-                    color="orange"
-                    marginLeft="10px"
-                  />
-                  <Menu
-                    anchorEl={userMenuAnchor}
-                    open={Boolean(userMenuAnchor)}
-                    onClose={() => setUserMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setIsAddUserModalOpen(true);
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      Add User Profiles
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewUserDetails();
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      View User Details
-                    </MenuItem>
-                  </Menu>
-                </>
-              )}
-              <button
-                className="btn-view-trials"
-                onClick={handleViewTrials}
-                style={{
-                  backgroundImage: 'none',
-                  backgroundColor: '#6f42c1',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  marginLeft: '10px',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
-              >
-                View All Trials
-              </button>
-            </WelcomeSection>
-
-            {/* Overview Section */}
-            {loadingStats ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <CircularProgress />
-              </div>
-            ) : (
-              <StatsGrid stats={stats} />
-            )}
-
-            {/* All Trials Section */}
-            <h4 style={{
-              marginTop: '30px',
-              marginBottom: '20px',
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              color: '#1976d2'
-            }}>
-              View All Trials
-            </h4>
-            <TrialsTable />
-          </>
-        ) : (
-          <>
-            <WelcomeSection
-              title="Admin Dashboard"
-              description={`Welcome back, ${user?.username}!`}
-              titleColor="#333"
-              descriptionColor="#666"
-            >
-              {user?.role === 'Admin' && (
-                <>
-                  <DropdownButton
-                    label="Manage Master List"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setMasterListMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(masterListMenuAnchor)}
-                    color="purple"
-                  />
-                  <Menu
-                    anchorEl={masterListMenuAnchor}
-                    open={Boolean(masterListMenuAnchor)}
-                    onClose={() => setMasterListMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setEditingMasterItem(null);
-                        setIsAddMasterModalOpen(true);
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      Add to Master List
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewMasterList();
-                        setMasterListMenuAnchor(null);
-                      }}
-                    >
-                      View details in Master List
-                    </MenuItem>
-                  </Menu>
-                  <DropdownButton
-                    label="Manage Users"
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setUserMenuAnchor(e.currentTarget)}
-                    isOpen={Boolean(userMenuAnchor)}
-                    color="orange"
-                    marginLeft="10px"
-                  />
-                  <Menu
-                    anchorEl={userMenuAnchor}
-                    open={Boolean(userMenuAnchor)}
-                    onClose={() => setUserMenuAnchor(null)}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        setIsAddUserModalOpen(true);
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      Add User Profiles
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleViewUserDetails();
-                        setUserMenuAnchor(null);
-                      }}
-                    >
-                      View User Details
-                    </MenuItem>
-                  </Menu>
-                </>
-              )}
-              <button
-                className="btn-view-trials"
-                onClick={handleViewTrials}
-                style={{
-                  backgroundImage: 'none',
-                  backgroundColor: '#6f42c1',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  marginLeft: '10px',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 2px 4px rgba(111, 66, 193, 0.2)'
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#59359a')}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#6f42c1')}
-              >
-                View All Trials
-              </button>
-            </WelcomeSection>
-
-            {/* Overview Section */}
-            {loadingStats ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <CircularProgress />
-              </div>
-            ) : (
-              <StatsGrid stats={stats} />
-            )}
-
-            {/* All Trials Section */}
-            <h4 style={{
-              marginTop: '30px',
-              marginBottom: '20px',
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              color: '#1976d2'
-            }}>
-              View All Trials
-            </h4>
-            <TrialsTable />
-          </>
-        )}
-      </main>
+        </Box>
+      </Box>
 
       {/* Add User Modal */}
       <AddUserModal
         isOpen={isAddUserModalOpen}
         onClose={() => setIsAddUserModalOpen(false)}
         onUserCreated={() => {
-          setShowUserDetails(true);
+          // Refresh logic if needed
         }}
       />
 
@@ -586,7 +276,7 @@ const Dashboard: React.FC = () => {
           onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
         />
       )}
-    </div>
+    </Box>
   );
 };
 

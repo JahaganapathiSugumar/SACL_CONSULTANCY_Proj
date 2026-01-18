@@ -151,7 +151,6 @@ const UserManagement: React.FC = () => {
   return (
     <div className="user-management">
       <div className="user-management-header">
-        <h2>User Management</h2>
         <button
           className="create-user-button"
           onClick={() => setShowCreateModal(true)}

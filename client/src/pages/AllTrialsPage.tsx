@@ -44,7 +44,12 @@ import { Collapse, Grid, Card, CardContent, Chip } from '@mui/material';
 import departmentProgressService, { type ProgressItem } from '../services/departmentProgressService';
 import { getPendingRoute } from '../utils/dashboardUtils';
 
-export default function AllTrialsPage() {
+
+interface AllTrialsPageProps {
+    embedded?: boolean;
+}
+
+export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { user } = useAuth();
@@ -173,9 +178,9 @@ export default function AllTrialsPage() {
 
     return (
         <ThemeProvider theme={appTheme}>
-            <Box sx={{ minHeight: '100vh', bgcolor: COLORS.background, py: 4 }}>
-                <Container maxWidth="xl">
-                    <SaclHeader />
+            <Box sx={{ minHeight: embedded ? 'auto' : '100vh', bgcolor: embedded ? 'transparent' : COLORS.background, py: embedded ? 0 : 4 }}>
+                <Container maxWidth={embedded ? false : "xl"} sx={{ px: embedded ? 0 : undefined }}>
+                    {!embedded && <SaclHeader />}
 
                     <Box sx={{
                         mt: 4,
@@ -193,19 +198,21 @@ export default function AllTrialsPage() {
                             flexDirection: { xs: 'column', sm: 'row' },
                             width: { xs: '100%', md: 'auto' }
                         }}>
-                            <BackButton label="Back to Dashboard" variant="button" />
-                            <Typography
-                                variant="h4"
-                                fontWeight="bold"
-                                color="primary"
-                                sx={{
-                                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-                                    textAlign: { xs: 'center', sm: 'left' },
-                                    width: { xs: '100%', sm: 'auto' }
-                                }}
-                            >
-                                All Trials Repository
-                            </Typography>
+                            {!embedded && <BackButton label="Back to Dashboard" variant="button" />}
+                            {!embedded && (
+                                <Typography
+                                    variant="h4"
+                                    fontWeight="bold"
+                                    color="primary"
+                                    sx={{
+                                        fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                                        textAlign: { xs: 'center', sm: 'left' },
+                                        width: { xs: '100%', sm: 'auto' }
+                                    }}
+                                >
+                                    All Trials Repository
+                                </Typography>
+                            )}
 
                         </Box>
                         <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', md: 'auto' } }}>

@@ -138,18 +138,6 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
         <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={2}>
                 <Box display="flex" alignItems="center" gap={2}>
-                    <Typography
-                        variant="h4"
-                        fontWeight="bold"
-                        color="primary"
-                        sx={{
-                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-                            textAlign: { xs: 'center', sm: 'left' },
-                            width: { xs: '100%', sm: 'auto' }
-                        }}
-                    >
-                        Master List Entries
-                    </Typography>
                     {selectedItems.size > 0 && (
                         <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
                             <button

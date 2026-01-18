@@ -6,9 +6,6 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import HODDashboard from './pages/HODDashboard';
-import MethodsDashboard from './pages/MethodsDashboard';
-import UserDashboard from './pages/UserDashboard';
 import UsersPage from './pages/UsersPage';
 import UpdateEmailPage from './pages/UpdateEmailPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
@@ -30,21 +27,10 @@ const AppRoutes: React.FC = () => {
 
   if (loading) return <LoadingSpinner />;
 
-  const getDashboardByRole = () => {
-    switch (user?.role) {
-      case 'HOD': return <HODDashboard />;
-      case 'Methods': return <MethodsDashboard />;
-      case 'User':
-        if (user?.department_id === 2) return <MethodsDashboard />;
-        return <UserDashboard />;
-      default: return <DashboardPage />;
-    }
-  };
-
   return (
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<ProtectedRoute>{getDashboardByRole()}</ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 
       <Route path="/update-email" element={<ProtectedRoute><UpdateEmailPage /></ProtectedRoute>} />
       <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />

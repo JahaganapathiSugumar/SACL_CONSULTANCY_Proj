@@ -51,232 +51,215 @@ const Header: React.FC<HeaderProps> = ({
         }
     };
 
-    // Default colors
-    const defaultTextColor = '#333';
+    // Default colors - Dark Theme for Sakthi Auto Component Limited
+    const defaultTextColor = '#FFFFFF';
+    const backgroundColor = '#2C3E50'; // Dark Slate Grey
 
-    const currentTextColor = textColor || defaultTextColor;
+    const currentTextColor = defaultTextColor;
 
     return (
         <>
             <style>
                 {`
                     .dashboard-header {
-                        background-color: white;
-                        padding: 15px 30px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        background-color: ${backgroundColor};
+                        padding: 10px 24px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        border-bottom: 1px solid #e0e0e0;
-                        flex-wrap: wrap;
-                        gap: 15px;
+                        color: white !important;
+                        flex-shrink: 0;
+                        z-index: 1200;
                     }
                     .header-left {
                         display: flex;
                         align-items: center;
                         gap: 24px;
-                        flex-wrap: wrap;
                     }
                     .header-right {
                         display: flex;
                         align-items: center;
                         gap: 20px;
                     }
-                    .company-name-text {
-                        font-weight: 700;
-                        letter-spacing: 1px;
-                    }
                     @media (max-width: 900px) {
                         .dashboard-header {
                             padding: 12px 20px;
-                        }
-                        .company-name-text {
-                            font-size: 14px !important;
-                        }
-                        .header-dept-info {
-                            display: none !important;
-                        }
-                    }
-                    @media (max-width: 600px) {
-                        .dashboard-header {
-                            padding: 10px 15px;
-                        }
-                        .company-name-text {
-                            display: none !important;
-                        }
-                        .header-logo {
-                            height: 32px !important;
-                        }
-                        .profile-username {
-                            display: none !important;
                         }
                     }
                 `}
             </style>
             <header className="dashboard-header" style={customStyle}>
-            {/* Left side - Logo/Brand and Department Info */}
-            <Box className="header-left">
-                {/* SACL Logo Section */}
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                    }}
-                >
+                {/* Left side - Logo/Brand and Department Info */}
+                <Box className="header-left">
+                    {/* SACL Logo Section */}
                     <Box
-                        component="img"
-                        src="/assets/SACL-LOGO-01.jpg"
-                        alt="SACL Logo"
-                        className="header-logo"
                         sx={{
-                            height: 40,
-                            width: "auto",
-                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
                         }}
-                    />
-                </Box>
-            </Box>
-
-            {/* Right side - Icons and Profile */}
-            <div className="header-right">
-                {/* Profile Section */}
-                <div style={{ position: 'relative' }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            cursor: 'pointer',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            transition: 'background-color 0.2s'
-                        }}
-                        onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                        <div style={{
-                            width: '32px',
-                            height: '32px',
-                            backgroundColor: '#007bff',
-                            borderRadius: '50%',
+                        {/* Placeholder Logo Box if image fails, or use image */}
+                        <Box sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: 'white',
+                            borderRadius: 1,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '14px',
-                            overflow: 'hidden',
-                            backgroundImage: profilePhoto ? `url(${profilePhoto})` : 'none',
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
+                            overflow: 'hidden'
                         }}>
-                            {!profilePhoto && (user?.username?.charAt(0).toUpperCase() || 'U')}
-                        </div>
-                        <div className="profile-username" style={{ textAlign: 'left' }}>
-                            <div style={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                color: currentTextColor
-                            }}>
-                                {user?.username || 'User'}
-                            </div>
-                            <div style={{
-                                fontSize: '12px',
-                                color: currentTextColor,
-                                opacity: 0.8
-                            }}>
-                                {user?.role || 'User Role'}
-                                {departmentInfo.showDepartment && departmentInfo.displayText && (
-                                    <span> • {departmentInfo.displayText}</span>
-                                )}
-                            </div>
-                        </div>
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            style={{
-                                transform: showProfileDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                                transition: 'transform 0.2s',
-                                color: currentTextColor
-                            }}
-                        >
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </div>
+                            <img
+                                src="/assets/SACL-LOGO-01.jpg"
+                                alt="Logo"
+                                style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                            {/* Fallback Text if needed, currently hidden if img works */}
+                        </Box>
 
-                    {/* Profile Dropdown */}
-                    {showProfileDropdown && (
-                        <div style={{
-                            position: 'absolute',
-                            top: '100%',
-                            right: '0',
-                            backgroundColor: 'white',
-                            border: '1px solid #e0e0e0',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            minWidth: '200px',
-                            zIndex: 1000,
-                            marginTop: '5px'
-                        }}>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1, color: 'white', fontSize: '1rem' }}>
+                                Sakthi Auto Component Limited
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' }}>
+                                {departmentInfo.displayText}
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+
+                {/* Right side - Icons and Profile */}
+                <div className="header-right">
+                    {/* Profile Section */}
+                    <div style={{ position: 'relative' }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                cursor: 'pointer',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s',
+
+                            }}
+                            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
                             <div style={{
-                                padding: '12px 16px',
-                                borderBottom: '1px solid #f0f0f0'
+                                width: '36px',
+                                height: '36px',
+                                backgroundColor: '#E67E22', // Orange for profile
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '16px',
+                                overflow: 'hidden',
+                                backgroundImage: profilePhoto ? `url(${profilePhoto})` : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                border: '2px solid rgba(255,255,255,0.2)'
                             }}>
-                                <div style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>
-                                    {user?.username}
+                                {!profilePhoto && (user?.username?.charAt(0).toUpperCase() || 'U')}
+                            </div>
+                            <div className="profile-username" style={{ textAlign: 'left' }}>
+                                <div style={{
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    color: 'white'
+                                }}>
+                                    {user?.username?.toUpperCase() || 'USER'}
                                 </div>
-                                <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                                    {user?.role}
-                                    {departmentInfo.showDepartment && departmentInfo.displayText && (
-                                        <span> • {departmentInfo.displayText}</span>
-                                    )}
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: '#E67E22', // Orange text
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase'
+                                }}>
+                                    {user?.role || 'User Role'}
                                 </div>
                             </div>
-                            {setShowProfile && (
+                        </div>
+
+                        {/* Profile Dropdown */}
+                        {showProfileDropdown && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '120%',
+                                right: '0',
+                                backgroundColor: 'white',
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '4px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                minWidth: '220px',
+                                zIndex: 1300,
+                            }}>
+                                <div style={{ height: '4px', backgroundColor: '#E67E22', width: '100%', borderTopLeftRadius: '4px', borderTopRightRadius: '4px' }}></div>
+                                <div style={{
+                                    padding: '16px',
+                                    borderBottom: '1px solid #f0f0f0'
+                                }}>
+                                    <div style={{ fontSize: '15px', fontWeight: '700', color: '#333' }}>
+                                        {user?.username}
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
+                                        {user?.role}
+                                    </div>
+                                </div>
+                                {setShowProfile && (
+                                    <div
+                                        style={{
+                                            padding: '12px 16px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            color: '#333',
+                                            transition: 'background-color 0.2s',
+                                            borderBottom: '1px solid #f0f0f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px'
+                                        }}
+                                        onClick={() => {
+                                            setShowProfile(true);
+                                            setShowProfileDropdown(false);
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                    >
+                                        <span>👤</span> View Profile
+                                    </div>
+                                )}
                                 <div
                                     style={{
                                         padding: '12px 16px',
                                         cursor: 'pointer',
                                         fontSize: '14px',
-                                        color: '#333',
+                                        color: '#d32f2f',
                                         transition: 'background-color 0.2s',
-                                        borderBottom: '1px solid #f0f0f0'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px'
                                     }}
-                                    onClick={() => {
-                                        setShowProfile(true);
-                                        setShowProfileDropdown(false);
-                                    }}
+                                    onClick={logout}
                                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
                                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                                 >
-                                    👤 View Profile
+                                    <span>🚪</span> Logout
                                 </div>
-                            )}
-                            <div
-                                style={{
-                                    padding: '12px 16px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    color: '#333',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onClick={logout}
-                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
-                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                            >
-                                🚪 Logout
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
         </>
     );
 };
