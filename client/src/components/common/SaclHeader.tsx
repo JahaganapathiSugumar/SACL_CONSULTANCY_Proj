@@ -28,9 +28,9 @@ const SaclHeader: React.FC = () => {
           overflow: 'hidden'
         }}
       >
-        <Box 
-          display="flex" 
-          alignItems="center" 
+        <Box
+          display="flex"
+          alignItems="center"
           gap={{ xs: 1, sm: 2 }}
           sx={{
             flexWrap: 'wrap',
@@ -39,7 +39,7 @@ const SaclHeader: React.FC = () => {
         >
           <Box
             component="img"
-            src="/assets/SACL-LOGO-01.jpg"
+            src="/assets/SACL-LOGO-01.svg"
             alt="Sakthi Auto"
             sx={{
               height: { xs: 40, sm: 45, md: 55 },

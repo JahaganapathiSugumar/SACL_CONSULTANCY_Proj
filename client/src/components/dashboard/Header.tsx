@@ -112,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({
                             overflow: 'hidden'
                         }}>
                             <img
-                                src="/assets/SACL-LOGO-01.jpg"
+                                src="/assets/SACL-LOGO-01.svg"
                                 alt="Logo"
                                 style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
                                 onError={(e) => {

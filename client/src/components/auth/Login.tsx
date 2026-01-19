@@ -100,7 +100,7 @@ const Login: React.FC = () => {
     <div className="login-container">
       {/* Left Side - Image Panel */}
       <div className="login-image-panel">
-        <img src="/assets/login.jpg" alt="Login Background" className="login-bg-image" />
+        <img src="/assets/login-1.svg" alt="Login Background" className="login-bg-image" />
       </div>
 
       {/* Right Side - Login Form */}

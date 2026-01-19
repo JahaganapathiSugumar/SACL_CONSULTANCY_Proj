@@ -109,8 +109,8 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
             </div>
         `,
         attachments: [{
-            filename: 'SACL-LOGO-01.jpg',
-            path: path.resolve(__dirname, '../../assets/SACL-LOGO-01.jpg'),
+            filename: 'SACL-LOGO-01.svg',
+            path: path.resolve(__dirname, '../../assets/SACL-LOGO-01.svg'),
             cid: 'sacllogo'
         }]
     };
@@ -232,8 +232,8 @@ export const updateRole = async (trial_id, user, trx) => {
                 </div>
             `,
             attachments: [{
-                filename: 'SACL-LOGO-01.jpg',
-                path: path.resolve(__dirname, '../../assets/SACL-LOGO-01.jpg'),
+                filename: 'SACL-LOGO-01.svg',
+                path: path.resolve(__dirname, '../../assets/SACL-LOGO-01.svg'),
                 cid: 'sacllogo'
             }]
         };
