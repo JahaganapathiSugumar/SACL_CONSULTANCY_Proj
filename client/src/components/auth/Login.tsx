@@ -299,7 +299,7 @@ const Login: React.FC = () => {
         </div>
         <div className="login-card">
           <div className="login-header">
-            <img src="/assets/LOGO.png" alt="SACL Logo" className="login-logo" />
+            <img src="/assets/SACL-LOGO-01.svg" alt="SACL Logo" className="login-logo" />
             <h2 className="system-title">Digital Trial Card</h2>
             <p className="login-subtitle">Sign in now.</p>
           </div>
