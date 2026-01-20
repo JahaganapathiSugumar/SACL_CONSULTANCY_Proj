@@ -1,6 +1,6 @@
 import express from 'express';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
-import verifyToken from '../utils/verifyToken.js';
+import verifyToken from '../middlewares/verifyToken.js';
 import * as departmentProgressController from '../controllers/departmentProgress.js';
 
 const router = express.Router();

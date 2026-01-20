@@ -1,9 +1,9 @@
 import express from 'express';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
-import verifyToken from '../utils/verifyToken.js';
+import verifyToken from '../middlewares/verifyToken.js';
 import * as dimensionalInspectionController from '../controllers/dimensionalInspection.js';
-import authorizeDepartments from '../utils/authorizeDepartments.js';
-import authorizeRoles from '../utils/authorizeRoles.js';
+import authorizeDepartments from '../middlewares/authorizeDepartments.js';
+import authorizeRoles from '../middlewares/authorizeRoles.js';
 
 const router = express.Router();
 

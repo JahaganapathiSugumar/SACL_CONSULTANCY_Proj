@@ -53,11 +53,11 @@
   <polygon points="260,0 800,0 800,600 680,600 60,600" class="bg-slate" />
   <!-- logo removed: previously a <g> element with many <path> children was here -->
 
-  <text x="400" y="335" text-anchor="middle" class="text-brand">SAKTHI</text>
+  <text x="400" y="295" text-anchor="middle" class="text-brand">SAKTHI</text>
   
-  <text x="400" y="375" text-anchor="middle" class="text-sub">AUTO COMPONENT LIMITED</text>
+  <text x="400" y="335" text-anchor="middle" class="text-sub">AUTO COMPONENT LIMITED</text>
   
-  <text x="400" y="430" text-anchor="middle" class="text-trial">Digital Trial Card</text>
+  <text x="400" y="390" text-anchor="middle" class="text-trial">Digital Trial Card</text>
   
 
 

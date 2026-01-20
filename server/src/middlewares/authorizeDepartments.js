@@ -1,9 +1,9 @@
 import CustomError from "../utils/customError.js";
 
-const authorizeRoles = (...roles) => {
+const authorizeDepartments = (...departments) => {
     return (req, res, next) => {
-        const role = req.user?.role;
-        if(!roles.includes(role)){
+        const department = req.user?.department_id;
+        if (!departments.includes(department)) {
             const error = new CustomError('Access Denied', 403);
             return next(error);
         }
@@ -11,4 +11,4 @@ const authorizeRoles = (...roles) => {
     }
 }
 
-export default authorizeRoles;
+export default authorizeDepartments;

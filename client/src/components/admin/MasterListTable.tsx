@@ -268,13 +268,13 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                                                 cursor: 'pointer',
                                                 fontSize: '12px',
                                                 fontWeight: 600,
-                                                backgroundColor: row.is_active ? '#e6f4ea' : '#fce8e6',
-                                                color: row.is_active ? '#1e7e34' : '#c62828',
+                                                backgroundColor: (row.is_active === true || Number(row.is_active) === 1) ? '#e6f4ea' : '#fce8e6',
+                                                color: (row.is_active === true || Number(row.is_active) === 1) ? '#1e7e34' : '#c62828',
                                                 transition: 'all 0.2s',
                                                 marginRight: '8px'
                                             }}
                                         >
-                                            {row.is_active ? 'Active' : 'Inactive'}
+                                            {(row.is_active === true || Number(row.is_active) === 1) ? 'Active' : 'Inactive'}
                                         </button>
                                         <IconButton size="small" color="primary" onClick={() => onEdit(row)}>
                                             <EditIcon />

@@ -1,9 +1,9 @@
 import express from 'express';
 import * as userController from '../controllers/users.js';
 import asyncErrorHandler from '../utils/asyncErrorHandler.js';
-import verifyToken from '../utils/verifyToken.js';
+import verifyToken from '../middlewares/verifyToken.js';
 
-import authorizeRoles from '../utils/authorizeRoles.js';
+import authorizeRoles from '../middlewares/authorizeRoles.js';
 
 const router = express.Router();
 

@@ -15,6 +15,7 @@ export const getMasterList = async (req, res, next) => {
             m.impact,
             m.hardness,
             m.xray,
+            m.is_active,
             t.id AS tooling_id,
             t.number_of_cavity,
             t.cavity_identification,
