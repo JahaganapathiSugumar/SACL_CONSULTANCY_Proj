@@ -1,8 +1,9 @@
-# SACL_CONSULTANCY_Proj
+# SACL CONSULTANCY PROJECT
 
 A web-based Trial Card Management system for manufacturing quality and trial processes. The repository contains a TypeScript/React frontend (Vite) and a Node.js/Express backend that uses Microsoft SQL Server for persistence. Features include user authentication (JWT), trial card lifecycle management, department-driven workflows, inspection and correction records, document uploads, audit logging, and application logging with rotation.
 
 Live demo / homepage: https://digitaltrialcard-sakthiauto.vercel.app
+
 Repository: https://github.com/JahaganapathiSugumar/SACL_CONSULTANCY_Proj
 
 ---
@@ -205,14 +206,6 @@ Body: { trial_id, document_type, file_name, file_base64, remarks }
   - logs/combined/app-%DATE%.log
   - logs/error/error-%DATE%.log
 - The server will create required log directories at startup if they don't exist.
-
----
-
-## Development & testing notes
-
-- Linters and type tools exist in the client (ESLint, TypeScript).
-- Ensure that default passwords and secrets are changed before deploying to production.
-- Consider moving from storing file content in the DB to cloud/object storage for large files.
 
 ---
 
