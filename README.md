@@ -1,4 +1,4 @@
-# SACL CONSULTANCY PROJECT
+# Digital Trial Card Management System(Sakthi Auto Component Limited)
 
 A web-based Trial Card Management system for manufacturing quality and trial processes. The repository contains a TypeScript/React frontend (Vite) and a Node.js/Express backend that uses Microsoft SQL Server for persistence. Features include user authentication (JWT), trial card lifecycle management, department-driven workflows, inspection and correction records, document uploads, audit logging, and application logging with rotation.
 
