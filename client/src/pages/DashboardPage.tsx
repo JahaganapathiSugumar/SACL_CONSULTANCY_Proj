@@ -5,6 +5,7 @@ import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
 import MasterListTable from '../components/admin/MasterListTable';
 import TrialsTable from '../components/admin/TrialsTable';
+import ConsolidatedReportsTable from '../components/admin/ConsolidatedReportsTable';
 import AllTrialsPage from './AllTrialsPage';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
