@@ -175,7 +175,7 @@ class ApiService {
   }
 
   async getProfilePhoto() {
-    return this.request('/users/get-photo', {
+    return this.request('/users/profile-photo', {
       method: 'GET',
     });
   }

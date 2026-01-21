@@ -43,7 +43,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
 
             setLoading(true);
             try {
-                console.log(`DocumentViewer: Fetching docs for trialId: ${trialId}`);
                 const response = await documentService.getDocument(trialId);
                 if (response && response.success && Array.isArray(response.data)) {
                     let docs = response.data;
