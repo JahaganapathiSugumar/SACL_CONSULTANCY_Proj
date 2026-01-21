@@ -236,7 +236,7 @@ const Dashboard: React.FC = () => {
             </>
           )}
 
-          {user?.role === 'Admin' && currentView === 'manage-trials' && (
+          {(user?.role === 'Admin' || user?.department_id == 2 || user?.department_id == 3) && currentView === 'manage-trials' && (
             <AllTrialsPage embedded={true} />
           )}
 
