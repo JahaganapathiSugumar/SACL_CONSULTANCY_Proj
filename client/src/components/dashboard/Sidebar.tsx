@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
             subLabel: 'View & Edit all trials',
             icon: <LibraryBooksIcon />,
             view: 'manage-trials' as const,
-            show: user?.role === 'Admin'
+            show: user?.role === 'Admin' || user?.department_id == 2 || user?.department_id == 3
         },
         {
             id: 'master-list',

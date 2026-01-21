@@ -48,20 +48,21 @@ const BackButton: React.FC<BackButtonProps> = ({
       }}>
         <button
           onClick={handleClick}
+          title={label}
           style={{
             backgroundColor: '#f0f4f8',
             color: '#2c3e50',
             border: '1px solid #ddd',
-            padding: '8px 16px',
-            borderRadius: '6px',
+            padding: '8px',
+            borderRadius: '50%',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            fontWeight: 500,
-            fontSize: '14px',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+            justifyContent: 'center',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+            width: '40px',
+            height: '40px'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = '#e8eef7';
@@ -74,7 +75,7 @@ const BackButton: React.FC<BackButtonProps> = ({
             e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
           }}
         >
-          ← {label}
+          <ArrowBackIcon sx={{ fontSize: 20, color: '#2c3e50', fontWeight: 'bold' }} />
         </button>
       </div>
     );
@@ -84,20 +85,21 @@ const BackButton: React.FC<BackButtonProps> = ({
     return (
       <button
         onClick={handleClick}
+        title={label}
         style={{
           backgroundColor: '#f0f4f8',
           color: '#2c3e50',
           border: '1px solid #ddd',
-          padding: '8px 16px',
-          borderRadius: '6px',
+          padding: '8px',
+          borderRadius: '50%',
           cursor: 'pointer',
           transition: 'all 0.2s ease',
-          fontWeight: 500,
-          fontSize: '14px',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+          justifyContent: 'center',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          width: '40px',
+          height: '40px'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = '#e8eef7';
@@ -110,7 +112,7 @@ const BackButton: React.FC<BackButtonProps> = ({
           e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
         }}
       >
-        ← {label}
+        <ArrowBackIcon sx={{ fontSize: 20, color: '#2c3e50', fontWeight: 'bold' }} />
       </button>
     );
   }
@@ -119,18 +121,25 @@ const BackButton: React.FC<BackButtonProps> = ({
   return (
     <Button
       variant="contained"
-      startIcon={<ArrowBackIcon />}
       onClick={handleClick}
+      title={label}
       sx={{
         textTransform: 'none',
         bgcolor: '#5a6c7d',
         color: 'white',
         '&:hover': { bgcolor: '#4a5c6d' },
-        width: { xs: '100%', sm: 'auto' },
+        minWidth: 'auto',
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        padding: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         ...sx
       }}
     >
-      {label}
+      <ArrowBackIcon sx={{ fontSize: 20, fontWeight: 'bold' }} />
     </Button>
   );
 };
