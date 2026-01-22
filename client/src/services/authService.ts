@@ -1,6 +1,6 @@
 import { apiService } from './commonService';
 
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE as string);
 
 export const authService = {
   async login(username: string, password: string, role?: string, department_id?: string) {

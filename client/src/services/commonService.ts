@@ -1,6 +1,6 @@
 import type { AuthResponse, CreateUserRequest, User } from '../types/user';
 
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE as string);
 
 class ApiService {
   async request(endpoint: string, options: RequestInit = {}) {

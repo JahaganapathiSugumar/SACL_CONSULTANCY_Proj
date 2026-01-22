@@ -32,7 +32,7 @@ interface Trial {
   document_type?: string;
 }
 
-const TrialsTable: React.FC = () => {
+const RecentTrialsTable: React.FC = () => {
   const [trials, setTrials] = useState<Trial[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewReport, setViewReport] = useState<any>(null);
@@ -41,8 +41,8 @@ const TrialsTable: React.FC = () => {
     const fetchTrials = async () => {
       try {
         setLoading(true);
-        const data = await trialService.getAllTrialReports();
-        setTrials(data.slice(0, 50)); // Display first 50 trials
+        const data = await trialService.getRecentTrialReports();
+        setTrials(data);
       } catch (error) {
         console.error('Error fetching trials:', error);
       } finally {
@@ -81,8 +81,6 @@ const TrialsTable: React.FC = () => {
     <>
       <TableContainer
         sx={{
-          maxHeight: 'calc(100vh - 400px)',
-          overflow: 'auto',
           marginTop: '0px', // Removed top margin as it's inside a container now
           borderTop: '1px solid #e0e0e0'
         }}
@@ -201,4 +199,4 @@ const TrialsTable: React.FC = () => {
   );
 };
 
-export default TrialsTable;
+export default RecentTrialsTable;

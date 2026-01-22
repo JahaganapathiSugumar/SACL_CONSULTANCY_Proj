@@ -116,6 +116,20 @@ export const trialService = {
     },
 
     /**
+     * Fetches all trial reports
+     * @returns Promise resolving to array of all trial reports
+     */
+    async getRecentTrialReports(): Promise<any[]> {
+        try {
+            const data = await apiService.request('/trial/recent-trial-reports');
+            return data.data || [];
+        } catch (error) {
+            console.error('Failed to fetch recent trial reports:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Fetches trial by ID (alias for getTrialByTrialId)
      * @param trialId - Trial ID to fetch
      * @returns Promise resolving to trial data

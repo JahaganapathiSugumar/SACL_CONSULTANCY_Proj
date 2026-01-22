@@ -4,7 +4,7 @@ import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
 import MasterListTable from '../components/admin/MasterListTable';
-import TrialsTable from '../components/admin/TrialsTable';
+import RecentTrialsTable from '../components/admin/RecentTrialsTable';
 import ConsolidatedReportsTable from '../components/admin/ConsolidatedReportsTable';
 import AllTrialsPage from './AllTrialsPage';
 import { useAuth } from '../context/AuthContext';
@@ -191,10 +191,10 @@ const Dashboard: React.FC = () => {
                         Trials Directory
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#888' }}>
-                        All trials and reports
+                        Recent trials and reports
                       </Typography>
                     </Box>
-                    <TrialsTable key={refreshKey} />
+                    <RecentTrialsTable key={refreshKey} />
                   </Box>
                 </>
               )}
