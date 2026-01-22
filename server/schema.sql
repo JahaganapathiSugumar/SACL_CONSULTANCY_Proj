@@ -325,21 +325,21 @@ GO
 CREATE TABLE tooling_pattern_data (
     id INT NOT NULL IDENTITY(1,1),
     master_card_id INT NOT NULL,
-    number_of_cavity NVARCHAR(MAX),  
-    cavity_identification NVARCHAR(MAX),
+    number_of_cavity INT,  
+    cavity_identification INT,
     pattern_material NVARCHAR(MAX),
-    core_weight NVARCHAR(MAX),
-    core_mask_thickness NVARCHAR(MAX),
-    estimated_casting_weight NVARCHAR(MAX),
-    estimated_bunch_weight NVARCHAR(MAX),
-    pattern_plate_thickness_sp NVARCHAR(MAX),
-    pattern_plate_weight_sp NVARCHAR(MAX),
-    core_mask_weight_sp NVARCHAR(MAX),    
-    crush_pin_height_sp NVARCHAR(MAX),
-    pattern_plate_thickness_pp NVARCHAR(MAX),
-    pattern_plate_weight_pp NVARCHAR(MAX),
-    crush_pin_height_pp NVARCHAR(MAX),
-    yield_label NVARCHAR(MAX),
+    core_weight INT,
+    core_mask_thickness INT,
+    estimated_casting_weight INT,
+    estimated_bunch_weight INT,
+    pattern_plate_thickness_sp INT,
+    pattern_plate_weight_sp INT,
+    core_mask_weight_sp INT,    
+    crush_pin_height_sp INT,
+    pattern_plate_thickness_pp INT,
+    pattern_plate_weight_pp INT,
+    crush_pin_height_pp INT,
+    yield_label INT,
     remarks NVARCHAR(MAX),
     created_at DATETIME2 DEFAULT GETDATE(),
     updated_at DATETIME2 DEFAULT GETDATE(),
@@ -349,6 +349,7 @@ CREATE TABLE tooling_pattern_data (
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
+GO
 
 CREATE TABLE trial_reports (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
