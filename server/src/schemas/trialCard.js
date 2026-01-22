@@ -20,7 +20,8 @@ export const trialCardSchema = z.object({
     current_department_id: z.number().int().optional().nullable(),
     disa: z.string().max(50, "Disa must be 50 characters or less").optional().nullable(),
     sample_traceability: z.string().max(50, "Sample Traceability must be 50 characters or less").optional().nullable(),
-    mould_correction: z.any().optional().nullable() // JSON structure
+    mould_correction: z.any().optional().nullable(), // JSON structure
+    is_edit: z.boolean().optional()
 });
 
 export const updateTrialCardSchema = trialCardSchema.partial();
