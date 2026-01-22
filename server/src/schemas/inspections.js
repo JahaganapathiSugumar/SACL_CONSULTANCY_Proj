@@ -9,7 +9,7 @@ export const materialCorrectionSchema = z.object({
 
 export const pouringDetailsSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
-    pour_date: z.string().or(z.date()),
+    pour_date: z.string({ required_error: "Pour Date is required" }).or(z.date({ required_error: "Pour Date is required" })),
     heat_code: z.string().optional().nullable(),
     composition: z.any().optional().nullable(),
     no_of_mould_poured: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
@@ -22,7 +22,7 @@ export const pouringDetailsSchema = z.object({
 
 export const sandPropertiesSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
-    date: z.string().or(z.date()),
+    date: z.string({ required_error: "Date is required" }).or(z.date({ required_error: "Date is required" })),
     t_clay: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     a_clay: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     vcm: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
@@ -42,12 +42,12 @@ export const mouldCorrectionSchema = z.object({
     squeeze_pressure: z.string().optional().nullable(),
     mould_hardness: z.string().optional().nullable(),
     remarks: z.string().optional().nullable(),
-    date: z.string().or(z.date())
+    date: z.string({ required_error: "Date is required" }).or(z.date({ required_error: "Date is required" }))
 });
 
 export const metallurgicalInspectionSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
-    inspection_date: z.string().or(z.date()),
+    inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     micro_structure: z.any().optional().nullable(),
     micro_structure_ok: z.boolean().optional().nullable(),
     micro_structure_remarks: z.string().optional().nullable(),
@@ -68,13 +68,13 @@ export const metallurgicalInspectionSchema = z.object({
 export const visualInspectionSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
     inspections: z.any().optional().nullable(),
-    visual_ok: z.boolean(),
+    visual_ok: z.boolean({ required_error: "Visual Inspection Status is required", invalid_type_error: "Visual Inspection Status must be valid" }),
     remarks: z.string().optional().nullable()
 });
 
 export const dimensionalInspectionSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
-    inspection_date: z.string().or(z.date()),
+    inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     casting_weight: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     bunch_weight: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     no_of_cavities: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
@@ -85,7 +85,7 @@ export const dimensionalInspectionSchema = z.object({
 
 export const machineShopSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
-    inspection_date: z.string().or(z.date()),
+    inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     inspections: z.any().optional().nullable(),
     remarks: z.string().optional().nullable()
 });

@@ -1192,7 +1192,7 @@ function FoundrySampleCard() {
                                 value={type}
                                 control={<Radio size="small" />}
                                 label={<Typography variant="caption">{type}</Typography>}
-                                disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                 sx={{ mb: 0.5 }}
                               />
                             ))}

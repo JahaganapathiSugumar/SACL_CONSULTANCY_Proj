@@ -11,7 +11,7 @@ export const masterCardSchema = z.object({
     hardness: z.string().optional().nullable(),
     xray: z.string().optional().nullable(),
     number_of_cavity: z.union([z.number(), z.string()]).transform(v => (v === "" || v === null) ? null : Number(v)).refine(n => n === null || n > 0, "Must be greater than 0").optional().nullable(),
-    pattern_material: z.string().optional().nullable(),
+    pattern_material: z.string().max(100, "Pattern Material must be 100 characters or less").optional().nullable(),
     core_weight: z.union([z.number(), z.string()]).transform(v => (v === "" || v === null) ? null : Number(v)).refine(n => n === null || n > 0, "Must be greater than 0").optional().nullable(),
     estimated_casting_weight: z.union([z.number(), z.string()]).transform(v => (v === "" || v === null) ? null : Number(v)).refine(n => n === null || n > 0, "Must be greater than 0").optional().nullable(),
     estimated_bunch_weight: z.union([z.number(), z.string()]).transform(v => (v === "" || v === null) ? null : Number(v)).refine(n => n === null || n > 0, "Must be greater than 0").optional().nullable(),
