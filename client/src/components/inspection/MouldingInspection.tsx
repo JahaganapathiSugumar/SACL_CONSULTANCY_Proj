@@ -186,7 +186,7 @@ function MouldingTable() {
       await inspectionService.submitMouldingCorrection(body);
       setMouldCorrectionSubmitted(true);
       return { ok: true, data: {} };
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       showAlert('error', err.message || 'Failed to save moulding details. Please try again.');
       return { ok: false, message: 'Failed to save mould correction' };
     } finally {
@@ -268,7 +268,7 @@ function MouldingTable() {
         });
         navigate('/dashboard');
       }
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -346,17 +346,17 @@ function MouldingTable() {
                     </TableHead>
                     <TableBody>
                       <TableRow>
-                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
-                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
-                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
                         <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
+                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
                         </TableCell>
 
                         <TableCell>
                           <SpecInput
                             value={mouldState.remarks}
-                            onChange={(e: any) => handleChange('remarks', e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
+                            onChange={(e: any) => handleChange('remarks', e.target.value)}
                             placeholder="--"
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
