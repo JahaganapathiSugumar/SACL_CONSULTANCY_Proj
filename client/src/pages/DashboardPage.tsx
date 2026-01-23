@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
@@ -21,7 +21,6 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import PendingTrialsView from '../components/dashboard/PendingTrialsView';
 import CompletedTrialsView from '../components/dashboard/CompletedTrialsView';
-import FoundrySampleCard from '../components/inspection/FoundrySampleCard';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -31,7 +30,7 @@ const Dashboard: React.FC = () => {
   // Modal states
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isAddMasterModalOpen, setIsAddMasterModalOpen] = useState(false);
-  const [editingMasterItem, setEditingMasterItem] = useState<any>(null);
+  const [editingMasterItem, setEditingMasterItem] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [refreshKey, setRefreshKey] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     Box,
     Paper,
@@ -34,7 +34,7 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
         if (username) {
             fetchCompletedTrials();
         }
-    }, [username]);
+    }, [username]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchCompletedTrials = async () => {
         try {

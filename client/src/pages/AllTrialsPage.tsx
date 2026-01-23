@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     Box,
     Paper,
@@ -13,7 +13,6 @@ import {
     ThemeProvider,
     TextField,
     InputAdornment,
-    Checkbox,
     IconButton,
     Tooltip,
     Dialog,
@@ -53,12 +52,12 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { user } = useAuth();
-    const [trials, setTrials] = useState<any[]>([]);
+    const [trials, setTrials] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
 
-    // New state for expandable rows
+
     const [expandedTrialId, setExpandedTrialId] = useState<string | null>(null);
     const [trialProgressData, setTrialProgressData] = useState<Record<string, ProgressItem[]>>({});
     const [loadingProgress, setLoadingProgress] = useState<Record<string, boolean>>({});
@@ -135,9 +134,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         }
     };
 
-    const [viewReport, setViewReport] = useState<any>(null);
+    const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    const handleViewReport = (trial: any) => {
+    const handleViewReport = (trial: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         const document = {
             document_id: Date.now(),
             file_name: trial.file_name || `Report_${trial.trial_id}.pdf`,

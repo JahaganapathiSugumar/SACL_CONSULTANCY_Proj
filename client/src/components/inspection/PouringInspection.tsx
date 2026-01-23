@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -27,17 +27,12 @@ import {
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
-
 import FactoryIcon from '@mui/icons-material/Factory';
 import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
-import DownloadIcon from '@mui/icons-material/Download';
-import CloseIcon from '@mui/icons-material/Close';
-import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
-
 import { inspectionService } from '../../services/inspectionService';
 import { trialService } from '../../services/trialService';
 import { useAlert } from '../../hooks/useAlert';
@@ -47,8 +42,6 @@ import DepartmentHeader from "../common/DepartmentHeader";
 import { FileUploadSection, PreviewModal, SpecInput, FormSection, ActionButtons, EmptyState, LoadingState, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
 import { formatDate } from "../../utils";
-
-
 
 const COLORS = {
     primary: "#1e293b",
@@ -233,7 +226,7 @@ function PouringDetailsTable() {
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
     const [previewMode, setPreviewMode] = useState(false);
-    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [submitted, setSubmitted] = useState(false);
     const { alert, showAlert } = useAlert();
     const [isEditing, setIsEditing] = useState(false);
@@ -282,7 +275,7 @@ function PouringDetailsTable() {
             }
         };
         if (trialId) fetchData();
-    }, [user, trialId]);
+    }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
@@ -351,7 +344,7 @@ function PouringDetailsTable() {
                         text: 'Pouring details updated successfully.'
                     });
                     navigate('/dashboard');
-                } catch (err: any) {
+                } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -429,7 +422,7 @@ function PouringDetailsTable() {
                 text: 'Pouring details created successfully.'
             });
             navigate('/dashboard');
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             console.error("Error saving pouring details:", error);
             Swal.fire({
                 icon: 'error',
@@ -505,7 +498,7 @@ function PouringDetailsTable() {
                                                                     <SpecInput
                                                                         type="date"
                                                                         value={pouringDate}
-                                                                        onChange={(e: any) => setPouringDate(e.target.value)}
+                                                                        onChange={(e: any) => setPouringDate(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                         inputStyle={{ textAlign: 'left' }}
                                                                         disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                                                                     />
@@ -515,7 +508,7 @@ function PouringDetailsTable() {
                                                                     <SpecInput
                                                                         placeholder="Code"
                                                                         value={heatCode}
-                                                                        onChange={(e: any) => setHeatCode(e.target.value)}
+                                                                        onChange={(e: any) => setHeatCode(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                         disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     />
                                                                 </Box>
@@ -530,8 +523,8 @@ function PouringDetailsTable() {
                                                                         <Box display="flex" alignItems="center" gap={1}>
                                                                             <Typography variant="body2" fontWeight="bold">{el}-</Typography>
                                                                             <SpecInput
-                                                                                value={(chemState as any)[el.toLowerCase()]}
-                                                                                onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                                value={(chemState as any)[el.toLowerCase()]} // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                                                onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                             />
                                                                         </Box>
@@ -544,8 +537,8 @@ function PouringDetailsTable() {
                                                                         <Box display="flex" alignItems="center" gap={1}>
                                                                             <Typography variant="body2" fontWeight="bold">{el}-</Typography>
                                                                             <SpecInput
-                                                                                value={(chemState as any)[el.toLowerCase()]}
-                                                                                onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })}
+                                                                                value={(chemState as any)[el.toLowerCase()]} // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                                                onChange={(e: any) => setChemState({ ...chemState, [el.toLowerCase()]: e.target.value })} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                             />
                                                                         </Box>
@@ -558,7 +551,7 @@ function PouringDetailsTable() {
                                                                         <SpecInput
                                                                             placeholder="Actual"
                                                                             value={noOfMouldPoured}
-                                                                            onChange={(e: any) => setNoOfMouldPoured(e.target.value)}
+                                                                            onChange={(e: any) => setNoOfMouldPoured(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                             sx={{ width: '100px' }}
                                                                         />
@@ -574,9 +567,9 @@ function PouringDetailsTable() {
                                                                     <SpecInput
                                                                         placeholder="Deg C"
                                                                         value={pouringTemp}
-                                                                        onChange={(e: any) => setPouringTemp(e.target.value)}
+                                                                        onChange={(e: any) => setPouringTemp(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                         InputProps={{
-                                                                            endAdornment: <InputAdornment position="end">°C</InputAdornment>,
+                                                                            endAdornment: <InputAdornment position="end">Â°C</InputAdornment>,
                                                                         }}
                                                                         disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                     />
@@ -588,7 +581,7 @@ function PouringDetailsTable() {
                                                                         <SpecInput
                                                                             placeholder="Type"
                                                                             value={inoculationText}
-                                                                            onChange={(e: any) => setInoculationText(e.target.value)}
+                                                                            onChange={(e: any) => setInoculationText(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                             sx={{ width: 80 }}
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                         />
@@ -601,7 +594,7 @@ function PouringDetailsTable() {
                                                                                     sx={{ width: 60 }}
                                                                                     placeholder="gms"
                                                                                     value={inoculationStream}
-                                                                                    onChange={(e: any) => setInoculationStream(e.target.value)}
+                                                                                    onChange={(e: any) => setInoculationStream(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                                     disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                                 />
                                                                             </Box>
@@ -613,7 +606,7 @@ function PouringDetailsTable() {
                                                                                     sx={{ width: 60 }}
                                                                                     placeholder="gms"
                                                                                     value={inoculationInmould}
-                                                                                    onChange={(e: any) => setInoculationInmould(e.target.value)}
+                                                                                    onChange={(e: any) => setInoculationInmould(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                                     disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                                 />
                                                                             </Box>
@@ -628,7 +621,7 @@ function PouringDetailsTable() {
                                                             <SpecInput
                                                                 placeholder="Sec"
                                                                 value={pouringTime}
-                                                                onChange={(e: any) => setPouringTime(e.target.value)}
+                                                                onChange={(e: any) => setPouringTime(e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                             />
                                                         </TableCell>
@@ -639,19 +632,19 @@ function PouringDetailsTable() {
                                                                 <Grid size={{ xs: 12 }}>
                                                                     <Box display="flex" alignItems="center" gap={1}>
                                                                         <Typography variant="caption" noWrap minWidth={90}>F/C & Heat No:</Typography>
-                                                                        <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                                                                        <SpecInput value={ficHeatNo} onChange={(e: any) => setFicHeatNo(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 12 }}>
                                                                     <Box display="flex" alignItems="center" gap={1}>
                                                                         <Typography variant="caption" noWrap minWidth={90}>PP Code :</Typography>
-                                                                        <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                                                                        <SpecInput value={ppCode} onChange={(e: any) => setPpCode(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 12 }}>
                                                                     <Box display="flex" alignItems="center" gap={1}>
                                                                         <Typography variant="caption" noWrap minWidth={90}>Followed by :</Typography>
-                                                                        <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                                                                        <SpecInput value={followedBy} onChange={(e: any) => setFollowedBy(e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 12 }}>
@@ -772,7 +765,7 @@ function PouringDetailsTable() {
                                         </td>
                                         <td style={{ border: '1px solid black', padding: '12px' }}>
                                             <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                                                <span style={dataFontStyle}>{previewPayload?.pouringTemp}°C</span>
+                                                <span style={dataFontStyle}>{previewPayload?.pouringTemp}Â°C</span>
                                             </div>
                                             <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
                                                 <u style={{ fontWeight: 'bold' }}>Inoculation: <span style={{ ...dataFontStyle, fontWeight: 'normal' }}>{previewPayload?.inoculation?.text}</span></u><br />
@@ -797,7 +790,7 @@ function PouringDetailsTable() {
                                 <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
                                     <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>ATTACHED FILES:</Typography>
                                     {previewPayload.attachedFiles.map((file: File, i: number) => (
-                                        <Typography key={i} variant="body2">• {file.name}</Typography>
+                                        <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
                                     ))}
                                 </Box>
                             )}

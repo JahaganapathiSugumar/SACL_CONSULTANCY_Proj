@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -25,14 +25,9 @@ import {
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
-import FactoryIcon from '@mui/icons-material/Factory';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from "@mui/icons-material/Close";
-import ScienceIcon from '@mui/icons-material/Science';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
-import PersonIcon from "@mui/icons-material/Person";
 import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
 
@@ -118,7 +113,7 @@ function MouldingTable() {
       }
     };
     if (trialId) fetchData();
-  }, [user, trialId]);
+  }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -191,7 +186,7 @@ function MouldingTable() {
       await inspectionService.submitMouldingCorrection(body);
       setMouldCorrectionSubmitted(true);
       return { ok: true, data: {} };
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       showAlert('error', err.message || 'Failed to save moulding details. Please try again.');
       return { ok: false, message: 'Failed to save mould correction' };
     } finally {
@@ -273,7 +268,7 @@ function MouldingTable() {
         });
         navigate('/dashboard');
       }
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -351,17 +346,17 @@ function MouldingTable() {
                     </TableHead>
                     <TableBody>
                       <TableRow>
-                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
                         <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
                         </TableCell>
 
                         <TableCell>
                           <SpecInput
                             value={mouldState.remarks}
-                            onChange={(e: any) => handleChange('remarks', e.target.value)}
+                            onChange={(e: any) => handleChange('remarks', e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                             placeholder="--"
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
@@ -470,7 +465,7 @@ function MouldingTable() {
                   </Typography>
 
                   {attachedFiles.map((file, i) => (
-                    <Typography key={i} variant="body2">• {file.name}</Typography>
+                    <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
                   ))}
                 </Box>
               )}

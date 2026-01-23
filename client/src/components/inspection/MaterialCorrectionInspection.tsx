@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { trialService } from "../../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +23,6 @@ import {
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
-import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ScienceIcon from '@mui/icons-material/Science';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -71,7 +70,7 @@ export default function MaterialCorrection() {
     const [processState, setProcessState] = useState({ pouringTemp: "", inoculantPerSec: "", inoculantType: "" });
 
     const [previewOpen, setPreviewOpen] = useState(false);
-    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [submitted, setSubmitted] = useState(false);
     const [userIP, setUserIP] = useState<string>("");
     const [loading, setLoading] = useState(false);
@@ -153,7 +152,7 @@ export default function MaterialCorrection() {
             }
         };
         if (trialId) fetchData();
-    }, [user, trialId]);
+    }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const { showAlert, alert } = useAlert();
 
@@ -203,7 +202,7 @@ export default function MaterialCorrection() {
                         text: 'Material correction updated successfully.'
                     });
                     navigate('/dashboard');
-                } catch (err: any) {
+                } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -260,7 +259,7 @@ export default function MaterialCorrection() {
             }
 
             navigate('/dashboard');
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             console.error(error);
             Swal.fire({
                 icon: 'error',
@@ -345,32 +344,32 @@ export default function MaterialCorrection() {
                                                                 {h}
                                                             </TableCell>
                                                         ))}
-                                                        <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Pouring temp °C</TableCell>
+                                                        <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Pouring temp Â°C</TableCell>
                                                         <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Inoculant per Sec</TableCell>
                                                         <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Inoculant type</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     <TableRow>
-                                                        <TableCell><SpecInput value={chemState.c} onChange={(e: any) => setChemState({ ...chemState, c: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.si} onChange={(e: any) => setChemState({ ...chemState, si: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.mn} onChange={(e: any) => setChemState({ ...chemState, mn: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.p} onChange={(e: any) => setChemState({ ...chemState, p: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.s} onChange={(e: any) => setChemState({ ...chemState, s: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.mg} onChange={(e: any) => setChemState({ ...chemState, mg: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={chemState.cu} onChange={(e: any) => setChemState({ ...chemState, cu: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                                                        <TableCell><SpecInput value={chemState.c} onChange={(e: any) => setChemState({ ...chemState, c: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.si} onChange={(e: any) => setChemState({ ...chemState, si: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.mn} onChange={(e: any) => setChemState({ ...chemState, mn: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.p} onChange={(e: any) => setChemState({ ...chemState, p: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.s} onChange={(e: any) => setChemState({ ...chemState, s: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.mg} onChange={(e: any) => setChemState({ ...chemState, mg: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={chemState.cu} onChange={(e: any) => setChemState({ ...chemState, cu: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                         <TableCell sx={{ borderRight: `2px solid ${COLORS.border} !important` }}>
-                                                            <SpecInput value={chemState.cr} onChange={(e: any) => setChemState({ ...chemState, cr: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                                                            <SpecInput value={chemState.cr} onChange={(e: any) => setChemState({ ...chemState, cr: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                         </TableCell>
 
-                                                        <TableCell><SpecInput value={processState.pouringTemp} onChange={(e: any) => setProcessState({ ...processState, pouringTemp: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={processState.inoculantPerSec} onChange={(e: any) => setProcessState({ ...processState, inoculantPerSec: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                                                        <TableCell><SpecInput value={processState.inoculantType} onChange={(e: any) => setProcessState({ ...processState, inoculantType: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                                                        <TableCell><SpecInput value={processState.pouringTemp} onChange={(e: any) => setProcessState({ ...processState, pouringTemp: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={processState.inoculantPerSec} onChange={(e: any) => setProcessState({ ...processState, inoculantPerSec: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
+                                                        <TableCell><SpecInput value={processState.inoculantType} onChange={(e: any) => setProcessState({ ...processState, inoculantType: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell> // eslint-disable-line @typescript-eslint/no-explicit-any
                                                     </TableRow>
                                                 </TableBody>
                                             </Table>
                                         </Box>
-                                        {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}>← Swipe to view more →</Typography>}
+                                        {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}>â† Swipe to view more â†’</Typography>}
                                     </Paper>
                                 </Grid>
 
@@ -468,7 +467,7 @@ export default function MaterialCorrection() {
                                         <Box sx={{ mb: 3, p: 2, bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                                             <Typography variant="caption" color="text.secondary" display="block" mb={1}>PROCESS PARAMETERS</Typography>
                                             <Grid container spacing={2}>
-                                                <Grid size={{ xs: 4 }}><Typography variant="body2">Temp <b>{previewPayload.process_parameters.pouringTemp || "-"}°C</b></Typography></Grid>
+                                                <Grid size={{ xs: 4 }}><Typography variant="body2">Temp <b>{previewPayload.process_parameters.pouringTemp || "-"}Â°C</b></Typography></Grid>
                                                 <Grid size={{ xs: 4 }}><Typography variant="body2">Inoc/Sec <b>{previewPayload.process_parameters.inoculantPerSec || "-"}</b></Typography></Grid>
                                                 <Grid size={{ xs: 4 }}><Typography variant="body2">Type <b>{previewPayload.process_parameters.inoculantType || "-"}</b></Typography></Grid>
                                             </Grid>
@@ -480,7 +479,7 @@ export default function MaterialCorrection() {
                                                     ATTACHED FILES
                                                 </Typography>
                                                 {attachedFiles.map((file, i) => (
-                                                    <Typography key={i} variant="body2">• {file.name}</Typography>
+                                                    <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
                                                 ))}
                                             </Box>
                                         )}

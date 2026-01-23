@@ -4,7 +4,8 @@ export const materialCorrectionSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
     chemical_composition: z.any().optional().nullable(),
     process_parameters: z.any().optional().nullable(),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const pouringDetailsSchema = z.object({
@@ -17,7 +18,8 @@ export const pouringDetailsSchema = z.object({
     pouring_time_sec: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Time must be greater than 0").optional().nullable(),
     inoculation: z.string().optional().nullable(),
     other_remarks: z.string().optional().nullable(),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const sandPropertiesSchema = z.object({
@@ -32,7 +34,8 @@ export const sandPropertiesSchema = z.object({
     moi: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     compactability: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     permeability: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const mouldCorrectionSchema = z.object({
@@ -42,6 +45,7 @@ export const mouldCorrectionSchema = z.object({
     squeeze_pressure: z.string().optional().nullable(),
     mould_hardness: z.string().optional().nullable(),
     remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional(),
     date: z.string({ required_error: "Date is required" }).or(z.date({ required_error: "Date is required" }))
 });
 
@@ -62,14 +66,16 @@ export const metallurgicalInspectionSchema = z.object({
     hardness_remarks: z.string().optional().nullable(),
     ndt_inspection: z.any().optional().nullable(),
     ndt_inspection_ok: z.boolean().optional().nullable(),
-    ndt_inspection_remarks: z.string().optional().nullable()
+    ndt_inspection_remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const visualInspectionSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
     inspections: z.any().optional().nullable(),
     visual_ok: z.boolean({ required_error: "Visual Inspection Status is required", invalid_type_error: "Visual Inspection Status must be valid" }),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const dimensionalInspectionSchema = z.object({
@@ -80,14 +86,16 @@ export const dimensionalInspectionSchema = z.object({
     no_of_cavities: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     yields: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Must be greater than 0").optional().nullable(),
     inspections: z.any().optional().nullable(),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const machineShopSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required"),
     inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     inspections: z.any().optional().nullable(),
-    remarks: z.string().optional().nullable()
+    remarks: z.string().optional().nullable(),
+    is_edit: z.boolean().optional()
 });
 
 export const updateMaterialCorrectionSchema = materialCorrectionSchema.partial();

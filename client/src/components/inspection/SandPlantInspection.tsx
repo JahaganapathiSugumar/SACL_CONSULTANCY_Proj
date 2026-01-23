@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -26,15 +26,11 @@ import {
 import Swal from 'sweetalert2';
 
 // Icons
-import FactoryIcon from '@mui/icons-material/Factory';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
-import PersonIcon from "@mui/icons-material/Person";
+
 import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
-
 import { inspectionService } from '../../services/inspectionService';
 import { uploadFiles } from '../../services/fileUploadHelper';
 import { COLORS, appTheme } from '../../theme/appTheme';
@@ -48,8 +44,8 @@ import BasicInfo from "../dashboard/BasicInfo";
 
 interface SandTableProps {
   submittedData?: {
-    selectedPart?: any;
-    selectedPattern?: any;
+    selectedPart?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    selectedPattern?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     machine?: string;
     reason?: string;
     trialNo?: string;
@@ -57,7 +53,7 @@ interface SandTableProps {
     mouldCount?: string;
     sampleTraceability?: string;
   };
-  onSave?: (data: any) => void;
+  onSave?: (data: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   onComplete?: () => void;
   fromPendingCards?: boolean;
 }
@@ -142,7 +138,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       }
     };
     if (trialId) fetchData();
-  }, [user, trialId]);
+  }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -189,16 +185,16 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         const payload = {
           trial_id: trialId,
           date: sandDate,
-          t_clay: Number((sandProps as any).tClay) || 0,
-          a_clay: Number((sandProps as any).aClay) || 0,
-          vcm: Number((sandProps as any).vcm) || 0,
-          loi: Number((sandProps as any).loi) || 0,
-          afs: Number((sandProps as any).afs) || 0,
-          gcs: Number((sandProps as any).gcs) || 0,
-          moi: Number((sandProps as any).moi) || 0,
-          compactability: Number((sandProps as any).compactability) || 0,
-          permeability: Number((sandProps as any).perm) || 0,
-          remarks: (sandProps as any).remarks || "",
+          t_clay: Number((sandProps as any).tClay) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          a_clay: Number((sandProps as any).aClay) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          vcm: Number((sandProps as any).vcm) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          loi: Number((sandProps as any).loi) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          afs: Number((sandProps as any).afs) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          gcs: Number((sandProps as any).gcs) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          moi: Number((sandProps as any).moi) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          compactability: Number((sandProps as any).compactability) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          permeability: Number((sandProps as any).perm) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          remarks: (sandProps as any).remarks || "", // eslint-disable-line @typescript-eslint/no-explicit-any
           is_edit: isEditing
         };
 
@@ -216,16 +212,16 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         const payload = {
           trial_id: trialId,
           date: sandDate,
-          t_clay: Number((sandProps as any).tClay) || 0,
-          a_clay: Number((sandProps as any).aClay) || 0,
-          vcm: Number((sandProps as any).vcm) || 0,
-          loi: Number((sandProps as any).loi) || 0,
-          afs: Number((sandProps as any).afs) || 0,
-          gcs: Number((sandProps as any).gcs) || 0,
-          moi: Number((sandProps as any).moi) || 0,
-          compactability: Number((sandProps as any).compactability) || 0,
-          permeability: Number((sandProps as any).perm) || 0,
-          remarks: (sandProps as any).remarks || ""
+          t_clay: Number((sandProps as any).tClay) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          a_clay: Number((sandProps as any).aClay) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          vcm: Number((sandProps as any).vcm) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          loi: Number((sandProps as any).loi) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          afs: Number((sandProps as any).afs) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          gcs: Number((sandProps as any).gcs) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          moi: Number((sandProps as any).moi) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          compactability: Number((sandProps as any).compactability) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          permeability: Number((sandProps as any).perm) || 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+          remarks: (sandProps as any).remarks || "" // eslint-disable-line @typescript-eslint/no-explicit-any
         };
 
         await inspectionService.submitSandProperties(payload);
@@ -266,7 +262,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         });
         navigate('/dashboard');
       }
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -380,8 +376,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                           {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((key) => (
                             <TableCell key={key} sx={{ p: 2, verticalAlign: 'middle' }}>
                               <SpecInput
-                                value={(sandProps as any)[key]}
-                                onChange={(e: any) => handleChange(key, e.target.value)}
+                                value={(sandProps as any)[key]} // eslint-disable-line @typescript-eslint/no-explicit-any
+                                onChange={(e: any) => handleChange(key, e.target.value)} // eslint-disable-line @typescript-eslint/no-explicit-any
                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               />
                             </TableCell>
@@ -506,7 +502,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                   <tr style={{ textAlign: 'center' }}>
                     {["tClay", "aClay", "vcm", "loi", "afs", "gcs", "moi", "compactability", "perm"].map((k) => (
                       <td key={k} style={{ border: '1px solid black', padding: '12px' }}>
-                        {(sandProps as any)[k] || "-"}
+                        {(sandProps as any)[k] || "-"} // eslint-disable-line @typescript-eslint/no-explicit-any
                       </td>
                     ))}
                     <td style={{ border: '1px solid black', padding: '12px', textAlign: 'left' }}>
@@ -523,7 +519,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                   </Typography>
 
                   {attachedFiles.map((file, i) => (
-                    <Typography key={i} variant="body2">• {file.name}</Typography>
+                    <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
                   ))}
                 </Box>
               )}

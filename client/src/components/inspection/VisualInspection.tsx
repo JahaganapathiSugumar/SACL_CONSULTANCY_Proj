@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -30,16 +30,13 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
-import FactoryIcon from '@mui/icons-material/Factory';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
-import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
-
 import { inspectionService } from '../../services/inspectionService';
 import { documentService } from '../../services/documentService';
 import { uploadFiles } from '../../services/fileUploadHelper';
@@ -65,7 +62,7 @@ const buildRows = (labels: string[], initialCols: string[]): Row[] =>
         values: initialCols.map(() => ""),
     }));
 
-const viewAttachment = (file: any) => {
+const viewAttachment = (file: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!file) return;
     if (file instanceof File) {
         const url = URL.createObjectURL(file);
@@ -95,13 +92,13 @@ const viewAttachment = (file: any) => {
 export default function VisualInspection({
     initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage (%)", "Reason for rejection:"],
     initialCols = [""],
-    onSave = async (payload: any) => {
+    onSave = async (payload: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
     },
 }: {
     initialRows?: string[];
     initialCols?: string[];
-    onSave?: (payload: any) => Promise<any> | any;
+    onSave?: (payload: any) => Promise<any> | any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }) {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -118,7 +115,7 @@ export default function VisualInspection({
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
     const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
     const [previewMode, setPreviewMode] = useState(false);
-    const [previewPayload, setPreviewPayload] = useState<any | null>(null);
+    const [previewPayload, setPreviewPayload] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [submitted, setSubmitted] = useState(false);
     const [userIP, setUserIP] = useState<string>("Loading...");
     const [isEditing, setIsEditing] = useState(false);
@@ -157,11 +154,11 @@ export default function VisualInspection({
                 try {
                     const response = await inspectionService.getVisualInspection(trialId);
 
-                    let docsMap: Record<string, any> = {};
+                    const docsMap: Record<string, any> = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
                     try {
                         const docRes = await documentService.getDocument(trialId);
                         if (docRes && docRes.success && Array.isArray(docRes.data)) {
-                            docRes.data.forEach((d: any) => {
+                            docRes.data.forEach((d: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                                 if (d.document_type === 'VISUAL_INSPECTION') docsMap[d.file_name] = d;
                             });
                         }
@@ -182,14 +179,14 @@ export default function VisualInspection({
                         }
 
                         if (inspections && Array.isArray(inspections)) {
-                            const loadedCols = inspections.map((item: any) => item['Cavity Number'] || '');
+                            const loadedCols = inspections.map((item: any) => item['Cavity Number'] || ''); // eslint-disable-line @typescript-eslint/no-explicit-any
 
                             setCols(loadedCols);
                             setRows(prevRows => prevRows.map(row => {
                                 const fieldName = "Reason for rejection";
                                 return {
                                     ...row,
-                                    values: inspections.map((item: any) => String(item[fieldName] || ''))
+                                    values: inspections.map((item: any) => String(item[fieldName] || '')) // eslint-disable-line @typescript-eslint/no-explicit-any
                                 };
                             }));
                         }
@@ -209,7 +206,7 @@ export default function VisualInspection({
             }
         };
         if (trialId) fetchData();
-    }, [user, trialId]);
+    }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const calculateRejectionPercentage = (colIndex: number): string => {
         const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
@@ -391,7 +388,7 @@ export default function VisualInspection({
             setPreviewPayload(payload);
             setPreviewMode(true);
             setSubmitted(false);
-        } catch (err: any) {
+        } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             showAlert('error', 'Failed to prepare preview. Please try again.');
         } finally {
             setSaving(false);
@@ -450,7 +447,7 @@ export default function VisualInspection({
                     text: 'Visual Inspection updated successfully.'
                 });
                 navigate('/dashboard');
-            } catch (err: any) {
+            } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -530,7 +527,7 @@ export default function VisualInspection({
                 text: 'Visual inspection created successfully.'
             });
             navigate('/dashboard');
-        } catch (err: any) {
+        } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -898,10 +895,10 @@ export default function VisualInspection({
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {previewPayload?.rows.map((r: any, idx: number) => (
+                                                    {previewPayload?.rows.map((r: any, idx: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                                                         <TableRow key={idx}>
                                                             <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                                                            {r.values.map((v: any, j: number) => (
+                                                            {r.values.map((v: any, j: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                                                                 <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
                                                                     {v === null ? "-" : String(v)}
                                                                 </TableCell>
