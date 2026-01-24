@@ -46,7 +46,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { inspectionService } from '../../services/inspectionService';
 import { documentService } from '../../services/documentService';
 import { uploadFiles } from '../../services/fileUploadHelper';
-import departmentProgressService from "../../services/departmentProgressService";
+import { getProgress } from "../../services/departmentProgressService";
 import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
@@ -800,7 +800,7 @@ export default function MetallurgicalInspection() {
           return;
         }
         try {
-          const pending = await departmentProgressService.getProgress(user.username);
+          const pending = await getProgress(user.username);
           const found = pending.find(p => p.trial_id === trialId);
           setIsAssigned(!!found);
         } catch (error) {
