@@ -46,7 +46,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { inspectionService } from '../../services/inspectionService';
 import { documentService } from '../../services/documentService';
 import { uploadFiles } from '../../services/fileUploadHelper';
-import departmentProgressService from "../../services/departmentProgressService";
+import { getProgress } from "../../services/departmentProgressService";
 import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
@@ -121,6 +121,7 @@ function SectionTable({
   showAlert,
   user,
   isEditing,
+  cavityNumbers = [],
 }: {
   title: string;
   rows: Row[];
@@ -130,6 +131,7 @@ function SectionTable({
   showAlert?: (severity: 'success' | 'error', message: string) => void;
   user: any;
   isEditing: boolean;
+  cavityNumbers?: string[];
 }) {
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...rows.map(r => (r.value ? r.value.split('|').length : 1)), 1);
@@ -166,6 +168,22 @@ function SectionTable({
       return copy;
     });
   }, [rows]);
+
+  // Sync cavity numbers from MICROSTRUCTURE table
+  useEffect(() => {
+    if (cavityNumbers.length > 0) {
+      const cavityRow = rows.find(r => r.label === "Cavity Number");
+      if (cavityRow) {
+        setValues(prev => ({
+          ...prev,
+          [cavityRow.id]: cavityNumbers
+        }));
+        // Also update the parent row value
+        const newValue = cavityNumbers.join(' | ');
+        onChange(cavityRow.id, { value: newValue });
+      }
+    }
+  }, [cavityNumbers]);
 
   const addColumn = () => {
     setCols((prev) => [...prev, { id: `c${prev.length + 1}`, label: '' }]);
@@ -782,7 +800,7 @@ export default function MetallurgicalInspection() {
           return;
         }
         try {
-          const pending = await departmentProgressService.getProgress(user.username);
+          const pending = await getProgress(user.username);
           const found = pending.find(p => p.trial_id === trialId);
           setIsAssigned(!!found);
         } catch (error) {
@@ -878,6 +896,8 @@ export default function MetallurgicalInspection() {
     };
     if (trialId) fetchData();
   }, [user, trialId]);
+
+
 
 
 
@@ -1335,6 +1355,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1346,6 +1367,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1357,6 +1379,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1370,6 +1393,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                 </Grid>
