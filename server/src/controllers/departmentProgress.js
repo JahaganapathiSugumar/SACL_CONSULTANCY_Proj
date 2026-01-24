@@ -9,8 +9,7 @@ export const getProgress = async (req, res, next) => {
             `SELECT department_progress.*, departments.department_name, t.part_name, t.pattern_code, t.disa, t.date_of_sampling FROM department_progress 
              JOIN departments ON department_progress.department_id = departments.department_id 
              JOIN trial_cards t ON department_progress.trial_id = t.trial_id 
-             WHERE department_progress.department_id = @department_id AND department_progress.approval_status = 'pending'`,
-        { department_id }
+             WHERE department_progress.department_id IN (3, 4, 6) AND department_progress.approval_status = 'pending'`,
         );
     } else {
         result = await Client.query(
