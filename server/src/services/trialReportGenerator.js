@@ -66,13 +66,12 @@ const safeParse = (data, fallback = {}) => {
     }
 };
 
-// Helper to draw a table
-// options: { x, y, width, columns: [{ header, width, key (or access fn) }] }
+// Helper to draw a table - HIGHLY OPTIMIZED
 const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     let currentY = startY;
-    const padding = 5;
-    const rowHeight = 20;
-    const fontSize = 8;
+    const padding = 1.5;
+    const rowHeight = 11;
+    const fontSize = 6;
     const headerColor = '#f5f5f5';
 
     // Headers
@@ -100,8 +99,6 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     doc.font('Helvetica').fontSize(fontSize);
     tableData.rows.forEach(row => {
         currentX = startX;
-        // Calculate max height for row (simple version: fixed height)
-        // Ideally we check text wrapping, but for now fixed height 
 
         row.forEach((cell, i) => {
             const text = cell !== null && cell !== undefined ? String(cell) : '-';
@@ -115,14 +112,14 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     return currentY;
 };
 
-// Draw a Vertical key-value table
+// Draw a Vertical key-value table - HIGHLY OPTIMIZED
 const drawVerticalTable = (doc, data, startX, startY, width) => {
     let currentY = startY;
-    const rowHeight = 15;
-    const fontSize = 8;
+    const rowHeight = 9;
+    const fontSize = 6;
     const labelWidth = width * 0.4;
     const valueWidth = width * 0.6;
-    const padding = 3;
+    const padding = 1.5;
 
     doc.fontSize(fontSize);
 
@@ -147,10 +144,10 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
 };
 
 const drawSectionTitle = (doc, title, x, y) => {
-    doc.font('Helvetica-Bold').fontSize(10).text(title, x, y);
+    doc.font('Helvetica-Bold').fontSize(7.5).text(title, x, y);
     const width = doc.widthOfString(title);
-    doc.moveTo(x, y + 12).lineTo(x + width, y + 12).strokeColor('black').stroke(); // Underline
-    return y + 20;
+    doc.moveTo(x, y + 8).lineTo(x + width, y + 8).strokeColor('black').stroke();
+    return y + 10;
 };
 
 export const generateAndStoreTrialReport = async (trial_id, trx) => {
@@ -166,21 +163,21 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     const dimensional = data.dimensional_inspection?.[0] || {};
     const mcShop = data.machine_shop?.[0] || {};
 
-    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+    const doc = new PDFDocument({ margin: 12, size: 'A4' });
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
 
-    // Header
-    doc.font('Helvetica-Bold').fontSize(16).text('FULL INSPECTION REPORT', { align: 'center' });
-    doc.fontSize(10).text(`Trial ID: ${trial_id}`, { align: 'center' });
-    doc.moveDown();
-    doc.moveTo(30, doc.y).lineTo(565, doc.y).stroke();
-    doc.moveDown();
+    // Header - HIGHLY OPTIMIZED
+    doc.font('Helvetica-Bold').fontSize(11).text('FULL INSPECTION REPORT', { align: 'center' });
+    doc.fontSize(7.5).text(`Trial ID: ${trial_id}`, { align: 'center' });
+    doc.moveDown(0.2);
+    doc.moveTo(12, doc.y).lineTo(583, doc.y).stroke();
+    doc.moveDown(0.2);
 
     let y = doc.y;
-    const col1X = 30;
-    const col2X = 300;
-    const colWidth = 250;
+    const col1X = 12;
+    const col2X = 308;
+    const colWidth = 270;
 
     // --- ROW 1 ---
     let yRow1Start = y;
@@ -197,7 +194,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Mould Count (Actual)", value: trialCard.actual_moulds },
             { label: "Machine", value: trialCard.disa },
             { label: "Reason", value: trialCard.reason_for_sampling },
-        ], col1X, y1, colWidth) + 10;
+        ], col1X, y1, colWidth) + 3;
     }
 
     // 2. Pouring Details
@@ -217,18 +214,18 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Inoculation Type", value: pInoc.Text },
             { label: "Stream Inoc.", value: pInoc.Stream },
             { label: "Inmould Inoc.", value: pInoc.Inmould }
-        ], col2X, y2, colWidth) + 5;
+        ], col2X, y2, colWidth) + 2;
 
         // Chemical Comp
-        doc.font('Helvetica-Bold').fontSize(8).text("Chemical Composition", col2X, y2);
-        y2 += 12;
+        doc.font('Helvetica-Bold').fontSize(6).text("Chemical Composition", col2X, y2);
+        y2 += 7;
         const compKeys = Object.keys(pComp);
         if (compKeys.length > 0) {
-            y2 = drawTable(doc, { headers: compKeys, rows: [Object.values(pComp)] }, col2X, y2, compKeys.map(() => colWidth / compKeys.length)) + 10;
+            y2 = drawTable(doc, { headers: compKeys, rows: [Object.values(pComp)] }, col2X, y2, compKeys.map(() => colWidth / compKeys.length)) + 2;
         }
     }
 
-    let nextY = Math.max(y1, y2) + 10;
+    let nextY = Math.max(y1, y2) + 2;
 
     // --- ROW 2 ---
     const yRow2Start = nextY;
@@ -248,7 +245,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Compactability", value: sand.compactability },
             { label: "Permeability", value: sand.permeability },
             { label: "Remarks", value: sand.remarks },
-        ], col1X, y1, colWidth) + 10;
+        ], col1X, y1, colWidth) + 2;
     }
 
     // 4. Mould Correction
@@ -261,10 +258,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Squeeze Pressure", value: moulding.squeeze_pressure },
             { label: "Mould Hardness", value: moulding.mould_hardness },
             { label: "Remarks", value: moulding.remarks }
-        ], col2X, y2, colWidth) + 10;
+        ], col2X, y2, colWidth) + 2;
     }
 
-    nextY = Math.max(y1, y2) + 10;
+    nextY = Math.max(y1, y2) + 2;
 
     // --- 5. Metallurgical ---
     if (meta && Object.keys(meta).length > 0) {
@@ -277,27 +274,26 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         const hasMetaData = mechRows.length > 0 || impactRows.length > 0 || hardRows.length > 0 || ndtRows.length > 0 || microRows.length > 0;
 
         if (hasMetaData) {
-            // Check space
-            if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 30; }
+            // Only add page if absolutely necessary (very high threshold)
+            if (doc.page.height - nextY < 200) { doc.addPage(); nextY = 15; }
 
             nextY = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, nextY);
 
-            const subTableWidth = 250;
             let metaY1 = nextY;
             let metaY2 = nextY;
 
             // Mechanical
             if (mechRows.length > 0) {
-                doc.font('Helvetica-Bold').fontSize(8).text("Mechanical Properties", col1X, metaY1);
-                metaY1 += 12;
-                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
+                doc.font('Helvetica-Bold').fontSize(6).text("Mechanical Properties", col1X, metaY1);
+                metaY1 += 7;
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;
             }
 
             // Hardness
             if (hardRows.length > 0) {
-                doc.font('Helvetica-Bold').fontSize(8).text("Hardness", col2X, metaY2);
-                metaY2 += 12;
-                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
+                doc.font('Helvetica-Bold').fontSize(6).text("Hardness", col2X, metaY2);
+                metaY2 += 7;
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;
             }
 
             // Next sub-row
@@ -307,31 +303,33 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
             // Impact
             if (impactRows.length > 0) {
-                doc.font('Helvetica-Bold').fontSize(8).text("Impact Strength", col1X, metaY1);
-                metaY1 += 12;
-                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
+                doc.font('Helvetica-Bold').fontSize(6).text("Impact Strength", col1X, metaY1);
+                metaY1 += 7;
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;
             }
 
             // NDT
             if (ndtRows.length > 0) {
-                doc.font('Helvetica-Bold').fontSize(8).text("NDT Inspection", col2X, metaY2);
-                metaY2 += 12;
-                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
+                doc.font('Helvetica-Bold').fontSize(6).text("NDT Inspection", col2X, metaY2);
+                metaY2 += 7;
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;
             }
 
             nextY = Math.max(metaY1, metaY2);
 
             // Microstructure (Full width)
             if (microRows.length > 0) {
-                if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
-                doc.font('Helvetica-Bold').fontSize(8).text("Microstructure Examination", col1X, nextY);
-                nextY += 12;
-                nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 180]) + 10;
+                // Only break if really necessary
+                if (doc.page.height - nextY < 50) { doc.addPage(); nextY = 15; }
+                doc.font('Helvetica-Bold').fontSize(6).text("Microstructure Examination", col1X, nextY);
+                nextY += 7;
+                nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 221]) + 2;
             }
         }
     }
 
-    if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
+    // Only add page if really necessary
+    if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 15; }
 
     // --- ROW 3 ---
     yRow1Start = nextY;
@@ -339,15 +337,15 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // 6. Visual
     y1 = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, yRow1Start);
     if (Object.keys(visual).length > 0) {
-        y1 = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }], col1X, y1, colWidth) + 5;
-        doc.font('Helvetica-Bold').text("Remarks:", col1X, y1);
-        doc.font('Helvetica').text(visual.remarks || '-', col1X, y1 + 12, { width: colWidth });
-        y1 += 30;
+        y1 = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }], col1X, y1, colWidth) + 2;
+        doc.font('Helvetica-Bold').fontSize(6).text("Remarks:", col1X, y1);
+        doc.font('Helvetica').fontSize(6).text(visual.remarks || '-', col1X, y1 + 9, { width: colWidth });
+        y1 += 18;
 
         const visInspections = safeParse(visual.inspections, []);
         if (Array.isArray(visInspections) && visInspections.length > 0) {
             const rows = visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], r['Reason for rejection']]);
-            y1 = drawTable(doc, { headers: ['Cav No', 'Insp Qty', 'Rej Qty', 'Reason'], rows }, col1X, y1, [50, 50, 50, 100]) + 10;
+            y1 = drawTable(doc, { headers: ['Cav No', 'Insp Qty', 'Rej Qty', 'Reason'], rows }, col1X, y1, [50, 50, 50, 100]) + 2;  // Further reduced from 3
         }
     }
 
@@ -360,31 +358,33 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Bunch Weight (kg)", value: dimensional.bunch_weight },
             { label: "No. of Cavities", value: dimensional.no_of_cavities },
             { label: "Yields (%)", value: dimensional.yields },
-        ], col2X, y2, colWidth) + 5;
+        ], col2X, y2, colWidth) + 2;
 
         const dimInspections = safeParse(dimensional.inspections, []);
         if (Array.isArray(dimInspections) && dimInspections.length > 0) {
             const rows = dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]);
-            y2 = drawTable(doc, { headers: ['Cavity Number', 'Casting Weight'], rows }, col2X, y2 + 20, [120, 120]) + 10;
+            y2 = drawTable(doc, { headers: ['Cavity Number', 'Casting Weight'], rows }, col2X, y2 + 8, [130, 130]) + 2;
         }
     }
 
-    nextY = Math.max(y1, y2) + 20;
-    if (doc.page.height - nextY < 80) { doc.addPage(); nextY = 30; }
+    nextY = Math.max(y1, y2) + 3;
 
     // 8. Machine Shop
     if (Object.keys(mcShop).length > 0) {
+        // Only add page if really necessary
+        if (doc.page.height - nextY < 50) { doc.addPage(); nextY = 15; }
+
         nextY = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, nextY);
         nextY = drawVerticalTable(doc, [
             { label: "Inspection Date", value: mcShop.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
             { label: "Remarks", value: mcShop.remarks }
-        ], col1X, nextY, colWidth) + 10;
+        ], col1X, nextY, colWidth) + 2;
 
         const mcInspections = safeParse(mcShop.inspections, []);
         if (mcInspections.length > 0) {
             const headers = Object.keys(mcInspections[0]);
             const rows = mcInspections.map(r => Object.values(r));
-            const colW = 500 / headers.length;
+            const colW = 559 / headers.length;  // Adjusted for new page width
             nextY = drawTable(doc, { headers, rows }, col1X, nextY, headers.map(() => colW));
         }
     }

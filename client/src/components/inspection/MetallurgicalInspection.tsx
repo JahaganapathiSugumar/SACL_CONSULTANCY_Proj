@@ -1,7 +1,8 @@
-﻿import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
+import type { Dispatch, SetStateAction } from "react";
 import {
   Paper,
   Typography,
@@ -26,16 +27,22 @@ import {
   GlobalStyles
 } from "@mui/material";
 import Swal from 'sweetalert2';
+import Autocomplete from "@mui/material/Autocomplete";
 import { useNavigate } from "react-router-dom";
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import SaveIcon from '@mui/icons-material/Save';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+import FactoryIcon from '@mui/icons-material/Factory';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
+import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { inspectionService } from '../../services/inspectionService';
 import { documentService } from '../../services/documentService';
 import { uploadFiles } from '../../services/fileUploadHelper';
@@ -114,6 +121,7 @@ function SectionTable({
   showAlert,
   user,
   isEditing,
+  cavityNumbers = [],
 }: {
   title: string;
   rows: Row[];
@@ -123,6 +131,7 @@ function SectionTable({
   showAlert?: (severity: 'success' | 'error', message: string) => void;
   user: any;
   isEditing: boolean;
+  cavityNumbers?: string[];
 }) {
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...rows.map(r => (r.value ? r.value.split('|').length : 1)), 1);
@@ -158,7 +167,23 @@ function SectionTable({
       rows.forEach((r) => { copy[r.id] = prev[r.id] ?? (r.value ? r.value.split('|').map(s => s.trim()) : Array(cols.length).fill('')); });
       return copy;
     });
-  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rows]);
+
+  // Sync cavity numbers from MICROSTRUCTURE table
+  useEffect(() => {
+    if (cavityNumbers.length > 0) {
+      const cavityRow = rows.find(r => r.label === "Cavity Number");
+      if (cavityRow) {
+        setValues(prev => ({
+          ...prev,
+          [cavityRow.id]: cavityNumbers
+        }));
+        // Also update the parent row value
+        const newValue = cavityNumbers.join(' | ');
+        onChange(cavityRow.id, { value: newValue });
+      }
+    }
+  }, [cavityNumbers]);
 
   const addColumn = () => {
     setCols((prev) => [...prev, { id: `c${prev.length + 1}`, label: '' }]);
@@ -747,7 +772,7 @@ export default function MetallurgicalInspection() {
   });
 
   const [mechRows, setMechRows] = useState<Row[]>(initialRows(["Cavity Number", "Tensile strength", "Yield strength", "Elongation"]));
-  const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cavity Number", "Cold Temp Â°C", "Room Temp Â°C"]));
+  const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cavity Number", "Cold Temp °C", "Room Temp °C"]));
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Cavity Number", "Surface", "Core"]));
   const [ndtRows, setNdtRows] = useState<Row[]>(initialRows(["Cavity Number", "Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
 
@@ -775,7 +800,7 @@ export default function MetallurgicalInspection() {
           return;
         }
         try {
-          const pending = await departmentProgressService.getProgress(user.username, user.department_id);
+          const pending = await departmentProgressService.getProgress(user.username);
           const found = pending.find(p => p.trial_id === trialId);
           setIsAssigned(!!found);
         } catch (error) {
@@ -795,7 +820,7 @@ export default function MetallurgicalInspection() {
         try {
           const response = await inspectionService.getMetallurgicalInspection(trialId);
 
-          const docsMap: Record<string, any> = {};
+          let docsMap: Record<string, any> = {};
           if (trialId) {
             try {
               const docRes = await documentService.getDocument(trialId);
@@ -870,7 +895,9 @@ export default function MetallurgicalInspection() {
       }
     };
     if (trialId) fetchData();
-  }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, trialId]);
+
+
 
 
 
@@ -1018,11 +1045,11 @@ export default function MetallurgicalInspection() {
           text: 'Metallurgical Inspection updated successfully.'
         });
         navigate('/dashboard');
-      } catch (err: any) {
+      } catch (err) {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: err.message || 'Failed to update Metallurgical Inspection. Please try again.'
+          text: 'Failed to update Metallurgical Inspection. Please try again.'
         });
         console.error(err);
       } finally {
@@ -1084,11 +1111,11 @@ export default function MetallurgicalInspection() {
 
       navigate('/dashboard');
     } catch (err: any) {
-      setMessage(err.message || 'Failed to submit inspection data');
+      setMessage('Failed to submit inspection data');
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'Failed to submit inspection data. Please try again.'
+        text: 'Failed to submit inspection data. Please try again.'
       });
     } finally {
       setSending(false);
@@ -1328,6 +1355,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1339,6 +1367,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1350,6 +1379,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1363,6 +1393,7 @@ export default function MetallurgicalInspection() {
                       showAlert={showAlert}
                       user={user}
                       isEditing={isEditing}
+                      cavityNumbers={microValues["Cavity Number"] || []}
                     />
                   </Grid>
                 </Grid>
