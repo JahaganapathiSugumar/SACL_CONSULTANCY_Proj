@@ -2,6 +2,12 @@
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/commonService';
 import { getDepartmentInfo } from '../../utils/dashboardUtils';
+import CloseIcon from '@mui/icons-material/Close';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import BusinessIcon from '@mui/icons-material/Business';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 interface ProfileModalProps {
   onClose: () => void;
@@ -264,10 +270,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
       }} onClick={(e) => e.stopPropagation()}>
 
         <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          backgroundColor: '#2C3E50',
           padding: '30px',
           textAlign: 'center',
-          position: 'relative'
+          position: 'relative',
+          borderBottom: '4px solid #E67E22'
         }}>
           <button
             onClick={onClose}
@@ -291,7 +298,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
             onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
           >
-            Ã—
+            <CloseIcon fontSize="small" />
           </button>
 
           <div style={{ position: 'relative', margin: '0 auto 15px', display: 'inline-block' }}>
@@ -304,7 +311,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '36px',
-              color: '#667eea',
+              color: '#E67E22',
               fontWeight: 700,
               boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
               overflow: 'hidden',
@@ -348,7 +355,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                 pointerEvents: 'none'
               }}
             >
-              ðŸ“·
+              <PhotoCameraIcon sx={{ fontSize: '16px', color: '#E67E22' }} />
             </div>
           </div>
           {photoError && (
@@ -386,9 +393,10 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
             padding: '5px 16px',
             borderRadius: '20px',
             fontSize: '13px',
-            fontWeight: 600,
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: '#fff'
+            fontWeight: 700,
+            backgroundColor: 'rgba(230, 126, 34, 0.2)',
+            color: '#E67E22',
+            textTransform: 'uppercase'
           }}>
             {user?.role || 'N/A'}
           </span>
@@ -402,7 +410,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
               display: 'inline-block',
               width: '100%',
               padding: '12px 16px',
-              backgroundColor: '#667eea',
+              backgroundColor: '#E67E22',
               color: 'white',
               borderRadius: '8px',
               fontSize: '14px',
@@ -413,8 +421,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
               opacity: photoLoading ? 0.6 : 1,
               transition: 'background-color 0.2s'
             }}
-              onMouseEnter={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#5568d3')}
-              onMouseLeave={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#667eea')}
+              onMouseEnter={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#d35400')}
+              onMouseLeave={(e) => !photoLoading && (e.currentTarget.style.backgroundColor = '#E67E22')}
             >
               {photoLoading ? 'â³ Uploading...' : 'ðŸ“· Change Profile Picture'}
               <input
@@ -443,14 +451,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                 width: '40px',
                 height: '40px',
                 borderRadius: '10px',
-                backgroundColor: '#e3f2fd',
+                backgroundColor: '#FFF3E0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: '15px',
-                fontSize: '18px'
+                fontSize: '18px',
+                color: '#E67E22'
               }}>
-                ðŸ‘¤
+                <PersonIcon />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '12px', color: '#888', fontWeight: 500, marginBottom: '2px' }}>
@@ -477,7 +486,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                           fontSize: '14px',
                           outline: 'none'
                         }}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = '#667eea')}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = '#E67E22')}
                         onBlur={(e) => (e.currentTarget.style.borderColor = '#ddd')}
                       />
                       <button
@@ -485,7 +494,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                         disabled={usernameLoading}
                         style={{
                           padding: '10px 16px',
-                          backgroundColor: usernameLoading ? '#ccc' : '#28a745',
+                          backgroundColor: usernameLoading ? '#ccc' : '#E67E22',
                           color: '#fff',
                           border: 'none',
                           borderRadius: '8px',
@@ -540,14 +549,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                   width: '40px',
                   height: '40px',
                   borderRadius: '10px',
-                  backgroundColor: '#e8f4fd',
+                  backgroundColor: '#FFF3E0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: '15px',
-                  fontSize: '18px'
+                  fontSize: '18px',
+                  color: '#E67E22'
                 }}>
-                  ðŸ“§
+                  <EmailIcon />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '12px', color: '#888', fontWeight: 500, marginBottom: '2px' }}>
@@ -575,7 +585,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                               fontSize: '14px',
                               outline: 'none'
                             }}
-                            onFocus={(e) => (e.currentTarget.style.borderColor = '#667eea')}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = '#E67E22')}
                             onBlur={(e) => (e.currentTarget.style.borderColor = '#ddd')}
                           />
                           <button
@@ -583,7 +593,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                             disabled={emailLoading}
                             style={{
                               padding: '10px 16px',
-                              backgroundColor: emailLoading ? '#ccc' : '#667eea',
+                              backgroundColor: emailLoading ? '#ccc' : '#E67E22',
                               color: '#fff',
                               border: 'none',
                               borderRadius: '8px',
@@ -631,7 +641,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                                 textAlign: 'center',
                                 outline: 'none'
                               }}
-                              onFocus={(e) => (e.currentTarget.style.borderColor = '#667eea')}
+                              onFocus={(e) => (e.currentTarget.style.borderColor = '#E67E22')}
                               onBlur={(e) => (e.currentTarget.style.borderColor = '#ddd')}
                             />
                             <button
@@ -639,7 +649,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                               disabled={emailLoading || otp.length !== 6}
                               style={{
                                 padding: '10px 16px',
-                                backgroundColor: emailLoading || otp.length !== 6 ? '#ccc' : '#28a745',
+                                backgroundColor: emailLoading || otp.length !== 6 ? '#ccc' : '#E67E22',
                                 color: '#fff',
                                 border: 'none',
                                 borderRadius: '8px',
@@ -677,7 +687,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: otpTimer > 240 ? '#ccc' : '#667eea',
+                              color: otpTimer > 240 ? '#ccc' : '#E67E22',
                               cursor: otpTimer > 240 ? 'not-allowed' : 'pointer',
                               fontSize: '12px',
                               fontWeight: 500,
@@ -717,14 +727,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
                 width: '40px',
                 height: '40px',
                 borderRadius: '10px',
-                backgroundColor: '#fff3e0',
+                backgroundColor: '#FFF3E0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: '15px',
-                fontSize: '18px'
+                fontSize: '18px',
+                color: '#E67E22'
               }}>
-                ðŸ¢
+                <BusinessIcon />
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: '#888', fontWeight: 500, marginBottom: '2px' }}>

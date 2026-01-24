@@ -46,8 +46,8 @@ logDirs.forEach(dir => {
   }
 });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 app.use(cors({
   origin: ['http://localhost:9011', 'https://sacl-consultancy-proj.onrender.com', 'https://digitaltrialcard-sakthiauto.vercel.app'],
