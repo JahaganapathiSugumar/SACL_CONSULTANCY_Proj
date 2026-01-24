@@ -69,9 +69,9 @@ const safeParse = (data, fallback = {}) => {
 // Helper to draw a table - HIGHLY OPTIMIZED
 const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     let currentY = startY;
-    const padding = 1.5;
-    const rowHeight = 11;
-    const fontSize = 6;
+    const padding = 1.5;  // Further reduced from 2
+    const rowHeight = 11;  // Further reduced from 13
+    const fontSize = 6;  // Further reduced from 6.5
     const headerColor = '#f5f5f5';
 
     // Headers
@@ -115,8 +115,8 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
 // Draw a Vertical key-value table - HIGHLY OPTIMIZED
 const drawVerticalTable = (doc, data, startX, startY, width) => {
     let currentY = startY;
-    const rowHeight = 9;
-    const fontSize = 6;
+    const rowHeight = 9;  // Further reduced from 10
+    const fontSize = 6;  // Further reduced from 6.5
     const labelWidth = width * 0.4;
     const valueWidth = width * 0.6;
     const padding = 1.5;
@@ -144,10 +144,10 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
 };
 
 const drawSectionTitle = (doc, title, x, y) => {
-    doc.font('Helvetica-Bold').fontSize(7.5).text(title, x, y);
+    doc.font('Helvetica-Bold').fontSize(7.5).text(title, x, y);  // Further reduced from 8
     const width = doc.widthOfString(title);
-    doc.moveTo(x, y + 8).lineTo(x + width, y + 8).strokeColor('black').stroke();
-    return y + 10;
+    doc.moveTo(x, y + 8).lineTo(x + width, y + 8).strokeColor('black').stroke();  // Further reduced
+    return y + 10;  // Further reduced from 12
 };
 
 export const generateAndStoreTrialReport = async (trial_id, trx) => {
@@ -163,21 +163,21 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     const dimensional = data.dimensional_inspection?.[0] || {};
     const mcShop = data.machine_shop?.[0] || {};
 
-    const doc = new PDFDocument({ margin: 12, size: 'A4' });
+    const doc = new PDFDocument({ margin: 12, size: 'A4' });  // Further reduced margin from 15 to 12
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
 
     // Header - HIGHLY OPTIMIZED
-    doc.font('Helvetica-Bold').fontSize(11).text('FULL INSPECTION REPORT', { align: 'center' });
-    doc.fontSize(7.5).text(`Trial ID: ${trial_id}`, { align: 'center' });
-    doc.moveDown(0.2);
+    doc.font('Helvetica-Bold').fontSize(11).text('FULL INSPECTION REPORT', { align: 'center' });  // Further reduced from 12
+    doc.fontSize(7.5).text(`Trial ID: ${trial_id}`, { align: 'center' });  // Further reduced from 8
+    doc.moveDown(0.2);  // Further reduced from 0.3
     doc.moveTo(12, doc.y).lineTo(583, doc.y).stroke();
-    doc.moveDown(0.2);
+    doc.moveDown(0.2);  // Further reduced from 0.3
 
     let y = doc.y;
-    const col1X = 12;
-    const col2X = 308;
-    const colWidth = 270;
+    const col1X = 12;  // Adjusted for new margin
+    const col2X = 308;  // Adjusted
+    const colWidth = 270;  // Increased to use more space
 
     // --- ROW 1 ---
     let yRow1Start = y;
@@ -194,7 +194,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Mould Count (Actual)", value: trialCard.actual_moulds },
             { label: "Machine", value: trialCard.disa },
             { label: "Reason", value: trialCard.reason_for_sampling },
-        ], col1X, y1, colWidth) + 3;
+        ], col1X, y1, colWidth) + 3;  // Further reduced from 5
     }
 
     // 2. Pouring Details
@@ -218,14 +218,14 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
         // Chemical Comp
         doc.font('Helvetica-Bold').fontSize(6).text("Chemical Composition", col2X, y2);
-        y2 += 7;
+        y2 += 7;  // Further reduced from 8
         const compKeys = Object.keys(pComp);
         if (compKeys.length > 0) {
-            y2 = drawTable(doc, { headers: compKeys, rows: [Object.values(pComp)] }, col2X, y2, compKeys.map(() => colWidth / compKeys.length)) + 2;
+            y2 = drawTable(doc, { headers: compKeys, rows: [Object.values(pComp)] }, col2X, y2, compKeys.map(() => colWidth / compKeys.length)) + 2;  // Further reduced from 3
         }
     }
 
-    let nextY = Math.max(y1, y2) + 2;
+    let nextY = Math.max(y1, y2) + 2;  // Further reduced from 3
 
     // --- ROW 2 ---
     const yRow2Start = nextY;
@@ -245,7 +245,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Compactability", value: sand.compactability },
             { label: "Permeability", value: sand.permeability },
             { label: "Remarks", value: sand.remarks },
-        ], col1X, y1, colWidth) + 2;
+        ], col1X, y1, colWidth) + 2;  // Further reduced from 3
     }
 
     // 4. Mould Correction
@@ -258,10 +258,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Squeeze Pressure", value: moulding.squeeze_pressure },
             { label: "Mould Hardness", value: moulding.mould_hardness },
             { label: "Remarks", value: moulding.remarks }
-        ], col2X, y2, colWidth) + 2;
+        ], col2X, y2, colWidth) + 2;  // Further reduced from 3
     }
 
-    nextY = Math.max(y1, y2) + 2;
+    nextY = Math.max(y1, y2) + 2;  // Further reduced from 3
 
     // --- 5. Metallurgical ---
     if (meta && Object.keys(meta).length > 0) {
@@ -285,15 +285,15 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             // Mechanical
             if (mechRows.length > 0) {
                 doc.font('Helvetica-Bold').fontSize(6).text("Mechanical Properties", col1X, metaY1);
-                metaY1 += 7;
-                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;
+                metaY1 += 7;  // Further reduced from 8
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;  // Further reduced from 3
             }
 
             // Hardness
             if (hardRows.length > 0) {
                 doc.font('Helvetica-Bold').fontSize(6).text("Hardness", col2X, metaY2);
-                metaY2 += 7;
-                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;
+                metaY2 += 7;  // Further reduced from 8
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;  // Further reduced from 3
             }
 
             // Next sub-row
@@ -304,15 +304,15 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             // Impact
             if (impactRows.length > 0) {
                 doc.font('Helvetica-Bold').fontSize(6).text("Impact Strength", col1X, metaY1);
-                metaY1 += 7;
-                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;
+                metaY1 += 7;  // Further reduced from 8
+                metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 2;  // Further reduced from 3
             }
 
             // NDT
             if (ndtRows.length > 0) {
                 doc.font('Helvetica-Bold').fontSize(6).text("NDT Inspection", col2X, metaY2);
-                metaY2 += 7;
-                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;
+                metaY2 += 7;  // Further reduced from 8
+                metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 2;  // Further reduced from 3
             }
 
             nextY = Math.max(metaY1, metaY2);
@@ -322,8 +322,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                 // Only break if really necessary
                 if (doc.page.height - nextY < 50) { doc.addPage(); nextY = 15; }
                 doc.font('Helvetica-Bold').fontSize(6).text("Microstructure Examination", col1X, nextY);
-                nextY += 7;
-                nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 221]) + 2;
+                nextY += 7;  // Further reduced from 8
+                nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 221]) + 2;  // Further reduced from 3, adjusted width
             }
         }
     }
@@ -337,10 +337,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // 6. Visual
     y1 = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, yRow1Start);
     if (Object.keys(visual).length > 0) {
-        y1 = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }], col1X, y1, colWidth) + 2;
+        y1 = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }], col1X, y1, colWidth) + 2;  // Further reduced from 3
         doc.font('Helvetica-Bold').fontSize(6).text("Remarks:", col1X, y1);
-        doc.font('Helvetica').fontSize(6).text(visual.remarks || '-', col1X, y1 + 9, { width: colWidth });
-        y1 += 18;
+        doc.font('Helvetica').fontSize(6).text(visual.remarks || '-', col1X, y1 + 9, { width: colWidth });  // Further reduced from 10
+        y1 += 18;  // Further reduced from 22
 
         const visInspections = safeParse(visual.inspections, []);
         if (Array.isArray(visInspections) && visInspections.length > 0) {
@@ -358,16 +358,17 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             { label: "Bunch Weight (kg)", value: dimensional.bunch_weight },
             { label: "No. of Cavities", value: dimensional.no_of_cavities },
             { label: "Yields (%)", value: dimensional.yields },
-        ], col2X, y2, colWidth) + 2;
+        ], col2X, y2, colWidth) + 2;  // Further reduced from 3
 
         const dimInspections = safeParse(dimensional.inspections, []);
         if (Array.isArray(dimInspections) && dimInspections.length > 0) {
             const rows = dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]);
-            y2 = drawTable(doc, { headers: ['Cavity Number', 'Casting Weight'], rows }, col2X, y2 + 8, [130, 130]) + 2;
+            y2 = drawTable(doc, { headers: ['Cavity Number', 'Casting Weight'], rows }, col2X, y2 + 8, [130, 130]) + 2;  // Further reduced spacing from 10, reduced from 3
         }
     }
 
-    nextY = Math.max(y1, y2) + 3;
+    nextY = Math.max(y1, y2) + 3;  // Further reduced from 5
+    // Removed unnecessary page break here
 
     // 8. Machine Shop
     if (Object.keys(mcShop).length > 0) {
@@ -378,7 +379,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         nextY = drawVerticalTable(doc, [
             { label: "Inspection Date", value: mcShop.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
             { label: "Remarks", value: mcShop.remarks }
-        ], col1X, nextY, colWidth) + 2;
+        ], col1X, nextY, colWidth) + 2;  // Further reduced from 3
 
         const mcInspections = safeParse(mcShop.inspections, []);
         if (mcInspections.length > 0) {
