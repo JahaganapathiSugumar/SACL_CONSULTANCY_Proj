@@ -369,11 +369,17 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 px: 1, py: 0.3,
                                                                 borderRadius: 5,
                                                                 fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                                bgcolor: trial.status === 'CLOSED' ? '#dcfce7' : '#fff7ed',
-                                                                color: trial.status === 'CLOSED' ? '#166534' : '#9a3412',
+                                                                bgcolor:
+                                                                    trial.status === 'CLOSED' ? '#dcfce7' :
+                                                                        trial.status === 'CREATED' ? '#e0f2fe' :
+                                                                            '#fff7ed',
+                                                                color:
+                                                                    trial.status === 'CLOSED' ? '#166534' :
+                                                                        trial.status === 'CREATED' ? '#0369a1' :
+                                                                            '#9a3412',
                                                                 whiteSpace: 'nowrap'
                                                             }}>
-                                                                {trial.status || 'In Progress'}
+                                                                {trial.status || 'CREATED'}
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
