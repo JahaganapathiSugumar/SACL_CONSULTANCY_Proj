@@ -238,4 +238,18 @@ export const trialService = {
             throw error;
         }
     },
+
+    /**
+     * Fetches trials that are in progress
+     * @returns Promise resolving to array of progressing trials
+     */
+    async getProgressingTrials(): Promise<any[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const data = await apiService.request('/trial/progressing');
+            return data.data || [];
+        } catch (error) {
+            console.error('Failed to fetch progressing trials:', error);
+            throw error;
+        }
+    },
 };

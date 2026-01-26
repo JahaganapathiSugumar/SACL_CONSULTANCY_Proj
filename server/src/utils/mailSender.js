@@ -1,5 +1,6 @@
 // import nodemailer from 'nodemailer';
 // import CustomError from './customError.js';
+// import logger from '../config/logger.js';
 
 // const transporter = nodemailer.createTransport({
 //   host: process.env.SMTP_HOST,
@@ -14,19 +15,12 @@
 //   }
 // });
 
-// const sendMail = ({ to, subject, text, html }) => {
-//   transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to, subject, text, html }, (error, info) => {
-//     if (error) {
-//       throw new CustomError(error.message, error.statusCode || 500);
-//     }
-//   });
-// };
-
-// const sendMailToAllDepartments = async ({ to, subject, text, html }) => {
+// const sendMail = async ({ to, subject, text, html }) => {
 //   to.forEach(email => {
 //     transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
 //       if (error) {
-//         throw new CustomError(error.message, error.statusCode || 500);
+//          logger.error('Email sending unexpected error:', err.message);
+//          return { success: false, error: err.message };
 //       }
 //     });
 //   });
@@ -36,6 +30,7 @@
 
 import { Resend } from 'resend';
 import CustomError from './customError.js';
+import logger from '../config/logger.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -51,12 +46,13 @@ const transporter = {
       });
 
       if (error) {
-        throw new CustomError(error.message, error.statusCode || 500);
+        logger.error('Email sending error (Resend):', error);
+        return { success: false, error };
       }
       return data;
     } catch (err) {
-      if (err instanceof CustomError) throw err;
-      throw new CustomError(err.message, err.statusCode || 500);
+      logger.error('Email sending unexpected error:', err.message);
+      return { success: false, error: err.message };
     }
   }
 };

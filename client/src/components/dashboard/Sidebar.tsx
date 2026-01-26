@@ -22,7 +22,12 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import TaskIcon from '@mui/icons-material/Task';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import InfoIcon from '@mui/icons-material/Info';
 import { useAuth } from '../../context/AuthContext';
+import { trialService } from '../../services/trialService';
+import ProgressingTrialModal from './ProgressingTrialModal';
+import GearSpinner from '../common/GearSpinner';
+import { useEffect } from 'react';
 
 interface SidebarProps {
     currentView: string;
@@ -32,6 +37,31 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
     const { user, logout } = useAuth();
     const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+    const [progressingTrials, setProgressingTrials] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [loadingTrials, setLoadingTrials] = useState(false);
+    const [selectedTrialId, setSelectedTrialId] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchProgressing = async () => {
+            if (user?.role === 'Admin' || user?.department_id === 4 || user?.department_id === 6 || user?.department_id === 7) {
+                setLoadingTrials(true);
+                try {
+                    const data = await trialService.getProgressingTrials();
+                    setProgressingTrials(data);
+                } catch (error) {
+                    console.error('Failed to fetch progressing trials:', error);
+                } finally {
+                    setLoadingTrials(false);
+                }
+            }
+        };
+
+        fetchProgressing();
+        // Refresh every 2 minutes
+        const interval = setInterval(fetchProgressing, 120000);
+        return () => clearInterval(interval);
+    }, [user]);
 
     const menuItems = [
         {
@@ -211,6 +241,92 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
                     );
                 })}
             </List>
+
+            {(user?.role === 'Admin' || user?.department_id === 4 || user?.department_id === 6 || user?.department_id === 7) && (
+                <Box sx={{
+                    mt: 2,
+                    px: 2,
+                    pb: 2,
+                    display: { xs: 'none', sm: 'block' },
+                    borderTop: '1px solid #eee'
+                }}>
+                    <Typography variant="overline" sx={{ fontWeight: 700, color: '#E67E22', letterSpacing: 1.2 }}>
+                        Progressing Trials
+                    </Typography>
+
+                    <Box sx={{
+                        mt: 1,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        pr: 0.5,
+                        '&::-webkit-scrollbar': { width: '4px' },
+                        '&::-webkit-scrollbar-thumb': { bgcolor: '#E67E22', borderRadius: '4px' }
+                    }}>
+                        {loadingTrials ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                                <div style={{ transform: 'scale(0.5)' }}><GearSpinner /></div>
+                            </Box>
+                        ) : progressingTrials.length > 0 ? (
+                            progressingTrials.map((trial) => (
+                                <Box
+                                    key={trial.trial_id}
+                                    sx={{
+                                        p: 1.5,
+                                        mb: 1,
+                                        bgcolor: '#FFF3E0',
+                                        borderRadius: 1,
+                                        border: '1px solid #FFE0B2',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', color: '#333' }}>
+                                            {trial.pattern_code}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: '#666', fontSize: '10px' }}>
+                                            {trial.part_name}
+                                        </Typography>
+                                    </Box>
+                                    <Button
+                                        size="small"
+                                        variant="contained"
+                                        startIcon={<InfoIcon sx={{ fontSize: '12px !important' }} />}
+                                        onClick={() => {
+                                            setSelectedTrialId(trial.trial_id);
+                                            setIsModalOpen(true);
+                                        }}
+                                        sx={{
+                                            bgcolor: '#E67E22',
+                                            fontSize: '10px',
+                                            py: 0.25,
+                                            '&:hover': { bgcolor: '#D35400' }
+                                        }}
+                                    >
+                                        View
+                                    </Button>
+                                </Box>
+                            ))
+                        ) : (
+                            <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic', display: 'block', mt: 1 }}>
+                                No progressing trials filters (4,6,7)
+                            </Typography>
+                        )}
+                    </Box>
+                </Box>
+            )}
+
+            {selectedTrialId && (
+                <ProgressingTrialModal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setSelectedTrialId(null);
+                    }}
+                    trialId={selectedTrialId}
+                />
+            )}
 
             <Box sx={{
                 mt: { xs: 0, sm: 'auto' },

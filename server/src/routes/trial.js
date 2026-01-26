@@ -15,6 +15,7 @@ router.get('/trial_id', verifyToken, asyncErrorHandler(trialController.getTrialB
 router.get('/id', verifyToken, asyncErrorHandler(trialController.generateTrialId));
 router.get('/trial-reports', verifyToken, asyncErrorHandler(trialController.getTrialReports));
 router.get('/recent-trial-reports', verifyToken, asyncErrorHandler(trialController.getRecentTrialReports));
+router.get('/progressing', verifyToken, asyncErrorHandler(trialController.getProgressingTrials));
 router.get('/consolidated-reports', verifyToken, asyncErrorHandler(trialController.getConsolidatedReports));
 router.put('/update', verifyToken, authorizeDepartments(1, 2), authorizeRoles('Admin', 'HOD'), validate(updateTrialCardSchema), asyncErrorHandler(trialController.updateTrial));
 router.delete('/delete-reports', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(trialController.deleteTrialReports));

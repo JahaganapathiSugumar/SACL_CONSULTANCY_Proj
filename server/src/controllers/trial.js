@@ -1,6 +1,7 @@
 import Client from '../config/connection.js';
 import { createDepartmentProgress, updateDepartment, updateRole } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
+import sendMail from '../utils/mailSender.js';
 
 export const createTrial = async (req, res, next) => {
     const { trial_id, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
@@ -163,7 +164,37 @@ export const updateTrial = async (req, res, next) => {
                 remarks: `Trial ${trial_id} updated by ${req.user.username}`
             });
             logger.info('Trial updated', { trial_id, updatedBy: req.user.username });
+
+            const [userRows] = await trx.query(
+                'SELECT email FROM users WHERE department_id IN (4, 6, 7) AND is_active = 1 AND email IS NOT NULL'
+            );
+
+            const emails = [...new Set(userRows.map(u => u.email))];
+
+            if (emails.length > 0) {
+                await sendMail({
+                    to: emails,
+                    subject: `Trial Updated: ${trial_id}`,
+                    text: `The trial card ${trial_id} (${part_name}) has been updated by ${req.user.username}.`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #E67E22;">Trial Card Update Notification</h2>
+                            <p>The following trial card has been updated:</p>
+                            <ul style="list-style: none; padding: 0;">
+                                <li><strong>Trial ID:</strong> ${trial_id}</li>
+                                <li><strong>Part Name:</strong> ${part_name}</li>
+                                <li><strong>Pattern Code:</strong> ${pattern_code}</li>
+                            </ul>
+                            <p style="margin-top: 20px;">Please log in to the system to view the details.</p>
+                            <hr style="border: 1px solid #eee; margin: 20px 0;">
+                            <p style="font-size: 11px; color: #888;">This is an automated notification from SACL Digital Trial Card system.</p>
+                        </div>
+                    `
+                });
+                logger.info('Notification emails sent', { trial_id, recipients: emails.length });
+            }
         }
+
         if (req.user.role !== 'Admin') {
             await updateDepartment(trial_id, req.user, trx);
         }
@@ -241,4 +272,14 @@ export const permanentlyDeleteTrialReport = async (req, res, next) => {
 
     logger.info('Trial report permanently deleted', { trial_id, deletedBy: req.user.username });
     res.status(200).json({ success: true, message: 'Trial report permanently deleted.' });
+};
+
+export const getProgressingTrials = async (req, res, next) => {
+    const sql = `
+        SELECT trial_id, part_name, pattern_code, current_department_id 
+        FROM trial_cards 
+        WHERE status = 'IN_PROGRESS'
+    `;
+    const [rows] = await Client.query(sql);
+    res.status(200).json({ success: true, data: rows });
 };
