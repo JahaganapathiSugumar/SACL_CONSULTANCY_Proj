@@ -22,6 +22,16 @@
 //   });
 // };
 
+// const sendMailToAllDepartments = async ({ to, subject, text, html }) => {
+//   to.forEach(email => {
+//     transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
+//       if (error) {
+//         throw new CustomError(error.message, error.statusCode || 500);
+//       }
+//     });
+//   });
+// }
+
 // export default sendMail;
 
 import { Resend } from 'resend';
