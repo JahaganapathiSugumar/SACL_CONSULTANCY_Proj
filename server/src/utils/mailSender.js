@@ -1,60 +1,29 @@
-// import nodemailer from 'nodemailer';
-// import CustomError from './customError.js';
-// import logger from '../config/logger.js';
-
-// const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: process.env.SMTP_PORT,
-//   secure: false,
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS
-//   },
-//   tls: {
-//     rejectUnauthorized: false
-//   }
-// });
-
-// const sendMail = async ({ to, subject, text, html }) => {
-//   to.forEach(email => {
-//     transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
-//       if (error) {
-//          logger.error('Email sending unexpected error:', err.message);
-//          return { success: false, error: err.message };
-//       }
-//     });
-//   });
-// }
-
-// export default sendMail;
-
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import CustomError from './customError.js';
 import logger from '../config/logger.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const transporter = {
-  sendMail: async ({ to, subject, text, html }) => {
-    try {
-      const { data, error } = await resend.emails.send({
-        from: process.env.EMAIL_FROM,
-        to: 'dhineshkumarans.22cse@kongu.edu',
-        subject,
-        text,
-        html,
-      });
-
-      if (error) {
-        logger.error('Email sending error (Resend):', error);
-        return { success: false, error };
-      }
-      return data;
-    } catch (err) {
-      logger.error('Email sending unexpected error:', err.message);
-      return { success: false, error: err.message };
-    }
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
   }
-};
+});
 
-export default transporter.sendMail;
+const sendMail = async ({ to, subject, text, html }) => {
+  to.forEach(email => {
+    transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
+      if (error) {
+         logger.error('Email sending unexpected error:', err.message);
+         return { success: false, error: err.message };
+      }
+    });
+  });
+}
+
+export default sendMail;
