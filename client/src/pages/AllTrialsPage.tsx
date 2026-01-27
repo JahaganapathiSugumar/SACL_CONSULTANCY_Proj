@@ -185,6 +185,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         setShowProfile={setShowProfile}
                         departmentInfo={departmentInfo}
                         photoRefreshKey={headerRefreshKey}
+                        showBackButton={true}
                     />
                 )}
                 <Box sx={{ flexGrow: 1, overflow: 'auto', py: embedded ? 0 : 4 }}>

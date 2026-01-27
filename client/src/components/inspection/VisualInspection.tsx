@@ -550,6 +550,7 @@ export default function VisualInspection({
                     setShowProfile={setShowProfile}
                     departmentInfo={departmentInfo}
                     photoRefreshKey={headerRefreshKey}
+                    showBackButton={true}
                 />
                 <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
                     <Container maxWidth="xl">

@@ -285,6 +285,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           setShowProfile={setShowProfile}
           departmentInfo={departmentInfo}
           photoRefreshKey={headerRefreshKey}
+          showBackButton={true}
         />
         <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
           <Container maxWidth="xl">

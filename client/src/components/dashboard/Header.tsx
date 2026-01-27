@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Chip, Typography, Box } from '@mui/material';
+import { Paper, Chip, Typography, Box, IconButton } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/commonService';
 import { COLORS } from '../../theme/appTheme';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
     departmentInfo: {
@@ -20,6 +22,7 @@ interface HeaderProps {
     };
     setShowProfile?: (show: boolean) => void;
     photoRefreshKey?: number;
+    showBackButton?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -28,9 +31,11 @@ const Header: React.FC<HeaderProps> = ({
     textColor,
     logoTextColors,
     setShowProfile,
-    photoRefreshKey = 0
+    photoRefreshKey = 0,
+    showBackButton = false
 }) => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
     const [photoLoading, setPhotoLoading] = useState(true);
@@ -130,6 +135,15 @@ const Header: React.FC<HeaderProps> = ({
             <header className="dashboard-header" style={customStyle}>
                 {/* Left side - Logo/Brand and Department Info */}
                 <Box className="header-left">
+                    {showBackButton && (
+                        <IconButton
+                            onClick={() => navigate('/dashboard')}
+                            sx={{ color: 'white', mr: 1 }}
+                            size="small"
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
+                    )}
                     {/* SACL Logo Section */}
                     <Box
                         sx={{
@@ -138,7 +152,42 @@ const Header: React.FC<HeaderProps> = ({
                             gap: 1.5,
                         }}
                     >
-                        {/* Placeholder Logo Box if image fails, or use image */}
+                        <Box
+                            component="img"
+                            src="/assets/SACL-LOGO-01.svg"
+                            alt="Sakthi Auto"
+                            sx={{
+                                height: { xs: 35, sm: 40, md: 45 },
+                                width: 'auto',
+                                objectFit: 'contain',
+                                filter: 'brightness(0) invert(1)' // Make it white for the dark header
+                            }}
+                        />
+                        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 700,
+                                    lineHeight: 1,
+                                    fontSize: '1.2rem',
+                                    color: 'white',
+                                    letterSpacing: '1px'
+                                }}
+                            >
+                                SACL
+                            </Typography>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 500,
+                                    color: 'rgba(255,255,255,0.7)',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                Sakthi Auto Component Limited
+                            </Typography>
+                        </Box>
                     </Box>
 
                     {/* Department Title Section */}
