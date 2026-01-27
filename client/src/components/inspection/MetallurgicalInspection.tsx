@@ -51,11 +51,12 @@ import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
 import { fileToMeta, generateUid, validateFileSizes, formatDate } from '../../utils';
-import SaclHeader from "../common/SaclHeader";
-import DepartmentHeader from "../common/DepartmentHeader";
 import { LoadingState, EmptyState, ActionButtons, PreviewModal, FileUploadSection, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
 import { apiService } from "../../services/commonService";
+import Header from "../dashboard/Header";
+import ProfileModal from "../dashboard/ProfileModal";
+import { getDepartmentInfo } from "../../utils/dashboardUtils";
 
 
 interface Row {
@@ -742,7 +743,10 @@ export default function MetallurgicalInspection() {
 
   const { user } = useAuth();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [loading, setLoading] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
+  const departmentInfo = getDepartmentInfo(user);
   const [userIP, setUserIP] = useState<string>("Loading...");
   const { alert, showAlert } = useAlert();
   const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
@@ -1285,202 +1289,211 @@ export default function MetallurgicalInspection() {
 
   return (
     <ThemeProvider theme={appTheme}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.background }}>
+        <Header
+          setShowProfile={setShowProfile}
+          departmentInfo={departmentInfo}
+          photoRefreshKey={headerRefreshKey}
+        />
+        <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
+          <Container maxWidth="xl">
+            <AlertMessage alert={alert} />
 
-      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
-        <Container maxWidth="xl" disableGutters>
+            {isAssigned === false && (user?.role !== 'Admin') ? (
+              <EmptyState
+                title="No Pending Works"
+                description="This trial is not currently assigned to you."
+                severity="warning"
+                action={{
+                  label: "Go to Dashboard",
+                  onClick: () => navigate('/dashboard')
+                }}
+              />
+            ) : (
+              <>
+                <BasicInfo trialId={trialId || ""} />
 
-          <SaclHeader />
-          <DepartmentHeader title="METALLURGICAL INSPECTION" userIP={userIP} user={user} />
-          <AlertMessage alert={alert} />
+                <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
-          {isAssigned === false && (user?.role !== 'Admin') ? (
-            <EmptyState
-              title="No Pending Works"
-              description="This trial is not currently assigned to you."
-              severity="warning"
-              action={{
-                label: "Go to Dashboard",
-                onClick: () => navigate('/dashboard')
-              }}
-            />
-          ) : (
-            <>
-              <BasicInfo trialId={trialId || ""} />
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-end"
+                    mb={1}
+                    flexWrap="wrap"
+                    gap={2}
+                  >
+                    <Box />
 
-              <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="flex-end"
-                  mb={1}
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <Box />
-
-                  <Box display="flex" gap={2}>
-                    <TextField
-                      size="small"
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      sx={{ width: 160 }}
-                      disabled={user?.role === 'HOD'}
-                    />
-                  </Box>
-                </Box>
-
-
-                <MicrostructureTable
-                  params={MICRO_PARAMS}
-                  cols={microCols}
-                  values={microValues}
-                  meta={microMeta}
-                  setCols={setMicroCols}
-                  setValues={setMicroValues}
-                  setMeta={setMicroMeta}
-                  showAlert={showAlert}
-                  user={user}
-                  isEditing={isEditing}
-                />
-
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <SectionTable
-                      key={`mech-${loadKey}`}
-                      title="MECHANICAL PROPERTIES"
-                      rows={mechRows}
-                      onChange={updateRow(setMechRows)}
-                      showAlert={showAlert}
-                      user={user}
-                      isEditing={isEditing}
-                      cavityNumbers={microValues["Cavity Number"] || []}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <SectionTable
-                      key={`impact-${loadKey}`}
-                      title="IMPACT STRENGTH"
-                      rows={impactRows}
-                      onChange={updateRow(setImpactRows)}
-                      showAlert={showAlert}
-                      user={user}
-                      isEditing={isEditing}
-                      cavityNumbers={microValues["Cavity Number"] || []}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <SectionTable
-                      key={`hard-${loadKey}`}
-                      title="HARDNESS"
-                      rows={hardRows}
-                      onChange={updateRow(setHardRows)}
-                      showAlert={showAlert}
-                      user={user}
-                      isEditing={isEditing}
-                      cavityNumbers={microValues["Cavity Number"] || []}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <SectionTable
-                      key={`ndt-${loadKey}`}
-                      title="NDT INSPECTION ANALYSIS"
-                      rows={ndtRows}
-                      onChange={updateRow(setNdtRows)}
-                      showTotal={true}
-                      onValidationError={setNdtValidationError}
-                      showAlert={showAlert}
-                      user={user}
-                      isEditing={isEditing}
-                      cavityNumbers={microValues["Cavity Number"] || []}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-                  {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
-                    <>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                        Attach PDF / Image Files
-                      </Typography>
-                      <FileUploadSection
-                        files={attachedFiles}
-                        onFilesChange={handleAttachFiles}
-                        onFileRemove={removeAttachedFile}
-                        showAlert={showAlert}
-                        label="Attach PDF"
-                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                    <Box display="flex" gap={2}>
+                      <TextField
+                        size="small"
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        sx={{ width: 160 }}
+                        disabled={user?.role === 'HOD'}
                       />
-                    </>
-                  )}
-                  <DocumentViewer trialId={trialId || ""} category="METALLURGICAL_INSPECTION" />
-                </Box>
+                    </Box>
+                  </Box>
 
 
-                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
-                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-                    <ActionButtons
-                      {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
-                      onSave={handleSaveAndContinue}
-                      showSubmit={false}
-                      saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                      saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                    >
-                      {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                        <Button
-                          variant="outlined"
-                          onClick={() => setIsEditing(!isEditing)}
-                          sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                        >
-                          {isEditing ? "Cancel Edit" : "Edit Details"}
-                        </Button>
-                      )}
-                    </ActionButtons>
+                  <MicrostructureTable
+                    params={MICRO_PARAMS}
+                    cols={microCols}
+                    values={microValues}
+                    meta={microMeta}
+                    setCols={setMicroCols}
+                    setValues={setMicroValues}
+                    setMeta={setMicroMeta}
+                    showAlert={showAlert}
+                    user={user}
+                    isEditing={isEditing}
+                  />
+
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <SectionTable
+                        key={`mech-${loadKey}`}
+                        title="MECHANICAL PROPERTIES"
+                        rows={mechRows}
+                        onChange={updateRow(setMechRows)}
+                        showAlert={showAlert}
+                        user={user}
+                        isEditing={isEditing}
+                        cavityNumbers={microValues["Cavity Number"] || []}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <SectionTable
+                        key={`impact-${loadKey}`}
+                        title="IMPACT STRENGTH"
+                        rows={impactRows}
+                        onChange={updateRow(setImpactRows)}
+                        showAlert={showAlert}
+                        user={user}
+                        isEditing={isEditing}
+                        cavityNumbers={microValues["Cavity Number"] || []}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <SectionTable
+                        key={`hard-${loadKey}`}
+                        title="HARDNESS"
+                        rows={hardRows}
+                        onChange={updateRow(setHardRows)}
+                        showAlert={showAlert}
+                        user={user}
+                        isEditing={isEditing}
+                        cavityNumbers={microValues["Cavity Number"] || []}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <SectionTable
+                        key={`ndt-${loadKey}`}
+                        title="NDT INSPECTION ANALYSIS"
+                        rows={ndtRows}
+                        onChange={updateRow(setNdtRows)}
+                        showTotal={true}
+                        onValidationError={setNdtValidationError}
+                        showAlert={showAlert}
+                        user={user}
+                        isEditing={isEditing}
+                        cavityNumbers={microValues["Cavity Number"] || []}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                    {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
+                      <>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                          Attach PDF / Image Files
+                        </Typography>
+                        <FileUploadSection
+                          files={attachedFiles}
+                          onFilesChange={handleAttachFiles}
+                          onFileRemove={removeAttachedFile}
+                          showAlert={showAlert}
+                          label="Attach PDF"
+                          disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                        />
+                      </>
+                    )}
+                    <DocumentViewer trialId={trialId || ""} category="METALLURGICAL_INSPECTION" />
+                  </Box>
+
+
+                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                      <ActionButtons
+                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                        onSave={handleSaveAndContinue}
+                        showSubmit={false}
+                        saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                        saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                      >
+                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                          <Button
+                            variant="outlined"
+                            onClick={() => setIsEditing(!isEditing)}
+                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                          >
+                            {isEditing ? "Cancel Edit" : "Edit Details"}
+                          </Button>
+                        )}
+                      </ActionButtons>
+                    </Box>
+                  </Box>
+
+                </Paper>
+              </>
+            )}
+
+            <PreviewModal
+              open={previewMode && previewPayload}
+              onClose={() => setPreviewMode(false)}
+              onSubmit={handleFinalSave}
+              title="Verify Inspection Data"
+              subtitle="Metallurgical Inspection Report"
+              submitted={previewSubmitted}
+              isSubmitting={sending}
+            >
+              <Box sx={{ p: 4 }} ref={printRef}>
+                <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
+                    <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
+                  </Box>
+                  <Divider sx={{ mb: 3 }} />
+
+                  <PreviewMicroTable data={previewPayload?.microRows} />
+                  <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
+                  <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} />
+                  <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
+                  <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload?.ndtRows} />
+
+                  <Box sx={{ mt: 3 }}>
+                    <AlertMessage alert={alert} />
                   </Box>
                 </Box>
 
-              </Paper>
-            </>
-          )}
-
-          <PreviewModal
-            open={previewMode && previewPayload}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            title="Verify Inspection Data"
-            subtitle="Metallurgical Inspection Report"
-            submitted={previewSubmitted}
-            isSubmitting={sending}
-          >
-            <Box sx={{ p: 4 }} ref={printRef}>
-              <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Metallurgical Inspection Report</Typography>
-                  <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
-                </Box>
-                <Divider sx={{ mb: 3 }} />
-
-                <PreviewMicroTable data={previewPayload?.microRows} />
-                <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
-                <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} />
-                <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
-                <PreviewSectionTable title="NDT INSPECTION ANALYSIS" rows={previewPayload?.ndtRows} />
-
-                <Box sx={{ mt: 3 }}>
-                  <AlertMessage alert={alert} />
-                </Box>
+                {message && (
+                  <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
+                )}
               </Box>
-
-              {message && (
-                <Alert severity={previewSubmitted ? "success" : "info"} sx={{ mt: 2 }}>{message}</Alert>
-              )}
-            </Box>
-          </PreviewModal>
-
-
-        </Container>
+            </PreviewModal>
+          </Container>
+        </Box>
       </Box>
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <ProfileModal
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
     </ThemeProvider>
   );
 }

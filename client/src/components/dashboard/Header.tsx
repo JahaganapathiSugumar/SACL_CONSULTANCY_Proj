@@ -139,33 +139,34 @@ const Header: React.FC<HeaderProps> = ({
                         }}
                     >
                         {/* Placeholder Logo Box if image fails, or use image */}
+                    </Box>
+
+                    {/* Department Title Section */}
+                    {departmentInfo.showDepartment && (
                         <Box sx={{
-                            width: { xs: 120, sm: 150 },
-                            height: { xs: 50, sm: 60 },
-                            bgcolor: 'white',
-                            borderRadius: 1,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            flexShrink: 0
+                            ml: 2,
+                            px: 2,
+                            py: 0.5,
+                            bgcolor: 'rgba(230, 126, 34, 0.15)',
+                            borderRadius: '20px',
+                            border: '1px solid rgba(230, 126, 34, 0.3)',
                         }}>
-                            <img
-                                src="/assets/SACL-LOGO-01.svg"
-                                alt="Logo"
-                                style={{
-                                    height: '100%',
-                                    width: '100%',
-
-
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: { xs: '0.85rem', sm: '1.1rem' },
+                                    color: '#E67E22',
+                                    letterSpacing: '0.5px',
+                                    textTransform: 'uppercase'
                                 }}
-                                onError={(e) => {
-                                    console.error('Logo failed to load:', e);
-                                }}
-                            />
-                            {/* Fallback Text if needed, currently hidden if img works */}
+                            >
+                                {departmentInfo.displayText}
+                            </Typography>
                         </Box>
-                    </Box>
+                    )}
                 </Box>
 
                 {/* Right side - Icons and Profile */}
@@ -303,7 +304,7 @@ const Header: React.FC<HeaderProps> = ({
                         )}
                     </div>
                 </div>
-            </header>
+            </header >
         </>
     );
 };

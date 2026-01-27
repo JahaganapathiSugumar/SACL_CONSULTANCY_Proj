@@ -33,7 +33,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';
-import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
 import { inspectionService } from '../../services/inspectionService';
 import { uploadFiles } from '../../services/fileUploadHelper';
@@ -41,9 +40,11 @@ import departmentProgressService from "../../services/departmentProgressService"
 import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
+import Header from "../dashboard/Header";
+import ProfileModal from "../dashboard/ProfileModal";
+import { getDepartmentInfo } from "../../utils/dashboardUtils";
 import { fileToMeta, generateUid, validateFileSizes, formatDate } from '../../utils';
 import type { InspectionRow, GroupMetadata } from '../../types/inspection';
-import DepartmentHeader from "../common/DepartmentHeader";
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
 
@@ -87,6 +88,9 @@ export default function DimensionalInspection({
     const [previewSubmitted, setPreviewSubmitted] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isYieldInvalid, setIsYieldInvalid] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+    const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
+    const departmentInfo = getDepartmentInfo(user);
 
     const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
     const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
@@ -397,324 +401,334 @@ export default function DimensionalInspection({
 
     return (
         <ThemeProvider theme={appTheme}>
-            <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
-                <Container maxWidth="xl" disableGutters>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.background }}>
+                <Header
+                    setShowProfile={setShowProfile}
+                    departmentInfo={departmentInfo}
+                    photoRefreshKey={headerRefreshKey}
+                />
+                <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
+                    <Container maxWidth="xl">
+                        <AlertMessage alert={alert} />
+
+                        {isAssigned === false && (user?.role !== 'Admin') ? (
+                            <EmptyState
+                                title="No Pending Works"
+                                description="This trial is not currently assigned to you."
+                                severity="warning"
+                                action={{
+                                    label: "Go to Dashboard",
+                                    onClick: () => navigate('/dashboard')
+                                }}
+                            />
+                        ) : (
+                            <>
+                                <BasicInfo trialId={trialId} />
+                                <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
+
+                                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                        <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                                        <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>DIMENSIONAL DETAILS</Typography>
+                                    </Box>
+                                    <Divider sx={{ mb: 3, borderColor: COLORS.border }} />
+
+                                    <Grid container spacing={3} sx={{ mb: 3 }}>
+                                        <Grid size={{ xs: 12, md: 3 }}>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
+                                            <TextField
+                                                type="date"
+                                                size="small"
+                                                fullWidth
+                                                value={date}
+                                                onChange={(e) => setDate(e.target.value)}
+                                                sx={{ bgcolor: 'white' }}
+                                                disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 3 }}>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Casting Weight (Kg)</Typography>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                placeholder="e.g. 12.5"
+                                                value={weightTarget}
+                                                onChange={(e) => setWeightTarget(e.target.value)}
+                                                sx={{ bgcolor: 'white' }}
+                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 2 }}>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Bunch Weight (Kg)</Typography>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                placeholder="Total Bunch Wt"
+                                                value={bunchWeight}
+                                                onChange={(e) => setBunchWeight(e.target.value)}
+                                                sx={{ bgcolor: 'white' }}
+                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 2 }}>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Number of Cavity</Typography>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                type="number"
+                                                placeholder="e.g. 4"
+                                                value={numberOfCavity}
+                                                onChange={(e) => setNumberOfCavity(e.target.value)}
+                                                sx={{ bgcolor: 'white' }}
+                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 2 }}>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yield (%)</Typography>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                value={calculateYield()}
+                                                InputProps={{ readOnly: true }}
+                                                error={isYieldInvalid}
+                                                sx={{
+                                                    bgcolor: isYieldInvalid ? '#ffebee' : 'white',
+                                                    '& .MuiInputBase-input': { fontWeight: 700 },
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderColor: isYieldInvalid ? '#d32f2f' : undefined
+                                                    }
+                                                }}
+                                            />
+                                            {isYieldInvalid && (
+                                                <Typography variant="caption" sx={{ color: '#d32f2f', mt: 0.5, display: 'block' }}>
+                                                    âš  Yield exceeds 100%. Please adjust values.
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    </Grid>
+
+                                    <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow sx={{ bgcolor: COLORS.blueHeaderBg }}>
+                                                    <TableCell sx={{ minWidth: 200, color: COLORS.blueHeaderText }}>Parameter</TableCell>
+                                                    {cavities.map((c, ci) => (
+                                                        <TableCell key={ci} sx={{ minWidth: 140 }}>
+                                                            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                                                <TextField
+                                                                    size="small"
+                                                                    variant="standard"
+                                                                    value={c}
+                                                                    onChange={(e) => updateCavityLabel(ci, e.target.value)}
+                                                                    InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                                    sx={{ input: { textAlign: 'center' } }}
+                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                                                />
+                                                                <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
+                                                                    <DeleteIcon fontSize="small" />
+                                                                </IconButton>
+                                                            </Box>
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            </TableHead>
+
+                                            <TableBody>
+                                                {cavRows.map((r, ri) => (
+                                                    <TableRow key={r.id}>
+                                                        <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
+                                                            {r.label}
+                                                        </TableCell>
+                                                        {r.values.map((val, ci) => (
+                                                            <TableCell key={ci}>
+                                                                <TextField
+                                                                    size="small"
+                                                                    fullWidth
+                                                                    value={val}
+                                                                    onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
+                                                                    variant="outlined"
+                                                                    sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                                                />
+                                                            </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </Box>
+
+                                    <Button
+                                        size="small"
+                                        onClick={addCavity}
+                                        startIcon={<AddCircleIcon />}
+                                        sx={{ mt: 1, color: COLORS.secondary }}
+                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                    >
+                                        Add Column
+                                    </Button>
+
+                                    <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                            Attach PDF / Image Files
+                                        </Typography>
+                                        <FileUploadSection
+                                            files={attachedFiles}
+                                            onFilesChange={handleAttachFiles}
+                                            onFileRemove={removeAttachedFile}
+                                            showAlert={showAlert}
+                                            label="Attach PDF"
+                                        />
+                                        <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
+                                    </Box>
+                                </Paper>
+
+                                <Paper sx={{ p: 3, mb: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
+                                        <EditIcon sx={{ color: COLORS.primary }} />
+                                        <Typography variant="subtitle2" sx={{ color: COLORS.primary, flexGrow: 1 }}>
+                                            Remarks
+                                        </Typography>
+                                    </Box>
+                                    <TextField
+                                        multiline
+                                        rows={3}
+                                        fullWidth
+                                        variant="outlined"
+                                        placeholder="Enter remarks..."
+                                        value={remarks}
+                                        onChange={(e) => setRemarks(e.target.value)}
+                                        sx={{ bgcolor: '#fff' }}
+                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                    />
+                                </Paper>
 
 
-                    <SaclHeader />
-
-                    <DepartmentHeader title="DIMENSIONAL INSPECTION" userIP={userIP} user={user} />
-                    <AlertMessage alert={alert} />
-
-                    {isAssigned === false && (user?.role !== 'Admin') ? (
-                        <EmptyState
-                            title="No Pending Works"
-                            description="This trial is not currently assigned to you."
-                            severity="warning"
-                            action={{
-                                label: "Go to Dashboard",
-                                onClick: () => navigate('/dashboard')
-                            }}
-                        />
-                    ) : (
-                        <>
-                            <BasicInfo trialId={trialId} />
-                            <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
-
-                                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                                    <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-                                    <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>DIMENSIONAL DETAILS</Typography>
+                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
+                                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                                        <ActionButtons
+                                            {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
+                                            onSave={handleSaveAndContinue}
+                                            showSubmit={false}
+                                            saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                            saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                                        >
+                                            {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => setIsEditing(!isEditing)}
+                                                    sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                >
+                                                    {isEditing ? "Cancel Edit" : "Edit Details"}
+                                                </Button>
+                                            )}
+                                        </ActionButtons>
+                                    </Box>
                                 </Box>
-                                <Divider sx={{ mb: 3, borderColor: COLORS.border }} />
+                            </>
+                        )}
 
-                                <Grid container spacing={3} sx={{ mb: 3 }}>
-                                    <Grid size={{ xs: 12, md: 3 }}>
-                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Inspection Date</Typography>
-                                        <TextField
-                                            type="date"
-                                            size="small"
-                                            fullWidth
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            sx={{ bgcolor: 'white' }}
-                                            disabled={user?.role === 'HOD' || user?.role === 'Admin'}
-                                        />
+                        <PreviewModal
+                            open={previewMode && previewPayload}
+                            onClose={() => setPreviewMode(false)}
+                            onSubmit={handleFinalSave}
+                            title="Verify Inspection Data"
+                            submitted={previewSubmitted}
+                            isSubmitting={saving}
+                        >
+                            <Box sx={{ p: 4 }}>
+                                <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                        <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Dimensional Inspection Report</Typography>
+                                        <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
+                                    </Box>
+                                    <Divider sx={{ mb: 3 }} />
+
+                                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <Typography variant="caption" color="textSecondary">TARGET WEIGHT</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{previewPayload?.weight_target || "-"} Kg</Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <Typography variant="caption" color="textSecondary">BUNCH WEIGHT</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{previewPayload?.bunch_weight || "-"} Kg</Typography>
+                                        </Grid>
                                     </Grid>
-                                    <Grid size={{ xs: 12, md: 3 }}>
-                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Casting Weight (Kg)</Typography>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            placeholder="e.g. 12.5"
-                                            value={weightTarget}
-                                            onChange={(e) => setWeightTarget(e.target.value)}
-                                            sx={{ bgcolor: 'white' }}
-                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 2 }}>
-                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Bunch Weight (Kg)</Typography>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            placeholder="Total Bunch Wt"
-                                            value={bunchWeight}
-                                            onChange={(e) => setBunchWeight(e.target.value)}
-                                            sx={{ bgcolor: 'white' }}
-                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 2 }}>
-                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Number of Cavity</Typography>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            type="number"
-                                            placeholder="e.g. 4"
-                                            value={numberOfCavity}
-                                            onChange={(e) => setNumberOfCavity(e.target.value)}
-                                            sx={{ bgcolor: 'white' }}
-                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 2 }}>
-                                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yield (%)</Typography>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            value={calculateYield()}
-                                            InputProps={{ readOnly: true }}
-                                            error={isYieldInvalid}
-                                            sx={{
-                                                bgcolor: isYieldInvalid ? '#ffebee' : 'white',
-                                                '& .MuiInputBase-input': { fontWeight: 700 },
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderColor: isYieldInvalid ? '#d32f2f' : undefined
-                                                }
-                                            }}
-                                        />
-                                        {isYieldInvalid && (
-                                            <Typography variant="caption" sx={{ color: '#d32f2f', mt: 0.5, display: 'block' }}>
-                                                âš  Yield exceeds 100%. Please adjust values.
+
+                                    <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                                                    {previewPayload?.cavities.map((c: string, i: number) => (
+                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {previewPayload?.cavity_rows.map((r: any, idx: number) => (
+                                                    <TableRow key={idx}>
+                                                        <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
+                                                        {r.values.map((v: any, j: number) => (
+                                                            <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
+                                                                {v === null ? "-" : String(v)}
+                                                            </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </Box>
+
+                                    <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                        {previewPayload?.attachment && (
+                                            <Typography variant="caption" display="block" mt={1} color="primary">
+                                                Attachment: {previewPayload.attachment.name}
                                             </Typography>
                                         )}
-                                    </Grid>
-                                </Grid>
+                                    </Box>
 
-                                <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ bgcolor: COLORS.blueHeaderBg }}>
-                                                <TableCell sx={{ minWidth: 200, color: COLORS.blueHeaderText }}>Parameter</TableCell>
-                                                {cavities.map((c, ci) => (
-                                                    <TableCell key={ci} sx={{ minWidth: 140 }}>
-                                                        <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                                                            <TextField
-                                                                size="small"
-                                                                variant="standard"
-                                                                value={c}
-                                                                onChange={(e) => updateCavityLabel(ci, e.target.value)}
-                                                                InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
-                                                                sx={{ input: { textAlign: 'center' } }}
-                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                                            />
-                                                            <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
-                                                                <DeleteIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    </TableCell>
+                                    {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
+                                        <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                            <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
+                                                    <Chip
+                                                        key={idx}
+                                                        icon={<InsertDriveFileIcon />}
+                                                        label={fileName}
+                                                        variant="outlined"
+                                                        sx={{ bgcolor: 'white' }}
+                                                    />
                                                 ))}
-                                            </TableRow>
-                                        </TableHead>
+                                            </Box>
+                                        </Box>
+                                    )}
 
-                                        <TableBody>
-                                            {cavRows.map((r, ri) => (
-                                                <TableRow key={r.id}>
-                                                    <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>
-                                                        {r.label}
-                                                    </TableCell>
-                                                    {r.values.map((val, ci) => (
-                                                        <TableCell key={ci}>
-                                                            <TextField
-                                                                size="small"
-                                                                fullWidth
-                                                                value={val}
-                                                                onChange={(e) => updateCavCell(r.id, ci, e.target.value)}
-                                                                variant="outlined"
-                                                                sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
-                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                                            />
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
-
-                                <Button
-                                    size="small"
-                                    onClick={addCavity}
-                                    startIcon={<AddCircleIcon />}
-                                    sx={{ mt: 1, color: COLORS.secondary }}
-                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                >
-                                    Add Column
-                                </Button>
-
-                                <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                                        Attach PDF / Image Files
-                                    </Typography>
-                                    <FileUploadSection
-                                        files={attachedFiles}
-                                        onFilesChange={handleAttachFiles}
-                                        onFileRemove={removeAttachedFile}
-                                        showAlert={showAlert}
-                                        label="Attach PDF"
-                                    />
-                                    <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
-                                </Box>
-                            </Paper>
-
-                            <Paper sx={{ p: 3, mb: 3 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${COLORS.primary}`, width: '100%' }}>
-                                    <EditIcon sx={{ color: COLORS.primary }} />
-                                    <Typography variant="subtitle2" sx={{ color: COLORS.primary, flexGrow: 1 }}>
-                                        Remarks
-                                    </Typography>
-                                </Box>
-                                <TextField
-                                    multiline
-                                    rows={3}
-                                    fullWidth
-                                    variant="outlined"
-                                    placeholder="Enter remarks..."
-                                    value={remarks}
-                                    onChange={(e) => setRemarks(e.target.value)}
-                                    sx={{ bgcolor: '#fff' }}
-                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                />
-                            </Paper>
-
-
-                            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
-                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-                                    <ActionButtons
-                                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
-                                        onSave={handleSaveAndContinue}
-                                        showSubmit={false}
-                                        saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                                        saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                                    >
-                                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => setIsEditing(!isEditing)}
-                                                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                            >
-                                                {isEditing ? "Cancel Edit" : "Edit Details"}
-                                            </Button>
-                                        )}
-                                    </ActionButtons>
-                                </Box>
-                            </Box>
-                        </>
-                    )}
-
-                    <PreviewModal
-                        open={previewMode && previewPayload}
-                        onClose={() => setPreviewMode(false)}
-                        onSubmit={handleFinalSave}
-                        title="Verify Inspection Data"
-                        submitted={previewSubmitted}
-                        isSubmitting={saving}
-                    >
-                        <Box sx={{ p: 4 }}>
-                            <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                                    <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Dimensional Inspection Report</Typography>
-                                    <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
-                                </Box>
-                                <Divider sx={{ mb: 3 }} />
-
-                                <Grid container spacing={2} sx={{ mb: 3 }}>
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                        <Typography variant="caption" color="textSecondary">TARGET WEIGHT</Typography>
-                                        <Typography variant="body1" fontWeight="bold">{previewPayload?.weight_target || "-"} Kg</Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                        <Typography variant="caption" color="textSecondary">BUNCH WEIGHT</Typography>
-                                        <Typography variant="body1" fontWeight="bold">{previewPayload?.bunch_weight || "-"} Kg</Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                                                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                {previewPayload?.cavities.map((c: string, i: number) => (
-                                                    <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
-                                                ))}
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {previewPayload?.cavity_rows.map((r: any, idx: number) => (
-                                                <TableRow key={idx}>
-                                                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                                                    {r.values.map((v: any, j: number) => (
-                                                        <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                                            {v === null ? "-" : String(v)}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
-
-                                <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                    {previewPayload?.attachment && (
-                                        <Typography variant="caption" display="block" mt={1} color="primary">
-                                            Attachment: {previewPayload.attachment.name}
-                                        </Typography>
+                                    {previewPayload?.remarks && (
+                                        <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                                            <Typography variant="subtitle2" mb={1} color="textSecondary">REMARKS</Typography>
+                                            <Typography variant="body2">{previewPayload.remarks}</Typography>
+                                        </Box>
                                     )}
                                 </Box>
 
-                                {previewPayload?.attachedFiles && previewPayload.attachedFiles.length > 0 && (
-                                    <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                        <Typography variant="subtitle2" mb={1} color="textSecondary">ATTACHED FILES</Typography>
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                            {previewPayload.attachedFiles.map((fileName: string, idx: number) => (
-                                                <Chip
-                                                    key={idx}
-                                                    icon={<InsertDriveFileIcon />}
-                                                    label={fileName}
-                                                    variant="outlined"
-                                                    sx={{ bgcolor: 'white' }}
-                                                />
-                                            ))}
-                                        </Box>
-                                    </Box>
-                                )}
-
-                                {previewPayload?.remarks && (
-                                    <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-                                        <Typography variant="subtitle2" mb={1} color="textSecondary">REMARKS</Typography>
-                                        <Typography variant="body2">{previewPayload.remarks}</Typography>
-                                    </Box>
+                                {previewSubmitted && (
+                                    <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
                                 )}
                             </Box>
+                        </PreviewModal>
 
-                            {previewSubmitted && (
-                                <Alert severity="success" sx={{ mt: 2 }}>Inspection data submitted successfully.</Alert>
-                            )}
-                        </Box>
-                    </PreviewModal>
-
-                </Container>
+                    </Container>
+                </Box>
             </Box>
+
+            {/* Profile Modal */}
+            {showProfile && (
+                <ProfileModal
+                    onClose={() => setShowProfile(false)}
+                    onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+                />
+            )}
         </ThemeProvider>
     );
 };

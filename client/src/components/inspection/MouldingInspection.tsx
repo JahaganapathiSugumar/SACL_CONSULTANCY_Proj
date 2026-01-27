@@ -28,7 +28,6 @@ import Swal from 'sweetalert2';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SaveIcon from '@mui/icons-material/Save';
-import SaclHeader from "../common/SaclHeader";
 import { apiService } from '../../services/commonService';
 
 import { inspectionService } from '../../services/inspectionService';
@@ -38,10 +37,12 @@ import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
 import { fileToMeta, validateFileSizes, formatDate } from '../../utils';
 import type { InspectionRow, GroupMetadata } from '../../types/inspection';
-import DepartmentHeader from "../common/DepartmentHeader";
 import { SpecInput, FileUploadSection, LoadingState, EmptyState, ActionButtons, FormSection, PreviewModal, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
 import departmentProgressService from "../../services/departmentProgressService";
+import Header from "../dashboard/Header";
+import ProfileModal from "../dashboard/ProfileModal";
+import { getDepartmentInfo } from "../../utils/dashboardUtils";
 
 function MouldingTable() {
   const { user } = useAuth();
@@ -63,9 +64,12 @@ function MouldingTable() {
 
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [userIP, setUserIP] = useState<string>("");
+  const [userIP, setUserIP] = useState<string>("Loading...");
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
+  const departmentInfo = getDepartmentInfo(user);
   const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
   const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
 
@@ -259,202 +263,213 @@ function MouldingTable() {
 
   return (
     <ThemeProvider theme={appTheme}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.background }}>
+        <Header
+          setShowProfile={setShowProfile}
+          departmentInfo={departmentInfo}
+          photoRefreshKey={headerRefreshKey}
+        />
+        <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
+          <Container maxWidth="xl">
+            <AlertMessage alert={alert} />
 
-      <Box sx={{ minHeight: "100vh", bgcolor: COLORS.background, py: { xs: 2, md: 4 }, px: { xs: 1, sm: 3 } }}>
-        <Container maxWidth="xl" disableGutters>
+            {isAssigned === false && (user?.role !== 'Admin') ? (
+              <EmptyState
+                title="No Pending Works"
+                description="This trial is not currently assigned to you."
+                severity="warning"
+                action={{
+                  label: "Go to Dashboard",
+                  onClick: () => navigate('/dashboard')
+                }}
+              />
+            ) : (
+              <>
+                <BasicInfo trialId={trialId || ""} />
 
-          <SaclHeader />
-          <DepartmentHeader title="MOULDING CORRECTION" userIP={userIP} user={user} />
-          <AlertMessage alert={alert} />
-
-          {isAssigned === false && (user?.role !== 'Admin') ? (
-            <EmptyState
-              title="No Pending Works"
-              description="This trial is not currently assigned to you."
-              severity="warning"
-              action={{
-                label: "Go to Dashboard",
-                onClick: () => navigate('/dashboard')
-              }}
-            />
-          ) : (
-            <>
-              <BasicInfo trialId={trialId || ""} />
-
-              <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
-                <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
-                  </Box>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
-                    <TextField
-                      type="date"
-                      size="small"
-                      hiddenLabel
-                      value={mouldDate}
-                      onChange={(e) => setMouldDate(e.target.value)}
-                      sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
-                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                    />
-                  </Box>
-                </Box>
-                <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
-
-                <Box sx={{ overflowX: "auto", mb: 4 }}>
-                  <Table size="small" sx={{ minWidth: 1000 }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
-                          <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
-                        </TableCell>
-                        <TableCell colSpan={1} sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText, borderBottom: 'none' }}>
-                        </TableCell>
-                      </TableRow>
-
-                      <TableRow>
-                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
-                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
-                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Squeeze Pressure</TableCell>
-                        <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary, borderRight: `2px solid ${COLORS.border}` }}>Mould Hardness</TableCell>
-
-                        <TableCell width="40%" sx={{ bgcolor: '#fff7ed', color: COLORS.textSecondary }}>Remarks</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                        <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                        <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                        <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                          <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
-                        </TableCell>
-
-                        <TableCell>
-                          <SpecInput
-                            value={mouldState.remarks}
-                            onChange={(e: any) => handleChange('remarks', e.target.value)}
-                            placeholder="--"
-                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Box>
-                <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-                  {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
-                    <>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
-                      >
-                        Attach PDF / Image Files
-                      </Typography>
-
-                      <FileUploadSection
-                        files={attachedFiles}
-                        onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
-                        onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
-                        showAlert={showAlert}
-                        label="Attach PDF"
+                <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
+                  <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                      <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
+                      <TextField
+                        type="date"
+                        size="small"
+                        hiddenLabel
+                        value={mouldDate}
+                        onChange={(e) => setMouldDate(e.target.value)}
+                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
                         disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                       />
-                    </>
-                  )}
-                  <DocumentViewer trialId={trialId || ""} category="MOULDING" />
-                </Box>
+                    </Box>
+                  </Box>
+                  <Divider sx={{ mb: 2, borderColor: COLORS.blueHeaderText, opacity: 0.3 }} />
 
+                  <Box sx={{ overflowX: "auto", mb: 4 }}>
+                    <Table size="small" sx={{ minWidth: 1000 }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell colSpan={4} sx={{ bgcolor: COLORS.blueHeaderBg, color: COLORS.blueHeaderText, borderBottom: 'none' }}>
+                            <Typography variant="subtitle2" sx={{ color: 'inherit', letterSpacing: 1 }}>Moulding Parameters</Typography>
+                          </TableCell>
+                          <TableCell colSpan={1} sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText, borderBottom: 'none' }}>
+                          </TableCell>
+                        </TableRow>
 
-                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
-                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-                    <ActionButtons
-                      {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                      onSave={handleSaveAndContinue}
-                      showSubmit={false}
-                      saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                      saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                    >
-                      {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                        <Button
-                          variant="outlined"
-                          onClick={() => setIsEditing(!isEditing)}
-                          sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
+                        <TableRow>
+                          <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Mould Thickness</TableCell>
+                          <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Compressability</TableCell>
+                          <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary }}>Squeeze Pressure</TableCell>
+                          <TableCell width="15%" sx={{ bgcolor: '#f8fafc', color: COLORS.textSecondary, borderRight: `2px solid ${COLORS.border}` }}>Mould Hardness</TableCell>
+
+                          <TableCell width="40%" sx={{ bgcolor: '#fff7ed', color: COLORS.textSecondary }}>Remarks</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                          <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                          <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                          <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
+                            <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                          </TableCell>
+
+                          <TableCell>
+                            <SpecInput
+                              value={mouldState.remarks}
+                              onChange={(e: any) => handleChange('remarks', e.target.value)}
+                              placeholder="--"
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Box>
+                  <Box sx={{ p: 3, mt: 4, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                    {(user?.role !== 'HOD' && user?.role !== 'Admin' || isEditing) && (
+                      <>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ fontWeight: 700, mb: 1, textTransform: "uppercase", color: COLORS.primary }}
                         >
-                          {isEditing ? "Cancel Edit" : "Edit Details"}
-                        </Button>
-                      )}
-                    </ActionButtons>
+                          Attach PDF / Image Files
+                        </Typography>
+
+                        <FileUploadSection
+                          files={attachedFiles}
+                          onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                          onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                          showAlert={showAlert}
+                          label="Attach PDF"
+                          disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                        />
+                      </>
+                    )}
+                    <DocumentViewer trialId={trialId || ""} category="MOULDING" />
+                  </Box>
+
+
+                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                      <ActionButtons
+                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                        onSave={handleSaveAndContinue}
+                        showSubmit={false}
+                        saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                        saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                      >
+                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                          <Button
+                            variant="outlined"
+                            onClick={() => setIsEditing(!isEditing)}
+                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
+                          >
+                            {isEditing ? "Cancel Edit" : "Edit Details"}
+                          </Button>
+                        )}
+                      </ActionButtons>
+                    </Box>
+                  </Box>
+
+                </Paper>
+              </>
+            )}
+
+            <PreviewModal
+              open={previewMode}
+              onClose={() => setPreviewMode(false)}
+              onSubmit={handleFinalSave}
+              title="Verify Moulding Details"
+              subtitle="Review your moulding parameters"
+              submitted={submitted}
+              isSubmitting={loading}
+            >
+              <Box sx={{ p: 4 }}>
+
+                <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
+                <Grid container spacing={2} sx={{ mb: 4 }}>
+                  <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
+                  <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
+                  <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
+                  <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
+                </Grid>
+
+                <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
+                <Box sx={{
+                  p: 3,
+                  bgcolor: '#f8fafc',
+                  borderRadius: 2,
+                  border: `1px solid ${COLORS.border}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 3
+                }}>
+                  <Box flex={2}>
+                    <Typography variant="caption" color="textSecondary" display="block">REMARKS</Typography>
+                    <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
                   </Box>
                 </Box>
+                {attachedFiles.length > 0 && (
+                  <Box
+                    sx={{
+                      mt: 3,
+                      p: 2,
+                      bgcolor: "white",
+                      borderRadius: 2,
+                      border: `1px solid ${COLORS.border}`,
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                      ATTACHED FILES
+                    </Typography>
 
-              </Paper>
-            </>
-          )}
+                    {attachedFiles.map((file, i) => (
+                      <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
+                    ))}
+                  </Box>
+                )}
 
-          <PreviewModal
-            open={previewMode}
-            onClose={() => setPreviewMode(false)}
-            onSubmit={handleFinalSave}
-            title="Verify Moulding Details"
-            subtitle="Review your moulding parameters"
-            submitted={submitted}
-            isSubmitting={loading}
-          >
-            <Box sx={{ p: 4 }}>
-
-              <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
-              <Grid container spacing={2} sx={{ mb: 4 }}>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Thickness" value={mouldState.thickness} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Compressability" value={mouldState.compressability} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Pressure" value={mouldState.pressure} /></Grid>
-                <Grid size={{ xs: 6, sm: 3 }}><GridValueBox label="Hardness" value={mouldState.hardness} /></Grid>
-              </Grid>
-
-              <Typography variant="caption" sx={{ color: COLORS.textSecondary, mb: 2, display: 'block' }}>REMARKS & LOG</Typography>
-              <Box sx={{
-                p: 3,
-                bgcolor: '#f8fafc',
-                borderRadius: 2,
-                border: `1px solid ${COLORS.border}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 3
-              }}>
-                <Box flex={2}>
-                  <Typography variant="caption" color="textSecondary" display="block">REMARKS</Typography>
-                  <Typography variant="body2">{mouldState.remarks || "No remarks entered."}</Typography>
+                <Box sx={{ mt: 3 }}>
+                  <AlertMessage alert={alert} />
                 </Box>
               </Box>
-              {attachedFiles.length > 0 && (
-                <Box
-                  sx={{
-                    mt: 3,
-                    p: 2,
-                    bgcolor: "white",
-                    borderRadius: 2,
-                    border: `1px solid ${COLORS.border}`,
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                    ATTACHED FILES
-                  </Typography>
+            </PreviewModal>
+          </Container>
+        </Box>
+      </Box>
 
-                  {attachedFiles.map((file, i) => (
-                    <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
-                  ))}
-                </Box>
-              )}
-
-              <Box sx={{ mt: 3 }}>
-                <AlertMessage alert={alert} />
-              </Box>
-            </Box>
-          </PreviewModal>
-        </Container>
-      </Box >
+      {/* Profile Modal */}
+      {showProfile && (
+        <ProfileModal
+          onClose={() => setShowProfile(false)}
+          onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+        />
+      )}
     </ThemeProvider >
   );
 }

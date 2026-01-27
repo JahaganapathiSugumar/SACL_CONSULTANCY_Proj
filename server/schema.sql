@@ -294,15 +294,15 @@ GO
 
 INSERT INTO departments(department_name) VALUES
 ('ADMIN'),
-('NPD METHODS'),
-('NPD QC'),
-('SANDPLANT'),
-('FETTLING & VISUAL INSPECTION'),
-('MOULDING'),
-('PROCESS CONTROL(QC)'),
-('MACHINESHOP'),
-('METALLURGICAL INSPECTION(QC)'),
-('QA');
+('NPD METHODS'), --1
+('NPD QC'), --2
+('SANDPLANT'), --5
+('FETTLING & VISUAL INSPECTION'), --6
+('MOULDING'), --3
+('PROCESS CONTROL(QC)'), --4
+('MACHINESHOP'), --7
+('METALLURGICAL INSPECTION(QC)'), --8
+('QA'); --9
 GO
 
 CREATE TABLE audit_log (
@@ -397,13 +397,13 @@ GO
 INSERT INTO department_flow(department_id, sequence_no) VALUES
 (2, 1),
 (3, 2),
-(4, 4),
-(5, 7),
-(6, 5),
-(7, 3),
-(8, 9),
-(9, 6),
-(10, 8);
+(4, 5),
+(5, 6),
+(6, 3),
+(7, 4),
+(8, 7),
+(9, 8),
+(10, 9);
 GO
 
 -------------------------------MIGRATIONS----------------------------------
