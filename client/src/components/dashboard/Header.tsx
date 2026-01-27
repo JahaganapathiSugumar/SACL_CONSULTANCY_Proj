@@ -152,70 +152,31 @@ const Header: React.FC<HeaderProps> = ({
                             gap: 1.5,
                         }}
                     >
-                        <Box
-                            component="img"
-                            src="/assets/SACL-LOGO-01.svg"
-                            alt="Sakthi Auto"
-                            sx={{
-                                height: { xs: 35, sm: 40, md: 45 },
-                                width: 'auto',
-                                objectFit: 'contain',
-                                filter: 'brightness(0) invert(1)' // Make it white for the dark header
-                            }}
-                        />
-                        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 700,
-                                    lineHeight: 1,
-                                    fontSize: '1.2rem',
-                                    color: 'white',
-                                    letterSpacing: '1px'
+                        <Box sx={{
+                            width: { xs: 120, sm: 150 },
+                            height: { xs: 50, sm: 60 },
+                            bgcolor: 'white',
+                            borderRadius: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                            flexShrink: 0
+                        }}>
+                            <img
+                                src="/assets/SACL-LOGO-01.svg"
+                                alt="Logo"
+                                style={{
+                                    height: '100%',
+                                    width: '100%',
                                 }}
-                            >
-                                SACL
-                            </Typography>
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    fontSize: '0.65rem',
-                                    fontWeight: 500,
-                                    color: 'rgba(255,255,255,0.7)',
-                                    whiteSpace: 'nowrap'
+                                onError={(e) => {
+                                    console.error('Logo failed to load:', e);
                                 }}
-                            >
-                                Sakthi Auto Component Limited
-                            </Typography>
+                            />
                         </Box>
                     </Box>
 
-                    {/* Department Title Section */}
-                    {departmentInfo.showDepartment && (
-                        <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            ml: 2,
-                            px: 2,
-                            py: 0.5,
-                            bgcolor: 'rgba(230, 126, 34, 0.15)',
-                            borderRadius: '20px',
-                            border: '1px solid rgba(230, 126, 34, 0.3)',
-                        }}>
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 700,
-                                    fontSize: { xs: '0.85rem', sm: '1.1rem' },
-                                    color: '#E67E22',
-                                    letterSpacing: '0.5px',
-                                    textTransform: 'uppercase'
-                                }}
-                            >
-                                {departmentInfo.displayText}
-                            </Typography>
-                        </Box>
-                    )}
                 </Box>
 
                 {/* Right side - Icons and Profile */}
