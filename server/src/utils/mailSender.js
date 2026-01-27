@@ -16,14 +16,23 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendMail = async ({ to, subject, text, html }) => {
-  to.forEach(email => {
-    transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
+  if(Array.isArray(to)){
+    to.forEach(email => {
+      transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
+        if (error) {
+           logger.error('Email sending unexpected error:', err.message);
+           return { success: false, error: err.message };
+        }
+      });
+    });
+  }else{
+    transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: to, subject, text, html }, (error, info) => {
       if (error) {
          logger.error('Email sending unexpected error:', err.message);
          return { success: false, error: err.message };
       }
     });
-  });
+  }
 }
 
 export default sendMail;
