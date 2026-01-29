@@ -283,6 +283,7 @@ export const getProgressingTrials = async (req, res, next) => {
             SELECT 1
             FROM department_progress dp
             WHERE dp.department_id = @department_id
+            AND dp.approval_status = 'approved'
             AND dp.trial_id = t.trial_id
         );
     `;
