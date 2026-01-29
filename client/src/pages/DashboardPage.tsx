@@ -22,6 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import PendingTrialsView from '../components/dashboard/PendingTrialsView';
 import CompletedTrialsView from '../components/dashboard/CompletedTrialsView';
+import ProgressingTrialsGrid from '../components/dashboard/ProgressingTrialsGrid';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -140,6 +141,11 @@ const Dashboard: React.FC = () => {
                 </Box>
               ) : (
                 <StatsGrid stats={stats} />
+              )}
+
+              {/* Progressing Trials Grid for Moulding, PCQC, Sand Plant */}
+              {(user?.department_id === 4 || user?.department_id === 6 || user?.department_id === 7) && (
+                <ProgressingTrialsGrid departmentId={user?.department_id || 0} />
               )}
 
               {/* Initiate Card Button for Dept 2 (Methods) */}
