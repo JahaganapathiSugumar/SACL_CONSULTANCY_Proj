@@ -25,7 +25,7 @@ import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
     currentView: string;
-    onViewChange: (view: string) =>./ProgressingTrialsGrid
+    onViewChange: (view: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
