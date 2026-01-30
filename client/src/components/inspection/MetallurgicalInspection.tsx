@@ -264,7 +264,7 @@ function SectionTable({
   };
 
   const cavityRow = rows.find(r => r.label === "Cavity Number");
-  const dataRows = rows.filter(r => r.label !== "Cavity Number");
+  const dataRows = rows.filter(r => r.label !== "Cavity Number" && !r.label.toLowerCase().includes('rejection percentage'));
 
   return (
     <Box mb={4}>
@@ -927,7 +927,7 @@ export default function MetallurgicalInspection() {
       attachment: fileToMeta(microMeta['group']?.attachment ?? null),
     }));
 
-    const ndtMapped = mapRows(ndtRows);
+    const ndtMapped = mapRows(ndtRows.filter(r => !r.label.toLowerCase().includes('rejection percentage')));
     const findByLabel = (arr: any[], key: string) => arr.find((x: any) => (x.label || '').toLowerCase().includes(key));
     const inspectedMapped = findByLabel(ndtMapped, 'inspected');
     const rejectedMapped = findByLabel(ndtMapped, 'rejected');

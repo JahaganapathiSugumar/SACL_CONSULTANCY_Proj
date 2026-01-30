@@ -123,6 +123,7 @@ export default function VisualInspection({
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
+    const [ndtData, setNdtData] = useState<any[]>([]);
 
 
     const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
@@ -211,6 +212,110 @@ export default function VisualInspection({
         };
         if (trialId) fetchData();
     }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        const fetchNdtData = async () => {
+            if (trialId) {
+                try {
+                    const response = await inspectionService.getMetallurgicalInspection(trialId);
+                    if (response.success && response.data && response.data.length > 0) {
+                        const data = response.data[0];
+                        if (data.ndt_inspection) {
+                            const parsedNdt = typeof data.ndt_inspection === 'string'
+                                ? JSON.parse(data.ndt_inspection)
+                                : data.ndt_inspection;
+                            setNdtData(Array.isArray(parsedNdt) ? parsedNdt : []);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch NDT data:", error);
+                }
+            }
+        };
+        fetchNdtData();
+    }, [trialId]);
+
+    const NDTReadOnlyTable = ({ data }: { data: any[] }) => {
+        if (!data || data.length === 0) return null;
+
+        const tableRows = data.filter(r => r.label);
+        if (tableRows.length === 0) return null;
+
+        const getCols = (val: string) => (val || '').split('|').map(s => s.trim());
+        const maxCols = Math.max(...tableRows.map(r => getCols(r.value).length), 1);
+
+        const okValue = tableRows[0]?.ok;
+        const remarksValue = tableRows[0]?.remarks;
+
+        return (
+            <Box>
+                <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <ScienceIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>NDT INSPECTION ANALYSIS (READ ONLY)</Typography>
+                </Box>
+                <Divider sx={{ mb: 2, borderColor: COLORS.border }} />
+                <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                <TableCell sx={{ fontWeight: 600 }}>Parameter</TableCell>
+                                {Array.from({ length: maxCols }).map((_, i) => (
+                                    <TableCell key={i} sx={{ fontWeight: 600, textAlign: 'center' }}></TableCell>
+                                ))}
+                                <TableCell sx={{ fontWeight: 600, textAlign: 'center', bgcolor: '#f1f5f9' }}>Total</TableCell>
+                                <TableCell sx={{ fontWeight: 600, textAlign: 'center', width: 100, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
+                                <TableCell sx={{ fontWeight: 600, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {tableRows.map((r, i) => {
+                                const vals = getCols(r.value);
+                                return (
+                                    <TableRow key={i}>
+                                        <TableCell sx={{ fontWeight: 500, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r.label}</TableCell>
+                                        {Array.from({ length: maxCols }).map((_, idx) => (
+                                            <TableCell key={idx} sx={{ textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' }}>
+                                                {vals[idx] || '-'}
+                                            </TableCell>
+                                        ))}
+                                        <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f8fafc' }}>
+                                            {r.total ?? '-'}
+                                        </TableCell>
+                                        {i === 0 && (
+                                            <>
+                                                <TableCell rowSpan={tableRows.length} sx={{ textAlign: 'center', verticalAlign: 'middle', bgcolor: COLORS.successBg }}>
+                                                    {okValue === true || okValue === 1 || String(okValue) === "true" ? (
+                                                        <Chip label="OK" color="success" size="small" variant="filled" />
+                                                    ) : okValue === false || okValue === 0 || String(okValue) === "false" ? (
+                                                        <Chip label="NOT OK" color="error" size="small" variant="filled" />
+                                                    ) : '-'}
+                                                </TableCell>
+                                                <TableCell rowSpan={tableRows.length} sx={{ verticalAlign: 'top', bgcolor: '#fff7ed', minWidth: 200 }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        multiline
+                                                        rows={Math.max(3, tableRows.length)}
+                                                        value={remarksValue || ""}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        InputProps={{
+                                                            readOnly: true,
+                                                            style: { fontSize: '0.85rem', backgroundColor: 'white' }
+                                                        }}
+                                                        placeholder="No remarks"
+                                                    />
+                                                </TableCell>
+                                            </>
+                                        )}
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </Box>
+            </Box>
+        );
+    };
 
     const calculateRejectionPercentage = (colIndex: number): string => {
         const inspectedRow = rows.find(r => r.label === "Inspected Quantity");
@@ -570,6 +675,10 @@ export default function VisualInspection({
                             <>
                                 <BasicInfo trialId={trialId} />
 
+                                <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
+                                    <NDTReadOnlyTable data={ndtData} />
+                                </Paper>
+
                                 <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
 
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -580,7 +689,6 @@ export default function VisualInspection({
 
                                     <Grid container spacing={2} sx={{ mb: 2 }}>
                                     </Grid>
-
 
 
                                     <Box sx={{ overflowX: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 2 }}>
