@@ -362,14 +362,15 @@ export const permanentlyDeleteTrialReport = async (req, res, next) => {
 
 export const getProgressingTrials = async (req, res, next) => {
     const sql = `
-        SELECT t.trial_id, t.part_name, t.pattern_code, t.current_department_id
+        SELECT t.trial_id, t.part_name, t.pattern_code, t.current_department_id,
+               t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
+               t.sample_traceability, t.trial_type
         FROM trial_cards t
-        WHERE t.status = 'IN_PROGRESS' AND t.deleted_at IS NULL
+        WHERE t.status = 'IN_PROGRESS'
         AND NOT EXISTS (
             SELECT 1
             FROM department_progress dp
             WHERE dp.department_id = @department_id
-            AND dp.approval_status = 'approved'
             AND dp.trial_id = t.trial_id
         );
     `;

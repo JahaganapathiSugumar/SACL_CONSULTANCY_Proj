@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Card, CardContent } from '@mui/material';
+import { Box, Typography, Button, Card, CardContent, Table, TableBody, TableCell, TableRow, TableHead } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import { trialService } from '../../services/trialService';
 import ProgressingTrialModal from './ProgressingTrialModal';
 import GearSpinner from '../common/GearSpinner';
+import { formatDate } from '../../utils/dateUtils';
 
 interface ProgressingTrialsGridProps {
     departmentId: number;
@@ -62,76 +63,88 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                         <div style={{ transform: 'scale(0.7)' }}><GearSpinner /></div>
                     </Box>
                 ) : progressingTrials.length > 0 ? (
-                    <Box sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                            xs: '1fr',
-                            sm: 'repeat(2, 1fr)',
-                            md: 'repeat(3, 1fr)',
-                            lg: 'repeat(4, 1fr)'
-                        },
-                        gap: 2
-                    }}>
-                        {progressingTrials.map((trial) => (
-                            <Card
-                                key={trial.trial_id}
-                                sx={{
-                                    bgcolor: '#FFF3E0',
+                    <Box sx={{ overflowX: 'auto' }}>
+                        <Table
+                            size="small"
+                            sx={{
+                                minWidth: 1200,
+                                '& th': {
+                                    fontSize: '0.75rem',
+                                    py: 1,
+                                    px: 1.5,
+                                    bgcolor: '#f1f5f9',
+                                    fontWeight: 600,
                                     border: '1px solid #FFE0B2',
-                                    borderRadius: 2,
-                                    transition: 'all 0.2s ease',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: '0 4px 12px rgba(230, 126, 34, 0.2)',
-                                        borderColor: '#E67E22'
-                                    }
-                                }}
-                            >
-                                <CardContent sx={{ p: 2 }}>
-                                    <Typography
-                                        variant="subtitle2"
+                                    whiteSpace: 'nowrap'
+                                },
+                                '& td': {
+                                    fontSize: '0.75rem',
+                                    py: 1,
+                                    px: 1.5,
+                                    border: '1px solid #FFE0B2',
+                                    bgcolor: '#FFF3E0'
+                                }
+                            }}
+                        >
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Pattern Code</TableCell>
+                                    <TableCell>Part Name</TableCell>
+                                    <TableCell>Date of Sampling</TableCell>
+                                    <TableCell>No. of Moulds</TableCell>
+                                    <TableCell>DISA / FOUNDRY-A</TableCell>
+                                    <TableCell>Reason For Sampling</TableCell>
+                                    <TableCell>Sample Traceability</TableCell>
+                                    <TableCell>Trial Type</TableCell>
+                                    <TableCell align="center">Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {progressingTrials.map((trial) => (
+                                    <TableRow
+                                        key={trial.trial_id}
                                         sx={{
-                                            fontWeight: 700,
-                                            color: '#333',
-                                            mb: 0.5,
-                                            fontSize: '0.95rem'
+                                            '&:hover': {
+                                                bgcolor: '#FFE0B2 !important',
+                                                '& td': {
+                                                    bgcolor: '#FFE0B2 !important'
+                                                }
+                                            }
                                         }}
                                     >
-                                        {trial.pattern_code}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: '#666',
-                                            display: 'block',
-                                            mb: 1.5,
-                                            fontSize: '0.75rem',
-                                            lineHeight: 1.4
-                                        }}
-                                    >
-                                        {trial.part_name}
-                                    </Typography>
-                                    <Button
-                                        size="small"
-                                        variant="contained"
-                                        fullWidth
-                                        startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
-                                        onClick={() => {
-                                            setSelectedTrialId(trial.trial_id);
-                                            setIsModalOpen(true);
-                                        }}
-                                        sx={{
-                                            bgcolor: '#E67E22',
-                                            fontSize: '0.75rem',
-                                            py: 0.75,
-                                            '&:hover': { bgcolor: '#D35400' }
-                                        }}
-                                    >
-                                        View Details
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                        <TableCell sx={{ fontWeight: 600 }}>{trial.pattern_code}</TableCell>
+                                        <TableCell>{trial.part_name}</TableCell>
+                                        <TableCell>{formatDate(trial.date_of_sampling) || '-'}</TableCell>
+                                        <TableCell>{trial.plan_moulds || '-'}</TableCell>
+                                        <TableCell>{trial.disa || '-'}</TableCell>
+                                        <TableCell>{trial.reason_for_sampling || '-'}</TableCell>
+                                        <TableCell>{trial.sample_traceability || '-'}</TableCell>
+                                        <TableCell>{trial.trial_type || '-'}</TableCell>
+                                        <TableCell align="center">
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
+                                                onClick={() => {
+                                                    setSelectedTrialId(trial.trial_id);
+                                                    setIsModalOpen(true);
+                                                }}
+                                                sx={{
+                                                    bgcolor: '#E67E22',
+                                                    fontSize: '0.7rem',
+                                                    py: 0.5,
+                                                    px: 1.5,
+                                                    '&:hover': { bgcolor: '#D35400' },
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                View Details
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </Box>
                 ) : (
                     <Box
