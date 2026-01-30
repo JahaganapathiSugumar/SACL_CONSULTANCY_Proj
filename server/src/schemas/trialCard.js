@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+const jsonValueSchema = z.lazy(() =>
+    z.union([
+        z.string(),
+        z.number(),
+        z.boolean(),
+        z.null(),
+        z.record(z.string(), z.lazy(() => jsonValueSchema).optional()),
+        z.array(z.lazy(() => jsonValueSchema)),
+    ])
+);
+
 export const trialCardSchema = z.object({
     trial_id: z.string().min(1, "Trial ID is required").max(255),
     part_name: z.string().min(1, "Part Name is required").max(100),
@@ -10,7 +21,7 @@ export const trialCardSchema = z.object({
     }).default('INHOUSE MACHINING(NPD)'),
     initiated_by: z.string().min(1, "Initiated by is required").max(50),
     date_of_sampling: z.string().or(z.date()),
-    plan_moulds: z.union([z.number(), z.string()]).transform(v => Number(v)).refine(n => n > 0, "Plan moulds must be greater than 0").optional().nullable(),
+    plan_moulds: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     reason_for_sampling: z.string().optional().nullable(),
     status: z.enum(['CREATED', 'IN_PROGRESS', 'CLOSED'], {
         message: "Invalid status selected"
@@ -20,7 +31,7 @@ export const trialCardSchema = z.object({
     current_department_id: z.number().int().optional().nullable(),
     disa: z.string().max(50, "Disa must be 50 characters or less").optional().nullable(),
     sample_traceability: z.string().max(50, "Sample Traceability must be 50 characters or less").optional().nullable(),
-    mould_correction: z.any().optional().nullable(), // JSON structure
+    mould_correction: jsonValueSchema.optional().nullable(),
     is_edit: z.boolean().default(true)
 });
 

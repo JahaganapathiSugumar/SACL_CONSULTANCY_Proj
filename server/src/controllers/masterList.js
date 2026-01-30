@@ -134,20 +134,6 @@ export const createMasterList = async (req, res, next) => {
         pattern_plate_weight_pp, crush_pin_height_pp, yield_label, remarks
     } = req.body || {};
 
-    if (
-        !pattern_code ||
-        !part_name ||
-        !material_grade ||
-        !chemical_composition ||
-        !micro_structure ||
-        !tensile ||
-        !impact ||
-        !hardness ||
-        !xray
-    ) {
-        return res.status(400).json({ success: false, message: 'Missing required fields' });
-    }
-
     const chemicalCompositionStr = typeof chemical_composition === 'object'
         ? JSON.stringify(chemical_composition)
         : chemical_composition;
@@ -242,8 +228,8 @@ export const updateMasterList = async (req, res, next) => {
         pattern_code, part_name, material_grade, chemical_composition, micro_structure, tensile, impact, hardness, xray,
         number_of_cavity, cavity_identification, pattern_material, core_weight, core_mask_thickness,
         estimated_casting_weight, estimated_bunch_weight, pattern_plate_thickness_sp, pattern_plate_weight_sp,
-        core_mask_weight_sp, crush_pin_height_sp, calculated_yield_sp, pattern_plate_thickness_pp,
-        pattern_plate_weight_pp, core_mask_weight_pp, crush_pin_height_pp, calculated_yield_pp,
+        core_mask_weight_sp, crush_pin_height_sp, pattern_plate_thickness_pp,
+        pattern_plate_weight_pp, crush_pin_height_pp,
         yield_label, remarks
     } = req.body || {};
 
@@ -323,7 +309,7 @@ export const updateMasterList = async (req, res, next) => {
                     id,
                     number_of_cavity, cavity_identification, pattern_material,
                     core_weight, core_mask_thickness, estimated_casting_weight, estimated_bunch_weight,
-                    pattern_plate_thickness_sp, pattern_plate_weight_sp,
+                    pattern_plate_thickness_sp, pattern_plate_weight_sp, core_mask_weight_sp,
                     crush_pin_height_sp,
                     pattern_plate_thickness_pp, pattern_plate_weight_pp,
                     crush_pin_height_pp,

@@ -337,15 +337,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 }
             }
 
-            if (!response.success) {
-                let errorMessage = `Server error: ${response.status}`;
-                try {
-                    const errorData = JSON.parse(response);
-                    errorMessage = errorData.message || errorMessage;
-                } catch {
-                    errorMessage = response || errorMessage;
-                }
-                throw new Error(errorMessage);
+            if (response && response.success === false) {
+                throw new Error(response.message || 'Failed to process master list request');
             }
 
             Swal.fire({
