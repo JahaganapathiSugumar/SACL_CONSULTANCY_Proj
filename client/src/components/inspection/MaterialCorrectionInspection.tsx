@@ -353,7 +353,7 @@ export default function MaterialCorrection() {
                                                                     {h}
                                                                 </TableCell>
                                                             ))}
-                                                            <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Pouring temp Â°C</TableCell>
+                                                            <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Pouring temp °C</TableCell>
                                                             <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Inoculant per Sec</TableCell>
                                                             <TableCell align="center" sx={{ backgroundColor: '#f1f5f9', color: 'black', fontWeight: 600, borderBottom: `1px solid ${COLORS.headerBg}` }}>Inoculant type</TableCell>
                                                         </TableRow>
@@ -476,7 +476,7 @@ export default function MaterialCorrection() {
                                             <Box sx={{ mb: 3, p: 2, bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                                                 <Typography variant="caption" color="text.secondary" display="block" mb={1}>PROCESS PARAMETERS</Typography>
                                                 <Grid container spacing={2}>
-                                                    <Grid size={{ xs: 4 }}><Typography variant="body2">Temp <b>{previewPayload.process_parameters.pouringTemp || "-"}Â°C</b></Typography></Grid>
+                                                    <Grid size={{ xs: 4 }}><Typography variant="body2">Temp <b>{previewPayload.process_parameters.pouringTemp || "-"}°C</b></Typography></Grid>
                                                     <Grid size={{ xs: 4 }}><Typography variant="body2">Inoc/Sec <b>{previewPayload.process_parameters.inoculantPerSec || "-"}</b></Typography></Grid>
                                                     <Grid size={{ xs: 4 }}><Typography variant="body2">Type <b>{previewPayload.process_parameters.inoculantType || "-"}</b></Typography></Grid>
                                                 </Grid>
@@ -488,7 +488,7 @@ export default function MaterialCorrection() {
                                                         ATTACHED FILES
                                                     </Typography>
                                                     {attachedFiles.map((file, i) => (
-                                                        <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
+                                                        <Typography key={i} variant="body2">• {file.name}</Typography>
                                                     ))}
                                                 </Box>
                                             )}

@@ -145,29 +145,29 @@ const parseChemicalComposition = (composition: any) => { // eslint-disable-line 
 const parseTensileData = (tensile: string) => {
   if (!tensile) return { tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" };
   let tensileStrength = "", yieldStrength = "", elongation = "", impactCold = "", impactRoom = "";
-  const spaceSepMatches = tensile.match(/([â‰¥>=]+)?\s*(\d+)\s*(?:MPa|N\/mmÂ²|N\/mm2)?/g);
+  const spaceSepMatches = tensile.match(/([≥>=]+)?\s*(\d+)\s*(?:MPa|N\/mm²|N\/mm2)?/g);
   if (spaceSepMatches && spaceSepMatches.length >= 2) {
-    const first = spaceSepMatches[0].match(/([â‰¥>=]+)?\s*(\d+)/);
-    if (first) tensileStrength = (first[1] || "â‰¥") + first[2];
-    const second = spaceSepMatches[1].match(/([â‰¥>=]+)?\s*(\d+)/);
-    if (second) yieldStrength = (second[1] || "â‰¥") + second[2];
+    const first = spaceSepMatches[0].match(/([≥>=]+)?\s*(\d+)/);
+    if (first) tensileStrength = (first[1] || "≥") + first[2];
+    const second = spaceSepMatches[1].match(/([≥>=]+)?\s*(\d+)/);
+    if (second) yieldStrength = (second[1] || "≥") + second[2];
     if (spaceSepMatches.length >= 3) {
-      const third = spaceSepMatches[2].match(/([â‰¥>=]+)?\s*(\d+)/);
-      if (third) elongation = (third[1] || "â‰¥") + third[2];
+      const third = spaceSepMatches[2].match(/([≥>=]+)?\s*(\d+)/);
+      if (third) elongation = (third[1] || "≥") + third[2];
     }
     return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
   }
   const lines = tensile.split("\n");
   lines.forEach((line) => {
     const cleanLine = line.trim();
-    if (cleanLine.match(/\d+\s*(MPa|N\/mmÂ²)/) || cleanLine.includes("Tensile") || cleanLine.match(/[â‰¥>]\s*\d+/)) {
-      const match = cleanLine.match(/([â‰¥>]?)\s*(\d+)/); if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
+    if (cleanLine.match(/\d+\s*(MPa|N\/mm²)/) || cleanLine.includes("Tensile") || cleanLine.match(/[≥>]\s*\d+/)) {
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !tensileStrength) tensileStrength = `${match[1]}${match[2]}`;
     }
     if (cleanLine.includes("Yield")) {
-      const match = cleanLine.match(/([â‰¥>]?)\s*(\d+)/); if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !yieldStrength) yieldStrength = `${match[1]}${match[2]}`;
     }
     if (cleanLine.includes("Elongation") || cleanLine.includes("%")) {
-      const match = cleanLine.match(/([â‰¥>]?)\s*(\d+)/); if (match && !elongation) elongation = `${match[1]}${match[2]}`;
+      const match = cleanLine.match(/([≥>]?)\s*(\d+)/); if (match && !elongation) elongation = `${match[1]}${match[2]}`;
     }
   });
   return { tensileStrength, yieldStrength, elongation, impactCold, impactRoom };
@@ -180,23 +180,23 @@ const parseMicrostructureData = (microstructure: string) => {
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
     if (cleanLine.includes("nodularity") || cleanLine.includes("spheroidization")) {
-      const match = cleanLine.match(/([â‰¥â‰¤]?)\s*(\d+)/);
+      const match = cleanLine.match(/([≥≤]?)\s*(\d+)/);
       if (match) nodularity = `${match[1]}${match[2]}`;
     }
     else if (cleanLine.includes("shape") && cleanLine.match(/(\d+)\s*%/)) {
-      const match = cleanLine.match(/([â‰¥â‰¤<>]?)\s*(\d+)\s*%/);
-      if (match && !nodularity) nodularity = `${match[1] || "â‰¥"}${match[2]}`;
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)\s*%/);
+      if (match && !nodularity) nodularity = `${match[1] || "≥"}${match[2]}`;
     }
     if (cleanLine.includes("pearlite") || cleanLine.includes("pearlitic")) {
-      const match = cleanLine.match(/([â‰¥â‰¤<>]?)\s*(\d+)/);
+      const match = cleanLine.match(/([≥≤<>]?)\s*(\d+)/);
       if (match) pearlite = `${match[1]}${match[2]}`;
     }
     else if (cleanLine.includes("matrix") && cleanLine.includes("ferrite")) {
-      const match = cleanLine.match(/([â‰¥â‰¤<>=]?)\s*(\d+)\s*%/);
-      if (match && !pearlite) pearlite = `${match[1] || "â‰¥"}${match[2]}`;
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)\s*%/);
+      if (match && !pearlite) pearlite = `${match[1] || "≥"}${match[2]}`;
     }
     if (cleanLine.includes("carbide")) {
-      const match = cleanLine.match(/([â‰¥â‰¤<>=]?)\s*(\d+)/);
+      const match = cleanLine.match(/([≥≤<>=]?)\s*(\d+)/);
       if (match) carbide = `${match[1]}${match[2]}`;
     }
   });
@@ -210,15 +210,15 @@ const parseHardnessData = (hardness: string) => {
   lines.forEach((line) => {
     const cleanLine = line.trim().toLowerCase();
     if (cleanLine.includes("surface")) {
-      const match = cleanLine.match(/(\d+\s*[-â€“]\s*\d+|\d+)/);
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
       if (match) surface = match[1].replace(/\s+/g, ' ');
     }
     else if (cleanLine.includes("core")) {
-      const match = cleanLine.match(/(\d+\s*[-â€“]\s*\d+|\d+)/);
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
       if (match) core = match[1].replace(/\s+/g, ' ');
     }
     else if (!surface) {
-      const match = cleanLine.match(/(\d+\s*[-â€“]\s*\d+|\d+)/);
+      const match = cleanLine.match(/(\d+\s*[-–]\s*\d+|\d+)/);
       if (match) surface = match[1].replace(/\s+/g, ' ');
     }
   });

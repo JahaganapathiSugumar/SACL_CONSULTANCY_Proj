@@ -450,7 +450,7 @@ function MouldingTable() {
                     </Typography>
 
                     {attachedFiles.map((file, i) => (
-                      <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
+                      <Typography key={i} variant="body2">• {file.name}</Typography>
                     ))}
                   </Box>
                 )}

@@ -569,7 +569,7 @@ function PouringDetailsTable() {
                                                                             value={pouringTemp}
                                                                             onChange={(e: any) => setPouringTemp(e.target.value)}
                                                                             InputProps={{
-                                                                                endAdornment: <InputAdornment position="end">Â°C</InputAdornment>,
+                                                                                endAdornment: <InputAdornment position="end">°C</InputAdornment>,
                                                                             }}
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                         />
@@ -764,7 +764,7 @@ function PouringDetailsTable() {
                                             </td>
                                             <td style={{ border: '1px solid black', padding: '12px' }}>
                                                 <div style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                                                    <span style={dataFontStyle}>{previewPayload?.pouringTemp}Â°C</span>
+                                                    <span style={dataFontStyle}>{previewPayload?.pouringTemp}°C</span>
                                                 </div>
                                                 <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
                                                     <u style={{ fontWeight: 'bold' }}>Inoculation: <span style={{ ...dataFontStyle, fontWeight: 'normal' }}>{previewPayload?.inoculation?.text}</span></u><br />
@@ -789,7 +789,7 @@ function PouringDetailsTable() {
                                     <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 1, bgcolor: "white" }}>
                                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>ATTACHED FILES:</Typography>
                                         {previewPayload.attachedFiles.map((file: File, i: number) => (
-                                            <Typography key={i} variant="body2">â€¢ {file.name}</Typography>
+                                            <Typography key={i} variant="body2">• {file.name}</Typography>
                                         ))}
                                     </Box>
                                 )}

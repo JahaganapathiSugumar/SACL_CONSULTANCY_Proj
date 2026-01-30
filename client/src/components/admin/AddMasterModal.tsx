@@ -176,7 +176,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             // Xray Parsing
             let xrayVal = '', mpiVal = '';
             if (initialData.xray) {
-                const parts = initialData.xray.split('â€¢');
+                const parts = initialData.xray.split('•');
                 const xrayPart = parts.find((p: string) => p.trim().startsWith('X-Ray:'));
                 const mpiPart = parts.find((p: string) => p.trim().startsWith('MPI:'));
                 if (xrayPart) xrayVal = xrayPart.replace('X-Ray:', '').trim();
@@ -292,7 +292,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 formData.xray.trim() ? `X-Ray: ${formData.xray.trim()}` : '',
                 formData.mpi.trim() ? `MPI: ${formData.mpi.trim()}` : ''
             ].filter(v => v !== '');
-            const xray = xrayFields.length > 0 ? xrayFields.join(' â€¢ ') : null;
+            const xray = xrayFields.length > 0 ? xrayFields.join(' • ') : null;
 
             const payloadObj: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
                 pattern_code: formData.pattern_code.trim(),
@@ -654,7 +654,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
 
                                         const xrayValue = value
                                             .replace(mpiMatch[0], "")
-                                            .replace(/â€¢$/, "")
+                                            .replace(/•$/, "")
                                             .trim();
 
                                         handleInputChange("xray", xrayValue);
