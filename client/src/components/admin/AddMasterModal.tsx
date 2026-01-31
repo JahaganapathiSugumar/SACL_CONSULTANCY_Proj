@@ -26,8 +26,6 @@ import { masterListService } from '../../services/masterListService';
 import FileUploadSection from '../common/FileUploadSection';
 import ActionButtons from '../common/ActionButtons';
 import Swal from 'sweetalert2';
-import { masterCardSchema } from '../../schemas/masterCard';
-import { z } from 'zod';
 
 interface AddMasterModalProps {
     isOpen: boolean;
@@ -75,16 +73,14 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
     const [loading, setLoading] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
     const [showToolingTable, setShowToolingTable] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
     const handleInputChange = (field: string, value: string) => {
         setFormData((prev: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
             ...prev,
             [field]: value
         }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: undefined }));
-        }
+
     };
 
     const handleChemicalChange = (element: string, value: string) => {
@@ -326,11 +322,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 remarks: formData.remarks
             };
 
-            const validationResult = masterCardSchema.safeParse(payloadObj);
-            if (!validationResult.success) {
-                setErrors(validationResult.error.flatten().fieldErrors);
-                throw new Error("Please check the form for errors.");
-            }
+
 
             let response;
 
@@ -501,8 +493,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('pattern_code', e.target.value)}
                                 placeholder="e.g., PC-001"
                                 size="small"
-                                error={!!errors.pattern_code}
-                                helperText={errors.pattern_code?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -514,8 +504,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('part_name', e.target.value)}
                                 placeholder="e.g., Gear Wheel"
                                 size="small"
-                                error={!!errors.part_name}
-                                helperText={errors.part_name?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -526,8 +514,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('material_grade', e.target.value)}
                                 placeholder="e.g., EN8"
                                 size="small"
-                                error={!!errors.material_grade}
-                                helperText={errors.material_grade?.[0]}
                             />
                         </Grid>
                     </Grid>
@@ -578,8 +564,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('micro_structure', e.target.value)}
                                 placeholder="e.g., Fine pearlite with ferrite"
                                 size="small"
-                                error={!!errors.micro_structure}
-                                helperText={errors.micro_structure?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
@@ -592,8 +576,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('tensile_strength_min', e.target.value)}
                                         placeholder="e.g., 550 MPa"
                                         size="small"
-                                        error={!!errors.tensile}
-                                        helperText={errors.tensile?.[0]}
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 12 }}>
@@ -604,7 +586,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('yield_strength_min', e.target.value)}
                                         placeholder="e.g., 420 MPa"
                                         size="small"
-                                        error={!!errors.tensile} // Combined into tensile validation usually, but can be separate if needed. The schema validates 'tensile' string. If fails, both might light up.
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 12 }}>
@@ -615,7 +596,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('elongation', e.target.value)}
                                         placeholder="e.g., 12%"
                                         size="small"
-                                        error={!!errors.tensile}
                                     />
                                 </Grid>
                             </Grid>
@@ -628,8 +608,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('impact_cold', e.target.value)}
                                 placeholder="e.g., 18 J"
                                 size="small"
-                                error={!!errors.impact}
-                                helperText={errors.impact?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -640,7 +618,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('impact_room', e.target.value)}
                                 placeholder="e.g., 20 J"
                                 size="small"
-                                error={!!errors.impact}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -651,8 +628,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('hardness_surface', e.target.value)}
                                 placeholder="e.g., 62 HRC"
                                 size="small"
-                                error={!!errors.hardness}
-                                helperText={errors.hardness?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -663,7 +638,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('hardness_core', e.target.value)}
                                 placeholder="e.g., 58 HRC"
                                 size="small"
-                                error={!!errors.hardness}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -692,8 +666,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 }}
                                 placeholder="e.g., No internal defects"
                                 size="small"
-                                error={!!errors.xray}
-                                helperText={errors.xray?.[0]}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -704,7 +676,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('mpi', e.target.value)}
                                 placeholder="e.g., No indications"
                                 size="small"
-                                error={!!errors.xray} // Mapping to xray schema field if combined, but checking schema it has xray and mpi separate? Check schema.
                             />
                         </Grid>
                     </Grid>
@@ -784,8 +755,6 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                             value={formData[row.fieldRight || row.sp] || ""}
                                                             onChange={(e) => handleInputChange(row.fieldRight || row.sp, e.target.value)}
                                                             size="small"
-                                                            error={!!errors[row.fieldRight || row.sp]}
-                                                            helperText={errors[row.fieldRight || row.sp]?.[0]}
                                                         />
                                                     </TableCell>
                                                     <TableCell sx={{ p: 0.5 }}>

@@ -46,8 +46,7 @@ import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
-import { machineShopSchema } from "../../schemas/inspections";
-import { z } from "zod";
+
 
 type Row = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -76,7 +75,7 @@ export default function McShopInspection({
   const departmentInfo = getDepartmentInfo(user);
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
 
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
   const makeInitialRows = (cavLabels: string[]): Row[] => [
     { id: `cavity-${generateUid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
@@ -343,13 +342,7 @@ export default function McShopInspection({
       is_edit: isEditing
     };
 
-    const result = machineShopSchema.safeParse(validationPayload);
 
-    if (!result.success) {
-      setErrors(result.error.flatten().fieldErrors);
-      showAlert("error", "Please fill in all required fields.");
-      return;
-    }
 
     setPreviewPayload(payload);
     setPreviewMode(true);
@@ -542,13 +535,10 @@ export default function McShopInspection({
                         value={date}
                         onChange={(e) => {
                           setDate(e.target.value);
-                          if (errors.inspection_date) setErrors(prev => ({ ...prev, inspection_date: undefined }));
                         }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
                         disabled={user?.role === 'HOD' || user?.role === 'Admin'}
-                        error={!!errors.inspection_date}
-                        helperText={errors.inspection_date?.[0]}
                       />
                     </Grid>
 

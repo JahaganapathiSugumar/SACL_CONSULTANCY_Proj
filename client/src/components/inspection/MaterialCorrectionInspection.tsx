@@ -49,8 +49,7 @@ import { ActionButtons, EmptyState } from "../common";
 import departmentProgressService from "../../services/departmentProgressService";
 import { useAlert } from "../../hooks/useAlert";
 import { apiService } from "../../services/commonService";
-import { materialCorrectionSchema } from "../../schemas/inspections";
-import { z } from "zod";
+
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
@@ -69,7 +68,7 @@ export default function MaterialCorrection() {
     const [remarks, setRemarks] = useState("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
     const [chemState, setChemState] = useState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
     const [processState, setProcessState] = useState({ pouringTemp: "", inoculantPerSec: "", inoculantType: "" });
@@ -182,12 +181,7 @@ export default function MaterialCorrection() {
             is_edit: isEditing
         };
 
-        const result = materialCorrectionSchema.safeParse(payload);
-        if (!result.success) {
-            setErrors(result.error.flatten().fieldErrors);
-            showAlert("error", "Please fill in all required fields.");
-            return;
-        }
+
 
         setPreviewPayload(payload);
         setPreviewOpen(true);

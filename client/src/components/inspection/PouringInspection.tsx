@@ -43,8 +43,7 @@ import { formatDate } from "../../utils";
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
-import { pouringDetailsSchema } from "../../schemas/inspections";
-import { z } from "zod";
+
 
 const COLORS = {
     primary: "#1e293b",
@@ -181,7 +180,7 @@ function PouringDetailsTable() {
     }, [user, trialId]);
     const [loading, setLoading] = useState(false);
 
-    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
     const [pouringDate, setPouringDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [heatCode, setHeatCode] = useState<string>("");
@@ -301,28 +300,6 @@ function PouringDetailsTable() {
             remarksText,
             attachedFiles
         };
-
-        const validationPayload = {
-            trial_id: trialId,
-            pour_date: pouringDate,
-            heat_code: heatCode,
-            composition: chemState,
-            no_of_mould_poured: noOfMouldPoured,
-            pouring_temp_c: pouringTemp,
-            pouring_time_sec: pouringTime,
-            inoculation: { Text: inoculationText, Stream: inoculationStream, Inmould: inoculationInmould },
-            other_remarks: { "F/C & Heat No.": ficHeatNo, "PP Code": ppCode, "Followed by": followedBy, "Username": userName },
-            remarks: remarksText,
-            is_edit: isEditing
-        };
-
-        const result = pouringDetailsSchema.safeParse(validationPayload);
-
-        if (!result.success) {
-            setErrors(result.error.flatten().fieldErrors);
-            showAlert("error", "Please fill in all required fields.");
-            return;
-        }
 
         setPreviewPayload(payload);
         setPreviewMode(true);
@@ -537,11 +514,8 @@ function PouringDetailsTable() {
                                                                             value={heatCode}
                                                                             onChange={(e: any) => {
                                                                                 setHeatCode(e.target.value);
-                                                                                if (errors.heat_code) setErrors(prev => ({ ...prev, heat_code: undefined }));
                                                                             }}
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                                                            error={!!errors.heat_code}
-                                                                            helperText={errors.heat_code?.[0]}
                                                                         />
                                                                     </Box>
                                                                 </Box>
@@ -585,12 +559,9 @@ function PouringDetailsTable() {
                                                                                 value={noOfMouldPoured}
                                                                                 onChange={(e: any) => {
                                                                                     setNoOfMouldPoured(e.target.value);
-                                                                                    if (errors.no_of_mould_poured) setErrors(prev => ({ ...prev, no_of_mould_poured: undefined }));
                                                                                 }}
                                                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                                                                                 sx={{ width: '100px' }}
-                                                                                error={!!errors.no_of_mould_poured}
-                                                                                helperText={errors.no_of_mould_poured?.[0]}
                                                                             />
                                                                         </Box>
                                                                     </Grid>

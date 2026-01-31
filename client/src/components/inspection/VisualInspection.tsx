@@ -48,8 +48,7 @@ import { useNavigate } from "react-router-dom";
 import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
-import { visualInspectionSchema } from "../../schemas/inspections";
-import { z } from "zod";
+
 import { fileToMeta, generateUid, validateFileSizes, formatDateTime } from '../../utils';
 import type { InspectionRow, GroupMetadata } from '../../types/inspection';
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
@@ -417,7 +416,7 @@ export default function VisualInspection({
     const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
     const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
-    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -739,14 +738,6 @@ export default function VisualInspection({
                 ndt_inspection_remarks: ndtRows[0]?.remarks,
                 is_edit: isEditing
             };
-
-            const result = visualInspectionSchema.safeParse(validationPayload);
-            if (!result.success) {
-                setErrors(result.error.flatten().fieldErrors);
-                showAlert("error", "Please fill in all required fields.");
-                setSaving(false);
-                return;
-            }
 
             setPreviewPayload(payload);
             setPreviewMode(true);

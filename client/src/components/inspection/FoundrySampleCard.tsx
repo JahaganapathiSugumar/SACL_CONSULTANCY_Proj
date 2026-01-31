@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { z } from "zod";
+
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -62,7 +62,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 
-import { trialCardSchema } from "../../schemas/trialCard";
+
 
 interface PartData {
   id: number;
@@ -301,7 +301,6 @@ function FoundrySampleCard() {
   const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] = useState<boolean>(false);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
 
   const trialIdFromUrl = new URLSearchParams(window.location.search).get('trial_id') || "";
 
@@ -515,14 +514,6 @@ function FoundrySampleCard() {
       hardness: hardnessState,
       is_edit: isEditing
     };
-
-    const result = trialCardSchema.safeParse(payload);
-
-    if (!result.success) {
-      setErrors(result.error.flatten().fieldErrors);
-      showAlert("error", "Please fill in all required fields.");
-      return;
-    }
 
     setPreviewPayload(payload);
     setPreviewMode(true);
@@ -1130,8 +1121,7 @@ function FoundrySampleCard() {
                             }}
                             size="small"
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                            error={!!errors.date_of_sampling}
-                            helperText={errors.date_of_sampling?.[0]}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
                         </TableCell>
                         <TableCell>
@@ -1149,8 +1139,6 @@ function FoundrySampleCard() {
                               placeholder="20"
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               InputLabelProps={{ shrink: true }}
-                              error={!!errors.plan_moulds}
-                              helperText={errors.plan_moulds?.[0]}
                               sx={{
                                 bgcolor: '#FFF59D',
                                 "& .MuiInputBase-input": { color: "black !important" },
@@ -1161,7 +1149,7 @@ function FoundrySampleCard() {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <FormControl fullWidth size="small" error={!!errors.disa}>
+                          <FormControl fullWidth size="small">
                             <Select
                               value={machine}
                               onChange={(e) => {
@@ -1180,11 +1168,11 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.disa && <Typography variant="caption" color="error" sx={{ mx: 1.5, mt: 0.5 }}>{errors.disa[0]}</Typography>}
+                            </Select>
                           </FormControl>
                         </TableCell>
                         <TableCell>
-                          <FormControl fullWidth size="small" error={!!errors.reason_for_sampling}>
+                          <FormControl fullWidth size="small">
                             <Select
                               value={reason}
                               onChange={(e) => {
@@ -1204,7 +1192,7 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.reason_for_sampling && <Typography variant="caption" color="error" sx={{ mx: 1.5, mt: 0.5 }}>{errors.reason_for_sampling[0]}</Typography>}
+                            </Select>
                           </FormControl>
                           {reason === 'Others' && (
                             <TextField
@@ -1218,7 +1206,7 @@ function FoundrySampleCard() {
                               }}
                               sx={{ mt: 1 }}
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                              error={!!errors.reason_for_sampling && reason === 'Others' && !customReason}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             />
                           )}
                         </TableCell>
@@ -1233,12 +1221,11 @@ function FoundrySampleCard() {
                             size="small"
                             placeholder="Enter option"
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                            error={!!errors.sample_traceability}
-                            helperText={errors.sample_traceability?.[0]}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
                         </TableCell>
                         <TableCell>
-                          <FormControl component="fieldset" fullWidth error={!!errors.trial_type}>
+                          <FormControl component="fieldset" fullWidth>
                             <RadioGroup
                               value={trialType}
                               onChange={(e) => {
@@ -1257,7 +1244,6 @@ function FoundrySampleCard() {
                                 />
                               ))}
                             </RadioGroup>
-                            {errors.trial_type && <Typography variant="caption" color="error">{errors.trial_type[0]}</Typography>}
                           </FormControl>
                         </TableCell>
                         <TableCell align="center">
@@ -1518,15 +1504,17 @@ function FoundrySampleCard() {
           </DialogActions>
         </Dialog>
 
-        {/* Profile Modal */}
-        {showProfile && (
-          <ProfileModal
-            onClose={() => setShowProfile(false)}
-            onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
-          />
-        )}
-      </Box>
-    </ThemeProvider>
+        {/* Profile Modal */ }
+  {
+    showProfile && (
+      <ProfileModal
+        onClose={() => setShowProfile(false)}
+        onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+      />
+    )
+  }
+      </Box >
+    </ThemeProvider >
   );
 }
 

@@ -42,8 +42,7 @@ import BasicInfo from "../dashboard/BasicInfo";
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
-import { sandPropertiesSchema } from "../../schemas/inspections";
-import { z } from "zod";
+
 
 interface SandTableProps {
   submittedData?: {
@@ -80,7 +79,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     remarks: ""
   });
 
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
 
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
@@ -196,13 +195,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       is_edit: isEditing
     };
 
-    const result = sandPropertiesSchema.safeParse(payload);
 
-    if (!result.success) {
-      setErrors(result.error.flatten().fieldErrors);
-      showAlert("error", "Please fill in all required fields.");
-      return;
-    }
 
     setPreviewMode(true);
   };
@@ -368,11 +361,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                                   value={sandDate}
                                   onChange={(e) => {
                                     setSandDate(e.target.value);
-                                    if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
                                   }}
                                   sx={{ bgcolor: 'white', borderRadius: 1 }}
-                                  error={!!errors.date}
-                                  helperText={errors.date?.[0]}
                                 />
                               </Box>
                             </TableCell>
@@ -417,16 +407,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                                   value={(sandProps as any)[key]}
                                   onChange={(e: any) => {
                                     handleChange(key, e.target.value);
-                                    // map key to schema key helper
-                                    const schemaKeyMap: any = {
-                                      tClay: 't_clay', aClay: 'a_clay', perm: 'permeability'
-                                    };
-                                    const schemaKey = schemaKeyMap[key] || key;
-                                    if (errors[schemaKey]) setErrors(prev => ({ ...prev, [schemaKey]: undefined }));
                                   }}
                                   disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                  error={!!errors[(key === 'tClay' ? 't_clay' : key === 'aClay' ? 'a_clay' : key === 'perm' ? 'permeability' : key)]}
-                                  helperText={errors[(key === 'tClay' ? 't_clay' : key === 'aClay' ? 'a_clay' : key === 'perm' ? 'permeability' : key)]?.[0]}
                                 />
                               </TableCell>
                             ))}
