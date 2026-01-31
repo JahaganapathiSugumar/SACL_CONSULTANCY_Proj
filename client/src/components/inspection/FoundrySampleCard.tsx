@@ -243,6 +243,7 @@ function FoundrySampleCard() {
   const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
   const [trialId, setTrialId] = useState<string>("");
   const [trialNo, setTrialNo] = useState<string>("");
+  const [initiatedBy, setInitiatedBy] = useState<string>("");
   const [masterParts, setMasterParts] = useState<PartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
@@ -352,6 +353,7 @@ function FoundrySampleCard() {
             setSamplingDate(data.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
             setPlanMoulds(data.plan_moulds || '');
             setMachine(data.disa || '');
+            setInitiatedBy(data.initiated_by || '');
             setReason(data.reason_for_sampling || '');
             setSampleTraceability(data.sample_traceability && data.sample_traceability !== 'null' && data.sample_traceability !== 'undefined' ? data.sample_traceability : '');
             setTrialType(data.trial_type && data.trial_type !== 'null' && data.trial_type !== 'undefined' ? data.trial_type : '');
@@ -534,6 +536,7 @@ function FoundrySampleCard() {
           const payload = {
             trial_id: trialIdFromUrl,
             user_name: user?.username || 'Unknown',
+            initiated_by: initiatedBy || 'Unknown',
             user_ip: userIP,
             part_name: selectedPart?.part_name,
             pattern_code: selectedPart?.pattern_code,
@@ -553,6 +556,7 @@ function FoundrySampleCard() {
           const result = trialCardSchema.safeParse(payload);
           if (!result.success) {
             setErrors(result.error.flatten().fieldErrors);
+            showAlert("error", "Validation failed. Please check the form for errors.");
             return;
           }
 
