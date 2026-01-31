@@ -14,13 +14,10 @@ import {
   TableBody,
   Chip,
   ThemeProvider,
-  createTheme,
   Button,
   Grid,
   Container,
-  IconButton,
   useMediaQuery,
-  GlobalStyles,
   Divider
 } from "@mui/material";
 import Swal from 'sweetalert2';

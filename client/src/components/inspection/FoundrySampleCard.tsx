@@ -664,8 +664,6 @@ function FoundrySampleCard() {
                               <TextField
                                 {...params}
                                 placeholder="Select Pattern"
-                                error={!!errors.pattern_code}
-                                helperText={errors.pattern_code?.[0]}
                               />
                             }
                           />
@@ -682,8 +680,6 @@ function FoundrySampleCard() {
                               <TextField
                                 {...params}
                                 placeholder="Select Part"
-                                error={!!errors.part_name}
-                                helperText={errors.part_name?.[0]}
                               />
                             }
                           />
@@ -1117,10 +1113,8 @@ function FoundrySampleCard() {
                             value={samplingDate}
                             onChange={(e) => {
                               setSamplingDate(e.target.value);
-                              if (errors.date_of_sampling) setErrors(prev => ({ ...prev, date_of_sampling: undefined }));
                             }}
                             size="small"
-                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
                         </TableCell>
@@ -1133,7 +1127,6 @@ function FoundrySampleCard() {
                               value={planMoulds}
                               onChange={(e) => {
                                 setPlanMoulds(e.target.value);
-                                if (errors.plan_moulds) setErrors(prev => ({ ...prev, plan_moulds: undefined }));
                               }}
                               size="small"
                               placeholder="20"
@@ -1154,7 +1147,6 @@ function FoundrySampleCard() {
                               value={machine}
                               onChange={(e) => {
                                 setMachine(e.target.value);
-                                if (errors.disa) setErrors(prev => ({ ...prev, disa: undefined }));
                               }}
                               displayEmpty
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
@@ -1168,7 +1160,6 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
-                            </Select>
                           </FormControl>
                         </TableCell>
                         <TableCell>
@@ -1178,7 +1169,6 @@ function FoundrySampleCard() {
                               onChange={(e) => {
                                 setReason(e.target.value);
                                 if (e.target.value !== 'Others') setCustomReason("");
-                                if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
                               }}
                               displayEmpty
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
@@ -1192,7 +1182,6 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
-                            </Select>
                           </FormControl>
                           {reason === 'Others' && (
                             <TextField
@@ -1202,10 +1191,8 @@ function FoundrySampleCard() {
                               value={customReason}
                               onChange={e => {
                                 setCustomReason(e.target.value);
-                                if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
                               }}
                               sx={{ mt: 1 }}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             />
                           )}
@@ -1216,11 +1203,9 @@ function FoundrySampleCard() {
                             value={sampleTraceability}
                             onChange={(e) => {
                               setSampleTraceability(e.target.value);
-                              if (errors.sample_traceability) setErrors(prev => ({ ...prev, sample_traceability: undefined }));
                             }}
                             size="small"
                             placeholder="Enter option"
-                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                           />
                         </TableCell>
@@ -1230,7 +1215,6 @@ function FoundrySampleCard() {
                               value={trialType}
                               onChange={(e) => {
                                 setTrialType(e.target.value);
-                                if (errors.trial_type) setErrors(prev => ({ ...prev, trial_type: undefined }));
                               }}
                             >
                               {TRIAL_TYPES.map((type) => (
@@ -1504,15 +1488,15 @@ function FoundrySampleCard() {
           </DialogActions>
         </Dialog>
 
-        {/* Profile Modal */ }
-  {
-    showProfile && (
-      <ProfileModal
-        onClose={() => setShowProfile(false)}
-        onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
-      />
-    )
-  }
+        {/* Profile Modal */}
+        {
+          showProfile && (
+            <ProfileModal
+              onClose={() => setShowProfile(false)}
+              onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+            />
+          )
+        }
       </Box >
     </ThemeProvider >
   );

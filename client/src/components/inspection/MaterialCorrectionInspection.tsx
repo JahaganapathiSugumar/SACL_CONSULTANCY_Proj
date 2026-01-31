@@ -1,5 +1,4 @@
 ﻿import React, { useEffect, useState } from "react";
-import { trialService } from "../../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
     Box,

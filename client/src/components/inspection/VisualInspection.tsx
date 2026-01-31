@@ -17,20 +17,16 @@ import {
     Button,
     Alert,
     ThemeProvider,
-    createTheme,
     Container,
     Grid,
     Chip,
-    Divider,
-    GlobalStyles
+    Divider
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ScienceIcon from '@mui/icons-material/Science';

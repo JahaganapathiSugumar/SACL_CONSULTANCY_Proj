@@ -79,8 +79,6 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     remarks: ""
   });
 
-
-
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -194,8 +192,6 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
       remarks: sandProps.remarks,
       is_edit: isEditing
     };
-
-
 
     setPreviewMode(true);
   };

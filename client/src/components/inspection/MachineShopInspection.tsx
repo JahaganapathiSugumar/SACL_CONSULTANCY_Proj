@@ -2,7 +2,6 @@
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
-import { trialService } from "../../services/trialService";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -17,12 +16,10 @@ import {
   Button,
   Alert,
   ThemeProvider,
-  createTheme,
   Container,
   Grid,
   Chip,
   Divider,
-  GlobalStyles
 } from "@mui/material";
 import Swal from 'sweetalert2';
 

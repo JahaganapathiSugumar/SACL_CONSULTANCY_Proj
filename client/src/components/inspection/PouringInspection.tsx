@@ -21,13 +21,10 @@ import {
     Container,
     InputAdornment,
     useMediaQuery,
-    GlobalStyles,
     Divider,
-    IconButton
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
-import FactoryIcon from '@mui/icons-material/Factory';
 import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
@@ -178,10 +175,8 @@ function PouringDetailsTable() {
         };
         checkAssignment();
     }, [user, trialId]);
+
     const [loading, setLoading] = useState(false);
-
-
-
     const [pouringDate, setPouringDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [heatCode, setHeatCode] = useState<string>("");
     const [userIP, setUserIP] = useState<string>("Loading...");
@@ -577,14 +572,11 @@ function PouringDetailsTable() {
                                                                             value={pouringTemp}
                                                                             onChange={(e: any) => {
                                                                                 setPouringTemp(e.target.value);
-                                                                                if (errors.pouring_temp_c) setErrors(prev => ({ ...prev, pouring_temp_c: undefined }));
                                                                             }}
                                                                             InputProps={{
                                                                                 endAdornment: <InputAdornment position="end">°C</InputAdornment>,
                                                                             }}
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                                                            error={!!errors.pouring_temp_c}
-                                                                            helperText={errors.pouring_temp_c?.[0]}
                                                                         />
                                                                     </Box>
                                                                     <Divider sx={{ borderStyle: 'dashed' }} />
@@ -636,14 +628,10 @@ function PouringDetailsTable() {
                                                                     value={pouringTime}
                                                                     onChange={(e: any) => {
                                                                         setPouringTime(e.target.value);
-                                                                        if (errors.pouring_time_sec) setErrors(prev => ({ ...prev, pouring_time_sec: undefined }));
                                                                     }}
                                                                     disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                                                                    error={!!errors.pouring_time_sec}
-                                                                    helperText={errors.pouring_time_sec?.[0]}
                                                                 />
                                                             </TableCell>
-
 
                                                             <TableCell>
                                                                 <Grid container spacing={2}>
