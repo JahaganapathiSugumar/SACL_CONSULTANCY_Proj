@@ -47,6 +47,8 @@ import { fileToMeta, generateUid, validateFileSizes, formatDate } from '../../ut
 import type { InspectionRow, GroupMetadata } from '../../types/inspection';
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
+import { dimensionalInspectionSchema } from "../../schemas/inspections";
+import { z } from "zod";
 
 type CavRow = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -89,6 +91,8 @@ export default function DimensionalInspection({
     const [isEditing, setIsEditing] = useState(false);
     const [isYieldInvalid, setIsYieldInvalid] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+
+    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
 
@@ -272,6 +276,27 @@ export default function DimensionalInspection({
 
     const handleSaveAndContinue = async () => {
         const payload = buildPayload();
+
+        const validationPayload = {
+            trial_id: trialId,
+            inspection_date: payload.inspection_date,
+            casting_weight: payload.weight_target,
+            bunch_weight: payload.bunch_weight,
+            no_of_cavities: payload.number_of_cavity,
+            yields: payload.yield,
+            inspections: payload.cavity_rows,
+            remarks: payload.remarks,
+            is_edit: isEditing
+        };
+
+        const result = dimensionalInspectionSchema.safeParse(validationPayload);
+
+        if (!result.success) {
+            setErrors(result.error.flatten().fieldErrors);
+            showAlert("error", "Please fill in all required fields.");
+            return;
+        }
+
         setPreviewPayload(payload);
         setPreviewMode(true);
         setPreviewSubmitted(false);
@@ -441,9 +466,14 @@ export default function DimensionalInspection({
                                                 size="small"
                                                 fullWidth
                                                 value={date}
-                                                onChange={(e) => setDate(e.target.value)}
+                                                onChange={(e) => {
+                                                    setDate(e.target.value);
+                                                    if (errors.inspection_date) setErrors(prev => ({ ...prev, inspection_date: undefined }));
+                                                }}
                                                 sx={{ bgcolor: 'white' }}
                                                 disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                                                error={!!errors.inspection_date}
+                                                helperText={errors.inspection_date?.[0]}
                                             />
                                         </Grid>
                                         <Grid size={{ xs: 12, md: 3 }}>
@@ -453,9 +483,14 @@ export default function DimensionalInspection({
                                                 fullWidth
                                                 placeholder="e.g. 12.5"
                                                 value={weightTarget}
-                                                onChange={(e) => setWeightTarget(e.target.value)}
+                                                onChange={(e) => {
+                                                    setWeightTarget(e.target.value);
+                                                    if (errors.casting_weight) setErrors(prev => ({ ...prev, casting_weight: undefined }));
+                                                }}
                                                 sx={{ bgcolor: 'white' }}
                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                                error={!!errors.casting_weight}
+                                                helperText={errors.casting_weight?.[0]}
                                             />
                                         </Grid>
                                         <Grid size={{ xs: 12, md: 2 }}>
@@ -465,9 +500,14 @@ export default function DimensionalInspection({
                                                 fullWidth
                                                 placeholder="Total Bunch Wt"
                                                 value={bunchWeight}
-                                                onChange={(e) => setBunchWeight(e.target.value)}
+                                                onChange={(e) => {
+                                                    setBunchWeight(e.target.value);
+                                                    if (errors.bunch_weight) setErrors(prev => ({ ...prev, bunch_weight: undefined }));
+                                                }}
                                                 sx={{ bgcolor: 'white' }}
                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                                error={!!errors.bunch_weight}
+                                                helperText={errors.bunch_weight?.[0]}
                                             />
                                         </Grid>
                                         <Grid size={{ xs: 12, md: 2 }}>
@@ -478,9 +518,14 @@ export default function DimensionalInspection({
                                                 type="number"
                                                 placeholder="e.g. 4"
                                                 value={numberOfCavity}
-                                                onChange={(e) => setNumberOfCavity(e.target.value)}
+                                                onChange={(e) => {
+                                                    setNumberOfCavity(e.target.value);
+                                                    if (errors.no_of_cavities) setErrors(prev => ({ ...prev, no_of_cavities: undefined }));
+                                                }}
                                                 sx={{ bgcolor: 'white' }}
                                                 disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                                error={!!errors.no_of_cavities}
+                                                helperText={errors.no_of_cavities?.[0]}
                                             />
                                         </Grid>
                                         <Grid size={{ xs: 12, md: 2 }}>

@@ -42,6 +42,8 @@ import BasicInfo from "../dashboard/BasicInfo";
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
+import { sandPropertiesSchema } from "../../schemas/inspections";
+import { z } from "zod";
 
 interface SandTableProps {
   submittedData?: {
@@ -77,6 +79,8 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     perm: "",
     remarks: ""
   });
+
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
 
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
@@ -176,6 +180,30 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   };
 
   const handleSaveAndContinue = () => {
+    const payload = {
+      trial_id: trialId,
+      date: sandDate,
+      t_clay: sandProps.tClay,
+      a_clay: sandProps.aClay,
+      vcm: sandProps.vcm,
+      loi: sandProps.loi,
+      afs: sandProps.afs,
+      gcs: sandProps.gcs,
+      moi: sandProps.moi,
+      compactability: sandProps.compactability,
+      permeability: sandProps.perm,
+      remarks: sandProps.remarks,
+      is_edit: isEditing
+    };
+
+    const result = sandPropertiesSchema.safeParse(payload);
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
     setPreviewMode(true);
   };
 
@@ -338,8 +366,13 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                                   size="small"
                                   fullWidth
                                   value={sandDate}
-                                  onChange={(e) => setSandDate(e.target.value)}
+                                  onChange={(e) => {
+                                    setSandDate(e.target.value);
+                                    if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
+                                  }}
                                   sx={{ bgcolor: 'white', borderRadius: 1 }}
+                                  error={!!errors.date}
+                                  helperText={errors.date?.[0]}
                                 />
                               </Box>
                             </TableCell>
@@ -382,8 +415,18 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                               <TableCell key={key} sx={{ p: 2, verticalAlign: 'middle' }}>
                                 <SpecInput
                                   value={(sandProps as any)[key]}
-                                  onChange={(e: any) => handleChange(key, e.target.value)}
+                                  onChange={(e: any) => {
+                                    handleChange(key, e.target.value);
+                                    // map key to schema key helper
+                                    const schemaKeyMap: any = {
+                                      tClay: 't_clay', aClay: 'a_clay', perm: 'permeability'
+                                    };
+                                    const schemaKey = schemaKeyMap[key] || key;
+                                    if (errors[schemaKey]) setErrors(prev => ({ ...prev, [schemaKey]: undefined }));
+                                  }}
                                   disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                  error={!!errors[(key === 'tClay' ? 't_clay' : key === 'aClay' ? 'a_clay' : key === 'perm' ? 'permeability' : key)]}
+                                  helperText={errors[(key === 'tClay' ? 't_clay' : key === 'aClay' ? 'a_clay' : key === 'perm' ? 'permeability' : key)]?.[0]}
                                 />
                               </TableCell>
                             ))}

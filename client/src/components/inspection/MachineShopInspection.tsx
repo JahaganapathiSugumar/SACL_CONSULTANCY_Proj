@@ -46,6 +46,8 @@ import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
 import BasicInfo from "../dashboard/BasicInfo";
+import { machineShopSchema } from "../../schemas/inspections";
+import { z } from "zod";
 
 type Row = InspectionRow;
 type GroupMeta = GroupMetadata;
@@ -73,6 +75,8 @@ export default function McShopInspection({
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
+
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
 
   const makeInitialRows = (cavLabels: string[]): Row[] => [
     { id: `cavity-${generateUid()}`, label: "Cavity details", values: cavLabels.map(() => "") },
@@ -330,6 +334,23 @@ export default function McShopInspection({
 
   const handleSaveAndContinue = async () => {
     const payload = buildPayload();
+
+    const validationPayload = {
+      trial_id: trialId,
+      inspection_date: payload.inspection_date,
+      inspections: payload.rows.map((row, idx) => ({ ...row, values: row.values })),
+      remarks: payload.right_remarks,
+      is_edit: isEditing
+    };
+
+    const result = machineShopSchema.safeParse(validationPayload);
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
     setPreviewPayload(payload);
     setPreviewMode(true);
     setPreviewSubmitted(false);
@@ -519,10 +540,15 @@ export default function McShopInspection({
                         size="small"
                         type="date"
                         value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        onChange={(e) => {
+                          setDate(e.target.value);
+                          if (errors.inspection_date) setErrors(prev => ({ ...prev, inspection_date: undefined }));
+                        }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
                         disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                        error={!!errors.inspection_date}
+                        helperText={errors.inspection_date?.[0]}
                       />
                     </Grid>
 

@@ -57,6 +57,8 @@ import { apiService } from "../../services/commonService";
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
+import { metallurgicalInspectionSchema } from "../../schemas/inspections";
+import { z } from "zod";
 
 
 interface Row {
@@ -777,6 +779,8 @@ export default function MetallurgicalInspection() {
     return init;
   });
 
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
   const [mechRows, setMechRows] = useState<Row[]>(initialRows(["Cavity Number", "Tensile strength", "Yield strength", "Elongation"]));
   const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cavity Number", "Cold Temp °C", "Room Temp °C"]));
   const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Cavity Number", "Surface", "Core"]));
@@ -901,10 +905,6 @@ export default function MetallurgicalInspection() {
     if (trialId) fetchData();
   }, [user, trialId]);
 
-
-
-
-
   const updateRow = (setRows: React.Dispatch<React.SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
   };
@@ -939,6 +939,15 @@ export default function MetallurgicalInspection() {
 
   const handleSaveAndContinue = async () => {
     const payload = buildPayload();
+
+    const result = metallurgicalInspectionSchema.safeParse(payload);
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
     setPreviewPayload(payload);
     setPreviewMode(true);
     setPreviewSubmitted(false);

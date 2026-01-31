@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
+import { z } from "zod";
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -60,6 +61,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
+
+import { trialCardSchema } from "../../schemas/trialCard";
 
 interface PartData {
   id: number;
@@ -297,8 +300,7 @@ function FoundrySampleCard() {
   const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] = useState<boolean>(false);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
 
   const trialIdFromUrl = new URLSearchParams(window.location.search).get('trial_id') || "";
 
@@ -509,7 +511,17 @@ function FoundrySampleCard() {
       tensile: tensileState,
       micro_structure: microState,
       hardness: hardnessState,
+      is_edit: false
     };
+
+    const result = trialCardSchema.safeParse(payload);
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
     setPreviewPayload(payload);
     setPreviewMode(true);
   };
@@ -519,7 +531,7 @@ function FoundrySampleCard() {
     try {
       if (user?.role === 'HOD' || user?.role === 'Admin' && trialIdFromUrl) {
         try {
-          await trialService.updateTrial({
+          const payload = {
             trial_id: trialIdFromUrl,
             user_name: user?.username || 'Unknown',
             user_ip: userIP,
@@ -536,7 +548,15 @@ function FoundrySampleCard() {
             tooling_modification: toolingModification,
             remarks: remarks,
             is_edit: isEditing
-          });
+          }
+
+          const result = trialCardSchema.safeParse(payload);
+          if (!result.success) {
+            setErrors(result.error.flatten().fieldErrors);
+            return;
+          }
+
+          await trialService.updateTrial(payload);
 
           setSubmitted(true);
           setPreviewMode(false);
@@ -652,7 +672,14 @@ function FoundrySampleCard() {
                             onChange={(_, v) => handlePatternChange(v)}
                             getOptionLabel={(o) => o.pattern_code}
                             disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
-                            renderInput={(params) => <TextField {...params} placeholder="Select Pattern" />}
+                            renderInput={(params) =>
+                              <TextField
+                                {...params}
+                                placeholder="Select Pattern"
+                                error={!!errors.pattern_code}
+                                helperText={errors.pattern_code?.[0]}
+                              />
+                            }
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 5 }}>
@@ -663,7 +690,14 @@ function FoundrySampleCard() {
                             onChange={(_, v) => handlePartChange(v)}
                             getOptionLabel={(o) => o.part_name}
                             disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
-                            renderInput={(params) => <TextField {...params} placeholder="Select Part" />}
+                            renderInput={(params) =>
+                              <TextField
+                                {...params}
+                                placeholder="Select Part"
+                                error={!!errors.part_name}
+                                helperText={errors.part_name?.[0]}
+                              />
+                            }
                           />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -1093,9 +1127,14 @@ function FoundrySampleCard() {
                             type="date"
                             fullWidth
                             value={samplingDate}
-                            onChange={(e) => setSamplingDate(e.target.value)}
+                            onChange={(e) => {
+                              setSamplingDate(e.target.value);
+                              if (errors.date_of_sampling) setErrors(prev => ({ ...prev, date_of_sampling: undefined }));
+                            }}
                             size="small"
                             disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            error={!!errors.date_of_sampling}
+                            helperText={errors.date_of_sampling?.[0]}
                           />
                         </TableCell>
                         <TableCell>
@@ -1105,11 +1144,16 @@ function FoundrySampleCard() {
                               fullWidth
                               label="Plan"
                               value={planMoulds}
-                              onChange={(e) => setPlanMoulds(e.target.value)}
+                              onChange={(e) => {
+                                setPlanMoulds(e.target.value);
+                                if (errors.plan_moulds) setErrors(prev => ({ ...prev, plan_moulds: undefined }));
+                              }}
                               size="small"
                               placeholder="20"
                               disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                               InputLabelProps={{ shrink: true }}
+                              error={!!errors.plan_moulds}
+                              helperText={errors.plan_moulds?.[0]}
                               sx={{
                                 bgcolor: '#FFF59D',
                                 "& .MuiInputBase-input": { color: "black !important" },
@@ -1120,10 +1164,13 @@ function FoundrySampleCard() {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <FormControl fullWidth size="small">
+                          <FormControl fullWidth size="small" error={!!errors.disa}>
                             <Select
                               value={machine}
-                              onChange={(e) => setMachine(e.target.value)}
+                              onChange={(e) => {
+                                setMachine(e.target.value);
+                                if (errors.disa) setErrors(prev => ({ ...prev, disa: undefined }));
+                              }}
                               displayEmpty
                               disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
                             >
@@ -1136,15 +1183,17 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
+                            {errors.disa && <Typography variant="caption" color="error" sx={{ mx: 1.5, mt: 0.5 }}>{errors.disa[0]}</Typography>}
                           </FormControl>
                         </TableCell>
                         <TableCell>
-                          <FormControl fullWidth size="small">
+                          <FormControl fullWidth size="small" error={!!errors.reason_for_sampling}>
                             <Select
                               value={reason}
                               onChange={(e) => {
                                 setReason(e.target.value);
                                 if (e.target.value !== 'Others') setCustomReason("");
+                                if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
                               }}
                               displayEmpty
                               disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
@@ -1158,6 +1207,7 @@ function FoundrySampleCard() {
                                 </MenuItem>
                               ))}
                             </Select>
+                            {errors.reason_for_sampling && <Typography variant="caption" color="error" sx={{ mx: 1.5, mt: 0.5 }}>{errors.reason_for_sampling[0]}</Typography>}
                           </FormControl>
                           {reason === 'Others' && (
                             <TextField
@@ -1165,9 +1215,13 @@ function FoundrySampleCard() {
                               size="small"
                               placeholder="Please specify..."
                               value={customReason}
-                              onChange={e => setCustomReason(e.target.value)}
+                              onChange={e => {
+                                setCustomReason(e.target.value);
+                                if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
+                              }}
                               sx={{ mt: 1 }}
                               disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                              error={!!errors.reason_for_sampling && reason === 'Others' && !customReason}
                             />
                           )}
                         </TableCell>
@@ -1175,17 +1229,25 @@ function FoundrySampleCard() {
                           <TextField
                             fullWidth
                             value={sampleTraceability}
-                            onChange={(e) => setSampleTraceability(e.target.value)}
+                            onChange={(e) => {
+                              setSampleTraceability(e.target.value);
+                              if (errors.sample_traceability) setErrors(prev => ({ ...prev, sample_traceability: undefined }));
+                            }}
                             size="small"
                             placeholder="Enter option"
                             disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            error={!!errors.sample_traceability}
+                            helperText={errors.sample_traceability?.[0]}
                           />
                         </TableCell>
                         <TableCell>
-                          <FormControl component="fieldset" fullWidth>
+                          <FormControl component="fieldset" fullWidth error={!!errors.trial_type}>
                             <RadioGroup
                               value={trialType}
-                              onChange={(e) => setTrialType(e.target.value)}
+                              onChange={(e) => {
+                                setTrialType(e.target.value);
+                                if (errors.trial_type) setErrors(prev => ({ ...prev, trial_type: undefined }));
+                              }}
                             >
                               {TRIAL_TYPES.map((type) => (
                                 <FormControlLabel
@@ -1198,6 +1260,7 @@ function FoundrySampleCard() {
                                 />
                               ))}
                             </RadioGroup>
+                            {errors.trial_type && <Typography variant="caption" color="error">{errors.trial_type[0]}</Typography>}
                           </FormControl>
                         </TableCell>
                         <TableCell align="center">

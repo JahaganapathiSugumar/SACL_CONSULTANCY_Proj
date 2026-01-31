@@ -48,6 +48,8 @@ import { useNavigate } from "react-router-dom";
 import { COLORS, appTheme } from '../../theme/appTheme';
 import { useAlert } from '../../hooks/useAlert';
 import { AlertMessage } from '../common/AlertMessage';
+import { visualInspectionSchema } from "../../schemas/inspections";
+import { z } from "zod";
 import { fileToMeta, generateUid, validateFileSizes, formatDateTime } from '../../utils';
 import type { InspectionRow, GroupMetadata } from '../../types/inspection';
 import { LoadingState, EmptyState, ActionButtons, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
@@ -415,6 +417,8 @@ export default function VisualInspection({
     const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
     const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
+    const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
+
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
     };
@@ -696,6 +700,54 @@ export default function VisualInspection({
         setMessage(null);
         try {
             const payload = buildPayload();
+
+            const inspections = cols.map((col, idx) => {
+                const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
+                const cavityRow = findRow('cavity number');
+                const inspectedRow = findRow('inspected quantity');
+                const acceptedRow = findRow('accepted quantity');
+                const rejectedRow = findRow('rejected quantity');
+                const reasonRow = findRow('reason for rejection');
+
+                const inspected = inspectedRow?.values?.[idx] ?? null;
+                const accepted = acceptedRow?.values?.[idx] ?? null;
+                const rejected = rejectedRow?.values?.[idx] ?? null;
+                const rejectionPercentage = (() => {
+                    const ins = parseFloat(String(inspected ?? '0'));
+                    const rej = parseFloat(String(rejected ?? '0'));
+                    if (isNaN(ins) || isNaN(rej) || ins === 0) return "0.00";
+                    return ((rej / ins) * 100).toFixed(2);
+                })();
+
+                return {
+                    'Cavity Number': cavityRow?.values?.[idx] ?? col ?? null,
+                    'Inspected Quantity': inspected ?? null,
+                    'Accepted Quantity': accepted ?? null,
+                    'Rejected Quantity': rejected ?? null,
+                    'Rejection Percentage': rejectionPercentage ?? null,
+                    'Reason for rejection': reasonRow?.values?.[idx] ?? null,
+                };
+            });
+
+            const validationPayload = {
+                trial_id: trialId,
+                inspections,
+                visual_ok: groupMeta.ok,
+                remarks: groupMeta.remarks || null,
+                ndt_inspection: ndtRows.length > 0 ? ndtRows : null,
+                ndt_inspection_ok: ndtRows[0]?.ok,
+                ndt_inspection_remarks: ndtRows[0]?.remarks,
+                is_edit: isEditing
+            };
+
+            const result = visualInspectionSchema.safeParse(validationPayload);
+            if (!result.success) {
+                setErrors(result.error.flatten().fieldErrors);
+                showAlert("error", "Please fill in all required fields.");
+                setSaving(false);
+                return;
+            }
+
             setPreviewPayload(payload);
             setPreviewMode(true);
             setSubmitted(false);

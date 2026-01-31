@@ -43,6 +43,8 @@ import departmentProgressService from "../../services/departmentProgressService"
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
+import { mouldCorrectionSchema } from "../../schemas/inspections";
+import { z } from "zod";
 
 function MouldingTable() {
   const { user } = useAuth();
@@ -56,6 +58,7 @@ function MouldingTable() {
     hardness: "",
     remarks: ""
   });
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   const [mouldCorrectionLoading, setMouldCorrectionLoading] = useState(false);
@@ -158,6 +161,25 @@ function MouldingTable() {
 
 
   const handleSaveAndContinue = () => {
+    const payload = {
+      trial_id: trialId,
+      mould_thickness: mouldState.thickness,
+      compressability: mouldState.compressability,
+      squeeze_pressure: mouldState.pressure,
+      mould_hardness: mouldState.hardness,
+      remarks: mouldState.remarks,
+      is_edit: isEditing,
+      date: mouldDate
+    };
+
+    const result = mouldCorrectionSchema.safeParse(payload);
+
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
     setPreviewMode(true);
   };
 
@@ -301,9 +323,14 @@ function MouldingTable() {
                         size="small"
                         hiddenLabel
                         value={mouldDate}
-                        onChange={(e) => setMouldDate(e.target.value)}
+                        onChange={(e) => {
+                          setMouldDate(e.target.value);
+                          if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
+                        }}
                         sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
                         disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                        error={!!errors.date}
+                        helperText={errors.date?.[0]}
                       />
                     </Box>
                   </Box>
@@ -331,11 +358,53 @@ function MouldingTable() {
                       </TableHead>
                       <TableBody>
                         <TableRow>
-                          <TableCell><SpecInput value={mouldState.thickness} onChange={(e: any) => handleChange('thickness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                          <TableCell><SpecInput value={mouldState.compressability} onChange={(e: any) => handleChange('compressability', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
-                          <TableCell><SpecInput value={mouldState.pressure} onChange={(e: any) => handleChange('pressure', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} /></TableCell>
+                          <TableCell>
+                            <SpecInput
+                              value={mouldState.thickness}
+                              onChange={(e: any) => {
+                                handleChange('thickness', e.target.value);
+                                if (errors.mould_thickness) setErrors(prev => ({ ...prev, mould_thickness: undefined }));
+                              }}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              error={!!errors.mould_thickness}
+                              helperText={errors.mould_thickness?.[0]}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <SpecInput
+                              value={mouldState.compressability}
+                              onChange={(e: any) => {
+                                handleChange('compressability', e.target.value);
+                                if (errors.compressability) setErrors(prev => ({ ...prev, compressability: undefined }));
+                              }}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              error={!!errors.compressability}
+                              helperText={errors.compressability?.[0]}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <SpecInput
+                              value={mouldState.pressure}
+                              onChange={(e: any) => {
+                                handleChange('pressure', e.target.value);
+                                if (errors.squeeze_pressure) setErrors(prev => ({ ...prev, squeeze_pressure: undefined }));
+                              }}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              error={!!errors.squeeze_pressure}
+                              helperText={errors.squeeze_pressure?.[0]}
+                            />
+                          </TableCell>
                           <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
-                            <SpecInput value={mouldState.hardness} onChange={(e: any) => handleChange('hardness', e.target.value)} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} />
+                            <SpecInput
+                              value={mouldState.hardness}
+                              onChange={(e: any) => {
+                                handleChange('hardness', e.target.value);
+                                if (errors.mould_hardness) setErrors(prev => ({ ...prev, mould_hardness: undefined }));
+                              }}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              error={!!errors.mould_hardness}
+                              helperText={errors.mould_hardness?.[0]}
+                            />
                           </TableCell>
 
                           <TableCell>
