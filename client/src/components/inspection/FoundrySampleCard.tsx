@@ -342,7 +342,7 @@ function FoundrySampleCard() {
 
   useEffect(() => {
     const fetchTrialDataForHOD = async () => {
-      if (user?.role === 'HOD' || user?.role === 'Admin' && trialIdFromUrl) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) {
         try {
           const response = await trialService.getTrialById(trialIdFromUrl);
           if (response && response.data) {
@@ -529,7 +529,7 @@ function FoundrySampleCard() {
   const handleFinalSave = async () => {
     setIsSubmitting(true);
     try {
-      if (user?.role === 'HOD' || user?.role === 'Admin' && trialIdFromUrl) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) {
         try {
           const payload = {
             trial_id: trialIdFromUrl,
@@ -671,7 +671,7 @@ function FoundrySampleCard() {
                             value={selectedPattern}
                             onChange={(_, v) => handlePatternChange(v)}
                             getOptionLabel={(o) => o.pattern_code}
-                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             renderInput={(params) =>
                               <TextField
                                 {...params}
@@ -689,7 +689,7 @@ function FoundrySampleCard() {
                             value={selectedPart}
                             onChange={(_, v) => handlePartChange(v)}
                             getOptionLabel={(o) => o.part_name}
-                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             renderInput={(params) =>
                               <TextField
                                 {...params}
@@ -1132,7 +1132,7 @@ function FoundrySampleCard() {
                               if (errors.date_of_sampling) setErrors(prev => ({ ...prev, date_of_sampling: undefined }));
                             }}
                             size="small"
-                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             error={!!errors.date_of_sampling}
                             helperText={errors.date_of_sampling?.[0]}
                           />
@@ -1150,7 +1150,7 @@ function FoundrySampleCard() {
                               }}
                               size="small"
                               placeholder="20"
-                              disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               InputLabelProps={{ shrink: true }}
                               error={!!errors.plan_moulds}
                               helperText={errors.plan_moulds?.[0]}
@@ -1172,7 +1172,7 @@ function FoundrySampleCard() {
                                 if (errors.disa) setErrors(prev => ({ ...prev, disa: undefined }));
                               }}
                               displayEmpty
-                              disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             >
                               <MenuItem value="" disabled>
                                 Select
@@ -1196,7 +1196,7 @@ function FoundrySampleCard() {
                                 if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
                               }}
                               displayEmpty
-                              disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             >
                               <MenuItem value="" disabled>
                                 Select
@@ -1220,7 +1220,7 @@ function FoundrySampleCard() {
                                 if (errors.reason_for_sampling) setErrors(prev => ({ ...prev, reason_for_sampling: undefined }));
                               }}
                               sx={{ mt: 1 }}
-                              disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                               error={!!errors.reason_for_sampling && reason === 'Others' && !customReason}
                             />
                           )}
@@ -1235,7 +1235,7 @@ function FoundrySampleCard() {
                             }}
                             size="small"
                             placeholder="Enter option"
-                            disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                            disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             error={!!errors.sample_traceability}
                             helperText={errors.sample_traceability?.[0]}
                           />
@@ -1302,14 +1302,14 @@ function FoundrySampleCard() {
                         value={toolingModification}
                         onChange={(e) => setToolingModification(e.target.value)}
                         sx={{ bgcolor: '#fff' }}
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin' && !isEditing}
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
                         Tooling Files
                       </Typography>
-                      {(user?.role !== 'HOD' || user?.role !== 'Admin' || isEditing) && (
+                      {((user?.role !== 'HOD' && user?.role !== 'Admin') || isEditing) && (
                         <FileUploadSection
                           files={toolingFiles}
                           onFilesChange={handleToolingFilesChange}
