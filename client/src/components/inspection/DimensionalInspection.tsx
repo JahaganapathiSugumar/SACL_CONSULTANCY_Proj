@@ -643,7 +643,7 @@ export default function DimensionalInspection({
                             open={previewMode && previewPayload}
                             onClose={() => setPreviewMode(false)}
                             onSubmit={handleFinalSave}
-                            title="Verify Inspection Data"
+                            title="Verify Dimensional Inspection Details"
                             submitted={previewSubmitted}
                             isSubmitting={saving}
                         >

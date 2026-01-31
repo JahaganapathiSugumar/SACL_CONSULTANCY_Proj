@@ -834,8 +834,7 @@ function FoundrySampleCard() {
                 setPreviewMode(false)
               }}
               onSubmit={handleFinalSave}
-              title="Verify Specification"
-              subtitle="Foundry Sample Card - Review your data"
+              title="Verify Trial Specification Details"
               submitted={submitted}
               isSubmitting={isSubmitting}
             >

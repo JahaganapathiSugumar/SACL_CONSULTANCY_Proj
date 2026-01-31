@@ -447,8 +447,7 @@ function MouldingTable() {
               open={previewMode}
               onClose={() => setPreviewMode(false)}
               onSubmit={handleFinalSave}
-              title="Verify Moulding Details"
-              subtitle="Review your moulding parameters"
+              title="Verify Moulding Inspection Details"
               submitted={submitted}
               isSubmitting={loading}
             >

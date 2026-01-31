@@ -463,8 +463,7 @@ export default function MaterialCorrection() {
                                     open={previewOpen}
                                     onClose={() => setPreviewOpen(false)}
                                     onSubmit={handleFinalSave}
-                                    title="Verify Specification"
-                                    subtitle="Composition & Process Check"
+                                    title="Verify Material Correction Details"
                                     submitted={submitted}
                                     isSubmitting={loading}
                                 >

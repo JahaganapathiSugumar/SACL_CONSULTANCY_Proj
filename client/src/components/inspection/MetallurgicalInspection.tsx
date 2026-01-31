@@ -1401,8 +1401,7 @@ export default function MetallurgicalInspection() {
               open={previewMode && previewPayload}
               onClose={() => setPreviewMode(false)}
               onSubmit={handleFinalSave}
-              title="Verify Inspection Data"
-              subtitle="Metallurgical Inspection Report"
+              title="Verify Metallurgical Inspection Details"
               submitted={previewSubmitted}
               isSubmitting={sending}
             >

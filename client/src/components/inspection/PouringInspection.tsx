@@ -737,7 +737,7 @@ function PouringDetailsTable() {
                             open={previewMode}
                             onClose={() => setPreviewMode(false)}
                             onSubmit={handleFinalSave}
-                            title="POURING DETAILS:"
+                            title="Verify Pouring Inspection Details"
                             submitted={submitted}
                             isSubmitting={loading}
                         >

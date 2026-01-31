@@ -1245,7 +1245,7 @@ export default function VisualInspection({
                                     open={previewMode}
                                     onClose={() => setPreviewMode(false)}
                                     onSubmit={handleFinalSave}
-                                    title="VISUAL INSPECTION DETAILS"
+                                    title="Verify Visual Inspection Details"
                                     submitted={submitted}
                                     isSubmitting={saving}
                                 >

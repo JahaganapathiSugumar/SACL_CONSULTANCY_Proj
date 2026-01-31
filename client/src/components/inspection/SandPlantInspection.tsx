@@ -501,8 +501,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               open={previewMode}
               onClose={() => setPreviewMode(false)}
               onSubmit={handleFinalSave}
-              title="Verify Sand Properties"
-              subtitle="Review your sand test data"
+              title="Verify Sand Plant Inspection Details"
               submitted={submitted}
               isSubmitting={loading}
             >

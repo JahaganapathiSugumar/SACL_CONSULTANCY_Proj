@@ -64,7 +64,6 @@ export default function McShopInspection({
 
 
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
-  const [userTime, setUserTime] = useState<string>("");
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [isEditing, setIsEditing] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -294,7 +293,6 @@ export default function McShopInspection({
 
   const resetAll = () => {
     setDate(new Date().toISOString().slice(0, 10));
-    setUserTime("");
     setCavities([...initialCavities]);
     setRows(makeInitialRows(initialCavities));
     setGroupMeta({ remarks: "", attachment: null });
@@ -310,7 +308,6 @@ export default function McShopInspection({
       inspection_type: "mc_shop",
       inspection_date: date || null,
       user_name: user?.username || null,
-      user_time: userTime || null,
       user_ip: userIP || null,
       cavities: cavities.slice(),
       rows: rows.map((r) => ({
@@ -728,8 +725,7 @@ export default function McShopInspection({
               open={previewMode && previewPayload}
               onClose={() => setPreviewMode(false)}
               onSubmit={handleFinalSave}
-              title="Verify Inspection Data"
-              subtitle="Machine Shop Inspection Report"
+              title="Verify Machine Shop Inspection Details"
               submitted={previewSubmitted}
               isSubmitting={saving}
             >
@@ -740,17 +736,6 @@ export default function McShopInspection({
                     <Typography variant="body2" color="textSecondary">Date: {formatDate(previewPayload?.inspection_date)}</Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
-
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, md: 4 }}>
-                      <Typography variant="caption" color="textSecondary">LOG TIME</Typography>
-                      <Typography variant="body1" fontWeight="bold">{previewPayload?.user_time || "-"}</Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 4 }}>
-                      <Typography variant="caption" color="textSecondary">GENERAL NOTES</Typography>
-                      <Typography variant="body2">{previewPayload?.dimensional_report_remarks || "-"}</Typography>
-                    </Grid>
-                  </Grid>
 
                   <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
                     <Table size="small">
