@@ -10,7 +10,7 @@ import { metallurgicalInspectionSchema, updateMetallurgicalInspectionSchema } fr
 const router = express.Router();
 
 router.post('/', verifyToken, authorizeDepartments(1, 9), validate(metallurgicalInspectionSchema), asyncErrorHandler(metallurgicalInspectionController.createInspection));
-router.put('/', verifyToken, authorizeDepartments(1, 9), authorizeRoles('Admin', 'HOD'), validate(updateMetallurgicalInspectionSchema), asyncErrorHandler(metallurgicalInspectionController.updateInspection));
+router.put('/', verifyToken, authorizeDepartments(1, 9), validate(updateMetallurgicalInspectionSchema), asyncErrorHandler(metallurgicalInspectionController.updateInspection));
 router.get('/', verifyToken, asyncErrorHandler(metallurgicalInspectionController.getInspections));
 router.get('/trial_id', verifyToken, asyncErrorHandler(metallurgicalInspectionController.getInspectionByTrialId));
 

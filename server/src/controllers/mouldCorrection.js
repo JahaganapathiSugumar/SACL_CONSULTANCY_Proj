@@ -1,10 +1,10 @@
 import Client from '../config/connection.js';
 
-import { updateDepartment, updateRole } from '../services/departmentProgress.js';
+import { updateDepartment, updateRole, triggerNextDepartment } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
 
 export const createCorrection = async (req, res, next) => {
-    const { trial_id, mould_thickness, compressability, squeeze_pressure, mould_hardness, remarks, date } = req.body || {};
+    const { trial_id, mould_thickness, compressability, squeeze_pressure, mould_hardness, remarks, date, is_draft } = req.body || {};
     if (!trial_id || !mould_thickness || !compressability || !squeeze_pressure || !mould_hardness || !remarks || !date) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -22,7 +22,11 @@ export const createCorrection = async (req, res, next) => {
             remarks: `Mould correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
-            await updateRole(trial_id, req.user, trx);
+            if (is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else {
+                await updateRole(trial_id, req.user, trx);
+            }
         }
     });
 
@@ -67,7 +71,13 @@ export const updateCorrection = async (req, res, next) => {
             remarks: `Mould correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
-            await updateDepartment(trial_id, req.user, trx);
+            if (req.body.is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else if(req.user.role === 'User'){
+                await updateRole(trial_id, req.user, trx);
+            } else {
+                await updateDepartment(trial_id, req.user, trx);
+            }
         }
         logger.info('Mould correction updated', { trial_id, updatedBy: req.user.username });
     });

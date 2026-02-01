@@ -90,6 +90,7 @@ export default function DimensionalInspection({
     const [isEditing, setIsEditing] = useState(false);
     const [isYieldInvalid, setIsYieldInvalid] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [dataExists, setDataExists] = useState(false);
 
 
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
@@ -122,7 +123,7 @@ export default function DimensionalInspection({
 
     useEffect(() => {
         const fetchData = async () => {
-            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+            if (trialId) {
                 try {
                     const response = await inspectionService.getDimensionalInspection(trialId);
                     if (response.success && response.data && response.data.length > 0) {
@@ -156,6 +157,7 @@ export default function DimensionalInspection({
                                 return row;
                             }));
                         }
+                        setDataExists(true);
                     }
                 } catch (error) {
                     showAlert('error', 'Failed to load existing data.');
@@ -285,7 +287,7 @@ export default function DimensionalInspection({
         if (!previewPayload) return;
         setSaving(true);
 
-        if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+        if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
             try {
                 const cavityRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
                 const castingRow = previewPayload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
@@ -298,13 +300,13 @@ export default function DimensionalInspection({
                 const updatePayload = {
                     trial_id: trialId,
                     inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
-                    casting_weight: parseFloat(previewPayload.weight_target) || 0,
-                    bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
-                    no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
+                    casting_weight: parseFloat(previewPayload.weight_target || "0") || 0,
+                    bunch_weight: parseFloat(previewPayload.bunch_weight || "0") || 0,
+                    no_of_cavities: parseInt(previewPayload.number_of_cavity || "0") || (previewPayload.cavities ? previewPayload.cavities.length : 0),
                     yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
                     inspections: JSON.stringify(inspections),
                     remarks: previewPayload.remarks || "",
-                    is_edit: isEditing
+                    is_edit: isEditing || dataExists
                 };
 
                 await inspectionService.updateDimensionalInspection(updatePayload);
@@ -343,9 +345,9 @@ export default function DimensionalInspection({
             const apiPayload = {
                 trial_id: trialId,
                 inspection_date: previewPayload.inspection_date || previewPayload.created_at || null,
-                casting_weight: parseFloat(previewPayload.weight_target) || 0,
-                bunch_weight: parseFloat(previewPayload.bunch_weight) || 0,
-                no_of_cavities: parseInt(previewPayload.number_of_cavity) || (previewPayload.cavities ? previewPayload.cavities.length : 0),
+                casting_weight: parseFloat(previewPayload.weight_target || "0") || 0,
+                bunch_weight: parseFloat(previewPayload.bunch_weight || "0") || 0,
+                no_of_cavities: parseInt(previewPayload.number_of_cavity || "0") || (previewPayload.cavities ? previewPayload.cavities.length : 0),
                 yields: previewPayload.yield ? parseFloat(previewPayload.yield) : null,
                 inspections: JSON.stringify(inspections),
                 remarks: previewPayload.remarks || ""
@@ -400,6 +402,69 @@ export default function DimensionalInspection({
         }
     };
 
+    const handleSaveDraft = async () => {
+        setSaving(true);
+        try {
+            const payload = buildPayload();
+            const cavityRow = payload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('cavity'));
+            const castingRow = payload.cavity_rows.find((r: any) => String(r.label).toLowerCase().includes('casting'));
+
+            const inspections = (payload.cavities || []).map((_: any, i: number) => ({
+                "Cavity Number": (cavityRow?.values?.[i] ?? payload.cavities[i] ?? null),
+                "Casting Weight": (castingRow?.values?.[i] ?? null)
+            }));
+
+            const apiPayload = {
+                trial_id: trialId,
+                inspection_date: payload.inspection_date || payload.created_at || null,
+                casting_weight: parseFloat(payload.weight_target || "0") || 0,
+                bunch_weight: parseFloat(payload.bunch_weight || "0") || 0,
+                no_of_cavities: parseInt(payload.number_of_cavity || "0") || (payload.cavities ? payload.cavities.length : 0),
+                yields: payload.yield ? parseFloat(payload.yield) : null,
+                inspections: JSON.stringify(inspections),
+                remarks: payload.remarks || "",
+                is_edit: isEditing,
+                is_draft: true
+            };
+
+            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+                await inspectionService.updateDimensionalInspection(apiPayload);
+            } else {
+                await inspectionService.submitDimensionalInspection(apiPayload);
+            }
+
+            if (attachedFiles.length > 0) {
+                try {
+                await uploadFiles(
+                    attachedFiles,
+                    trialId,
+                    "DIMENSIONAL_INSPECTION",
+                    user?.username || "system",
+                    "DIMENSIONAL_INSPECTION"
+                );
+                } catch (uploadError) {
+                console.error("Draft file upload error", uploadError);
+                }
+            }
+
+            setPreviewSubmitted(true);
+            await Swal.fire({
+                icon: 'success',
+                title: 'Saved as Draft',
+                text: 'Progress saved and next stage unlocked (if eligible).'
+            });
+            navigate('/dashboard');
+
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to save draft.'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
 
 
     return (
@@ -628,6 +693,17 @@ export default function DimensionalInspection({
                                             saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                                             saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                         >
+                                            {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<SaveIcon />}
+                                                    onClick={handleSaveDraft}
+                                                    disabled={saving}
+                                                    sx={{ mr: 2 }}
+                                                >
+                                                    Save as Draft
+                                                </Button>
+                                            )}
                                             {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                                 <Button
                                                     variant="outlined"

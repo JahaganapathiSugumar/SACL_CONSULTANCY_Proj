@@ -520,7 +520,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                             color="warning"
                                                                             onClick={() => handleDeleteReport(trial.trial_id)}
                                                                         >
-                                                                            <DescriptionIcon fontSize="small" />
+                                                                            <DeleteIcon fontSize="small" />
                                                                         </IconButton>
                                                                     </Tooltip>
                                                                 )}

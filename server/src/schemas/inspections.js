@@ -30,7 +30,8 @@ export const pouringDetailsSchema = z.object({
     inoculation: jsonValueSchema.optional().nullable(),
     other_remarks: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),
-    is_edit: z.boolean().default(true)
+    is_edit: z.boolean().default(true),
+    is_draft: z.boolean().default(false)
 });
 
 export const sandPropertiesSchema = z.object({
@@ -46,7 +47,8 @@ export const sandPropertiesSchema = z.object({
     compactability: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     permeability: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     remarks: z.string().optional().nullable(),
-    is_edit: z.boolean().default(true)
+    is_edit: z.boolean().default(true),
+    is_draft: z.boolean().default(false)
 });
 
 export const mouldCorrectionSchema = z.object({
@@ -57,6 +59,7 @@ export const mouldCorrectionSchema = z.object({
     mould_hardness: z.string().optional().nullable(),
     remarks: z.string().optional().nullable(),
     is_edit: z.boolean().default(true),
+    is_draft: z.boolean().default(false),
     date: z.string({ required_error: "Date is required" }).or(z.date({ required_error: "Date is required" }))
 });
 
@@ -75,7 +78,8 @@ export const metallurgicalInspectionSchema = z.object({
     hardness: jsonValueSchema.optional().nullable(),
     hardness_ok: z.boolean().optional().nullable(),
     hardness_remarks: z.string().optional().nullable(),
-    is_edit: z.boolean().default(true)
+    is_edit: z.boolean().default(true),
+    is_draft: z.boolean().default(false),
 });
 
 export const visualInspectionSchema = z.object({
@@ -86,6 +90,7 @@ export const visualInspectionSchema = z.object({
     ndt_inspection: jsonValueSchema.optional().nullable(),
     ndt_inspection_ok: z.boolean().optional().nullable(),
     ndt_inspection_remarks: z.string().optional().nullable(),
+    is_draft: z.boolean().default(false),
     is_edit: z.boolean().default(true)
 });
 
@@ -98,6 +103,7 @@ export const dimensionalInspectionSchema = z.object({
     yields: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     inspections: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),
+    is_draft: z.boolean().default(false),
     is_edit: z.boolean().default(true)
 });
 
@@ -106,6 +112,7 @@ export const machineShopSchema = z.object({
     inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     inspections: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),
+    is_draft: z.boolean().default(false),
     is_edit: z.boolean().default(true)
 });
 

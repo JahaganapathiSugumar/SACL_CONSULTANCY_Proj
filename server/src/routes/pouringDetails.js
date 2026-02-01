@@ -10,7 +10,7 @@ import { pouringDetailsSchema, updatePouringDetailsSchema } from '../schemas/ind
 const router = express.Router();
 
 router.post('/', verifyToken, authorizeDepartments(1, 7), validate(pouringDetailsSchema), asyncErrorHandler(pouringDetailsController.createPouringDetails));
-router.put('/', verifyToken, authorizeDepartments(1, 7), authorizeRoles('Admin', 'HOD'), validate(updatePouringDetailsSchema), asyncErrorHandler(pouringDetailsController.updatePouringDetails));
+router.put('/', verifyToken, authorizeDepartments(1, 7), validate(updatePouringDetailsSchema), asyncErrorHandler(pouringDetailsController.updatePouringDetails));
 router.get('/', verifyToken, asyncErrorHandler(pouringDetailsController.getPouringDetails));
 router.get('/trial_id', verifyToken, asyncErrorHandler(pouringDetailsController.getPouringDetailsByTrialId));
 

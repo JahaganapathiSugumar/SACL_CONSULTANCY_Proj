@@ -181,6 +181,7 @@ function PouringDetailsTable() {
     const [heatCode, setHeatCode] = useState<string>("");
     const [userIP, setUserIP] = useState<string>("Loading...");
     const [isEditing, setIsEditing] = useState(false);
+    const [dataExists, setDataExists] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
@@ -236,7 +237,7 @@ function PouringDetailsTable() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+            if (trialId) {
                 try {
                     const response = await inspectionService.getPouringDetails(trialId);
                     if (response.success && response.data && response.data.length > 0) {
@@ -270,6 +271,7 @@ function PouringDetailsTable() {
                         setFollowedBy(rem["Followed by"] || "");
                         setRemarksText(data.remarks || "");
                         setNoOfMouldPoured(String(data.no_of_mould_poured || ""));
+                        setDataExists(true);
                     }
                 } catch (error) {
                     console.error("Failed to fetch pouring data:", error);
@@ -304,7 +306,7 @@ function PouringDetailsTable() {
         try {
             setLoading(true);
 
-            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
                 try {
                     const updatePayload = {
                         trial_id: trialId,
@@ -335,7 +337,7 @@ function PouringDetailsTable() {
                             "Username": userName
                         },
                         remarks: previewPayload.remarksText,
-                        is_edit: isEditing
+                        is_edit: isEditing || dataExists
                     };
 
                     await inspectionService.updatePouringDetails(updatePayload);
@@ -432,6 +434,66 @@ function PouringDetailsTable() {
                 icon: 'error',
                 title: 'Error',
                 text: error.message || 'Failed to create pouring details. Please try again.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSaveDraft = async () => {
+        setLoading(true);
+        try {
+            const apiPayload = {
+                trial_id: trialId,
+                pour_date: pouringDate,
+                heat_code: heatCode,
+                composition: {
+                    C: chemState.c, Si: chemState.si, Mn: chemState.mn, P: chemState.p,
+                    S: chemState.s, Mg: chemState.mg, Cu: chemState.cu, Cr: chemState.cr
+                },
+                no_of_mould_poured: parseInt(noOfMouldPoured) || 0,
+                pouring_temp_c: parseFloat(pouringTemp) || 0,
+                pouring_time_sec: parseInt(pouringTime) || 0,
+                inoculation: {
+                    Text: inoculationText,
+                    Stream: inoculationStream,
+                    Inmould: inoculationInmould
+                },
+                other_remarks: {
+                    "F/C & Heat No.": ficHeatNo,
+                    "PP Code": ppCode,
+                    "Followed by": followedBy,
+                    "Username": userName
+                },
+                remarks: remarksText,
+                is_draft: true,
+                is_edit: isEditing || dataExists
+            };
+
+            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+                await inspectionService.updatePouringDetails(apiPayload);
+            } else {
+                await inspectionService.submitPouringDetails(apiPayload);
+            }
+
+            if (attachedFiles.length > 0) {
+                try {
+                    await uploadFiles(attachedFiles, trialId, "POURING_DETAILS", user?.username || "system", "POURING_DETAILS");
+                } catch (e) { console.error(e); }
+            }
+
+            setSubmitted(true);
+            await Swal.fire({
+                icon: 'success',
+                title: 'Saved as Draft',
+                text: 'Progress saved and next stage unlocked (if eligible).'
+            });
+            navigate('/dashboard');
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to save draft.'
             });
         } finally {
             setLoading(false);
@@ -716,6 +778,17 @@ function PouringDetailsTable() {
                                                     saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                                                     saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                                 >
+                                                    {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            startIcon={<SaveIcon />}
+                                                            onClick={handleSaveDraft}
+                                                            disabled={loading}
+                                                            sx={{ mr: 2 }}
+                                                        >
+                                                            Save as Draft
+                                                        </Button>
+                                                    )}
                                                     {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                                         <Button
                                                             variant="outlined"

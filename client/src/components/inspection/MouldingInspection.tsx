@@ -65,6 +65,7 @@ function MouldingTable() {
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [dataExists, setDataExists] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
@@ -95,7 +96,7 @@ function MouldingTable() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+      if (trialId) {
         try {
           const response = await inspectionService.getMouldingCorrection(trialId);
           if (response.success && response.data && response.data.length > 0) {
@@ -107,6 +108,7 @@ function MouldingTable() {
               hardness: String(data.mould_hardness || ""),
               remarks: data.remarks || ""
             });
+            setDataExists(true);
           }
         } catch (error) {
           console.error("Failed to fetch moulding data:", error);
@@ -190,7 +192,7 @@ function MouldingTable() {
   const handleFinalSave = async () => {
     setLoading(true);
     try {
-      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
 
         const payload = {
           mould_thickness: mouldState.thickness,
@@ -199,7 +201,7 @@ function MouldingTable() {
           mould_hardness: mouldState.hardness,
           remarks: mouldState.remarks,
           trial_id: trialId,
-          is_edit: isEditing
+          is_edit: isEditing || dataExists
         };
         await inspectionService.updateMouldingCorrection(payload);
 
@@ -266,6 +268,60 @@ function MouldingTable() {
         icon: 'error',
         title: 'Error',
         text: error.message || (user?.role === 'HOD' || user?.role === 'Admin' ? 'Failed to update moulding correction. Please try again.' : 'Failed to save moulding details. Please try again.')
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        mould_thickness: mouldState.thickness,
+        compressability: mouldState.compressability,
+        squeeze_pressure: mouldState.pressure,
+        mould_hardness: mouldState.hardness,
+        remarks: mouldState.remarks,
+        trial_id: trialId,
+        date: mouldDate,
+        is_edit: isEditing || dataExists,
+        is_draft: true
+      };
+
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+        await inspectionService.updateMouldingCorrection(payload);
+      } else {
+        await inspectionService.submitMouldingCorrection(payload);
+      }
+
+      if (attachedFiles.length > 0) {
+        try {
+          await uploadFiles(
+            attachedFiles,
+            trialId || "",
+            "MOULDING",
+            user?.username || "system",
+            "MOULDING"
+          );
+        } catch (uploadError) {
+          console.error("Draft file upload error", uploadError);
+        }
+      }
+
+      setSubmitted(true);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Saved as Draft',
+        text: 'Progress saved and next stage unlocked (if eligible).'
+      });
+      navigate('/dashboard');
+
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to save draft.'
       });
     } finally {
       setLoading(false);
@@ -426,6 +482,17 @@ function MouldingTable() {
                         saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                         saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                       >
+                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                          <Button
+                            variant="outlined"
+                            startIcon={<SaveIcon />}
+                            onClick={handleSaveDraft}
+                            disabled={loading}
+                            sx={{ mr: 2 }}
+                          >
+                            Save as Draft
+                          </Button>
+                        )}
                         {(user?.role === 'HOD' || user?.role === 'Admin') && (
                           <Button
                             variant="outlined"

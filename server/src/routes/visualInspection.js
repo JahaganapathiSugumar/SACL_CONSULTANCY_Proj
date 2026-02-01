@@ -10,7 +10,7 @@ import { visualInspectionSchema, updateVisualInspectionSchema } from '../schemas
 const router = express.Router();
 
 router.post('/', verifyToken, authorizeDepartments(1, 5), validate(visualInspectionSchema), asyncErrorHandler(visualInspectionController.createInspection));
-router.put('/', verifyToken, authorizeDepartments(1, 5), authorizeRoles('Admin', 'HOD'), validate(updateVisualInspectionSchema), asyncErrorHandler(visualInspectionController.updateInspection));
+router.put('/', verifyToken, authorizeDepartments(1, 5), validate(updateVisualInspectionSchema), asyncErrorHandler(visualInspectionController.updateInspection));
 router.get('/', verifyToken, asyncErrorHandler(visualInspectionController.getInspections));
 router.get('/trial_id', verifyToken, asyncErrorHandler(visualInspectionController.getInspectionByTrialId));
 

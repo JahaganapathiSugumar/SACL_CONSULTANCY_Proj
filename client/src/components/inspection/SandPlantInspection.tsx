@@ -86,6 +86,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   const [userIP, setUserIP] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [dataExists, setDataExists] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
@@ -117,7 +118,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
   useEffect(() => {
     const fetchData = async () => {
       const urlTrialId = new URLSearchParams(window.location.search).get('trial_id');
-      if ((user?.role === 'HOD' || user?.role === 'Admin') && urlTrialId) {
+      if (urlTrialId) {
         try {
           const response = await inspectionService.getSandProperties(urlTrialId);
           if (response.success && response.data && response.data.length > 0) {
@@ -135,6 +136,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
               perm: String(data.permeability || ""),
               remarks: data.remarks || ""
             });
+            setDataExists(true);
           }
         } catch (error) {
           console.error("Failed to fetch sand data:", error);
@@ -202,7 +204,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
     try {
       const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
 
-      if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
         const payload = {
           trial_id: trialId,
           date: sandDate,
@@ -216,7 +218,7 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
           compactability: Number((sandProps as any).compactability) || 0,
           permeability: Number((sandProps as any).perm) || 0,
           remarks: (sandProps as any).remarks || "",
-          is_edit: isEditing
+          is_edit: isEditing || dataExists
         };
 
         await inspectionService.updateSandProperties(payload);
@@ -288,6 +290,65 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
         icon: 'error',
         title: 'Error',
         text: err.message || (user?.role === 'HOD' || user?.role === 'Admin' ? 'Failed to approve sand properties. Please try again.' : 'Failed to save sand properties. Please try again.')
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        trial_id: trialId,
+        date: sandDate,
+        t_clay: Number((sandProps as any).tClay) || 0,
+        a_clay: Number((sandProps as any).aClay) || 0,
+        vcm: Number((sandProps as any).vcm) || 0,
+        loi: Number((sandProps as any).loi) || 0,
+        afs: Number((sandProps as any).afs) || 0,
+        gcs: Number((sandProps as any).gcs) || 0,
+        moi: Number((sandProps as any).moi) || 0,
+        compactability: Number((sandProps as any).compactability) || 0,
+        permeability: Number((sandProps as any).perm) || 0,
+        remarks: (sandProps as any).remarks || "",
+        is_edit: isEditing || dataExists,
+        is_draft: true
+      };
+
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+        await inspectionService.updateSandProperties(payload);
+      } else {
+        await inspectionService.submitSandProperties(payload);
+      }
+
+      if (attachedFiles.length > 0) {
+        try {
+          await uploadFiles(
+            attachedFiles,
+            trialId,
+            "SAND_PROPERTIES",
+            user?.username || "system",
+            "SAND_PROPERTIES"
+          );
+        } catch (uploadError) {
+          console.error("Draft file upload error", uploadError);
+        }
+      }
+
+      setSubmitted(true);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Saved as Draft',
+        text: 'Progress saved and next stage unlocked (if eligible).'
+      });
+      navigate('/dashboard');
+
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to save draft.'
       });
     } finally {
       setLoading(false);
@@ -473,6 +534,27 @@ function SandTable({ submittedData, onSave, onComplete, fromPendingCards }: Sand
                             sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
                           >
                             {isEditing ? "Cancel Edit" : "Edit Details"}
+                          </Button>
+                        )}
+
+                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                          <Button
+                            variant="outlined"
+                            startIcon={<SaveIcon />}
+                            onClick={handleSaveDraft}
+                            disabled={loading}
+                            sx={{
+                              color: COLORS.secondary,
+                              borderColor: COLORS.secondary,
+                              borderWidth: '1.5px',
+                              '&:hover': {
+                                borderColor: COLORS.secondary,
+                                borderWidth: '1.5px',
+                                bgcolor: '#fff7ed'
+                              }
+                            }}
+                          >
+                            Save as Draft
                           </Button>
                         )}
 

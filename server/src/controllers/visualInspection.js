@@ -1,10 +1,10 @@
 import Client from '../config/connection.js';
 
-import { updateDepartment, updateRole } from '../services/departmentProgress.js';
+import { updateDepartment, updateRole, triggerNextDepartment } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
 
 export const createInspection = async (req, res, next) => {
-    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks } = req.body || {};
+    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, is_draft } = req.body || {};
     if (!trial_id || !inspections || !remarks) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -13,10 +13,10 @@ export const createInspection = async (req, res, next) => {
 
     await Client.transaction(async (trx) => {
         const sql = 'INSERT INTO visual_inspection (trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks) VALUES (@trial_id, @inspections, @visual_ok, @remarks, @ndt_inspection, @ndt_inspection_ok, @ndt_inspection_remarks)';
-        await trx.query(sql, { 
-            trial_id, 
-            inspections: inspectionsJson, 
-            visual_ok, 
+        await trx.query(sql, {
+            trial_id,
+            inspections: inspectionsJson,
+            visual_ok,
             remarks,
             ndt_inspection: ndtInspectionJson,
             ndt_inspection_ok: ndt_inspection_ok || null,
@@ -32,7 +32,11 @@ export const createInspection = async (req, res, next) => {
             remarks: `Visual inspection ${trial_id} created by ${req.user.username}`
         });
         if (req.user.role !== 'Admin') {
-            await updateRole(trial_id, req.user, trx);
+            if (is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else {
+                await updateRole(trial_id, req.user, trx);
+            }
         }
     });
 
@@ -82,7 +86,13 @@ export const updateInspection = async (req, res, next) => {
             logger.info('Visual inspection updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
-            await updateDepartment(trial_id, req.user, trx);
+            if (req.body.is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else if(req.user.role === 'User'){
+                await updateRole(trial_id, req.user, trx);
+            } else {
+                await updateDepartment(trial_id, req.user, trx);
+            }
         }
     });
 

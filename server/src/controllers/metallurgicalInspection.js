@@ -1,6 +1,6 @@
 import Client from '../config/connection.js';
 
-import { updateDepartment, updateRole } from '../services/departmentProgress.js';
+import { updateDepartment, updateRole, triggerNextDepartment } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
 
 export const createInspection = async (req, res, next) => {
@@ -18,7 +18,8 @@ export const createInspection = async (req, res, next) => {
         impact_strength_remarks,
         hardness,
         hardness_ok,
-        hardness_remarks
+        hardness_remarks,
+        is_draft
     } = req.body || {};
 
     if (!trial_id || !inspection_date) {
@@ -84,7 +85,11 @@ export const createInspection = async (req, res, next) => {
             remarks: `Metallurgical inspection for trial ${trial_id} created by ${req.user.username}`
         });
         if (req.user.role !== 'Admin') {
-            await updateRole(trial_id, req.user, trx);
+            if (is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else {
+                await updateRole(trial_id, req.user, trx);
+            }
         }
     });
 
@@ -167,7 +172,13 @@ export const updateInspection = async (req, res, next) => {
             logger.info('Metallurgical inspection updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
-            await updateDepartment(trial_id, req.user, trx);
+            if (req.body.is_draft) {
+                await triggerNextDepartment(trial_id, req.user, trx);
+            } else if(req.user.role === 'User'){
+                await updateRole(trial_id, req.user, trx);
+            } else {
+                await updateDepartment(trial_id, req.user, trx);
+            }
         }
     });
 

@@ -10,7 +10,7 @@ import { mouldCorrectionSchema, updateMouldCorrectionSchema } from '../schemas/i
 const router = express.Router();
 
 router.post('/', verifyToken, authorizeDepartments(1, 6), validate(mouldCorrectionSchema), asyncErrorHandler(mouldCorrectionController.createCorrection));
-router.put('/', verifyToken, authorizeDepartments(1, 6), authorizeRoles('Admin', 'HOD'), validate(updateMouldCorrectionSchema), asyncErrorHandler(mouldCorrectionController.updateCorrection));
+router.put('/', verifyToken, authorizeDepartments(1, 6), validate(updateMouldCorrectionSchema), asyncErrorHandler(mouldCorrectionController.updateCorrection));
 router.get('/', verifyToken, asyncErrorHandler(mouldCorrectionController.getCorrections));
 router.get('/trial_id', verifyToken, asyncErrorHandler(mouldCorrectionController.getCorrectionByTrialId));
 

@@ -10,7 +10,7 @@ import { sandPropertiesSchema, updateSandPropertiesSchema } from '../schemas/ind
 const router = express.Router();
 
 router.post('/', verifyToken, authorizeDepartments(1, 4), validate(sandPropertiesSchema), asyncErrorHandler(sandPropertiesController.createSandProperties));
-router.put('/', verifyToken, authorizeDepartments(1, 4), authorizeRoles('Admin', 'HOD'), validate(updateSandPropertiesSchema), asyncErrorHandler(sandPropertiesController.updateSandProperties));
+router.put('/', verifyToken, authorizeDepartments(1, 4), validate(updateSandPropertiesSchema), asyncErrorHandler(sandPropertiesController.updateSandProperties));
 router.get('/', verifyToken, asyncErrorHandler(sandPropertiesController.getSandProperties));
 router.get('/trial_id', verifyToken, asyncErrorHandler(sandPropertiesController.getSandPropertiesByTrialId));
 

@@ -66,6 +66,7 @@ export default function McShopInspection({
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [userIP, setUserIP] = useState<string>("Loading...");
   const [isEditing, setIsEditing] = useState(false);
+  const [dataExists, setDataExists] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
@@ -180,6 +181,7 @@ export default function McShopInspection({
             }
 
             setGroupMeta(prev => ({ ...prev, remarks: data.remarks || "" }));
+            setDataExists(true);
 
           }
         } catch (error) {
@@ -349,8 +351,9 @@ export default function McShopInspection({
     setSaving(true);
 
     setSaving(true);
+    setSaving(true);
 
-    if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+    if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
       try {
         const payload = buildPayload();
         const receivedRow = rows[1];
@@ -377,7 +380,7 @@ export default function McShopInspection({
           inspection_date: payload.inspection_date,
           inspections: inspections,
           remarks: groupMeta.remarks || null,
-          is_edit: isEditing
+          is_edit: isEditing || dataExists
         };
 
         await inspectionService.updateMachineShopInspection(serverPayload);
@@ -477,6 +480,73 @@ export default function McShopInspection({
         icon: 'error',
         title: 'Error',
         text: err.message || 'Failed to save machine shop inspection. Please try again.'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setSaving(true);
+    try {
+      const payload = buildPayload();
+      const receivedRow = rows[1];
+      const inspectedRow = rows[2];
+      const acceptedRow = rows[3];
+      const rejectedRow = rows[4];
+      const percentageRow = rows[5];
+      const reasonRow = rows[6];
+
+      const inspections: any[] = cavities.map((cav, idx) => {
+        return {
+          'Cavity Details': cav || (rows[0]?.values?.[idx] ?? ''),
+          'Received Quantity': receivedRow?.values?.[idx] ?? null,
+          'Inspected Quantity': inspectedRow?.values?.[idx] ?? null,
+          'Accepted Quantity': acceptedRow?.values?.[idx] ?? null,
+          'Rejected Quantity': rejectedRow?.values?.[idx] ?? null,
+          'Rejection Percentage (%)': percentageRow?.values?.[idx] ?? null,
+          'Reason for rejection': reasonRow?.values?.[idx] ?? null,
+        };
+      });
+
+      const serverPayload = {
+        trial_id: trialId,
+        inspection_date: payload.inspection_date,
+        inspections: inspections,
+        remarks: groupMeta.remarks || null,
+        is_edit: isEditing || dataExists,
+        is_draft: true
+      };
+
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+        await inspectionService.updateMachineShopInspection(serverPayload);
+      } else {
+        await inspectionService.submitMachineShopInspection(serverPayload);
+      }
+
+      if (attachedFiles.length > 0) {
+        await uploadFiles(
+          attachedFiles,
+          trialId,
+          "MC_SHOP_INSPECTION",
+          user?.username || "system",
+          "MC_SHOP_INSPECTION"
+        ).catch(console.error);
+      }
+
+      setPreviewSubmitted(true);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Saved as Draft',
+        text: 'Progress saved and next stage unlocked (if eligible).'
+      });
+      navigate('/dashboard');
+
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to save draft.'
       });
     } finally {
       setSaving(false);
@@ -708,6 +778,17 @@ export default function McShopInspection({
                         saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                         saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                       >
+                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                          <Button
+                            variant="outlined"
+                            startIcon={<SaveIcon />}
+                            onClick={handleSaveDraft}
+                            disabled={saving}
+                            sx={{ mr: 2 }}
+                          >
+                            Save as Draft
+                          </Button>
+                        )}
                         {(user?.role === 'HOD' || user?.role === 'Admin') && (
                           <Button
                             variant="outlined"

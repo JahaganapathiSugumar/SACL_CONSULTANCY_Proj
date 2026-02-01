@@ -755,6 +755,7 @@ export default function MetallurgicalInspection() {
   const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
   const [loadKey, setLoadKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [dataExists, setDataExists] = useState(false);
 
   const [previewMode, setPreviewMode] = useState(false);
   const [previewPayload, setPreviewPayload] = useState<any | null>(null);
@@ -822,7 +823,7 @@ export default function MetallurgicalInspection() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && trialId) {
+      if (trialId) {
         try {
           const response = await inspectionService.getMetallurgicalInspection(trialId);
 
@@ -892,6 +893,7 @@ export default function MetallurgicalInspection() {
             if (data.hardness) setHardRows(restoreSection(data.hardness));
 
             setLoadKey(prev => prev + 1);
+            setDataExists(true);
           }
         } catch (error) {
           console.error("Failed to fetch metallurgical data:", error);
@@ -991,11 +993,11 @@ export default function MetallurgicalInspection() {
         hardness: payload.hardRows || [],
         hardness_ok: getHardnessOk(),
         hardness_remarks: getHardnessRemarks(),
-        is_edit: isEditing
+        is_edit: isEditing || dataExists
       };
     };
 
-    if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+    if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
       setSending(true);
       try {
         const serverPayload = transformToServerPayload(previewPayload);
@@ -1078,6 +1080,103 @@ export default function MetallurgicalInspection() {
         icon: 'error',
         title: 'Error',
         text: 'Failed to submit inspection data. Please try again.'
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setSending(true);
+    try {
+      const payload = buildPayload();
+
+      const transformToServerPayload = (payload: any) => {
+        const microOk = microMeta['group']?.ok ?? null;
+        const microRemarks = microMeta['group']?.remarks ?? '';
+
+        const getMechOk = () => {
+          const hasNotOk = payload.mechRows?.some((r: any) => r.ok === false);
+          if (hasNotOk) return false;
+          const hasOk = payload.mechRows?.some((r: any) => r.ok === true);
+          return hasOk ? true : null;
+        };
+
+        const getImpactOk = () => {
+          const hasNotOk = payload.impactRows?.some((r: any) => r.ok === false);
+          if (hasNotOk) return false;
+          const hasOk = payload.impactRows?.some((r: any) => r.ok === true);
+          return hasOk ? true : null;
+        };
+
+        const getHardnessOk = () => {
+          const hasNotOk = payload.hardRows?.some((r: any) => r.ok === false);
+          if (hasNotOk) return false;
+          const hasOk = payload.hardRows?.some((r: any) => r.ok === true);
+          return hasOk ? true : null;
+        };
+
+        const getMechRemarks = () => payload.mechRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+        const getImpactRemarks = () => payload.impactRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+        const getHardnessRemarks = () => payload.hardRows?.map((r: any) => r.remarks).filter(Boolean).join('; ') || '';
+
+        return {
+          trial_id: trialId,
+          inspection_date: payload.inspection_date,
+          micro_structure: payload.microRows || [],
+          micro_structure_ok: microOk,
+          micro_structure_remarks: microRemarks,
+          mech_properties: payload.mechRows || [],
+          mech_properties_ok: getMechOk(),
+          mech_properties_remarks: getMechRemarks(),
+          impact_strength: payload.impactRows || [],
+          impact_strength_ok: getImpactOk(),
+          impact_strength_remarks: getImpactRemarks(),
+          hardness: payload.hardRows || [],
+          hardness_ok: getHardnessOk(),
+          hardness_remarks: getHardnessRemarks(),
+          is_edit: isEditing || dataExists,
+          is_draft: true
+        };
+      };
+
+      const serverPayload = transformToServerPayload(payload);
+
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+        await inspectionService.updateMetallurgicalInspection(serverPayload);
+      } else {
+        await inspectionService.submitMetallurgicalInspection(serverPayload);
+      }
+
+      const allFiles = [...attachedFiles];
+      if (microMeta['group']?.attachment instanceof File) allFiles.push(microMeta['group'].attachment);
+      const collectRowFiles = (rows: Row[]) => rows.forEach(r => { if (r.attachment instanceof File) allFiles.push(r.attachment); });
+      collectRowFiles(mechRows);
+      collectRowFiles(impactRows);
+      collectRowFiles(hardRows);
+
+      if (allFiles.length > 0) {
+        await uploadFiles(
+          allFiles,
+          trialId,
+          "METALLURGICAL_INSPECTION",
+          user?.username || "system",
+          "METALLURGICAL_INSPECTION"
+        ).catch(console.error);
+      }
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Saved as Draft',
+        text: 'Progress saved and next stage unlocked (if eligible).'
+      });
+      navigate('/dashboard');
+
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to save draft.'
       });
     } finally {
       setSending(false);
@@ -1379,6 +1478,17 @@ export default function MetallurgicalInspection() {
                           saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                           saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                         >
+                          {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                            <Button
+                              variant="outlined"
+                              startIcon={<SaveIcon />}
+                              onClick={handleSaveDraft}
+                              disabled={sending}
+                              sx={{ mr: 2 }}
+                            >
+                              Save as Draft
+                            </Button>
+                          )}
                           {(user?.role === 'HOD' || user?.role === 'Admin') && (
                             <Button
                               variant="outlined"

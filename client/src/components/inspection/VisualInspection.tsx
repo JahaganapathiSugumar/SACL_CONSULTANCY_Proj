@@ -409,6 +409,7 @@ export default function VisualInspection({
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
+    const [dataExists, setDataExists] = useState(false);
     const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
     const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
@@ -448,7 +449,7 @@ export default function VisualInspection({
 
     useEffect(() => {
         const fetchData = async () => {
-            if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && trialId) {
+            if (trialId) {
                 try {
                     const response = await inspectionService.getVisualInspection(trialId);
 
@@ -505,6 +506,7 @@ export default function VisualInspection({
                                 }
                             } catch (e) { console.error(e); }
                         }
+                        setDataExists(true);
                     }
                 } catch (error) {
                     console.error("Failed to fetch visual inspection:", error);
@@ -750,7 +752,7 @@ export default function VisualInspection({
         setSaving(true);
         setMessage(null);
 
-        if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
+        if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
             try {
                 const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
                 const cavityRow = findRow('cavity number');
@@ -788,7 +790,7 @@ export default function VisualInspection({
                     ndt_inspection: ndtRows,
                     ndt_inspection_ok: ndtRows[0]?.ok,
                     ndt_inspection_remarks: ndtRows[0]?.remarks,
-                    is_edit: isEditing
+                    is_edit: isEditing || dataExists
                 };
                 await inspectionService.updateVisualInspection(updatePayload);
 
@@ -804,7 +806,7 @@ export default function VisualInspection({
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: err.message || 'Failed to update. Please try again.'
+                    text: err.message || 'Failed to update Visual Inspection. Please try again.'
                 });
             } finally {
                 setSaving(false);
@@ -888,6 +890,85 @@ export default function VisualInspection({
                 icon: 'error',
                 title: 'Error',
                 text: err?.message || 'Failed to save visual inspection. Please try again.'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSaveDraft = async () => {
+        setSaving(true);
+        setMessage(null);
+        try {
+            const payload = buildPayload();
+
+            const findRow = (labelPart: string) => rows.find(r => r.label.toLowerCase().includes(labelPart));
+            const cavityRow = findRow('cavity number');
+            const inspectedRow = findRow('inspected quantity');
+            const acceptedRow = findRow('accepted quantity');
+            const rejectedRow = findRow('rejected quantity');
+            const reasonRow = findRow('reason for rejection');
+
+            const inspections = cols.map((col, idx) => {
+                const inspected = inspectedRow?.values?.[idx] ?? null;
+                const accepted = acceptedRow?.values?.[idx] ?? null;
+                const rejected = rejectedRow?.values?.[idx] ?? null;
+                const rejectionPercentage = (() => {
+                    const ins = parseFloat(String(inspected ?? '0'));
+                    const rej = parseFloat(String(rejected ?? '0'));
+                    if (isNaN(ins) || isNaN(rej) || ins === 0) return "0.00";
+                    return ((rej / ins) * 100).toFixed(2);
+                })();
+
+                return {
+                    'Cavity Number': cavityRow?.values?.[idx] ?? col ?? null,
+                    'Inspected Quantity': inspected ?? null,
+                    'Accepted Quantity': accepted ?? null,
+                    'Rejected Quantity': rejected ?? null,
+                    'Rejection Percentage': rejectionPercentage ?? null,
+                    'Reason for rejection': reasonRow?.values?.[idx] ?? null,
+                };
+            });
+
+            const serverPayload = {
+                trial_id: trialId,
+                inspections,
+                visual_ok: groupMeta.ok,
+                remarks: groupMeta.remarks || null,
+                ndt_inspection: ndtRows.length > 0 ? ndtRows : null,
+                ndt_inspection_ok: ndtRows[0]?.ok,
+                ndt_inspection_remarks: ndtRows[0]?.remarks,
+                is_edit: isEditing || dataExists,
+                is_draft: true
+            };
+
+            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+                await inspectionService.updateVisualInspection(serverPayload);
+            } else {
+                await inspectionService.submitVisualInspection(serverPayload);
+            }
+
+            const allFiles = [...attachedFiles];
+            if (groupMeta.attachment instanceof File) allFiles.push(groupMeta.attachment);
+
+            if (allFiles.length > 0) {
+                await uploadFiles(allFiles, trialId, "VISUAL_INSPECTION", user?.username || "system", "VISUAL_INSPECTION")
+                    .catch(console.error);
+            }
+
+            setSubmitted(true);
+            await Swal.fire({
+                icon: 'success',
+                title: 'Saved as Draft',
+                text: 'Progress saved and next stage unlocked (if eligible).'
+            });
+            navigate('/dashboard');
+
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to save draft.'
             });
         } finally {
             setSaving(false);
@@ -1225,6 +1306,17 @@ export default function VisualInspection({
                                                     saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                                                     saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                                 >
+                                                    {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            startIcon={<SaveIcon />}
+                                                            onClick={handleSaveDraft}
+                                                            disabled={saving}
+                                                            sx={{ mr: 2 }}
+                                                        >
+                                                            Save as Draft
+                                                        </Button>
+                                                    )}
                                                     {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                                         <Button
                                                             variant="outlined"
