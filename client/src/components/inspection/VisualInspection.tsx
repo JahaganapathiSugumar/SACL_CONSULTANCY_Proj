@@ -411,12 +411,17 @@ export default function VisualInspection({
     const departmentInfo = getDepartmentInfo(user);
     const [dataExists, setDataExists] = useState(false);
     const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Qty", "Accepted Qty", "Rejected Qty", "Reason for Rejection"]));
+    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Surface", "Core"]));
     const [ndtValidationError, setNdtValidationError] = useState<string | null>(null);
 
 
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+    };
+
+    const handleHardnessChange = (id: string, patch: Partial<NdtRow>) => {
+        setHardRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
     };
 
 
@@ -503,6 +508,14 @@ export default function VisualInspection({
                                 const parsed = typeof data.ndt_inspection === 'string' ? JSON.parse(data.ndt_inspection) : data.ndt_inspection;
                                 if (Array.isArray(parsed)) {
                                     setNdtRows(parsed);
+                                }
+                            } catch (e) { console.error(e); }
+                        }
+                        if (data.hardness) {
+                            try {
+                                const parsed = typeof data.hardness === 'string' ? JSON.parse(data.hardness) : data.hardness;
+                                if (Array.isArray(parsed)) {
+                                    setHardRows(parsed);
                                 }
                             } catch (e) { console.error(e); }
                         }
@@ -685,10 +698,11 @@ export default function VisualInspection({
             attachedFiles: attachedFiles.map(f => f.name),
             additionalRemarks: additionalRemarks,
             ndt: {
-                rows: ndtRows.map(r => ({ label: r.label, value: r.value, total: r.total })),
-                ok: ndtRows[0]?.ok,
                 remarks: ndtRows[0]?.remarks
-            }
+            },
+            hardness: hardRows.map(r => ({ label: r.label, value: r.value, total: r.total })),
+            hardness_ok: hardRows[0]?.ok,
+            hardness_remarks: hardRows[0]?.remarks
         };
     };
 
@@ -734,6 +748,9 @@ export default function VisualInspection({
                 ndt_inspection: ndtRows.length > 0 ? ndtRows : null,
                 ndt_inspection_ok: ndtRows[0]?.ok,
                 ndt_inspection_remarks: ndtRows[0]?.remarks,
+                hardness: hardRows,
+                hardness_ok: hardRows[0]?.ok,
+                hardness_remarks: hardRows[0]?.remarks,
                 is_edit: isEditing
             };
 
@@ -790,6 +807,9 @@ export default function VisualInspection({
                     ndt_inspection: ndtRows,
                     ndt_inspection_ok: ndtRows[0]?.ok,
                     ndt_inspection_remarks: ndtRows[0]?.remarks,
+                    hardness: hardRows,
+                    hardness_ok: hardRows[0]?.ok,
+                    hardness_remarks: hardRows[0]?.remarks,
                     is_edit: isEditing || dataExists
                 };
                 await inspectionService.updateVisualInspection(updatePayload);
@@ -1015,6 +1035,17 @@ export default function VisualInspection({
                                         isEditing={isEditing}
                                     />
                                     {ndtValidationError && <Alert severity="error" sx={{ mt: 1 }}>{ndtValidationError}</Alert>}
+                                </Paper>
+
+                                <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
+                                    <SectionTable
+                                        title="HARDNESS"
+                                        rows={hardRows}
+                                        onChange={handleHardnessChange}
+                                        showAlert={showAlert}
+                                        user={user}
+                                        isEditing={isEditing}
+                                    />
                                 </Paper>
 
                                 <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>

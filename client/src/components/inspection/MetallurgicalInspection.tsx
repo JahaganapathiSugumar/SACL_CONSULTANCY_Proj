@@ -781,7 +781,6 @@ export default function MetallurgicalInspection() {
 
   const [mechRows, setMechRows] = useState<Row[]>(initialRows(["Cavity Number", "Tensile strength", "Yield strength", "Elongation"]));
   const [impactRows, setImpactRows] = useState<Row[]>(initialRows(["Cavity Number", "Cold Temp °C", "Room Temp °C"]));
-  const [hardRows, setHardRows] = useState<Row[]>(initialRows(["Cavity Number", "Surface", "Core"]));
 
   const handleAttachFiles = (newFiles: File[]) => {
     setAttachedFiles(prev => [...prev, ...newFiles]);
@@ -890,7 +889,6 @@ export default function MetallurgicalInspection() {
 
             if (data.mech_properties) setMechRows(restoreSection(data.mech_properties));
             if (data.impact_strength) setImpactRows(restoreSection(data.impact_strength));
-            if (data.hardness) setHardRows(restoreSection(data.hardness));
 
             setLoadKey(prev => prev + 1);
             setDataExists(true);
@@ -932,7 +930,6 @@ export default function MetallurgicalInspection() {
       microRows: microRowsPayload,
       mechRows: mapRows(mechRows),
       impactRows: mapRows(impactRows),
-      hardRows: mapRows(hardRows),
       is_edit: isEditing
     };
   };
@@ -1034,7 +1031,6 @@ export default function MetallurgicalInspection() {
       const collectRowFiles = (rows: Row[]) => rows.forEach(r => { if (r.attachment instanceof File) allFiles.push(r.attachment); });
       collectRowFiles(mechRows);
       collectRowFiles(impactRows);
-      collectRowFiles(hardRows);
 
       if (allFiles.length > 0) {
         try {
@@ -1153,7 +1149,6 @@ export default function MetallurgicalInspection() {
       const collectRowFiles = (rows: Row[]) => rows.forEach(r => { if (r.attachment instanceof File) allFiles.push(r.attachment); });
       collectRowFiles(mechRows);
       collectRowFiles(impactRows);
-      collectRowFiles(hardRows);
 
       if (allFiles.length > 0) {
         await uploadFiles(
@@ -1428,18 +1423,6 @@ export default function MetallurgicalInspection() {
                         title="IMPACT STRENGTH"
                         rows={impactRows}
                         onChange={updateRow(setImpactRows)}
-                        showAlert={showAlert}
-                        user={user}
-                        isEditing={isEditing}
-                        cavityNumbers={microValues["Cavity Number"] || []}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <SectionTable
-                        key={`hard-${loadKey}`}
-                        title="HARDNESS"
-                        rows={hardRows}
-                        onChange={updateRow(setHardRows)}
                         showAlert={showAlert}
                         user={user}
                         isEditing={isEditing}

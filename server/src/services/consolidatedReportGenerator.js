@@ -73,13 +73,12 @@ const safeParse = (data, fallback = {}) => {
     }
 };
 
-// Helper to draw a table
-// options: { x, y, width, columns: [{ header, width, key (or access fn) }] }
+// Helper to draw a table - HIGHLY OPTIMIZED
 const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     let currentY = startY;
-    const padding = 5;
-    const rowHeight = 20;
-    const fontSize = 8;
+    const padding = 3;
+    const rowHeight = 16;
+    const fontSize = 7;
     const headerColor = '#f5f5f5';
 
     // Headers
@@ -96,7 +95,7 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     // Draw Header Text and Borders
     tableData.headers.forEach((header, i) => {
         doc.fillColor('black')
-            .text(header, currentX + padding, currentY + padding, { width: colWidths[i] - 2 * padding, align: 'left' });
+            .text(header, currentX + padding, currentY + padding + 1, { width: colWidths[i] - 2 * padding, align: 'left' });
         doc.rect(currentX, currentY, colWidths[i], rowHeight).strokeColor('#ddd').stroke();
         currentX += colWidths[i];
     });
@@ -107,12 +106,10 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     doc.font('Helvetica').fontSize(fontSize);
     tableData.rows.forEach(row => {
         currentX = startX;
-        // Calculate max height for row (simple version: fixed height)
-        // Ideally we check text wrapping, but for now fixed height 
 
         row.forEach((cell, i) => {
             const text = cell !== null && cell !== undefined ? String(cell) : '-';
-            doc.text(text, currentX + padding, currentY + padding, { width: colWidths[i] - 2 * padding, align: 'left' });
+            doc.text(text, currentX + padding, currentY + padding + 1, { width: colWidths[i] - 2 * padding, align: 'left' });
             doc.rect(currentX, currentY, colWidths[i], rowHeight).strokeColor('#ddd').stroke();
             currentX += colWidths[i];
         });
@@ -122,13 +119,13 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     return currentY;
 };
 
-// Draw a Vertical key-value table
+// Draw a Vertical key-value table - HIGHLY OPTIMIZED
 const drawVerticalTable = (doc, data, startX, startY, width) => {
     let currentY = startY;
-    const rowHeight = 15;
-    const fontSize = 8;
-    const labelWidth = width * 0.4;
-    const valueWidth = width * 0.6;
+    const rowHeight = 14;
+    const fontSize = 7;
+    const labelWidth = width * 0.45;
+    const valueWidth = width * 0.55;
     const padding = 3;
 
     doc.fontSize(fontSize);
@@ -136,16 +133,16 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
     data.forEach(item => {
         // Label Bg
         doc.save();
-        doc.fillColor('#f5f5f5').rect(startX, currentY, labelWidth, rowHeight).fill();
+        doc.fillColor('#fafafa').rect(startX, currentY, labelWidth, rowHeight).fill();
         doc.restore();
 
         // Borders
-        doc.rect(startX, currentY, labelWidth, rowHeight).strokeColor('#ddd').stroke();
-        doc.rect(startX + labelWidth, currentY, valueWidth, rowHeight).strokeColor('#ddd').stroke();
+        doc.rect(startX, currentY, labelWidth, rowHeight).strokeColor('#e0e0e0').stroke();
+        doc.rect(startX + labelWidth, currentY, valueWidth, rowHeight).strokeColor('#e0e0e0').stroke();
 
         // Text
-        doc.font('Helvetica-Bold').text(item.label, startX + padding, currentY + padding, { width: labelWidth - 2 * padding });
-        doc.font('Helvetica').text(item.value !== null && item.value !== undefined ? String(item.value) : '-', startX + labelWidth + padding, currentY + padding, { width: valueWidth - 2 * padding });
+        doc.font('Helvetica-Bold').text(item.label, startX + padding, currentY + padding + 1, { width: labelWidth - 2 * padding });
+        doc.font('Helvetica').text(item.value !== null && item.value !== undefined ? String(item.value) : '-', startX + labelWidth + padding, currentY + padding + 1, { width: valueWidth - 2 * padding });
 
         currentY += rowHeight;
     });
@@ -154,10 +151,10 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
 };
 
 const drawSectionTitle = (doc, title, x, y) => {
-    doc.font('Helvetica-Bold').fontSize(10).text(title, x, y);
+    doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c3e50').text(title, x, y);
     const width = doc.widthOfString(title);
-    doc.moveTo(x, y + 12).lineTo(x + width, y + 12).strokeColor('black').stroke(); // Underline
-    return y + 20;
+    doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke(); // Underline
+    return y + 18;
 };
 
 // Helper to fetch all trials for a part name
@@ -194,13 +191,6 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
 
-    // Header
-    doc.font('Helvetica-Bold').fontSize(16).text('CONSOLIDATED TRIAL HISTORY REPORT', { align: 'center' });
-    doc.fontSize(12).text(`Pattern Code: ${pattern_code}`, { align: 'center' });
-    doc.moveDown();
-    doc.moveTo(30, doc.y).lineTo(565, doc.y).stroke();
-    doc.moveDown();
-
     for (let i = 0; i < allTrialsData.length; i++) {
         const data = allTrialsData[i];
         const trialCard = data.trial_cards?.[0] || {};
@@ -212,275 +202,198 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         const dimensional = data.dimensional_inspection?.[0] || {};
         const mcShop = data.machine_shop?.[0] || {};
         const matCorr = data.material_correction?.[0] || {};
+        const currentTrialId = trialCard.trial_id || trial_id;
 
-        if (i > 0) {
-            doc.addPage();
-            doc.font('Helvetica-Bold').fontSize(14).text(`Trial Details: ${trialCard.trial_id}`, { align: 'center' });
-            doc.moveDown();
-        } else {
-            doc.font('Helvetica-Bold').fontSize(14).text(`First Trial Details: ${trialCard.trial_id}`, { align: 'center' });
-            doc.moveDown();
-        }
+        if (i > 0) doc.addPage();
 
-        let y = doc.y;
+        // --- PAGE 1: PROCESS DATA ---
+
+        // Header
+        doc.rect(0, 0, 595, 60).fillColor('#2c3e50').fill();
+        doc.font('Helvetica-Bold').fontSize(16).fillColor('white')
+            .text('CONSOLIDATED INSPECTION REPORT', 30, 20, { align: 'left' });
+        doc.fontSize(10)
+            .text(`Pattern: ${pattern_code}   |   Trial: ${currentTrialId}   |   Page: ${i * 2 + 1}`, 30, 42, { align: 'left' });
+        doc.fillColor('black');
+
+        let y = 80;
         const col1X = 30;
-        const col2X = 300;
-        const colWidth = 250;
+        const col2X = 305;
+        const colWidth = 260;
 
-        // --- ROW 1 ---
-        let yRow1Start = y;
+        // 1. Trial Card Details (Top Left)
+        let yLeft = drawSectionTitle(doc, "1. TRIAL CARD DETAILS", col1X, y);
+        const trialRows = [
+            { label: "Part Name", value: trialCard.part_name },
+            { label: "Date of Sampling", value: trialCard.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
+            { label: "Mould Count (P/A)", value: `${trialCard.plan_moulds || trialCard.no_of_moulds || '-'} / ${trialCard.actual_moulds || '-'}` },
+            { label: "Machine", value: trialCard.disa },
+            { label: "Reason", value: trialCard.reason_for_sampling },
+        ];
+        yLeft = drawVerticalTable(doc, trialRows, col1X, yLeft, colWidth) + 12;
 
-        // 1. Trial Card
-        let y1 = drawSectionTitle(doc, "1. TRIAL CARD DETAILS", col1X, yRow1Start);
-        if (Object.keys(trialCard).length > 0) {
-            y1 = drawVerticalTable(doc, [
-                { label: "Part Name", value: trialCard.part_name },
-                { label: "Pattern Code", value: trialCard.pattern_code },
-                { label: "Trial No", value: trialCard.trial_id },
-                { label: "Date of Sampling", value: trialCard.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
-                { label: "Mould Count (Plan)", value: trialCard.plan_moulds || trialCard.no_of_moulds },
-                { label: "Mould Count (Actual)", value: trialCard.actual_moulds },
-                { label: "Machine", value: trialCard.disa },
-                { label: "Reason", value: trialCard.reason_for_sampling },
-            ], col1X, y1, colWidth) + 10;
-        }
-
-        // 1.1 Metallurgical Specification (from FoundrySampleCard/Master)
-        let y1_1 = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col1X, y1);
+        // 1.1 Met Spec
+        let yMetSpec = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col1X, yLeft);
         const specChem = safeParse(trialCard.spec_chem);
         const specMicro = safeParse(trialCard.spec_micro);
 
-        if (Object.keys(specChem).length > 0 || Object.keys(specMicro).length > 0) {
-            const chemRows = [
-                ["C", specChem.c], ["Si", specChem.si], ["Mn", specChem.mn], ["P", specChem.p],
-                ["S", specChem.s], ["Mg", specChem.mg], ["Cr", specChem.cr], ["Cu", specChem.cu]
-            ];
-            doc.font('Helvetica-Bold').fontSize(8).text("Chemical Elements (%)", col1X, y1_1);
-            y1_1 += 12;
-            y1_1 = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col1X, y1_1, [125, 125]) + 10;
+        const chemRows = [["C", specChem.c], ["Si", specChem.si], ["Mn", specChem.mn], ["P", specChem.p], ["S", specChem.s], ["Mg", specChem.mg]];
+        doc.font('Helvetica-Bold').fontSize(7).text("Chemical Elements (%)", col1X, yMetSpec);
+        yMetSpec += 10;
+        yMetSpec = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col1X, yMetSpec, [130, 130]) + 8;
 
-            doc.font('Helvetica-Bold').fontSize(8).text("Microstructure", col1X, y1_1);
-            y1_1 += 12;
-            y1_1 = drawVerticalTable(doc, [
-                { label: "Nodularity", value: specMicro.nodularity },
-                { label: "Pearlite", value: specMicro.pearlite },
-                { label: "Carbide", value: specMicro.carbide }
-            ], col1X, y1_1, colWidth) + 10;
-            y1 = y1_1;
+        const microSpecRows = [
+            { label: "Nodularity", value: specMicro.nodularity },
+            { label: "Pearlite", value: specMicro.pearlite },
+            { label: "Carbide", value: specMicro.carbide }
+        ];
+        yMetSpec = drawVerticalTable(doc, microSpecRows, col1X, yMetSpec, colWidth) + 12;
+        yLeft = yMetSpec;
+
+        // 2. Material Correction (Top Right)
+        let yRight = drawSectionTitle(doc, "1.2 MATERIAL CORRECTION", col2X, y);
+        const corrChem = safeParse(matCorr.chemical_composition);
+        const corrProc = safeParse(matCorr.process_parameters);
+
+        const matChemData = [[corrChem.c, corrChem.si, corrChem.mn, corrChem.p, corrChem.s, corrChem.mg, corrChem.cu, corrChem.cr]];
+        doc.font('Helvetica-Bold').fontSize(7).text("Actual Composition", col2X, yRight);
+        yRight += 10;
+        yRight = drawTable(doc, { headers: ["C", "Si", "Mn", "P", "S", "Mg", "Cu", "Cr"], rows: matChemData }, col2X, yRight, [32, 32, 32, 32, 32, 32, 32, 36]) + 8;
+
+        const procRows = [
+            { label: "Pouring Temp °C", value: corrProc.pouringTemp },
+            { label: "Inoculant / Sec", value: corrProc.inoculantPerSec },
+            { label: "Inoculant Type", value: corrProc.inoculantType },
+            { label: "Remarks", value: matCorr.remarks }
+        ];
+        yRight = drawVerticalTable(doc, procRows, col2X, yRight, colWidth) + 12;
+
+        // 3. Pouring Details
+        yRight = drawSectionTitle(doc, "2. POURING DETAILS", col2X, yRight);
+        const pInoc = safeParse(pouring.inoculation);
+        const pouringRows = [
+            { label: "Pour Date", value: pouring.pour_date ? new Date(pouring.pour_date).toISOString().slice(0, 10) : '-' },
+            { label: "Heat Code", value: pouring.heat_code },
+            { label: "Pouring Temp (°C)", value: pouring.pouring_temp_c },
+            { label: "Pouring Time (sec)", value: pouring.pouring_time_sec },
+            { label: "No. Mould Poured", value: pouring.no_of_mould_poured },
+            { label: "Inoculation Type", value: pInoc.Text },
+            { label: "Stream/Inmould", value: `${pInoc.Stream || '-'} / ${pInoc.Inmould || '-'}` },
+        ];
+        yRight = drawVerticalTable(doc, pouringRows, col2X, yRight, colWidth) + 12;
+
+        let yNext = Math.max(yLeft, yRight);
+
+        // 4. Sand Properties
+        yLeft = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
+        const sandRows = [
+            { label: "Date", value: sand.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
+            { label: "T. Clay / A. Clay %", value: `${sand.t_clay || '-'} / ${sand.a_clay || '-'}` },
+            { label: "V.C.M. / L.O.I. %", value: `${sand.vcm || '-'} / ${sand.loi || '-'}` },
+            { label: "A.F.S. / G.C.S.", value: `${sand.afs || '-'} / ${sand.gcs || '-'}` },
+            { label: "M.O.I. / Comp.", value: `${sand.moi || '-'} / ${sand.compactability || '-'}` },
+            { label: "Permeability", value: sand.permeability },
+        ];
+        yLeft = drawVerticalTable(doc, sandRows, col1X, yLeft, colWidth);
+
+        // 5. Mould Correction
+        yRight = drawSectionTitle(doc, "4. MOULD CORRECTION", col2X, yNext);
+        const mouldRows = [
+            { label: "Date", value: moulding.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
+            { label: "Thickness", value: moulding.mould_thickness },
+            { label: "Compressibility", value: moulding.compressability },
+            { label: "Squeeze Pressure", value: moulding.squeeze_pressure },
+            { label: "Mould Hardness", value: moulding.mould_hardness },
+        ];
+        yRight = drawVerticalTable(doc, mouldRows, col2X, yRight, colWidth);
+
+        // --- PAGE 2: INSPECTION DATA ---
+        doc.addPage();
+        let p2y = 40;
+
+        // Header P2
+        doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${currentTrialId} - Inspection Results   |   Page: ${i * 2 + 2}`, 30, 20);
+        doc.moveTo(30, 35).lineTo(565, 35).stroke();
+
+        // 5. Metallurgical Inspection
+        p2y = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, p2y);
+        const mechRows = safeParse(meta.mech_properties, []);
+        const impactRows = safeParse(meta.impact_strength, []);
+        const microRows = safeParse(meta.micro_structure, []);
+
+        let metLeftY = p2y;
+        let metRightY = p2y;
+
+        if (mechRows.length > 0) {
+            doc.font('Helvetica-Bold').fontSize(7).text("Mechanical Properties", col1X, metLeftY);
+            metLeftY += 10;
+            metLeftY = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metLeftY, [80, 50, 30, 90]) + 10;
         }
 
-        // 1.2 Material Correction Details
-        let y2 = yRow1Start;
-        let y1_2 = drawSectionTitle(doc, "1.2 MATERIAL CORRECTION DETAILS", col2X, yRow1Start);
-        if (Object.keys(matCorr).length > 0) {
-            const corrChem = safeParse(matCorr.chemical_composition);
-            const corrProc = safeParse(matCorr.process_parameters);
+        p2y = metLeftY;
 
-            const chemRow = [
-                corrChem.c, corrChem.si, corrChem.mn, corrChem.p, corrChem.s, corrChem.mg, corrChem.cu, corrChem.cr
-            ];
-            doc.font('Helvetica-Bold').fontSize(8).text("Chemical Composition", col2X, y1_2);
-            y1_2 += 12;
-            y1_2 = drawTable(doc, { headers: ["C%", "Si%", "Mn%", "P%", "S%", "Mg%", "Cu%", "Cr%"], rows: [chemRow] }, col2X, y1_2, [31, 31, 31, 31, 31, 31, 31, 33]) + 10;
-
-            doc.font('Helvetica-Bold').fontSize(8).text("Process Parameters", col2X, y1_2);
-            y1_2 += 12;
-            y1_2 = drawVerticalTable(doc, [
-                { label: "Pouring Temp °C", value: corrProc.pouringTemp },
-                { label: "Inoculant per Sec", value: corrProc.inoculantPerSec },
-                { label: "Inoculant type", value: corrProc.inoculantType },
-                { label: "Remarks", value: matCorr.remarks }
-            ], col2X, y1_2, colWidth) + 10;
-            y2 = y1_2;
+        if (impactRows.length > 0) {
+            doc.font('Helvetica-Bold').fontSize(7).text("Impact Strength", col1X, p2y);
+            p2y += 10;
+            p2y = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, p2y, [80, 50, 30, 90]) + 10;
         }
 
-        // 2. Pouring Details
-        y1_2 = drawSectionTitle(doc, "2. POURING DETAILS", col1X, Math.max(y1, y2));
-        if (Object.keys(pouring).length > 0) {
-            const pInoc = safeParse(pouring.inoculation);
-            const pRem = safeParse(pouring.other_remarks);
-            const pComp = safeParse(pouring.composition);
-
-            y1_2 = drawVerticalTable(doc, [
-                { label: "Pour Date", value: pouring.pour_date ? new Date(pouring.pour_date).toISOString().slice(0, 10) : '-' },
-                { label: "Heat Code", value: pouring.heat_code },
-                { label: "Pouring Temp (°C)", value: pouring.pouring_temp_c },
-                { label: "Pouring Time (sec)", value: pouring.pouring_time_sec },
-                { label: "F/C Heat No.", value: pRem["F/C & Heat No."] },
-                { label: "No. of Mould Poured", value: pouring.no_of_mould_poured },
-                { label: "Inoculation Type", value: pInoc.Text },
-                { label: "Stream Inoc.", value: pInoc.Stream },
-                { label: "Inmould Inoc.", value: pInoc.Inmould }
-            ], col1X, y1_2, colWidth) + 5;
-
-            // Chemical Comp
-            doc.font('Helvetica-Bold').fontSize(8).text("Chemical Composition", col1X, y1_2);
-            y1_2 += 12;
-            const compKeys = Object.keys(pComp);
-            if (compKeys.length > 0) {
-                y1_2 = drawTable(doc, { headers: compKeys, rows: [Object.values(pComp)] }, col1X, y1_2, compKeys.map(() => colWidth / compKeys.length)) + 10;
-            }
-            y1 = y1_2;
-        }
-        y2 = y1;
-
-        let nextY = Math.max(y1, y2) + 10;
-
-        // --- ROW 2 ---
-        if (doc.page.height - nextY < 150) { doc.addPage(); nextY = 30; }
-        const yRow2Start = nextY;
-
-        // 3. Sand Properties
-        y1 = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yRow2Start);
-        if (Object.keys(sand).length > 0) {
-            y1 = drawVerticalTable(doc, [
-                { label: "Date", value: sand.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
-                { label: "T. Clay %", value: sand.t_clay },
-                { label: "A. Clay %", value: sand.a_clay },
-                { label: "V.C.M. %", value: sand.vcm },
-                { label: "L.O.I. %", value: sand.loi },
-                { label: "A.F.S.", value: sand.afs },
-                { label: "G.C.S.", value: sand.gcs },
-                { label: "M.O.I.", value: sand.moi },
-                { label: "Compactability", value: sand.compactability },
-                { label: "Permeability", value: sand.permeability },
-                { label: "Remarks", value: sand.remarks },
-            ], col1X, y1, colWidth) + 10;
+        if (microRows.length > 0) {
+            doc.font('Helvetica-Bold').fontSize(7).text("Microstructure", col1X, p2y);
+            p2y += 10;
+            p2y = drawTable(doc, { headers: ["Parameter", "Values", "Result", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, p2y, [140, 180, 40, 175]) + 10;
         }
 
-        // 4. Mould Correction
-        y2 = drawSectionTitle(doc, "4. MOULD CORRECTION", col2X, yRow2Start);
-        if (Object.keys(moulding).length > 0) {
-            y2 = drawVerticalTable(doc, [
-                { label: "Date", value: moulding.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
-                { label: "Mould Thickness", value: moulding.mould_thickness },
-                { label: "Compressibility", value: moulding.compressability },
-                { label: "Squeeze Pressure", value: moulding.squeeze_pressure },
-                { label: "Mould Hardness", value: moulding.mould_hardness },
-                { label: "Remarks", value: moulding.remarks }
-            ], col2X, y2, colWidth) + 10;
+        p2y += 5;
+
+        // 6. Visual & 7. Dimensional
+        let visitY = p2y;
+        let dimY = p2y;
+
+        // Visual (Left)
+        visitY = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, visitY);
+        visitY = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }, { label: "Remarks", value: visual.remarks }], col1X, visitY, colWidth) + 8;
+        const visInspections = safeParse(visual.inspections, []);
+        if (visInspections.length > 0) {
+            visitY = drawTable(doc, { headers: ['Cav', 'Insp', 'Rej', 'Reason'], rows: visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], r['Reason for rejection']]) }, col1X, visitY, [30, 30, 30, 170]) + 8;
         }
 
-        nextY = Math.max(y1, y2) + 10;
-
-        // --- 5. Metallurgical ---
-        if (meta && Object.keys(meta).length > 0) {
-            const mechRows = safeParse(meta.mech_properties, []);
-            const impactRows = safeParse(meta.impact_strength, []);
-            const hardRows = safeParse(meta.hardness, []);
-            const microRows = safeParse(meta.micro_structure, []);
-
-            const hasMetaData = mechRows.length > 0 || impactRows.length > 0 || hardRows.length > 0 || microRows.length > 0;
-
-            if (hasMetaData) {
-                // Check space
-                if (doc.page.height - nextY < 150) { doc.addPage(); nextY = 30; }
-
-                nextY = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, nextY);
-
-                let metaY1 = nextY;
-                let metaY2 = nextY;
-
-                // Mechanical
-                if (mechRows.length > 0) {
-                    doc.font('Helvetica-Bold').fontSize(8).text("Mechanical Properties", col1X, metaY1);
-                    metaY1 += 12;
-                    metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
-                }
-
-                // Hardness
-                if (hardRows.length > 0) {
-                    doc.font('Helvetica-Bold').fontSize(8).text("Hardness", col2X, metaY2);
-                    metaY2 += 12;
-                    metaY2 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col2X, metaY2, [80, 50, 40, 80]) + 10;
-                }
-
-                let nextSubY = Math.max(metaY1, metaY2);
-                metaY1 = nextSubY;
-                metaY2 = nextSubY;
-
-                // Impact
-                if (impactRows.length > 0) {
-                    doc.font('Helvetica-Bold').fontSize(8).text("Impact Strength", col1X, metaY1);
-                    metaY1 += 12;
-                    metaY1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, metaY1, [80, 50, 40, 80]) + 10;
-                }
-
-                nextY = Math.max(metaY1, metaY2);
-
-                // Microstructure (Full width)
-                if (microRows.length > 0) {
-                    if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 30; }
-                    doc.font('Helvetica-Bold').fontSize(8).text("Microstructure Examination", col1X, nextY);
-                    nextY += 12;
-                    nextY = drawTable(doc, { headers: ["Parameter", "Values", "Status", "Remarks"], rows: microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOK", r.remarks]) }, col1X, nextY, [150, 150, 50, 180]) + 10;
-                }
-            }
+        const hardRows = safeParse(vis_res.hardness, []);
+        if (hardRows.length > 0) {
+            doc.font('Helvetica-Bold').fontSize(7).text("Hardness", col1X, visitY);
+            visitY += 10;
+            visitY = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, visitY, [80, 50, 30, 90]) + 10;
         }
 
-        if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 30; }
-
-        // --- ROW 3 ---
-        yRow1Start = nextY;
-
-        // 6. Visual
-        y1 = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, yRow1Start);
-        if (Object.keys(visual).length > 0) {
-            y1 = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }], col1X, y1, colWidth) + 5;
-            doc.font('Helvetica-Bold').text("Remarks:", col1X, y1);
-            doc.font('Helvetica').text(visual.remarks || '-', col1X, y1 + 12, { width: colWidth });
-            y1 += 30;
-
-            const visInspections = safeParse(visual.inspections, []);
-            if (Array.isArray(visInspections) && visInspections.length > 0) {
-                const rows = visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], r['Reason for rejection']]);
-                y1 = drawTable(doc, { headers: ['Cav No', 'Insp Qty', 'Rej Qty', 'Reason'], rows }, col1X, y1, [50, 50, 50, 100]) + 10;
-            }
-
-            const ndtRows = safeParse(visual.ndt_inspection, []);
-            if (ndtRows.length > 0) {
-                y1 += 10;
-                doc.font('Helvetica-Bold').fontSize(8).text("NDT Inspection", col1X, y1);
-                y1 += 12;
-                y1 = drawTable(doc, { headers: ["Parameter", "Value", "Status", "Remarks"], rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, y1, [80, 50, 40, 100]) + 10;
-            }
+        // Dimensional (Right)
+        dimY = drawSectionTitle(doc, "7. DIMENSIONAL INSPECTION", col2X, dimY);
+        const dimRows = [
+            { label: "Date", value: dimensional.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
+            { label: "Weight", value: `${dimensional.casting_weight || '-'} kg` },
+            { label: "Yield", value: `${dimensional.yields || '-'} %` }
+        ];
+        dimY = drawVerticalTable(doc, dimRows, col2X, dimY, colWidth) + 8;
+        const dimInspections = safeParse(dimensional.inspections, []);
+        if (dimInspections.length > 0) {
+            dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) }, col2X, dimY + 20, [130, 130]) + 8;
         }
 
-        // 7. Dimensional
-        y2 = drawSectionTitle(doc, "7. DIMENSIONAL INSPECTION", col2X, yRow1Start);
-        if (Object.keys(dimensional).length > 0) {
-            y2 = drawVerticalTable(doc, [
-                { label: "Inspection Date", value: dimensional.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
-                { label: "Casting Weight (kg)", value: dimensional.casting_weight },
-                { label: "Bunch Weight (kg)", value: dimensional.bunch_weight },
-                { label: "No. of Cavities", value: dimensional.no_of_cavities },
-                { label: "Yields (%)", value: dimensional.yields },
-            ], col2X, y2, colWidth) + 5;
-
-            const dimInspections = safeParse(dimensional.inspections, []);
-            if (Array.isArray(dimInspections) && dimInspections.length > 0) {
-                const rows = dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]);
-                y2 = drawTable(doc, { headers: ['Cavity Number', 'Casting Weight'], rows }, col2X, y2 + 20, [120, 120]) + 10;
-            }
-        }
-
-        nextY = Math.max(y1, y2) + 20;
+        p2y = Math.max(visitY, dimY) + 10;
 
         // 8. Machine Shop
         if (Object.keys(mcShop).length > 0) {
-            if (doc.page.height - nextY < 100) { doc.addPage(); nextY = 30; }
-            nextY = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, nextY);
-            nextY = drawVerticalTable(doc, [
-                { label: "Inspection Date", value: mcShop.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
+            p2y = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, p2y);
+            p2y = drawVerticalTable(doc, [
+                { label: "Date", value: mcShop.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
                 { label: "Remarks", value: mcShop.remarks }
-            ], col1X, nextY, colWidth) + 10;
+            ], col1X, p2y, colWidth * 2 + 15) + 8;
 
             const mcInspections = safeParse(mcShop.inspections, []);
             if (mcInspections.length > 0) {
                 const headers = Object.keys(mcInspections[0]);
                 const rows = mcInspections.map(r => Object.values(r));
-                const colW = 500 / headers.length;
-                nextY = drawTable(doc, { headers, rows }, col1X, nextY, headers.map(() => colW));
+                const colW = 535 / headers.length;
+                p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW));
             }
         }
     }
@@ -494,7 +407,6 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
             const fileName = `Consolidated_Trial_Report_${pattern_code.replace(/\s+/g, '_')}.pdf`;
 
             try {
-                // Check if a report already exists for this part
                 const [existing] = await trx.query(
                     `SELECT document_id FROM consolidated_reports WHERE pattern_code = @pattern_code AND document_type = 'CONSOLIDATED_REPORT'`,
                     { pattern_code }

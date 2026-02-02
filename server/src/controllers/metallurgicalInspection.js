@@ -16,9 +16,6 @@ export const createInspection = async (req, res, next) => {
         impact_strength,
         impact_strength_ok,
         impact_strength_remarks,
-        hardness,
-        hardness_ok,
-        hardness_remarks,
         is_draft
     } = req.body || {};
 
@@ -43,10 +40,7 @@ export const createInspection = async (req, res, next) => {
             mech_properties_remarks,
             impact_strength,
             impact_strength_ok,
-            impact_strength_remarks,
-            hardness,
-            hardness_ok,
-            hardness_remarks
+            impact_strength_remarks
         ) VALUES (
             @trial_id, 
             @inspection_date,
@@ -58,10 +52,7 @@ export const createInspection = async (req, res, next) => {
             @mech_properties_remarks,
             @impact_strength,
             @impact_strength_ok,
-            @impact_strength_remarks,
-            @hardness,
-            @hardness_ok,
-            @hardness_remarks
+            @impact_strength_remarks
         )`;
 
         await trx.query(sql, {
@@ -75,10 +66,7 @@ export const createInspection = async (req, res, next) => {
             mech_properties_remarks: mech_properties_remarks || null,
             impact_strength: JSON.stringify(impact_strength || []),
             impact_strength_ok,
-            impact_strength_remarks: impact_strength_remarks || null,
-            hardness: JSON.stringify(hardness || []),
-            hardness_ok,
-            hardness_remarks: hardness_remarks || null
+            impact_strength_remarks: impact_strength_remarks || null
         });
 
         const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
@@ -116,9 +104,6 @@ export const updateInspection = async (req, res, next) => {
         impact_strength,
         impact_strength_ok,
         impact_strength_remarks,
-        hardness,
-        hardness_ok,
-        hardness_remarks,
         is_edit
     } = req.body || {};
 
@@ -134,7 +119,6 @@ export const updateInspection = async (req, res, next) => {
     const microStructureJson = micro_structure ? JSON.stringify(micro_structure) : null;
     const mechPropertiesJson = mech_properties ? JSON.stringify(mech_properties) : null;
     const impactStrengthJson = impact_strength ? JSON.stringify(impact_strength) : null;
-    const hardnessJson = hardness ? JSON.stringify(hardness) : null;
 
     await Client.transaction(async (trx) => {
         if (is_edit) {
@@ -148,10 +132,7 @@ export const updateInspection = async (req, res, next) => {
             mech_properties_remarks = COALESCE(@mech_properties_remarks, mech_properties_remarks),
             impact_strength = COALESCE(@impact_strength, impact_strength),
             impact_strength_ok = COALESCE(@impact_strength_ok, impact_strength_ok),
-            impact_strength_remarks = COALESCE(@impact_strength_remarks, impact_strength_remarks),
-            hardness = COALESCE(@hardness, hardness),
-            hardness_ok = COALESCE(@hardness_ok, hardness_ok),
-            hardness_remarks = COALESCE(@hardness_remarks, hardness_remarks)
+            impact_strength_remarks = COALESCE(@impact_strength_remarks, impact_strength_remarks)
             WHERE trial_id = @trial_id`;
 
             await trx.query(sql, {
@@ -165,9 +146,6 @@ export const updateInspection = async (req, res, next) => {
                 impact_strength: impactStrengthJson,
                 impact_strength_ok: impact_strength_ok || null,
                 impact_strength_remarks: impact_strength_remarks || null,
-                hardness: hardnessJson,
-                hardness_ok: hardness_ok || null,
-                hardness_remarks: hardness_remarks || null,
                 trial_id
             });
 
@@ -184,7 +162,7 @@ export const updateInspection = async (req, res, next) => {
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
                 await triggerNextDepartment(trial_id, req.user, trx);
-            } else if(req.user.role === 'User'){
+            } else if (req.user.role === 'User') {
                 await updateRole(trial_id, req.user, trx);
             } else {
                 await updateDepartment(trial_id, req.user, trx);
