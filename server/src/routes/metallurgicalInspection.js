@@ -3,7 +3,7 @@ import asyncErrorHandler from '../utils/asyncErrorHandler.js';
 import verifyToken from '../middlewares/verifyToken.js';
 import * as metallurgicalInspectionController from '../controllers/metallurgicalInspection.js';
 import authorizeDepartments from '../middlewares/authorizeDepartments.js';
-import authorizeRoles from '../middlewares/authorizeRoles.js';
+import validateTrial from '../middlewares/validateTrial.js';
 import { validate } from '../middlewares/validate.js';
 import { metallurgicalInspectionSchema, updateMetallurgicalInspectionSchema } from '../schemas/index.js';
 

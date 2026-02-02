@@ -9,11 +9,6 @@ export const createMaterialCorrection = async (req, res, next) => {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    const existingInspection = await Client.query('SELECT * FROM material_correction WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length > 0) {
-        return res.status(400).json({ success: false, message: 'Material correction already exists for this trial ID' });
-    }
-
     const chemicalCompositionJson = JSON.stringify(chemical_composition);
     const processParametersJson = JSON.stringify(process_parameters);
 
@@ -47,11 +42,6 @@ export const updateMaterialCorrection = async (req, res, next) => {
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
-    }
-
-    const existingInspection = await Client.query('SELECT * FROM material_correction WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length === 0) {
-        return res.status(400).json({ success: false, message: 'Material correction does not exist for this trial ID' });
     }
 
     const chemicalCompositionJson = chemical_composition ? JSON.stringify(chemical_composition) : null;

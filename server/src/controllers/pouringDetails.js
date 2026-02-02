@@ -9,11 +9,6 @@ export const createPouringDetails = async (req, res, next) => {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
 
-    const existingInspection = await Client.query('SELECT * FROM pouring_details WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length > 0) {
-        return res.status(400).json({ success: false, message: 'Pouring details already exists for this trial ID' });
-    }
-
     const compositionJson = JSON.stringify(composition);
     const otherRemarksJson = JSON.stringify(other_remarks);
     const inoculationJson = JSON.stringify(inoculation);
@@ -66,11 +61,6 @@ export const updatePouringDetails = async (req, res, next) => {
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
-    }
-
-    const existingInspection = await Client.query('SELECT * FROM pouring_details WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length === 0) {
-        return res.status(400).json({ success: false, message: 'Pouring details does not exist for this trial ID' });
     }
 
     const compositionJson = composition ? JSON.stringify(composition) : null;

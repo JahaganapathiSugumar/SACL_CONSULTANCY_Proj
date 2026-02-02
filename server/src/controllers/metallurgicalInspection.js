@@ -23,11 +23,6 @@ export const createInspection = async (req, res, next) => {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
 
-    const existingInspection = await Client.query('SELECT * FROM metallurgical_inspection WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length > 0) {
-        return res.status(400).json({ success: false, message: 'Metallurgical inspection already exists for this trial ID' });
-    }
-
     await Client.transaction(async (trx) => {
         const sql = `INSERT INTO metallurgical_inspection (
             trial_id, 
@@ -109,11 +104,6 @@ export const updateInspection = async (req, res, next) => {
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
-    }
-
-    const existingInspection = await Client.query('SELECT * FROM metallurgical_inspection WHERE trial_id = @trial_id', { trial_id });
-    if (existingInspection.length === 0) {
-        return res.status(400).json({ success: false, message: 'Metallurgical inspection does not exist for this trial ID' });
     }
 
     const microStructureJson = micro_structure ? JSON.stringify(micro_structure) : null;
