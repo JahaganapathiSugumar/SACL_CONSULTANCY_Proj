@@ -55,14 +55,13 @@ import { useAuth } from '../../context/AuthContext';
 import Header from "../dashboard/Header";
 import ProfileModal from "../dashboard/ProfileModal";
 import { getDepartmentInfo } from "../../utils/dashboardUtils";
-import { LoadingState, EmptyState, FileUploadSection, PreviewModal, DocumentViewer } from '../common';
+import { LoadingState, EmptyState, FileUploadSection, PreviewModal, DocumentViewer, ActionButtons } from '../common';
 import GearSpinner from '../common/GearSpinner';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-
-
+import { safeParse } from "../../utils/jsonUtils";
 
 interface PartData {
   id: number;
@@ -266,7 +265,6 @@ function FoundrySampleCard() {
   const [machine, setMachine] = useState("");
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
-  const [reason_for_sampling, setReasonForSampling] = useState("");
   const [sampleTraceability, setSampleTraceability] = useState("");
   const [trialType, setTrialType] = useState("");
   const [toolingModification, setToolingModification] = useState("");
@@ -296,9 +294,6 @@ function FoundrySampleCard() {
   const [tensileState, setTensileState] = useState({ tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" });
   const [microState, setMicroState] = useState({ nodularity: "", pearlite: "", carbide: "" });
   const [hardnessState, setHardnessState] = useState({ surface: "", core: "" });
-
-  const [submittedData, setSubmittedData] = useState<any>(null);
-  const [editingOnlyMetallurgical, setEditingOnlyMetallurgical] = useState<boolean>(false);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -347,68 +342,58 @@ function FoundrySampleCard() {
           const response = await trialService.getTrialById(trialIdFromUrl);
           if (response && response.data) {
             const data = response.data;
-            setTrialId(data.trial_id || trialIdFromUrl);
-            setTrialNo(data.trial_id?.split('-').pop() || '');
-            setSamplingDate(data.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
-            setPlanMoulds(data.plan_moulds || '');
-            setMachine(data.disa || '');
-            setInitiatedBy(data.initiated_by || '');
-            setReason(data.reason_for_sampling || '');
-            setSampleTraceability(data.sample_traceability && data.sample_traceability !== 'null' && data.sample_traceability !== 'undefined' ? data.sample_traceability : '');
-            setTrialType(data.trial_type && data.trial_type !== 'null' && data.trial_type !== 'undefined' ? data.trial_type : '');
-            setToolingModification(data.tooling_modification && data.tooling_modification !== 'null' && data.tooling_modification !== 'undefined' ? data.tooling_modification : '');
-            setRemarks(data.remarks && data.remarks !== 'null' && data.remarks !== 'undefined' ? data.remarks : '');
+            if (data) {
+              setTrialId(data.trial_id || trialIdFromUrl);
+              setTrialNo(data.trial_id?.split('-').pop() || '');
+              setSamplingDate(data.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
+              setPlanMoulds(data.plan_moulds || '');
+              setMachine(data.disa || '');
+              setInitiatedBy(data.initiated_by || '');
+              setReason(data.reason_for_sampling || '');
+              setSampleTraceability(data.sample_traceability || '');
+              setTrialType(data.trial_type || '');
+              setToolingModification(data.tooling_modification || '');
+              setRemarks(data.remarks || '');
 
-            const comp = typeof data.chemical_composition === 'string'
-              ? JSON.parse(data.chemical_composition)
-              : data.chemical_composition || {};
-            setChemState({
-              c: comp.c || "", si: comp.si || "", mn: comp.mn || "",
-              p: comp.p || "", s: comp.s || "", mg: comp.mg || "",
-              cr: comp.cr || "", cu: comp.cu || ""
-            });
+              const comp = safeParse<any>(data.chemical_composition, {});
+              setChemState({
+                c: comp.c || "", si: comp.si || "", mn: comp.mn || "",
+                p: comp.p || "", s: comp.s || "", mg: comp.mg || "",
+                cr: comp.cr || "", cu: comp.cu || ""
+              });
 
-            const micro = typeof data.micro_structure === 'string'
-              ? JSON.parse(data.micro_structure)
-              : data.micro_structure || {};
-            setMicroState({
-              nodularity: micro.nodularity || "",
-              pearlite: micro.pearlite || "",
-              carbide: micro.carbide || ""
-            });
+              const micro = safeParse<any>(data.micro_structure, {});
+              setMicroState({
+                nodularity: micro.nodularity || "",
+                pearlite: micro.pearlite || "",
+                carbide: micro.carbide || ""
+              });
 
-            const tensile = typeof data.tensile === 'string'
-              ? JSON.parse(data.tensile)
-              : data.tensile || {};
-            setTensileState({
-              tensileStrength: tensile.tensileStrength || "",
-              yieldStrength: tensile.yieldStrength || "",
-              elongation: tensile.elongation || "",
-              impactCold: tensile.impactCold || "",
-              impactRoom: tensile.impactRoom || ""
-            });
+              const tensile = safeParse<any>(data.tensile, {});
+              setTensileState({
+                tensileStrength: tensile.tensileStrength || "",
+                yieldStrength: tensile.yieldStrength || "",
+                elongation: tensile.elongation || "",
+                impactCold: tensile.impactCold || "",
+                impactRoom: tensile.impactRoom || ""
+              });
 
-            const hardness = typeof data.hardness === 'string'
-              ? JSON.parse(data.hardness)
-              : data.hardness || {};
-            setHardnessState({
-              surface: hardness.surface || "",
-              core: hardness.core || ""
-            });
+              const hardness = safeParse<any>(data.hardness, {});
+              setHardnessState({
+                surface: hardness.surface || "",
+                core: hardness.core || ""
+              });
 
-            if (data.mould_correction) {
-              const mouldCorr = typeof data.mould_correction === 'string'
-                ? JSON.parse(data.mould_correction)
-                : data.mould_correction;
-              if (Array.isArray(mouldCorr) && mouldCorr.length > 0) {
+              const mouldCorr = safeParse<any[]>(data.mould_correction, []);
+              if (mouldCorr.length > 0) {
                 setMouldCorrections(mouldCorr.map((m: any, i: number) => ({ id: i + 1, ...m })));
               }
-            }
 
-            const matchingPart = masterParts.find(p => p.part_name === data.part_name);
-            if (matchingPart) {
-              setSelectedPart(matchingPart);
-              setSelectedPattern(matchingPart);
+              const matchingPart = masterParts.find((p: PartData) => p.part_name === data.part_name);
+              if (matchingPart) {
+                setSelectedPart(matchingPart);
+                setSelectedPattern(matchingPart);
+              }
             }
           }
         } catch (error) {
@@ -486,35 +471,41 @@ function FoundrySampleCard() {
   const handlePartChange = (v: PartData | null) => { setSelectedPart(v); };
   const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
 
-
-  const handleSaveAndContinue = () => {
-    if (!selectedPart) { showAlert("error", "Please select a Part Name first."); return; }
-
+  const buildServerPayload = () => {
     const reasonFinal = reason === 'Others' ? `Others (${customReason})` : reason;
-
-    const payload = {
-      trial_id: trialId,
-      pattern_code: selectedPart.pattern_code,
-      part_name: selectedPart.part_name,
-      material_grade: selectedPart.material_grade,
+    const source = previewPayload || {
+      trial_id: trialId || trialIdFromUrl,
+      pattern_code: selectedPart?.pattern_code,
+      part_name: selectedPart?.part_name,
+      material_grade: selectedPart?.material_grade,
       date_of_sampling: samplingDate,
       status: "CREATED",
       plan_moulds: planMoulds,
       reason_for_sampling: reasonFinal,
+      disa: machine,
+      initiated_by: initiatedBy || user?.username || "Unknown",
       sample_traceability: sampleTraceability,
       trial_type: trialType,
       mould_correction: mouldCorrections,
-      disa: machine,
-      initiated_by: user?.username || "Unknown",
       tooling_modification: toolingModification,
       remarks: remarks,
       chemical_composition: chemState,
       tensile: tensileState,
       micro_structure: microState,
-      hardness: hardnessState,
-      is_edit: isEditing
+      hardness: hardnessState
     };
 
+    return {
+      ...source,
+      user_name: user?.username || 'Unknown',
+      user_ip: userIP,
+      is_edit: isEditing
+    };
+  };
+
+  const handleSaveAndContinue = () => {
+    if (!selectedPart) { showAlert("error", "Please select a Part Name first."); return; }
+    const payload = buildServerPayload();
     setPreviewPayload(payload);
     setPreviewMode(true);
   };
@@ -522,87 +513,46 @@ function FoundrySampleCard() {
   const handleFinalSave = async () => {
     setIsSubmitting(true);
     try {
+      const apiPayload = buildServerPayload();
+
       if ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) {
-        try {
-          const payload = {
-            trial_id: trialIdFromUrl,
-            user_name: user?.username || 'Unknown',
-            initiated_by: initiatedBy || 'Unknown',
-            user_ip: userIP,
-            part_name: selectedPart?.part_name,
-            pattern_code: selectedPart?.pattern_code,
-            material_grade: selectedPart?.material_grade,
-            date_of_sampling: samplingDate,
-            plan_moulds: planMoulds,
-            reason_for_sampling: reason === 'Others' ? `Others (${customReason})` : reason,
-            disa: machine,
-            sample_traceability: sampleTraceability,
-            trial_type: trialType,
-            mould_correction: mouldCorrections,
-            tooling_modification: toolingModification,
-            remarks: remarks,
-            is_edit: isEditing
-          }
-
-          await trialService.updateTrial(payload);
-
-          setSubmitted(true);
-          setPreviewMode(false);
-          await Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Trial approved successfully.'
-          });
-          navigate('/dashboard');
-          return;
-        } catch (err: any) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: err.message || 'Failed to update Trial Specification. Please try again.'
-          });
-          console.error(err);
-          return;
-        } finally {
-          setIsSubmitting(false);
-        }
+        await trialService.updateTrial(apiPayload);
+      } else {
+        await trialService.submitTrial(apiPayload);
       }
 
-      await trialService.submitTrial(previewPayload);
-
       try {
-        await uploadFiles(
-          toolingFiles,
-          trialId,
-          "TOOLING_MODIFICATION",
-          user?.username || "Unknown",
-          "Tooling Modification files"
-        );
-        await uploadFiles(
-          patternDataSheetFiles,
-          trialId,
-          "PATTERN_DATA_SHEET",
-          user?.username || "Unknown",
-          "Pattern Data Sheet files"
-        );
+        if (toolingFiles.length > 0) {
+          await uploadFiles(
+            toolingFiles,
+            trialId || trialIdFromUrl,
+            "TOOLING_MODIFICATION",
+            user?.username || "Unknown",
+            "Tooling Modification files"
+          );
+        }
+        if (patternDataSheetFiles.length > 0) {
+          await uploadFiles(
+            patternDataSheetFiles,
+            trialId || trialIdFromUrl,
+            "PATTERN_DATA_SHEET",
+            user?.username || "Unknown",
+            "Pattern Data Sheet files"
+          );
+        }
         setDocsRefreshTrigger(prev => prev + 1);
       } catch (uploadError) {
         console.error(`Failed to upload file:`, uploadError);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'File upload error. Please try again.'
-        });
       }
 
-      setSubmittedData({ ...previewPayload });
       setSubmitted(true);
       setPreviewMode(false);
-      setPreviewMessage("Trial Specification Registered Successfully");
       await Swal.fire({
         icon: 'success',
         title: 'Success',
-        text: 'Trial Specification Registered Successfully'
+        text: ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl)
+          ? 'Trial approved successfully.'
+          : 'Trial Specification Registered Successfully'
       });
       navigate("/dashboard");
 
@@ -693,7 +643,7 @@ function FoundrySampleCard() {
                             InputProps={{
                               readOnly: true,
                               sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
-                              endAdornment: user?.role !== 'HOD' || user?.role !== 'Admin' ? (
+                              endAdornment: user?.role !== 'HOD' && user?.role !== 'Admin' ? (
                                 <InputAdornment position="end">
                                   <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
                                     {trialLoading ? <div style={{ transform: 'scale(0.7)' }}><GearSpinner /></div> : <RefreshIcon fontSize="small" />}
@@ -936,7 +886,6 @@ function FoundrySampleCard() {
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
                       <Typography variant="caption" color="text.secondary">No. of Moulds</Typography>
                       <Typography variant="subtitle1">
                         Plan: {previewPayload?.plan_moulds || previewPayload?.planMoulds || "-"}
@@ -1353,34 +1302,25 @@ function FoundrySampleCard() {
                   />
                 </Paper>
 
-                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} sx={{ mt: 2, mb: 4, justifyContent: 'flex-end' }}>
-                  {!(user?.role === 'HOD' || user?.role === 'Admin') && (
-                    <Button variant="outlined" color="inherit" fullWidth={isMobile} onClick={() => window.location.reload()}>
-                      Reset Form
-                    </Button>
-                  )}
-                  {(user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl && (
-                    <Button
-                      variant="outlined"
-                      onClick={() => setIsEditing(!isEditing)}
-                      sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                    >
-                      {isEditing ? "Cancel Edit" : "Edit Details"}
-                    </Button>
-                  )}
-                  <Button
-                    variant="contained"
-                    onClick={handleSaveAndContinue}
-                    fullWidth={isMobile}
-                    startIcon={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
-                    sx={{
-                      bgcolor: COLORS.secondary,
-                      color: 'white',
-                      '&:hover': { bgcolor: '#c2410c' }
-                    }}
+                <Box sx={{ mt: 2, mb: 4 }}>
+                  <ActionButtons
+                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                    onSave={handleSaveAndContinue}
+                    showSubmit={false}
+                    saveLabel={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
+                    saveIcon={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
+                    loading={isSubmitting}
                   >
-                    {((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
-                  </Button>
+                    {((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) && (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setIsEditing(!isEditing)}
+                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                      >
+                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                      </Button>
+                    )}
+                  </ActionButtons>
                 </Box>
 
               </React.Fragment>

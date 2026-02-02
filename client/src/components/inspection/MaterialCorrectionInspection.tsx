@@ -168,7 +168,7 @@ export default function MaterialCorrection() {
     };
 
 
-    const buildServerPayload = (isDraft: boolean = false) => {
+    const buildServerPayload = () => {
         const source = previewPayload || {
             trial_id: trialId,
             chemical_composition: chemState,
@@ -181,7 +181,6 @@ export default function MaterialCorrection() {
             ...source,
             user_name: user?.username || 'Unknown',
             user_ip: userIP,
-            is_draft: isDraft,
             is_edit: isEditing
         };
     };
@@ -203,7 +202,7 @@ export default function MaterialCorrection() {
     const handleFinalSave = async () => {
         setLoading(true);
         try {
-            const apiPayload = buildServerPayload(false);
+            const apiPayload = buildServerPayload();
 
             if (((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
                 await inspectionService.updateMaterialCorrection(apiPayload);
@@ -234,45 +233,6 @@ export default function MaterialCorrection() {
                 icon: 'error',
                 title: 'Error',
                 text: error.message || "Failed to save Material Correction. Please try again."
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSaveDraft = async () => {
-        setLoading(true);
-        try {
-            const apiPayload = buildServerPayload(true);
-
-            if ((user?.role === 'HOD' || user?.role === 'Admin') && trialId) {
-                await inspectionService.updateMaterialCorrection(apiPayload);
-            } else {
-                await inspectionService.submitMaterialCorrection(apiPayload);
-            }
-
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "MATERIAL_CORRECTION",
-                    user?.username || "system",
-                    "MATERIAL_CORRECTION"
-                ).catch(err => console.error("Draft file upload error:", err));
-            }
-
-            setSubmitted(true);
-            await Swal.fire({
-                icon: 'success',
-                title: 'Saved as Draft',
-                text: 'Progress saved and moved to next department.'
-            });
-            navigate('/dashboard');
-        } catch (error: any) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || "Failed to save draft."
             });
         } finally {
             setLoading(false);
@@ -438,17 +398,7 @@ export default function MaterialCorrection() {
                                                         saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
                                                         saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                                                     >
-                                                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                                                            <Button
-                                                                variant="outlined"
-                                                                startIcon={<SaveIcon />}
-                                                                onClick={handleSaveDraft}
-                                                                disabled={loading}
-                                                                sx={{ mr: 2 }}
-                                                            >
-                                                                Save as Draft
-                                                            </Button>
-                                                        )}
+
                                                         {(user?.role === 'HOD' || user?.role === 'Admin') && (
                                                             <Button
                                                                 variant="outlined"
