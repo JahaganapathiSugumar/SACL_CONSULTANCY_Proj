@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { appTheme, COLORS } from '../theme/appTheme';
 import Header from '../components/dashboard/Header';
+import Sidebar from '../components/dashboard/Sidebar';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 
@@ -77,67 +78,7 @@ const calculatePasswordStrength = (password: string): { strength: number; color:
   return { strength: Math.min(strength, 100), color, label };
 };
 
-const DECORATIVE_ICONS = [
-  EmailIcon,
-  VerifiedIcon,
-  KeyIcon,
-  LockIcon,
-  SecurityIcon,
-  MarkEmailReadIcon,
-  ShieldIcon,
-  CheckCircleIcon,
-];
-
-const DecorativeBackground: React.FC = () => {
-  const positions = [
-    { top: '-60px', left: '-60px' },
-    { top: '-60px', right: '-60px' },
-    { bottom: '-60px', left: '-60px' },
-    { bottom: '-60px', right: '-60px' },
-    { top: '10%', left: '-60px' },
-    { top: '10%', right: '-60px' },
-    { bottom: '10%', left: '-60px' },
-    { bottom: '10%', right: '-60px' },
-    { top: '50%', left: '-60px' },
-    { top: '50%', right: '-60px' },
-    { top: '-60px', left: '50%' },
-    { bottom: '-60px', left: '50%' },
-    { top: '-80px', left: '10%' },
-    { top: '-50px', left: '80%' },
-    { bottom: '-50px', left: '15%' },
-    { bottom: '-50px', right: '10%' },
-    { top: '20%', left: '-60px' },
-    { top: '80%', right: '-60px' },
-    { bottom: '20%', left: '-60px' },
-    { bottom: '80%', right: '-60px' },
-    { top: '0', left: '25%' },
-    { top: '0', right: '25%' },
-    { bottom: '0', left: '25%' },
-    { bottom: '0', right: '25%' },
-  ];
-  return (
-    <Box sx={{ position: 'absolute', pointerEvents: 'none', zIndex: 1, width: '100%', height: '100%' }}>
-      {positions.map((pos, i) => {
-        const Icon = DECORATIVE_ICONS[i % DECORATIVE_ICONS.length];
-        return (
-          <Box
-            key={i}
-            sx={{
-              position: 'absolute',
-              ...pos,
-              color: '#f39b03',
-              opacity: 0.20,
-              fontSize: 60 + (i % 3) * 18,
-              filter: 'blur(0.5px)',
-            }}
-          >
-            <Icon fontSize="inherit" />
-          </Box>
-        );
-      })}
-    </Box>
-  );
-};
+// Decorative components removed to match dashboard UI
 
 const ChangePassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -152,6 +93,11 @@ const ChangePassword: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
+  const [currentView, setCurrentView] = useState('');
+
+  const handleViewChange = (view: string) => {
+    navigate('/dashboard', { state: { view } });
+  };
 
   const passwordStrength = calculatePasswordStrength(newPassword);
   const passwordValidation = validatePassword(newPassword);
@@ -205,341 +151,141 @@ const ChangePassword: React.FC = () => {
 
   return (
     <ThemeProvider theme={appTheme}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: '#f8f9fa' }}>
+        <Sidebar currentView={currentView} onViewChange={handleViewChange} />
 
-      <Box sx={{ minHeight: '100vh', background: `linear-gradient(135deg, #fffbe6 0%, #fff 100%)` }}>
-        <Header
-          setShowProfile={setShowProfile}
-          departmentInfo={departmentInfo}
-          photoRefreshKey={headerRefreshKey}
-          showBackButton={true}
-        />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: 'calc(100vh - 120px)',
-            padding: 2,
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <Container maxWidth="sm" sx={{ position: 'relative' }}>
-            <Box sx={{ position: 'relative' }}>
-              <DecorativeBackground />
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <Header
+            setShowProfile={setShowProfile}
+            departmentInfo={departmentInfo}
+            photoRefreshKey={headerRefreshKey}
+            showBackButton={true}
+          />
+
+          <Box sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
+            {/* Page Title Section */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: '#2c3e50', mb: 0.5 }}>
+                Change Password
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#7f8c8d' }}>
+                Create a strong password for your account security.
+              </Typography>
+            </Box>
+
+            <Container maxWidth="sm">
               <Paper
-                elevation={6}
+                elevation={0}
                 sx={{
-                  padding: 5,
-                  borderRadius: 4,
-                  border: `2px solid #f39b03`,
-                  boxShadow: '0 8px 32px rgba(243, 155, 3, 0.18)',
-                  maxWidth: 480,
-                  margin: 'auto',
-                  background: '#fff',
-                  position: 'relative',
-                  zIndex: 2,
+                  padding: 4,
+                  borderRadius: 2,
+                  border: '1px solid #e0e0e0',
+                  bgcolor: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                 }}
               >
-
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
-                  <Typography
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                      <KeyIcon /> Set New Password
-                    </Box>
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: COLORS.textSecondary,
-                      fontSize: '0.95rem',
-                    }}
-                  >
-                    Create a strong password for your account security
-                  </Typography>
-                </Box>
-
-
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: COLORS.textPrimary,
-                    }}
+                    sx={{ mb: 1, fontWeight: 600, color: '#333' }}
                   >
                     New Password
                   </Typography>
                   <TextField
                     fullWidth
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your new password"
+                    placeholder="Enter new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={loading}
-                    variant="outlined"
-                    size="medium"
+                    size="small"
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            disabled={loading}
-                            size="small"
-                          >
-                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                          <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
-                      ),
-                      sx: {
-                        backgroundColor: COLORS.surface,
-                        borderRadius: 2,
-                      }
+                      )
                     }}
                   />
 
-
                   {newPassword && (
                     <Box sx={{ mt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="caption" sx={{ color: COLORS.textSecondary, fontSize: '0.8rem' }}>
-                          Password Strength
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: passwordStrength.color,
-                            fontWeight: 600,
-                            fontSize: '0.8rem',
-                          }}
-                        >
-                          {passwordStrength.label}
-                        </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" color="textSecondary">Strength</Typography>
+                        <Typography variant="caption" sx={{ color: passwordStrength.color, fontWeight: 700 }}>{passwordStrength.label}</Typography>
                       </Box>
                       <LinearProgress
                         variant="determinate"
                         value={passwordStrength.strength}
                         sx={{
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: COLORS.border,
-                          '& .MuiLinearProgress-bar': {
-                            backgroundColor: passwordStrength.color,
-                            borderRadius: 3,
-                          }
+                          height: 4,
+                          borderRadius: 2,
+                          bgcolor: '#f0f0f0',
+                          '& .MuiLinearProgress-bar': { bgcolor: passwordStrength.color }
                         }}
                       />
-                      <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        <Typography variant="caption" sx={{ color: COLORS.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
-                          Password Requirements:
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: newPassword.length >= 8 ? COLORS.successText : COLORS.secondary,
-                            fontSize: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {newPassword.length >= 8 ? '✓' : '○'} At least 8 characters
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: /[a-z]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
-                            fontSize: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {/[a-z]/.test(newPassword) ? '✓' : '○'} Contains lowercase letters
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: /[A-Z]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
-                            fontSize: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {/[A-Z]/.test(newPassword) ? '✓' : '○'} Contains uppercase letters
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: /[0-9]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
-                            fontSize: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {/[0-9]/.test(newPassword) ? '✓' : '○'} Contains digits
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: /[^a-zA-Z0-9]/.test(newPassword) ? COLORS.successText : COLORS.secondary,
-                            fontSize: '0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {/[^a-zA-Z0-9]/.test(newPassword) ? '✓' : '○'} Contains at least one special character
-                        </Typography>
-                      </Box>
                     </Box>
                   )}
                 </Box>
 
-
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: COLORS.textPrimary,
-                    }}
+                    sx={{ mb: 1, fontWeight: 600, color: '#333' }}
                   >
                     Confirm Password
                   </Typography>
                   <TextField
                     fullWidth
                     type={showConfirm ? 'text' : 'password'}
-                    placeholder="Confirm your password"
+                    placeholder="Confirm new password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={loading}
-                    variant="outlined"
-                    size="medium"
+                    size="small"
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowConfirm(!showConfirm)}
-                            edge="end"
-                            disabled={loading}
-                            size="small"
-                          >
-                            {showConfirm ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                          <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end" size="small">
+                            {showConfirm ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
-                      ),
-                      sx: {
-                        backgroundColor: COLORS.surface,
-                        borderRadius: 2,
-                      }
+                      )
                     }}
                   />
-
-
                   {confirm && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: 'block',
-                        mt: 1,
-                        color: passwordsMatch ? COLORS.successText : COLORS.secondary,
-                        fontSize: '0.8rem',
-                        fontWeight: 500,
-                      }}
-                    >
+                    <Typography variant="caption" sx={{ color: passwordsMatch ? 'success.main' : 'error.main', mt: 0.5, display: 'block' }}>
                       {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
                     </Typography>
                   )}
                 </Box>
-
 
                 <Button
                   fullWidth
                   variant="contained"
                   onClick={handleSubmit}
                   disabled={loading || !isPasswordValid}
-                  sx={{
-                    py: 1.5,
-                    mb: 2,
-                    background: isPasswordValid
-                      ? `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accentBlue} 100%)`
-                      : COLORS.border,
-                    '&:hover': isPasswordValid ? {
-                      background: `linear-gradient(135deg, ${COLORS.accentBlue} 0%, ${COLORS.primary} 100%)`,
-                    } : {},
-                    '&:disabled': {
-                      background: COLORS.border,
-                      color: COLORS.textSecondary,
-                    }
-                  }}
+                  sx={{ py: 1, fontWeight: 600 }}
                 >
-                  {loading ? (
-                    <div style={{ transform: 'scale(0.4)', height: '20px', width: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><GearSpinner /></div>
-                  ) : (
-                    'Update Password'
-                  )}
+                  {loading ? <GearSpinner /> : 'Update Password'}
                 </Button>
 
+                {message && <Alert severity="success" sx={{ mt: 2 }}>{message}</Alert>}
+                {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
 
-                {message && (
-                  <Alert
-                    severity="success"
-                    sx={{
-                      mb: 2,
-                      backgroundColor: COLORS.successBg,
-                      color: COLORS.successText,
-                      border: `1px solid ${COLORS.successText}`,
-                      borderRadius: 2,
-                    }}
-                  >
-                    {message}
-                  </Alert>
-                )}
-                {error && (
-                  <Alert
-                    severity="error"
-                    sx={{
-                      mb: 2,
-                      backgroundColor: COLORS.orangeHeaderBg,
-                      color: COLORS.secondary,
-                      border: `1px solid ${COLORS.secondary}`,
-                      borderRadius: 2,
-                    }}
-                  >
-                    {error}
-                  </Alert>
-                )}
-
-
-                <Typography
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.5,
-                    color: COLORS.textSecondary,
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  <LightbulbIcon sx={{ fontSize: '0.9rem', color: '#f39b03' }} /> Use a strong password with uppercase, lowercase, numbers, and symbols for maximum security
-                </Typography>
+                <Box sx={{ mt: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
+                  <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#666' }}>
+                    <LightbulbIcon sx={{ fontSize: 16, color: '#f39b03' }} />
+                    Use 8+ characters with mixed case, numbers & symbols.
+                  </Typography>
+                </Box>
               </Paper>
-            </Box>
-          </Container>
+            </Container>
+          </Box>
         </Box>
       </Box>
       {showProfile && (

@@ -21,7 +21,7 @@ import SandTable from './components/inspection/SandPlantInspection';
 import MaterialCorrection from './components/inspection/MaterialCorrectionInspection';
 
 const AppRoutes: React.FC = () => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user } = useAuth();
 
     if (loading) return <LoadingSpinner />;
 
@@ -30,8 +30,16 @@ const AppRoutes: React.FC = () => {
             <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 
-            <Route path="/update-email" element={<ProtectedRoute><UpdateEmailPage /></ProtectedRoute>} />
-            <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+            <Route path="/update-email" element={
+                <ProtectedRoute>
+                    {user?.needsEmailVerification ? <UpdateEmailPage /> : <Navigate to="/dashboard" replace />}
+                </ProtectedRoute>
+            } />
+            <Route path="/change-password" element={
+                <ProtectedRoute>
+                    {user?.needsPasswordChange ? <ChangePasswordPage /> : <Navigate to="/dashboard" replace />}
+                </ProtectedRoute>
+            } />
 
             <Route path="/users" element={
                 <ProtectedRoute requiredRole="Admin"><UsersPage /></ProtectedRoute>
