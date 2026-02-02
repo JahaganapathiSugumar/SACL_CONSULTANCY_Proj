@@ -980,7 +980,7 @@ export default function VisualInspection({
             await Swal.fire({
                 icon: 'success',
                 title: 'Saved as Draft',
-                text: 'Progress saved and next stage unlocked (if eligible).'
+                text: 'Progress saved and moved to next department.'
             });
             navigate('/dashboard');
 
