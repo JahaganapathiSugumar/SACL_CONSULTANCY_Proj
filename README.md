@@ -39,6 +39,8 @@ The backend is implemented using ES modules (type: "module") and includes transa
 - Create/read/update trial cards and their lifecycle status
 - Departmental workflow and progress updates
 - Visual inspection, dimensional/metallurgical inspection, sand properties, material correction, mould correction, pouring details
+- **Save as Draft System**: Allows partial progress saving without blocking subsequent parallel workflows (e.g., Moulding draft unlocks Pouring).
+- **PDF Report Generation**: Professional, template-based reports with 2-page layout (Process & Inspection data) and consolidated trial report support.
 - Document upload (stored as Base64 in the DB) and retrieval
 - User authentication with JWT and refresh tokens
 - Audit logging for user actions
@@ -58,6 +60,7 @@ The backend is implemented using ES modules (type: "module") and includes transa
   - Node.js (ES modules)
   - Express 5.x
   - MSSQL (mssql package)
+  - PDFKit for report generation
   - JWT for authentication
   - bcrypt for password hashing
   - nodemailer / resend for emails
@@ -81,8 +84,8 @@ The backend is implemented using ES modules (type: "module") and includes transa
     - controllers/ — route handlers (trial, documents, login, sandProperties, materialCorrection, departments, etc.)
     - routes/ — Express routers (masterList, visualInspection, etc.)
     - middlewares/ — (verifyToken, authorizeRoles, authorizeDepartments) — used by routes
-    - services/ — domain services (department progress, trial status updates, etc.)
-    - utils/ — helpers (customError, asyncErrorHandler, getClientIp)
+    - services/ — domain services (department progress, report generators, etc.)
+    - utils/ — helpers (customError, asyncErrorHandler, file upload helpers)
 - logs/ — generated at runtime (combined, error, etc.)
 - README.md — this file
 
@@ -175,6 +178,7 @@ All routes are prefixed with `/api` in the server:
 - /api/metallurgical-inspection — metallurgical inspection endpoints
 - /api/machine-shop — machine shop related endpoints
 - /api/documents — Document upload and retrieval
+- /api/reports — PDF report generation (Single & Consolidated)
 - /api/stats — Statistics endpoints
 - /api/forgot-password — Password reset flow
 
