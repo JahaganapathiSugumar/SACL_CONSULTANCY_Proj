@@ -353,31 +353,6 @@ function SectionTable({
                     disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                   />
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                    <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`${title}-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateGroupMeta({ attachment: file }); }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing} />
-                    <label htmlFor={`${title}-group-file`}>
-                      <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}>
-                        Attach PDF
-                      </Button>
-                    </label>
-
-                    {groupMeta.attachment && (
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <IconButton size="small" onClick={() => viewAttachment(groupMeta.attachment)} sx={{ color: COLORS.primary }}>
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                        <Chip
-                          icon={<InsertDriveFileIcon />}
-                          label={groupMeta.attachment.name}
-                          onDelete={() => updateGroupMeta({ attachment: null })}
-                          size="small"
-                          variant="outlined"
-                          sx={{ maxWidth: 120 }}
-                          disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                        />
-                      </Box>
-                    )}
-                  </Box>
                 </Box>
               </TableCell>
             </TableRow>
@@ -545,7 +520,7 @@ function SectionTable({
       >
         Add Column
       </Button>
-    </Box>
+    </Box >
   );
 }
 
@@ -700,31 +675,6 @@ function MicrostructureTable({
                           disabled={(user?.role === 'HOD' || isMachineShop) && !isEditing}
                         />
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 'auto' }}>
-                          <input accept="image/*,application/pdf" style={{ display: 'none' }} id={`micro-group-file`} type="file" onChange={(e) => { const file = e.target.files?.[0] ?? null; if (file) { const validation = validateFileSizes([file]); if (!validation.isValid) { validation.errors.forEach((error: string) => { if (showAlert) showAlert('error', error); }); e.target.value = ''; return; } } updateMeta('group', { attachment: file }); }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing} />
-                          <label htmlFor={`micro-group-file`}>
-                            <Button component="span" size="small" variant="outlined" startIcon={<UploadFileIcon />} sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}>
-                              Attach PDF
-                            </Button>
-                          </label>
-
-                          {meta['group']?.attachment && (
-                            <Box display="flex" alignItems="center" gap={0.5}>
-                              <IconButton size="small" onClick={() => viewAttachment(meta['group']?.attachment)} sx={{ color: COLORS.primary }}>
-                                <VisibilityIcon fontSize="small" />
-                              </IconButton>
-                              <Chip
-                                icon={<InsertDriveFileIcon />}
-                                label={meta['group']?.attachment?.name}
-                                onDelete={() => updateMeta('group', { attachment: null })}
-                                size="small"
-                                variant="outlined"
-                                sx={{ maxWidth: 120 }}
-                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                              />
-                            </Box>
-                          )}
-                        </Box>
                       </Box>
                     </TableCell>
                   </>
@@ -735,7 +685,7 @@ function MicrostructureTable({
         </Table>
       </Box>
       <Button size="small" onClick={addColumn} startIcon={<AddCircleIcon />} sx={{ mt: 1, color: COLORS.secondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}>Add Column</Button>
-    </Box>
+    </Box >
   );
 }
 

@@ -1081,60 +1081,6 @@ export default function VisualInspection({
                                                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                                                                         />
 
-                                                                        <Box display="flex" alignItems="center" gap={1} mt="auto">
-                                                                            <input
-                                                                                accept="image/*,application/pdf"
-                                                                                id="visual-group-file"
-                                                                                style={{ display: "none" }}
-                                                                                type="file"
-                                                                                onChange={(e) => {
-                                                                                    const file = e.target.files?.[0] ?? null;
-                                                                                    if (file) {
-                                                                                        const validation = validateFileSizes([file]);
-                                                                                        if (!validation.isValid) {
-                                                                                            validation.errors.forEach((error: string) => showAlert('error', error));
-                                                                                            e.target.value = '';
-                                                                                            return;
-                                                                                        }
-                                                                                    }
-                                                                                    setGroupMeta((g) => ({ ...g, attachment: file }));
-                                                                                }}
-                                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                                                            />
-                                                                            <label htmlFor="visual-group-file">
-                                                                                <Button
-                                                                                    size="small"
-                                                                                    variant="outlined"
-                                                                                    component="span"
-                                                                                    startIcon={<UploadFileIcon />}
-                                                                                    sx={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                                                                >
-                                                                                    Attach PDF
-                                                                                </Button>
-                                                                            </label>
-
-                                                                            {groupMeta.attachment ? (
-                                                                                <Box display="flex" alignItems="center" gap={0.5}>
-                                                                                    <Chip
-                                                                                        icon={<InsertDriveFileIcon />}
-                                                                                        label={groupMeta.attachment.name}
-                                                                                        onDelete={() => setGroupMeta((g) => ({ ...g, attachment: null }))}
-                                                                                        size="small"
-                                                                                        variant="outlined"
-                                                                                        sx={{ maxWidth: 140 }}
-                                                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                                                                    />
-                                                                                    <IconButton size="small" onClick={() => viewAttachment(groupMeta.attachment)}>
-                                                                                        <VisibilityIcon fontSize="small" />
-                                                                                    </IconButton>
-                                                                                </Box>
-                                                                            ) : (
-                                                                                <Typography variant="caption" color="text.secondary">
-
-                                                                                </Typography>
-                                                                            )}
-                                                                        </Box>
                                                                     </Box>
                                                                 </TableCell>
                                                             </>

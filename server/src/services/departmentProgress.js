@@ -88,13 +88,13 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
             { next_department_id }
         );
     }
-    const [next_department_user] = next_department_user_result;
+    const [next_department_user_rows] = next_department_user_result;
 
-    if (!next_department_user) {
-        throw new CustomError("No user found for the department/updating progress");
+    if (!next_department_user_rows || next_department_user_rows.length === 0) {
+        throw new CustomError("No active user found for the next department");
     }
 
-    const next_department_username = next_department_user[0].username;
+    const next_department_username = next_department_user_rows[0].username;
 
     await trx.query(
         `INSERT INTO department_progress (department_id, username, remarks, approval_status, trial_id) VALUES (@next_department_id, @next_department_username, 'User submission pending', 'pending', @trial_id)`,
@@ -116,7 +116,8 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     });
 
     const mailOptions = {
-        to: next_department_user[0].email,
+        to: next_department_user_rows[0].email,
+
         subject: 'A new request assigned',
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
