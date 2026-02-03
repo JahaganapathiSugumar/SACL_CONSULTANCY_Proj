@@ -756,8 +756,8 @@ function PouringDetailsTable() {
                                                 </div>
                                                 <div style={{ borderTop: '1px dashed black', paddingTop: '10px' }}>
                                                     <u style={{ fontWeight: 'bold' }}>Inoculation: <span style={{ ...dataFontStyle, fontWeight: 'normal' }}>{previewPayload?.inoculation?.text}</span></u><br />
-                                                    Stream: <span style={dataFontStyle}>{previewPayload?.inoculation.stream}</span> gms<br />
-                                                    Inmould: <span style={dataFontStyle}>{previewPayload?.inoculation.inmould}</span> gms
+                                                    Stream: <span style={dataFontStyle}>{previewPayload?.inoculation?.stream}</span> gms<br />
+                                                    Inmould: <span style={dataFontStyle}>{previewPayload?.inoculation?.inmould}</span> gms
                                                 </div>
                                             </td>
                                             <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center', verticalAlign: 'middle', fontSize: '18px' }}>
