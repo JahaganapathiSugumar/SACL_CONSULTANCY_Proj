@@ -1193,7 +1193,7 @@ export default function VisualInspection({
                                                         <TableRow>
                                                             <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
                                                             <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>
-                                                                {previewPayload.group.ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                {previewPayload?.group?.ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
                                                             </TableCell>
                                                         </TableRow>
                                                     </TableBody>
