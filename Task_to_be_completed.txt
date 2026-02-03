@@ -8,6 +8,10 @@
 
 ->fdyqa need critical dimension attachment mandatory
 
+->Remove multiple file upload in metallurgical inspection
+
+->onValidationError instead of alert show in machine shop inspection for iq > rq
+
 ----------------------------------------------------------------------BY HR SIR-------------------------------------------------------------------------------------
 
 ->login page color code

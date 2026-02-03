@@ -171,7 +171,7 @@ export const updateDepartment = async (trial_id, user, trx) => {
     );
 
     if (!rows || rows.length === 0) {
-        await approveProgress(current_department_id, trial_id, user, trx);
+        await approveProgress(trial_id, user, trx);
         return;
     }
     const next_department_id = rows[0].next_department_id;
@@ -272,7 +272,7 @@ export const updateRole = async (trial_id, user, trx) => {
         );
 
         if (!rows || rows.length === 0) {
-            await approveProgress(current_department_id, trial_id, user, trx);
+            await approveProgress(trial_id, user, trx);
             return;
         }
         const next_department_id = rows[0].next_department_id;
