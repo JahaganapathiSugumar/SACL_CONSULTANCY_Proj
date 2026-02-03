@@ -285,51 +285,68 @@ function PouringDetailsTable() {
 
 
 
-    const buildServerPayload = (isDraft: boolean = false) => {
-        const source = previewPayload || {
+    const buildPreviewPayload = () => {
+        return {
             pouringDate,
             heatCode,
+            chemical_composition: {
+                c: chemState.c, si: chemState.si, mn: chemState.mn, p: chemState.p,
+                s: chemState.s, mg: chemState.mg, cu: chemState.cu, cr: chemState.cr
+            },
+            noOfMouldPoured,
             pouringTemp,
             pouringTime,
-            remarksText
-        };
-
-        return {
-            trial_id: trialId,
-            pour_date: source.pouringDate || source.pour_date || null,
-            heat_code: source.heatCode || source.heat_code || null,
-            composition: {
-                C: chemState.c, Si: chemState.si, Mn: chemState.mn, P: chemState.p,
-                S: chemState.s, Mg: chemState.mg, Cu: chemState.cu, Cr: chemState.cr
-            },
-            no_of_mould_poured: parseInt(String(noOfMouldPoured)) || 0,
-            pouring_temp_c: parseFloat(String(source.pouringTemp ?? source.pouring_temp_c)) || 0,
-            pouring_time_sec: parseInt(String(source.pouringTime ?? source.pouring_time_sec)) || 0,
             inoculation: {
                 text: inoculationText,
                 stream: inoculationStream,
                 inmould: inoculationInmould
             },
-            other_remarks: {
-                "F/C & Heat No.": ficHeatNo,
-                "PP Code": ppCode,
-                "Followed by": followedBy,
-                "Username": userName
+            remarks: {
+                ficHeatNo,
+                ppCode,
+                followedBy,
+                userName
             },
-            remarks: source.remarksText || source.remarks || remarksText,
+            remarksText,
+            attachedFiles: attachedFiles
+        };
+    };
+
+    const buildServerPayload = (isDraft: boolean = false) => {
+        const source = previewPayload || buildPreviewPayload();
+
+        return {
+            trial_id: trialId,
+            pour_date: source.pouringDate || null,
+            heat_code: source.heatCode || null,
+            composition: {
+                C: source.chemical_composition.c, Si: source.chemical_composition.si,
+                Mn: source.chemical_composition.mn, P: source.chemical_composition.p,
+                S: source.chemical_composition.s, Mg: source.chemical_composition.mg,
+                Cu: source.chemical_composition.cu, Cr: source.chemical_composition.cr
+            },
+            no_of_mould_poured: parseInt(String(source.noOfMouldPoured)) || 0,
+            pouring_temp_c: parseFloat(String(source.pouringTemp)) || 0,
+            pouring_time_sec: parseInt(String(source.pouringTime)) || 0,
+            inoculation: {
+                Text: source.inoculation.text,
+                Stream: source.inoculation.stream,
+                Inmould: source.inoculation.inmould
+            },
+            other_remarks: {
+                "F/C & Heat No.": source.remarks.ficHeatNo,
+                "PP Code": source.remarks.ppCode,
+                "Followed by": source.remarks.followedBy,
+                "Username": source.remarks.userName
+            },
+            remarks: source.remarksText || remarksText,
             is_draft: isDraft,
             is_edit: isEditing || dataExists
         };
     };
 
     const handleSaveAndContinue = () => {
-        const payload = {
-            pouringDate,
-            heatCode,
-            pouringTemp,
-            pouringTime,
-            remarksText
-        };
+        const payload = buildPreviewPayload();
         setPreviewPayload(payload);
         setPreviewMode(true);
     };
@@ -764,10 +781,10 @@ function PouringDetailsTable() {
                                                 <span style={dataFontStyle}>{previewPayload?.pouringTime}</span>
                                             </td>
                                             <td style={{ border: '1px solid black', padding: '12px' }}>
-                                                <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload?.remarks.ficHeatNo}</span></div>
-                                                <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload?.remarks.ppCode}</span></div>
-                                                <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload?.remarks.followedBy}</span></div>
-                                                <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload?.remarks.userName}</span></div>
+                                                <div>F/C & Heat No: <span style={dataFontStyle}>{previewPayload?.remarks?.ficHeatNo}</span></div>
+                                                <div style={{ marginTop: '8px' }}>PP Code: <span style={dataFontStyle}>{previewPayload?.remarks?.ppCode}</span></div>
+                                                <div style={{ marginTop: '8px' }}>Followed by: <span style={dataFontStyle}>{previewPayload?.remarks?.followedBy}</span></div>
+                                                <div style={{ marginTop: '15px' }}><strong>Username:</strong> <span style={{ ...dataFontStyle, color: COLORS.primary }}>{previewPayload?.remarks?.userName}</span></div>
                                             </td>
                                         </tr>
                                     </tbody>
