@@ -1175,8 +1175,7 @@ export default function VisualInspection({
                                                     <TableHead>
                                                         <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                             <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                            {previewPayload?.cols?.map((c: string, i: number) => (
-                                                                <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                            {previewPayload?.cols?.map((c: string, i: number) => (<TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
                                                             ))}
                                                         </TableRow>
                                                     </TableHead>
@@ -1193,7 +1192,7 @@ export default function VisualInspection({
                                                         ))}
                                                         <TableRow>
                                                             <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                            <TableCell colSpan={previewPayload.cols.length + 1} sx={{ textAlign: 'center' }}>
+                                                            <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>
                                                                 {previewPayload.group.ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
                                                             </TableCell>
                                                         </TableRow>
@@ -1210,7 +1209,7 @@ export default function VisualInspection({
                                                             <TableHead>
                                                                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                                    {previewPayload.cols.map((col: string, i: number) => (
+                                                                    {previewPayload?.cols?.map((col: string, i: number) => (
                                                                         <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{col}</TableCell>
                                                                     ))}
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
@@ -1222,7 +1221,7 @@ export default function VisualInspection({
                                                                     return (
                                                                         <TableRow key={idx}>
                                                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
-                                                                            {previewPayload.cols.map((_: any, j: number) => (
+                                                                            {previewPayload?.cols?.map((_: any, j: number) => (
                                                                                 <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
                                                                                     {vals[j]?.trim() || "-"}
                                                                                 </TableCell>
@@ -1233,8 +1232,7 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={previewPayload.cols.length + 1} sx={{ textAlign: 'center' }}>
-                                                                        {previewPayload.ndt.ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>                                                                        {previewPayload.ndt.ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
                                                                     </TableCell>
                                                                 </TableRow>
                                                             </TableBody>
@@ -1252,7 +1250,7 @@ export default function VisualInspection({
                                                             <TableHead>
                                                                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                                    {previewPayload.cols.map((col: string, i: number) => (
+                                                                    {previewPayload?.cols?.map((col: string, i: number) => (
                                                                         <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{col}</TableCell>
                                                                     ))}
                                                                 </TableRow>
@@ -1263,7 +1261,7 @@ export default function VisualInspection({
                                                                     return (
                                                                         <TableRow key={idx}>
                                                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
-                                                                            {previewPayload.cols.map((_: any, j: number) => (
+                                                                            {previewPayload?.cols?.map((_: any, j: number) => (
                                                                                 <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
                                                                                     {vals[j]?.trim() || "-"}
                                                                                 </TableCell>
@@ -1273,15 +1271,13 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={previewPayload.cols.length} sx={{ textAlign: 'center' }}>
-                                                                        {previewPayload.hardness_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center' }}>                                                                        {previewPayload.hardness_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 {previewPayload.hardness_remarks && (
                                                                     <TableRow>
                                                                         <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Remarks</TableCell>
-                                                                        <TableCell colSpan={previewPayload.cols.length} sx={{ textAlign: 'center', fontSize: '0.75rem' }}>{previewPayload.hardness_remarks}</TableCell>
-                                                                    </TableRow>
+                                                                        <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center', fontSize: '0.75rem' }}>{previewPayload.hardness_remarks}</TableCell>                                                                    </TableRow>
                                                                 )}
                                                             </TableBody>
                                                         </Table>
