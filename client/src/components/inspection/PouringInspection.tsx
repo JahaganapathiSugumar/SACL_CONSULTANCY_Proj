@@ -329,9 +329,9 @@ function PouringDetailsTable() {
             pouring_temp_c: parseFloat(String(source.pouringTemp)) || 0,
             pouring_time_sec: parseInt(String(source.pouringTime)) || 0,
             inoculation: {
-                Text: source.inoculation.text,
-                Stream: source.inoculation.stream,
-                Inmould: source.inoculation.inmould
+                text: source.inoculation.text,
+                stream: source.inoculation.stream,
+                inmould: source.inoculation.inmould
             },
             other_remarks: {
                 "F/C & Heat No.": source.remarks.ficHeatNo,
