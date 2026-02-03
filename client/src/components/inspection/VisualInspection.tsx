@@ -499,10 +499,14 @@ export default function VisualInspection({
                         });
 
                         const ndt_inspection = safeParse<NdtRow[]>(data.ndt_inspection, []);
-                        setNdtRows(ndt_inspection);
+                        if (ndt_inspection && ndt_inspection.length > 0) {
+                            setNdtRows(ndt_inspection);
+                        }
 
                         const hardness = safeParse<NdtRow[]>(data.hardness, []);
-                        setHardRows(hardness);
+                        if (hardness && hardness.length > 0) {
+                            setHardRows(hardness);
+                        }
                         setDataExists(true);
                     }
                 } catch (error) {
@@ -1261,17 +1265,20 @@ export default function VisualInspection({
                                                                 </TableRow>
                                                             </TableHead>
                                                             <TableBody>
-                                                                {previewPayload.ndt.rows?.map((r: any, idx: number) => (
-                                                                    <TableRow key={idx}>
-                                                                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
-                                                                        {(r.value || "").split('|').map((v: string, j: number) => (
-                                                                            <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
-                                                                                {v.trim() || "-"}
-                                                                            </TableCell>
-                                                                        ))}
-                                                                        <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700 }}>{r.total ?? "-"}</TableCell>
-                                                                    </TableRow>
-                                                                ))}
+                                                                {previewPayload.ndt.rows?.map((r: any, idx: number) => {
+                                                                    const vals = (r.value || "").split('|');
+                                                                    return (
+                                                                        <TableRow key={idx}>
+                                                                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
+                                                                            {previewPayload.cols.map((_: any, j: number) => (
+                                                                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
+                                                                                    {vals[j]?.trim() || "-"}
+                                                                                </TableCell>
+                                                                            ))}
+                                                                            <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700 }}>{r.total ?? "-"}</TableCell>
+                                                                        </TableRow>
+                                                                    );
+                                                                })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
                                                                     <TableCell colSpan={previewPayload.cols.length + 1} sx={{ textAlign: 'center' }}>
@@ -1299,16 +1306,19 @@ export default function VisualInspection({
                                                                 </TableRow>
                                                             </TableHead>
                                                             <TableBody>
-                                                                {previewPayload.hardness.map((r: any, idx: number) => (
-                                                                    <TableRow key={idx}>
-                                                                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
-                                                                        {(r.value || "").split('|').map((v: string, j: number) => (
-                                                                            <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
-                                                                                {v.trim() || "-"}
-                                                                            </TableCell>
-                                                                        ))}
-                                                                    </TableRow>
-                                                                ))}
+                                                                {previewPayload.hardness.map((r: any, idx: number) => {
+                                                                    const vals = (r.value || "").split('|');
+                                                                    return (
+                                                                        <TableRow key={idx}>
+                                                                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r.label}</TableCell>
+                                                                            {previewPayload.cols.map((_: any, j: number) => (
+                                                                                <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
+                                                                                    {vals[j]?.trim() || "-"}
+                                                                                </TableCell>
+                                                                            ))}
+                                                                        </TableRow>
+                                                                    );
+                                                                })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
                                                                     <TableCell colSpan={previewPayload.cols.length} sx={{ textAlign: 'center' }}>
