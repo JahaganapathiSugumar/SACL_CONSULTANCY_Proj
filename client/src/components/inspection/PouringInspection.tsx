@@ -351,10 +351,10 @@ function PouringDetailsTable() {
         setPreviewMode(true);
     };
 
-    const handleFinalSave = async () => {
+    const saveData = async (isDraft: boolean) => {
         setLoading(true);
         try {
-            const apiPayload = buildServerPayload(false);
+            const apiPayload = buildServerPayload(isDraft);
 
             if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
                 await inspectionService.updatePouringDetails(apiPayload);
@@ -374,56 +374,20 @@ function PouringDetailsTable() {
 
             setSubmitted(true);
             setPreviewMode(false);
+
             await Swal.fire({
                 icon: 'success',
-                title: 'Success',
-                text: `Pouring Details ${dataExists ? 'updated' : 'created'} successfully.`
+                title: isDraft ? 'Saved as Draft' : 'Success',
+                text: isDraft
+                    ? 'Progress saved and moved to next department.'
+                    : `Pouring Details ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate('/dashboard');
         } catch (error: any) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.message || 'Failed to save Pouring Details. Please try again.'
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSaveDraft = async () => {
-        setLoading(true);
-        try {
-            const apiPayload = buildServerPayload(true);
-
-            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-                await inspectionService.updatePouringDetails(apiPayload);
-            } else {
-                await inspectionService.submitPouringDetails(apiPayload);
-            }
-
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "POURING_DETAILS",
-                    user?.username || "system",
-                    "POURING_DETAILS"
-                ).catch(err => console.error("Draft file upload error:", err));
-            }
-
-            setSubmitted(true);
-            await Swal.fire({
-                icon: 'success',
-                title: 'Saved as Draft',
-                text: 'Progress saved and moved to next department.'
-            });
-            navigate('/dashboard');
-        } catch (error: any) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to save draft.'
+                text: error.message || `Failed to ${isDraft ? 'save draft' : 'save Pouring Details'}. Please try again.`
             });
         } finally {
             setLoading(false);
@@ -708,7 +672,7 @@ function PouringDetailsTable() {
                                                         <Button
                                                             variant="outlined"
                                                             startIcon={<SaveIcon />}
-                                                            onClick={handleSaveDraft}
+                                                            onClick={() => saveData(true)}
                                                             disabled={loading}
                                                             sx={{ mr: 2 }}
                                                         >
@@ -735,7 +699,7 @@ function PouringDetailsTable() {
                         <PreviewModal
                             open={previewMode}
                             onClose={() => setPreviewMode(false)}
-                            onSubmit={handleFinalSave}
+                            onSubmit={() => saveData(false)}
                             title="Verify Pouring Inspection Details"
                             submitted={submitted}
                             isSubmitting={loading}
@@ -808,9 +772,6 @@ function PouringDetailsTable() {
                                     </Box>
                                 )}
 
-                                <Box sx={{ mt: 3 }}>
-                                    <AlertMessage alert={alert} />
-                                </Box>
                             </Box>
                         </PreviewModal>
 

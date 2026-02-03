@@ -1397,7 +1397,6 @@ export default function MetallurgicalInspection() {
                   <PreviewMicroTable data={previewPayload?.microRows} />
                   <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} />
                   <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} />
-                  <PreviewSectionTable title="HARDNESS" rows={previewPayload?.hardRows} />
 
                   <Box sx={{ mt: 3 }}>
                     <AlertMessage alert={alert} />
