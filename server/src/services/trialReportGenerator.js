@@ -392,12 +392,12 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             const fileName = `Trial_Report_${trial_id}.pdf`;
 
             try {
-                const existingReport = await trx.query(
+                const [existingReport] = await trx.query(
                     `SELECT document_id FROM trial_reports WHERE trial_id = @trial_id`,
                     { trial_id }
                 );
 
-                if (existingReport.length > 0) {
+                if (existingReport && existingReport.length > 0) {
                     await trx.query(
                         `UPDATE trial_reports SET document_type = 'FULL_REPORT', file_name = @file_name, file_base64 = @file_base64 
                          WHERE trial_id = @trial_id`,

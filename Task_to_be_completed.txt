@@ -12,6 +12,31 @@
 
 ->onValidationError instead of alert show in machine shop inspection for iq > rq
 
+Avoid storing like below
+[
+  {
+    "id": "Cavity Number-0",
+    "label": "Cavity Number",
+    "attachment": null,
+    "ok": true,
+    "remarks": "1",
+    "total": 1,
+    "value": "1"
+  }
+]
+
+Correct format
+[
+  {
+    "Cavity Number": "1",
+    "Inspected Quantity": "1",
+    "Accepted Quantity": "1",
+    "Rejected Quantity": "0",
+    "Rejection Percentage": "0.00",
+    "Reason for rejection": "1"
+  }
+]
+
 ----------------------------------------------------------------------BY HR SIR-------------------------------------------------------------------------------------
 
 ->login page color code

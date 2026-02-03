@@ -409,15 +409,15 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
 
             try {
                 const [existing] = await trx.query(
-                    `SELECT document_id FROM consolidated_reports WHERE pattern_code = @pattern_code AND document_type = 'CONSOLIDATED_REPORT'`,
+                    `SELECT document_id FROM consolidated_reports WHERE pattern_code = @pattern_code`,
                     { pattern_code }
                 );
 
                 if (existing && existing.length > 0) {
                     await trx.query(
                         `UPDATE consolidated_reports SET file_base64 = @file_base64, file_name = @file_name, uploaded_at = GETDATE() 
-                         WHERE document_id = @document_id`,
-                        { document_id: existing[0].document_id, file_base64: base64PDF, file_name: fileName }
+                         WHERE pattern_code = @pattern_code`,
+                        { pattern_code, file_base64: base64PDF, file_name: fileName }
                     );
                 } else {
                     await trx.query(
