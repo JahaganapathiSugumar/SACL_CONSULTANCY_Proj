@@ -679,6 +679,8 @@ export default function VisualInspection({
             attachedFiles: attachedFiles.map(f => f.name),
             additionalRemarks: additionalRemarks,
             ndt: {
+                rows: ndtRows,
+                ok: ndtRows[0]?.ok,
                 remarks: ndtRows[0]?.remarks
             },
             hardness: hardRows.map(r => ({ label: r.label, value: r.value, total: r.total })),
@@ -1220,16 +1222,16 @@ export default function VisualInspection({
                                                     <TableHead>
                                                         <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                             <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                            {previewPayload?.cols.map((c: string, i: number) => (
+                                                            {previewPayload?.cols?.map((c: string, i: number) => (
                                                                 <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
                                                             ))}
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
-                                                        {previewPayload?.rows.map((r: any, idx: number) => (
+                                                        {previewPayload?.rows?.map((r: any, idx: number) => (
                                                             <TableRow key={idx}>
                                                                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
-                                                                {r.values.map((v: any, j: number) => (
+                                                                {r.values?.map((v: any, j: number) => (
                                                                     <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
                                                                         {v === null ? "-" : String(v)}
                                                                     </TableCell>
@@ -1254,7 +1256,7 @@ export default function VisualInspection({
                                                                 </TableRow>
                                                             </TableHead>
                                                             <TableBody>
-                                                                {previewPayload.ndt.rows.map((r: any, idx: number) => (
+                                                                {previewPayload.ndt.rows?.map((r: any, idx: number) => (
                                                                     <TableRow key={idx}>
                                                                         <TableCell sx={{ fontSize: '0.75rem' }}>{r.label}</TableCell>
                                                                         <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem' }}>{r.value}</TableCell>
