@@ -1275,6 +1275,43 @@ export default function VisualInspection({
                                                 </Box>
                                             )}
 
+                                            {/* Hardness Preview in Modal */}
+                                            {previewPayload?.hardness && previewPayload.hardness.length > 0 && (
+                                                <Box mt={3}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>HARDNESS</Typography>
+                                                    <Box sx={{ overflowX: 'auto', border: `1px solid ${COLORS.border}`, borderRadius: 1 }}>
+                                                        <Table size="small">
+                                                            <TableHead>
+                                                                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
+                                                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Value</TableCell>
+                                                                </TableRow>
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {previewPayload.hardness.map((r: any, idx: number) => (
+                                                                    <TableRow key={idx}>
+                                                                        <TableCell sx={{ fontSize: '0.75rem' }}>{r.label}</TableCell>
+                                                                        <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem' }}>{r.value || "-"}</TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                                <TableRow>
+                                                                    <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
+                                                                    <TableCell sx={{ textAlign: 'center' }}>
+                                                                        {previewPayload.hardness_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                                {previewPayload.hardness_remarks && (
+                                                                    <TableRow>
+                                                                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Remarks</TableCell>
+                                                                        <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem' }}>{previewPayload.hardness_remarks}</TableCell>
+                                                                    </TableRow>
+                                                                )}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </Box>
+                                                </Box>
+                                            )}
+
                                             <Box mt={3} p={2} sx={{ bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                                                 <Typography variant="subtitle2" mb={1} color="textSecondary">FINAL STATUS & REMARKS</Typography>
                                                 <Grid container spacing={2}>
