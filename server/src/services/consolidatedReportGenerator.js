@@ -250,25 +250,8 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         yMetSpec = drawVerticalTable(doc, microSpecRows, col1X, yMetSpec, colWidth) + 12;
         yLeft = yMetSpec;
 
-        // 2. Material Correction (Top Right)
-        let yRight = drawSectionTitle(doc, "1.2 MATERIAL CORRECTION", col2X, y);
-        const corrChem = safeParse(matCorr.chemical_composition, {});
-        const corrProc = safeParse(matCorr.process_parameters, {});
-
-        const matChemData = [[corrChem.c, corrChem.si, corrChem.mn, corrChem.p, corrChem.s, corrChem.mg, corrChem.cu, corrChem.cr]];
-        doc.font('Helvetica-Bold').fontSize(7).text("Actual Composition", col2X, yRight);
-        yRight += 10;
-        yRight = drawTable(doc, { headers: ["C", "Si", "Mn", "P", "S", "Mg", "Cu", "Cr"], rows: matChemData }, col2X, yRight, [32, 32, 32, 32, 32, 32, 32, 36]) + 8;
-
-        const procRows = [
-            { label: "Pouring Temp °C", value: corrProc.pouringTemp },
-            { label: "Inoculant / Sec", value: corrProc.inoculantPerSec },
-            { label: "Inoculant Type", value: corrProc.inoculantType },
-            { label: "Remarks", value: matCorr.remarks }
-        ];
-        yRight = drawVerticalTable(doc, procRows, col2X, yRight, colWidth) + 12;
-
         // 3. Pouring Details
+        let yRight = y;
         yRight = drawSectionTitle(doc, "2. POURING DETAILS", col2X, yRight);
         const pInoc = safeParse(pouring.inoculation, {});
         const pouringRows = [
