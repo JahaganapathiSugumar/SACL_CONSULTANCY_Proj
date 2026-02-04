@@ -202,6 +202,7 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         const visual = data.visual_inspection?.[0] || {};
         const dimensional = data.dimensional_inspection?.[0] || {};
         const mcShop = data.machine_shop?.[0] || {};
+        const matCorr = data.material_correction?.[0] || {};
         const currentTrialId = data.trial_cards?.[0]?.trial_id;
 
         if (i > 0) doc.addPage();
@@ -224,28 +225,28 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         // 1. Trial Card Details (Top Left)
         let yLeft = drawSectionTitle(doc, "1. TRIAL CARD DETAILS", col1X, y);
         const trialRows = [
-            { label: "Part Name", value: trialCard.part_name },
-            { label: "Date of Sampling", value: trialCard.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
-            { label: "Mould Count (P/A)", value: `${trialCard.plan_moulds || trialCard.no_of_moulds || '-'} / ${trialCard.actual_moulds || '-'}` },
-            { label: "Machine", value: trialCard.disa },
-            { label: "Reason", value: trialCard.reason_for_sampling },
+            { label: "Part Name", value: trialCard?.part_name },
+            { label: "Date of Sampling", value: trialCard?.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
+            { label: "Mould Count (P/A)", value: `${trialCard?.plan_moulds || trialCard?.no_of_moulds || '-'} / ${trialCard?.actual_moulds || '-'}` },
+            { label: "Machine", value: trialCard?.disa },
+            { label: "Reason", value: trialCard?.reason_for_sampling },
         ];
         yLeft = drawVerticalTable(doc, trialRows, col1X, yLeft, colWidth) + 12;
 
         // 1.1 Met Spec
         let yMetSpec = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col1X, yLeft);
-        const specChem = safeParse(trialCard.spec_chem, {});
-        const specMicro = safeParse(trialCard.spec_micro, {});
+        const specChem = safeParse(matCorr?.chemical_composition, {});
+        const specMicro = safeParse(matCorr?.process_parameters, {});
 
-        const chemRows = [["C", specChem.c], ["Si", specChem.si], ["Mn", specChem.mn], ["P", specChem.p], ["S", specChem.s], ["Mg", specChem.mg]];
+        const chemRows = [["C", specChem?.c], ["Si", specChem?.si], ["Mn", specChem?.mn], ["P", specChem?.p], ["S", specChem?.s], ["Mg", specChem?.mg]];
         doc.font('Helvetica-Bold').fontSize(7).text("Chemical Elements (%)", col1X, yMetSpec);
         yMetSpec += 10;
         yMetSpec = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col1X, yMetSpec, [130, 130]) + 8;
 
         const microSpecRows = [
-            { label: "Nodularity", value: specMicro.nodularity },
-            { label: "Pearlite", value: specMicro.pearlite },
-            { label: "Carbide", value: specMicro.carbide }
+            { label: "Pouring Temp", value: specMicro?.pouringTemp },
+            { label: "Inoculant Per Sec", value: specMicro?.inoculantPerSec },
+            { label: "Inoculant Type", value: specMicro?.inoculantType }
         ];
         yMetSpec = drawVerticalTable(doc, microSpecRows, col1X, yMetSpec, colWidth) + 12;
         yLeft = yMetSpec;
@@ -253,15 +254,15 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         // 3. Pouring Details
         let yRight = y;
         yRight = drawSectionTitle(doc, "2. POURING DETAILS", col2X, yRight);
-        const pInoc = safeParse(pouring.inoculation, {});
+        const pInoc = safeParse(pouring?.inoculation, {});
         const pouringRows = [
-            { label: "Pour Date", value: pouring.pour_date ? new Date(pouring.pour_date).toISOString().slice(0, 10) : '-' },
-            { label: "Heat Code", value: pouring.heat_code },
-            { label: "Pouring Temp (°C)", value: pouring.pouring_temp_c },
-            { label: "Pouring Time (sec)", value: pouring.pouring_time_sec },
-            { label: "No. Mould Poured", value: pouring.no_of_mould_poured },
-            { label: "Inoculation Type", value: pInoc.text },
-            { label: "Stream/Inmould", value: `${pInoc.stream || '-'} / ${pInoc.inmould || '-'}` },
+            { label: "Pour Date", value: pouring?.pour_date ? new Date(pouring.pour_date).toISOString().slice(0, 10) : '-' },
+            { label: "Heat Code", value: pouring?.heat_code },
+            { label: "Pouring Temp (°C)", value: pouring?.pouring_temp_c },
+            { label: "Pouring Time (sec)", value: pouring?.pouring_time_sec },
+            { label: "No. Mould Poured", value: pouring?.no_of_mould_poured },
+            { label: "Inoculation Type", value: pInoc?.text },
+            { label: "Stream/Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
         ];
         yRight = drawVerticalTable(doc, pouringRows, col2X, yRight, colWidth) + 12;
 
@@ -270,23 +271,23 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         // 4. Sand Properties
         yLeft = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
         const sandRows = [
-            { label: "Date", value: sand.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
-            { label: "T. Clay / A. Clay %", value: `${sand.t_clay || '-'} / ${sand.a_clay || '-'}` },
-            { label: "V.C.M. / L.O.I. %", value: `${sand.vcm || '-'} / ${sand.loi || '-'}` },
-            { label: "A.F.S. / G.C.S.", value: `${sand.afs || '-'} / ${sand.gcs || '-'}` },
-            { label: "M.O.I. / Comp.", value: `${sand.moi || '-'} / ${sand.compactability || '-'}` },
-            { label: "Permeability", value: sand.permeability },
+            { label: "Date", value: sand?.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
+            { label: "T. Clay / A. Clay %", value: `${sand?.t_clay || '-'} / ${sand?.a_clay || '-'}` },
+            { label: "V.C.M. / L.O.I. %", value: `${sand?.vcm || '-'} / ${sand?.loi || '-'}` },
+            { label: "A.F.S. / G.C.S.", value: `${sand?.afs || '-'} / ${sand?.gcs || '-'}` },
+            { label: "M.O.I. / Comp.", value: `${sand?.moi || '-'} / ${sand?.compactability || '-'}` },
+            { label: "Permeability", value: sand?.permeability },
         ];
         yLeft = drawVerticalTable(doc, sandRows, col1X, yLeft, colWidth);
 
         // 5. Mould Correction
         yRight = drawSectionTitle(doc, "4. MOULD CORRECTION", col2X, yNext);
         const mouldRows = [
-            { label: "Date", value: moulding.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
-            { label: "Thickness", value: moulding.mould_thickness },
-            { label: "Compressibility", value: moulding.compressability },
-            { label: "Squeeze Pressure", value: moulding.squeeze_pressure },
-            { label: "Mould Hardness", value: moulding.mould_hardness },
+            { label: "Date", value: moulding?.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
+            { label: "Thickness", value: moulding?.mould_thickness },
+            { label: "Compressibility", value: moulding?.compressability },
+            { label: "Squeeze Pressure", value: moulding?.squeeze_pressure },
+            { label: "Mould Hardness", value: moulding?.mould_hardness },
         ];
         yRight = drawVerticalTable(doc, mouldRows, col2X, yRight, colWidth);
 
@@ -310,7 +311,10 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         if (mechRows.length > 0) {
             doc.font('Helvetica-Bold').fontSize(7).text("Mechanical Properties", col1X, metLeftY);
             metLeftY += 10;
-            metLeftY = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: Array.isArray(mechRows) ? mechRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOT OK", r.remarks]) : [] }, col1X, metLeftY, [80, 50, 30, 90]) + 10;
+            const headers = Object.keys(mechRows[0]);
+            const rows = mechRows.map(r => headers.map(h => r[h]));
+            const colWidths = headers.map(() => 250 / headers.length);
+            metLeftY = drawTable(doc, { headers, rows }, col1X, metLeftY, colWidths) + 10;
         }
 
         p2y = metLeftY;
@@ -318,13 +322,19 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         if (impactRows.length > 0) {
             doc.font('Helvetica-Bold').fontSize(7).text("Impact Strength", col1X, p2y);
             p2y += 10;
-            p2y = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: Array.isArray(impactRows) ? impactRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOT OK", r.remarks]) : [] }, col1X, p2y, [80, 50, 30, 90]) + 10;
+            const headers = Object.keys(impactRows[0]);
+            const rows = impactRows.map(r => headers.map(h => r[h]));
+            const colWidths = headers.map(() => 250 / headers.length);
+            p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 10;
         }
 
         if (microRows.length > 0) {
             doc.font('Helvetica-Bold').fontSize(7).text("Microstructure", col1X, p2y);
             p2y += 10;
-            p2y = drawTable(doc, { headers: ["Parameter", "Values", "Result", "Remarks"], rows: Array.isArray(microRows) ? microRows.map(r => [r.label, r.values?.join(", "), r.ok ? "OK" : "NOT OK", r.remarks]) : [] }, col1X, p2y, [140, 180, 40, 175]) + 10;
+            const headers = Object.keys(microRows[0]);
+            const rows = microRows.map(r => headers.map(h => r[h]));
+            const colWidths = headers.map(() => 535 / headers.length); // Full width
+            p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 10;
         }
 
         p2y += 5;
@@ -335,9 +345,9 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
 
         // Visual (Left)
         visitY = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, visitY);
-        visitY = drawVerticalTable(doc, [{ label: "Inspection Result", value: visual.visual_ok ? "OK" : "NOT OK" }, { label: "Remarks", value: visual.remarks }], col1X, visitY, colWidth) + 8;
+        visitY = drawVerticalTable(doc, [{ label: "Inspection Result", value: visual?.visual_ok ? "OK" : "NOT OK" }, { label: "Remarks", value: visual?.remarks }], col1X, visitY, colWidth) + 8;
 
-        const visInspections = safeParse(visual.inspections, []);
+        const visInspections = safeParse(visual?.inspections, []);
         if (visInspections.length > 0) {
             doc.font('Helvetica-Bold').fontSize(7).text("General Inspection", col1X, visitY);
             visitY += 10;
@@ -345,12 +355,12 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         }
 
         // NDT
-        const ndtRows = safeParse(visual.ndt_inspection, []);
+        const ndtRows = safeParse(visual?.ndt_inspection, []);
         if (ndtRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection (Result: ${visual.ndt_inspection_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
+            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection (Result: ${visual?.ndt_inspection_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
             visitY += 10;
-            if (visual.ndt_inspection_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.ndt_inspection_remarks}`, col1X, visitY);
+            if (visual?.ndt_inspection_remarks) {
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, visitY);
                 visitY += 10;
             }
             visitY = drawTable(doc, {
@@ -360,12 +370,12 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         }
 
         // Hardness
-        const hardRows = safeParse(visual.hardness, []);
+        const hardRows = safeParse(visual?.hardness, []);
         if (hardRows.length > 0) {
-            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness (Result: ${visual.hardness_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
+            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness (Result: ${visual?.hardness_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
             visitY += 10;
-            if (visual.hardness_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.hardness_remarks}`, col1X, visitY);
+            if (visual?.hardness_remarks) {
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, visitY);
                 visitY += 10;
             }
             visitY = drawTable(doc, {
@@ -377,12 +387,12 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         // Dimensional (Right)
         dimY = drawSectionTitle(doc, "7. DIMENSIONAL INSPECTION", col2X, dimY);
         const dimRows = [
-            { label: "Date", value: dimensional.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
-            { label: "Weight", value: `${dimensional.casting_weight || '-'} kg` },
-            { label: "Yield", value: `${dimensional.yields || '-'} %` }
+            { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
+            { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
+            { label: "Yield", value: `${dimensional?.yields || '-'} %` }
         ];
         dimY = drawVerticalTable(doc, dimRows, col2X, dimY, colWidth) + 8;
-        const dimInspections = safeParse(dimensional.inspections, []);
+        const dimInspections = safeParse(dimensional?.inspections, []);
         if (dimInspections.length > 0) {
             dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY + 20, [130, 130]) + 8;
         }
@@ -393,11 +403,11 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         if (Object.keys(mcShop).length > 0) {
             p2y = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, p2y);
             p2y = drawVerticalTable(doc, [
-                { label: "Date", value: mcShop.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
-                { label: "Remarks", value: mcShop.remarks }
+                { label: "Date", value: mcShop?.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
+                { label: "Remarks", value: mcShop?.remarks }
             ], col1X, p2y, colWidth * 2 + 15) + 8;
 
-            const mcInspections = safeParse(mcShop.inspections, []);
+            const mcInspections = safeParse(mcShop?.inspections, []);
             if (mcInspections.length > 0) {
                 const headers = Object.keys(mcInspections[0]);
                 const rows = mcInspections.map(r => Object.values(r));
