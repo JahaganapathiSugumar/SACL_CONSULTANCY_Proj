@@ -202,7 +202,7 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
         const visual = data.visual_inspection?.[0] || {};
         const dimensional = data.dimensional_inspection?.[0] || {};
         const mcShop = data.machine_shop?.[0] || {};
-        const matCorr = data.material_correction?.[0] || {};
+        const currentTrialId = data.trial_cards?.[0]?.trial_id;
 
         if (i > 0) doc.addPage();
 
