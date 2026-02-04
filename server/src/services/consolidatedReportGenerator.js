@@ -264,7 +264,7 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
             { label: "Inoculation Type", value: pInoc?.text },
             { label: "Stream/Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
         ];
-        yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, colWidth) + 12;
+        yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, 535) + 12;
 
         // 4. Sand Properties (Below Pouring)
         yNext = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
@@ -276,7 +276,7 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
             { label: "M.O.I. / Comp.", value: `${sand?.moi || '-'} / ${sand?.compactability || '-'}` },
             { label: "Permeability", value: sand?.permeability },
         ];
-        yNext = drawVerticalTable(doc, sandRows, col1X, yNext, colWidth) + 12;
+        yNext = drawVerticalTable(doc, sandRows, col1X, yNext, 535) + 12;
 
         // 5. Mould Correction (Below Sand)
         yNext = drawSectionTitle(doc, "4. MOULD CORRECTION", col1X, yNext);
@@ -287,7 +287,7 @@ export const generateAndStoreConsolidatedReport = async (trial_id, trx) => {
             { label: "Squeeze Pressure", value: moulding?.squeeze_pressure },
             { label: "Mould Hardness", value: moulding?.mould_hardness },
         ];
-        yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, colWidth);
+        yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, 535);
 
         // --- PAGE 2: INSPECTION DATA ---
         doc.addPage();

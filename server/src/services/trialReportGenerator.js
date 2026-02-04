@@ -236,7 +236,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Inoculation Type", value: pInoc?.text },
         { label: "Stream / Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
     ];
-    yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, colWidth) + 12;
+    yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, 535) + 12;
 
     // 4. Sand Properties (Below Pouring)
     yNext = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
@@ -249,7 +249,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Permeability", value: sand?.permeability },
         { label: "Remarks", value: sand?.remarks },
     ];
-    yNext = drawVerticalTable(doc, sandRows, col1X, yNext, colWidth) + 12;
+    yNext = drawVerticalTable(doc, sandRows, col1X, yNext, 535) + 12;
 
     // 5. Mould Correction (Below Sand)
     yNext = drawSectionTitle(doc, "4. MOULD CORRECTION", col1X, yNext);
@@ -261,7 +261,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Mould Hardness", value: moulding?.mould_hardness },
         { label: "Remarks", value: moulding?.remarks }
     ];
-    yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, colWidth);
+    yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, 535);
 
 
     // --- PAGE 2: INSPECTION DATA ---
