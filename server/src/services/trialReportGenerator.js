@@ -336,18 +336,43 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     // Visual (Left)
     visitY = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, visitY);
-    visitY = drawVerticalTable(doc, [{ label: "Result", value: visual.visual_ok ? "OK" : "NOT OK" }, { label: "Remarks", value: visual.remarks }], col1X, visitY, colWidth) + 8;
+    visitY = drawVerticalTable(doc, [{ label: "Inspection Result", value: visual.visual_ok ? "OK" : "NOT OK" }, { label: "Remarks", value: visual.remarks }], col1X, visitY, colWidth) + 8;
 
     const visInspections = safeParse(visual.inspections, []);
     if (visInspections.length > 0) {
+        doc.font('Helvetica-Bold').fontSize(7).text("General Inspection", col1X, visitY);
+        visitY += 10;
         visitY = drawTable(doc, { headers: ['Cav', 'Insp', 'Rej', 'Reason'], rows: visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], r['Reason for rejection']]) }, col1X, visitY, [30, 30, 30, 170]) + 8;
     }
 
+    // NDT
+    const ndtRows = safeParse(visual.ndt_inspection, []);
+    if (ndtRows.length > 0) {
+        doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection (Result: ${visual.ndt_inspection_ok ? 'OK' : 'NOK'})`, col1X, visitY);
+        visitY += 10;
+        if(visual.ndt_inspection_remarks) {
+             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.ndt_inspection_remarks}`, col1X, visitY);
+             visitY += 10;
+        }
+        visitY = drawTable(doc, { 
+            headers: ["Parameter", "Value", "Res", "Rem"], 
+            rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) 
+        }, col1X, visitY, [80, 50, 30, 90]) + 10;
+    }
+
+    // Hardness
     const hardRows = safeParse(visual.hardness, []);
     if (hardRows.length > 0) {
-        doc.font('Helvetica-Bold').fontSize(7).text("Hardness", col1X, visitY);
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness (Result: ${visual.hardness_ok ? 'OK' : 'NOK'})`, col1X, visitY);
         visitY += 10;
-        visitY = drawTable(doc, { headers: ["Param", "Value", "Res", "Rem"], rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) }, col1X, visitY, [80, 50, 30, 90]) + 10;
+        if(visual.hardness_remarks) {
+             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.hardness_remarks}`, col1X, visitY);
+             visitY += 10;
+        }
+        visitY = drawTable(doc, { 
+            headers: ["Param", "Value", "Res", "Rem"], 
+            rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOK", r.remarks]) 
+        }, col1X, visitY, [80, 50, 30, 90]) + 10;
     }
 
     // Dimensional (Right)
