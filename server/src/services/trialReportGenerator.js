@@ -202,16 +202,16 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     ];
     yLeft = drawVerticalTable(doc, trialRows, col1X, yLeft, colWidth) + 12;
 
-    // 1.1 Met Spec (Left, Below Trial Card)
-    let yMetSpec = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col1X, yLeft);
+    // 1.1 Met Spec (Top Right)
+    let yRight = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col2X, y);
     const specChem = safeParse(matCorr?.chemical_composition, {});
     const specMicro = safeParse(matCorr?.process_parameters, {});
 
     // Chem Spec
-    const chemRows = [["C", specChem?.c], ["Si", specChem?.si], ["Mn", specChem?.mn], ["P", specChem?.p], ["S", specChem?.s], ["Mg", specChem?.mg]]; // Shortened row
-    doc.font('Helvetica-Bold').fontSize(7).text("Chemical Elements (%)", col1X, yMetSpec);
-    yMetSpec += 10;
-    yMetSpec = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col1X, yMetSpec, [130, 130]) + 8;
+    const chemRows = [["C", specChem?.c], ["Si", specChem?.si], ["Mn", specChem?.mn], ["P", specChem?.p], ["S", specChem?.s], ["Mg", specChem?.mg]];
+    doc.font('Helvetica-Bold').fontSize(7).text("Chemical Elements (%)", col2X, yRight);
+    yRight += 10;
+    yRight = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col2X, yRight, [130, 130]) + 8;
 
     // Micro Spec
     const microSpecRows = [
@@ -219,12 +219,12 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Inoculant Per Sec", value: specMicro?.inoculantPerSec },
         { label: "Inoculant Type", value: specMicro?.inoculantType }
     ];
-    yMetSpec = drawVerticalTable(doc, microSpecRows, col1X, yMetSpec, colWidth) + 12;
-    yLeft = yMetSpec;
+    yRight = drawVerticalTable(doc, microSpecRows, col2X, yRight, colWidth) + 12;
 
-    // 3. Pouring Details (Right, Below Mat Corr)
-    let yRight = y;
-    yRight = drawSectionTitle(doc, "2. POURING DETAILS", col2X, yRight);
+    let yNext = Math.max(yLeft, yRight);
+
+    // 3. Pouring Details (Below)
+    yNext = drawSectionTitle(doc, "2. POURING DETAILS", col1X, yNext);
     const pInoc = safeParse(pouring.inoculation, {});
     const pRem = safeParse(pouring.other_remarks, {});
     const pouringRows = [
@@ -236,13 +236,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Inoculation Type", value: pInoc?.text },
         { label: "Stream / Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
     ];
-    yRight = drawVerticalTable(doc, pouringRows, col2X, yRight, colWidth) + 12;
+    yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, colWidth) + 12;
 
-    // Align Left and Right for next row
-    let yNext = Math.max(yLeft, yRight);
-
-    // 4. Sand Properties (Left)
-    yLeft = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
+    // 4. Sand Properties (Below Pouring)
+    yNext = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, yNext);
     const sandRows = [
         { label: "Date", value: sand?.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
         { label: "T. Clay / A. Clay %", value: `${sand?.t_clay || '-'} / ${sand?.a_clay || '-'}` },
@@ -252,10 +249,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Permeability", value: sand?.permeability },
         { label: "Remarks", value: sand?.remarks },
     ];
-    yLeft = drawVerticalTable(doc, sandRows, col1X, yLeft, colWidth);
+    yNext = drawVerticalTable(doc, sandRows, col1X, yNext, colWidth) + 12;
 
-    // 5. Mould Correction (Right)
-    yRight = drawSectionTitle(doc, "4. MOULD CORRECTION", col2X, yNext);
+    // 5. Mould Correction (Below Sand)
+    yNext = drawSectionTitle(doc, "4. MOULD CORRECTION", col1X, yNext);
     const mouldRows = [
         { label: "Date", value: moulding?.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
         { label: "Mould Thickness", value: moulding?.mould_thickness },
@@ -264,7 +261,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Mould Hardness", value: moulding?.mould_hardness },
         { label: "Remarks", value: moulding?.remarks }
     ];
-    yRight = drawVerticalTable(doc, mouldRows, col2X, yRight, colWidth);
+    yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, colWidth);
 
 
     // --- PAGE 2: INSPECTION DATA ---
@@ -272,7 +269,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     let p2y = 40;
 
     // Header P2
-    doc.font('Helvetica-Bold').fontSize(12).text(`Trial ID: ${trial_id} - Inspection Results`, 30, 20);
+    doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${trial_id} - Inspection Results   |   Page: 2`, 30, 20);
     doc.moveTo(30, 35).lineTo(565, 35).stroke();
 
     // 6. Metallurgical Inspection
@@ -335,31 +332,41 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // NDT
     const ndtRows = safeParse(visual.ndt_inspection, []);
     if (ndtRows.length > 0) {
-        doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection (Result: ${visual?.ndt_inspection_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
+        const sectionOk = visual?.ndt_inspection_ok;
+        const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
+
+        doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection (Result: ${sectionRes})`, col1X, visitY);
         visitY += 10;
         if (visual?.ndt_inspection_remarks) {
             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, visitY);
             visitY += 10;
         }
-        visitY = drawTable(doc, {
-            headers: ["Parameter", "Value", "Res", "Rem"],
-            rows: ndtRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOT OK", r.remarks])
-        }, col1X, visitY, [80, 50, 30, 90]) + 10;
+
+        const headers = Object.keys(ndtRows[0]);
+        const rows = ndtRows.map(r => headers.map(h => r[h]));
+        const colWidths = headers.map(() => 260 / headers.length);
+
+        visitY = drawTable(doc, { headers, rows }, col1X, visitY, colWidths) + 10;
     }
 
     // Hardness
     const hardRows = safeParse(visual.hardness, []);
     if (hardRows.length > 0) {
-        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness (Result: ${visual?.hardness_ok ? 'OK' : 'NOT OK'})`, col1X, visitY);
+        const sectionOk = visual?.hardness_ok;
+        const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
+
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness (Result: ${sectionRes})`, col1X, visitY);
         visitY += 10;
         if (visual?.hardness_remarks) {
             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, visitY);
             visitY += 10;
         }
-        visitY = drawTable(doc, {
-            headers: ["Param", "Value", "Res", "Rem"],
-            rows: hardRows.map(r => [r.label, r.value, r.ok ? "OK" : "NOT OK", r.remarks])
-        }, col1X, visitY, [80, 50, 30, 90]) + 10;
+
+        const headers = Object.keys(hardRows[0]);
+        const rows = hardRows.map(r => headers.map(h => r[h]));
+        const colWidths = headers.map(() => 260 / headers.length);
+
+        visitY = drawTable(doc, { headers, rows }, col1X, visitY, colWidths) + 10;
     }
 
     // Dimensional (Right)
