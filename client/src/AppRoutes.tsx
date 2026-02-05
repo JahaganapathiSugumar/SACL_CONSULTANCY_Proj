@@ -58,7 +58,7 @@ const AppRoutes: React.FC = () => {
             } />
 
             <Route path="/dimensional-inspection" element={
-                <ProtectedRoute requiredDepartment={[1, 10]}><DimensionalInspection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 8, 10]}><DimensionalInspection /></ProtectedRoute>
             } />
 
             <Route path="/mc-shop" element={
@@ -66,7 +66,7 @@ const AppRoutes: React.FC = () => {
             } />
 
             <Route path="/foundry-sample-card" element={
-                <ProtectedRoute requiredDepartment={[1, 2]}><FoundrySampleCard /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 8]}><FoundrySampleCard /></ProtectedRoute>
             } />
 
             <Route path="/moulding" element={
