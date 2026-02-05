@@ -48,10 +48,10 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     });
 
     const [pending] = await trx.query(
-        `SELECT df.department_id FROM department_flow df
+        `SELECT TOP 1 df.department_id FROM department_flow df
         JOIN department_progress dp ON dp.department_id = df.department_id
         WHERE dp.trial_id = @trial_id AND dp.approval_status = 'pending'
-        ORDER BY df.sequence_no LIMIT 1`,
+        ORDER BY df.sequence_no`,
         { trial_id }
     );
 
@@ -170,11 +170,11 @@ export const updateDepartment = async (trial_id, user, trx) => {
     });
 
     const [rows] = await trx.query(
-        `SELECT df.department_id FROM department_flow df WHERE 
+        `SELECT TOP 1 df.department_id FROM department_flow df WHERE 
              NOT EXISTS (SELECT 1 FROM department_progress dp 
              WHERE dp.department_id = df.department_id 
              AND dp.trial_id = @trial_id)
-         ORDER BY df.sequence_no LIMIT 1`,
+         ORDER BY df.sequence_no`,
         { trial_id }
     );
 
@@ -271,11 +271,11 @@ export const updateRole = async (trial_id, user, trx) => {
         return "Department progress updated successfully";
     } else {
         const [rows] = await trx.query(
-            `SELECT df.department_id FROM department_flow df WHERE 
+            `SELECT TOP 1 df.department_id FROM department_flow df WHERE 
                 NOT EXISTS (SELECT 1 FROM department_progress dp 
                 WHERE dp.department_id = df.department_id 
                 AND dp.trial_id = @trial_id)
-            ORDER BY df.sequence_no LIMIT 1`,
+            ORDER BY df.sequence_no`,
             { trial_id }
         );
 
