@@ -650,7 +650,8 @@ function PouringDetailsTable() {
                                     </Grid>
 
 
-                                    <Grid size={{ xs: 12 }}>                                        <FormSection title="Remarks" icon={<EditIcon />}>
+                                    <Grid size={{ xs: 12 }}>                                        
+                                    <FormSection title="Remarks" icon={<EditIcon />}>
                                         <TextField
                                             fullWidth
                                             multiline

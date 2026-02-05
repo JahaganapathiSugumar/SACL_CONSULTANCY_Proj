@@ -431,7 +431,6 @@ export default function DimensionalInspection({
                                             <TextField
                                                 size="small"
                                                 fullWidth
-                                                placeholder="e.g. 12.5"
                                                 value={weightTarget}
                                                 onChange={(e) => {
                                                     setWeightTarget(e.target.value);
@@ -445,7 +444,6 @@ export default function DimensionalInspection({
                                             <TextField
                                                 size="small"
                                                 fullWidth
-                                                placeholder="Total Bunch Wt"
                                                 value={bunchWeight}
                                                 onChange={(e) => {
                                                     setBunchWeight(e.target.value);
@@ -460,7 +458,6 @@ export default function DimensionalInspection({
                                                 size="small"
                                                 fullWidth
                                                 type="number"
-                                                placeholder="e.g. 4"
                                                 value={numberOfCavity}
                                                 onChange={(e) => {
                                                     setNumberOfCavity(e.target.value);
@@ -582,7 +579,6 @@ export default function DimensionalInspection({
                                         rows={3}
                                         fullWidth
                                         variant="outlined"
-                                        placeholder="Enter remarks..."
                                         value={remarks}
                                         onChange={(e) => setRemarks(e.target.value)}
                                         sx={{ bgcolor: '#fff' }}

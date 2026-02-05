@@ -1104,7 +1104,7 @@ export default function VisualInspection({
                                                                                 fullWidth
                                                                                 multiline
                                                                                 rows={5}
-                                                                                placeholder="Remarks (optional)"
+                                                                                placeholder="Enter remarks..."
                                                                                 value={remarks}
                                                                                 onChange={(e) => setRemarks(e.target.value)}
                                                                                 variant="outlined"

@@ -371,7 +371,6 @@ function MouldingTable() {
                             <SpecInput
                               value={mouldState?.remarks ?? ""}
                               onChange={(e: any) => handleChange('remarks', e.target.value)}
-                              placeholder="--"
                               disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                             />
                           </TableCell>

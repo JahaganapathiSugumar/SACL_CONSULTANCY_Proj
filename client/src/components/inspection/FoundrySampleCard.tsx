@@ -625,7 +625,7 @@ function FoundrySampleCard() {
                           <TextField
                             fullWidth
                             value={trialNo}
-                            placeholder="Generating..."
+                            placeholder={ "Generating..."}
                             InputProps={{
                               readOnly: true,
                               sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
@@ -1027,7 +1027,6 @@ function FoundrySampleCard() {
                                 setPlanMoulds(e.target.value);
                               }}
                               size="small"
-                              placeholder="20"
                               disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                               InputLabelProps={{ shrink: true }}
                               sx={{
@@ -1103,7 +1102,6 @@ function FoundrySampleCard() {
                               setSampleTraceability(e.target.value);
                             }}
                             size="small"
-                            placeholder="Enter option"
                             disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                           />
                         </TableCell>

@@ -579,7 +579,7 @@ export default function McShopInspection({
                                       fullWidth
                                       multiline
                                       rows={8}
-                                      placeholder="General remarks..."
+                                      placeholder="Enter remarks..."
                                       value={remarks || ""}
                                       onChange={(e) => setRemarks(e.target.value)}
 
