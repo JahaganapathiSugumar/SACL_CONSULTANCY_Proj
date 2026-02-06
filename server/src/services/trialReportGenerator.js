@@ -339,8 +339,17 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     }
 
     if (metaHardRows.length > 0) {
-        doc.font('Helvetica-Bold').fontSize(7).text("Hardness Inspection", col1X, p2y);
+        const hardOk = meta?.hardness_ok;
+        const hardRes = hardOk === null || hardOk === undefined ? "-" : (hardOk ? "OK" : "NOT OK");
+
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col1X, p2y);
         p2y += 10;
+
+        if (meta?.hardness_remarks) {
+            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.hardness_remarks}`, col1X, p2y);
+            p2y += 10;
+        }
+
         const headers = Object.keys(metaHardRows[0]);
         const rows = metaHardRows.map(r => headers.map(h => r[h]));
 
@@ -390,7 +399,9 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         const sectionOk = visual?.ndt_inspection_ok;
         const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
-        p2NextY = drawSectionTitle(doc, `NDT INSPECTION ANALYSIS (Result: ${sectionRes})`, col1X, p2NextY);
+        doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, p2NextY);
+        p2NextY += 10;
+
         if (visual?.ndt_inspection_remarks) {
             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, p2NextY);
             p2NextY += 10;
@@ -409,7 +420,9 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         const sectionOk = visual?.hardness_ok;
         const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
-        p2NextY = drawSectionTitle(doc, `HARDNESS INSPECTION (Result: ${sectionRes})`, col1X, p2NextY);
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col1X, p2NextY);
+        p2NextY += 10;
+
         if (visual?.hardness_remarks) {
             doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, p2NextY);
             p2NextY += 10;
