@@ -76,11 +76,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onUserUp
         const { name, value } = e.target;
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
-
-            if (name === 'role' && value === 'Admin') {
-                newData.department_id = '';
-            }
-
             return newData;
         });
     };

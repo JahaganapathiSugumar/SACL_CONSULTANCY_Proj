@@ -64,12 +64,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
           newData.machine_shop_user_type = '';
         }
       }
-
-      if (name === 'role' && value === 'Admin') {
-        newData.department_id = '';
-        newData.machine_shop_user_type = 'N/A';
-      }
-
       return newData;
     });
   };
@@ -190,46 +184,45 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserCrea
                 ))}
               </select>
             </div>
-            {formData.role !== 'Admin' && (
-              <>
-                <div className="form-group">
-                  <label htmlFor="department_id">Department</label>
-                  <select
-                    id="department_id"
-                    name="department_id"
-                    value={formData.department_id}
-                    onChange={handleChange}
-                    disabled={loading}
-                    required={formData.role !== 'Admin'}
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map((dept) => (
-                      <option key={dept.department_id} value={String(dept.department_id)}>
-                        {dept.department_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                {/* Conditional Machine Shop User Type Field */}
-                {formData.department_id === '8' && (
-                  <div className="form-group">
-                    <label htmlFor="machine_shop_user_type">Machine Shop User Type</label>
-                    <select
-                      id="machine_shop_user_type"
-                      name="machine_shop_user_type"
-                      value={formData.machine_shop_user_type}
-                      onChange={handleChange}
-                      disabled={loading}
-                      required
-                    >
-                      <option value="">Select Type</option>
-                      <option value="NPD">NPD</option>
-                      <option value="REGULAR">REGULAR</option>
-                    </select>
-                  </div>
-                )}
-              </>
+            <div className="form-group">
+              <label htmlFor="department_id">Department</label>
+              <select
+                id="department_id"
+                name="department_id"
+                value={formData.department_id}
+                onChange={handleChange}
+                disabled={loading}
+                required
+              >
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.department_id} value={String(dept.department_id)}>
+                    {dept.department_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            {/* Conditional Machine Shop User Type Field */}
+            {formData.department_id === '8' && (
+              <div className="form-group">
+                <label htmlFor="machine_shop_user_type">Machine Shop User Type</label>
+                <select
+                  id="machine_shop_user_type"
+                  name="machine_shop_user_type"
+                  value={formData.machine_shop_user_type}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
+                >
+                  <option value="">Select Type</option>
+                  <option value="NPD">NPD</option>
+                  <option value="REGULAR">REGULAR</option>
+                </select>
+              </div>
             )}
           </div>
 
