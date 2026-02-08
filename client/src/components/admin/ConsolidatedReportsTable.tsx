@@ -69,7 +69,7 @@ const ConsolidatedReportsTable: React.FC = () => {
     }
 
     return (
-        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <>
             <TableContainer
                 className="premium-table-container"
                 sx={{
@@ -149,7 +149,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                     <Button onClick={() => setViewReport(null)}>Close</Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </>
     );
 };
 

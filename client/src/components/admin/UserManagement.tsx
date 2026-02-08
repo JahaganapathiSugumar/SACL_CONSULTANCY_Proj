@@ -229,7 +229,11 @@ const UserManagement: React.FC = () => {
         </Box>
       )}
 
-      <Box sx={{ pb: 3 }}>
+      <Box sx={{
+        px: { xs: 2, sm: 3 },
+        pb: 5,
+        mt: 1
+      }}>
         <UserTable
           users={users}
           loading={loading}

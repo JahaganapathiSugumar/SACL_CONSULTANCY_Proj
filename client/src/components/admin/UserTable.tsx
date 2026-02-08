@@ -76,13 +76,13 @@ const UserTable: React.FC<UserTableProps> = ({
   };
 
   return (
-    <Box className="user-table-container">
+    <Box className="user-table-container" sx={{ p: { xs: 2, sm: 3 } }}>
       {/* Filter Section */}
       <Box sx={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        mb: 2.5,
+        mb: 3,
         gap: 2,
         flexWrap: 'wrap'
       }}>
@@ -176,7 +176,8 @@ const UserTable: React.FC<UserTableProps> = ({
             right: 0,
             bottom: 0,
             zIndex: 10,
-            borderRadius: '12px'
+            borderRadius: '12px',
+            backdropFilter: 'blur(2px)'
           }}>
             <LoadingState message="Loading users..." />
           </Box>

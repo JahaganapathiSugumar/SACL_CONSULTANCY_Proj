@@ -341,7 +341,6 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                bgcolor: 'rgba(255,255,255,0.85)',
                                 position: 'absolute',
                                 top: 0,
                                 left: 0,
@@ -351,9 +350,6 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 backdropFilter: 'blur(2px)'
                             }}>
                                 <LoadingState />
-                                <Typography variant="body2" sx={{ mt: 2, color: '#E67E22', fontWeight: 600 }}>
-                                    Updating trials...
-                                </Typography>
                             </Box>
                         )}
                         <Table stickyHeader size="medium">
