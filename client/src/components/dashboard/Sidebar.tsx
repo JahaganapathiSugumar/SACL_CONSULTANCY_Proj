@@ -136,12 +136,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
                                         bgcolor: '#FFF3E0',
                                         borderLeftColor: '#E67E22',
                                     },
-                                    py: 1.75,
+                                    py: 1.25,
                                     px: 2.25,
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5, width: '100%' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                     <ListItemIcon sx={{ minWidth: 32, color: isActive ? '#E67E22' : '#888', mr: 1 }}>
                                         {item.icon}
                                     </ListItemIcon>
@@ -149,9 +149,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
                                         {item.label}
                                     </Typography>
                                 </Box>
-                                <Typography variant="caption" sx={{ ml: '40px', opacity: 0.7, display: 'block', lineHeight: 1.2, fontSize: '0.7rem', color: '#888' }}>
-                                    {item.subLabel}
-                                </Typography>
                             </ListItemButton>
                         </ListItem>
                     );

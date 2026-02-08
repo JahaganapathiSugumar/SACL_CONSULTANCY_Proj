@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
       case 'master-list': return 'Manage master data and pattern codes';
       case 'manage-trials': return 'View, search and manage all trials';
       case 'pending-cards': return 'Sample cards waiting for your action';
-      case 'completed-trials': return 'View history of processed trials';
+      case 'completed-trials': return 'View history of completed trials';
       case 'all-trials': return 'Browse all trial records';
       case 'consolidated-reports': return 'View consolidated history of trials by pattern code';
       case 'recycle-bin': return 'Manage deleted trials and reports';

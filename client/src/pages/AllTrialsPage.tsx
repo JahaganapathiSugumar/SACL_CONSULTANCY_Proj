@@ -24,7 +24,8 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle
+    DialogTitle,
+    TableContainer,
 } from '@mui/material';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
@@ -257,7 +258,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     };
     return (
         <ThemeProvider theme={appTheme}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: COLORS.background }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: '#ffffff' }}>
                 {!embedded && (
                     <Header
                         setShowProfile={setShowProfile}
@@ -348,32 +349,18 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             </Box>
                         </Box>
 
-                        <Paper sx={{
-                            width: '100%',
-                            overflow: 'hidden',
-                            boxShadow: 3,
-                            borderRadius: 2,
-                            overflowX: { xs: 'auto', md: 'hidden' }
-                        }}>
-                            {loading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                                    <LoadingState />
-                                </Box>
-                            ) : (
-                                <Box sx={{
-                                    maxHeight: { xs: '60vh', md: '70vh' },
-                                    overflow: 'auto'
-                                }}>
-                                    <Table
-                                        stickyHeader
-                                        sx={{
-                                            minWidth: { xs: 500, md: '100%' }
-                                        }}
-                                    >
-                                        <TableHead>
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+                                <LoadingState />
+                            </Box>
+                        ) : (
+                            <>
+                                <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto' }}>
+                                    <Table stickyHeader size="medium">
+                                        <TableHead className="premium-table-head">
                                             <TableRow>
                                                 {user?.role === 'Admin' && (
-                                                    <TableCell padding="checkbox">
+                                                    <TableCell padding="checkbox" className="premium-table-header-cell">
                                                         <Checkbox
                                                             indeterminate={selectedIds.length > 0 && selectedIds.length < filteredTrials.length}
                                                             checked={filteredTrials.length > 0 && selectedIds.length === filteredTrials.length}
@@ -382,49 +369,16 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         />
                                                     </TableCell>
                                                 )}
-                                                {user?.role === 'Admin' && <TableCell />}
+                                                {user?.role === 'Admin' && <TableCell className="premium-table-header-cell" />}
 
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Trial ID</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Part Name</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Pattern Code</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Grade</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Date</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Dept</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Status</TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 'bold',
-                                                    bgcolor: '#f8fafc',
-                                                    textAlign: 'center',
-                                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                }}>Report</TableCell>
+                                                <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                                                <TableCell className="premium-table-header-cell">Part Name</TableCell>
+                                                <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
+                                                <TableCell className="premium-table-header-cell">Grade</TableCell>
+                                                <TableCell className="premium-table-header-cell">Date</TableCell>
+                                                <TableCell className="premium-table-header-cell">Dept</TableCell>
+                                                <TableCell className="premium-table-header-cell">Status</TableCell>
+                                                <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -434,9 +388,10 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         <TableRow
                                                             hover
                                                             selected={selectedIds.includes(trial.trial_id)}
+                                                            className="premium-table-row"
                                                         >
                                                             {user?.role === 'Admin' && (
-                                                                <TableCell padding="checkbox">
+                                                                <TableCell padding="checkbox" className="premium-table-cell">
                                                                     <Checkbox
                                                                         checked={selectedIds.includes(trial.trial_id)}
                                                                         onChange={() => handleToggleSelect(trial.trial_id)}
@@ -445,7 +400,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 </TableCell>
                                                             )}
                                                             {user?.role === 'Admin' && (
-                                                                <TableCell>
+                                                                <TableCell className="premium-table-cell">
                                                                     <IconButton
                                                                         aria-label="expand row"
                                                                         size="small"
@@ -456,19 +411,16 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 </TableCell>
                                                             )}
 
-                                                            <TableCell sx={{
-                                                                fontWeight: 'bold',
-                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                                                            }}>{trial.trial_id}</TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                                            <TableCell className="premium-table-cell">
                                                                 <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                                     {trial.part_name}
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.pattern_code}</TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{trial.material_grade}</TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <TableCell className="premium-table-cell">{trial.pattern_code}</TableCell>
+                                                            <TableCell className="premium-table-cell">{trial.material_grade}</TableCell>
+                                                            <TableCell className="premium-table-cell">{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
+                                                            <TableCell className="premium-table-cell">
                                                                 <Box sx={{
                                                                     display: 'inline-block',
                                                                     px: 1, py: 0.3,
@@ -482,7 +434,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                     {trial.department || 'N/A'}
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                                            <TableCell className="premium-table-cell">
                                                                 <Box sx={{
                                                                     display: 'inline-block',
                                                                     px: 1, py: 0.3,
@@ -501,39 +453,41 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                     {trial.status || 'CREATED'}
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell align="center" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                                {trial.status === 'CLOSED' && trial.file_base64 ? (
-                                                                    <Button
-                                                                        variant="outlined"
-                                                                        size="small"
-                                                                        startIcon={<DescriptionIcon />}
-                                                                        onClick={() => handleViewReport(trial)}
-                                                                        sx={{
-                                                                            borderRadius: 2,
-                                                                            textTransform: 'none',
-                                                                            fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                                                                            padding: { xs: '4px 8px', sm: '6px 12px' }
-                                                                        }}
-                                                                    >
-                                                                        Report
-                                                                    </Button>
-                                                                ) : "Report not available"}
-                                                                {user.role === 'Admin' && trial.file_base64 && (
-                                                                    <Tooltip title="Delete Trial Report Only">
-                                                                        <IconButton
+                                                            <TableCell align="center" className="premium-table-cell">
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                                    {trial.status === 'CLOSED' && trial.file_base64 ? (
+                                                                        <Button
+                                                                            variant="outlined"
                                                                             size="small"
-                                                                            color="warning"
-                                                                            onClick={() => handleDeleteReport(trial.trial_id)}
+                                                                            startIcon={<DescriptionIcon />}
+                                                                            onClick={() => handleViewReport(trial)}
+                                                                            sx={{
+                                                                                borderRadius: 1,
+                                                                                textTransform: 'none',
+                                                                                fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                                                                                padding: { xs: '2px 8px', sm: '4px 12px' }
+                                                                            }}
                                                                         >
-                                                                            <DeleteIcon fontSize="small" />
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                )}
+                                                                            Report
+                                                                        </Button>
+                                                                    ) : "N/A"}
+                                                                    {user.role === 'Admin' && trial.file_base64 && (
+                                                                        <Tooltip title="Delete Trial Report Only">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                color="warning"
+                                                                                onClick={() => handleDeleteReport(trial.trial_id)}
+                                                                            >
+                                                                                <DeleteIcon fontSize="small" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                </Box>
                                                             </TableCell>
                                                         </TableRow>
 
                                                         <TableRow>
-                                                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 10 : 8}>
+                                                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 10 : 8} className="premium-table-cell">
                                                                 <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
                                                                     <Box sx={{ margin: 2, bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
                                                                         <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
@@ -641,16 +595,19 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={8} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                                                    <TableCell colSpan={8} align="center" className="premium-table-cell" sx={{ py: 5, color: 'text.secondary' }}>
                                                         No trials found.
                                                     </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
-                                </Box>
-                            )}
-                        </Paper>
+                                </TableContainer>
+                                <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                                    Swipe to view more
+                                </Typography>
+                            </>
+                        )}
 
                         <Box sx={{ mt: 3, textAlign: 'right' }}>
                         </Box>

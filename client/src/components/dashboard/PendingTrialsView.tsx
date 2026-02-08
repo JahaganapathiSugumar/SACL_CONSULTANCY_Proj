@@ -93,17 +93,12 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
         }
     };
 
+    if (loading) {
+        return <LoadingState message="Fetching pending cards..." />;
+    }
+
     return (
         <Box sx={{ p: { xs: 1, sm: 2.5, md: 3 } }}>
-
-
-            {/* Loading State */}
-            {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-                    <LoadingState size={60} />
-                </Box>
-            )}
-
             {/* Error State */}
             {error && (
                 <Alert severity="warning" sx={{ mb: 3, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
@@ -112,58 +107,56 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
             )}
 
             {/* Pending Cards Table */}
-            {!loading && (
-                <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto' }}>
-                    <Table size={isMobile ? "small" : "medium"} stickyHeader>
-                        <TableHead className="premium-table-head">
-                            <TableRow>
-                                <TableCell className="premium-table-header-cell">Trial ID</TableCell>
-                                {!isMobile && <TableCell className="premium-table-header-cell">Pattern Code</TableCell>}
-                                <TableCell className="premium-table-header-cell">Part Name</TableCell>
-                                {!isTablet && <TableCell className="premium-table-header-cell">Machine</TableCell>}
-                                {!isTablet && <TableCell className="premium-table-header-cell">Sampling Date</TableCell>}
-                                <TableCell className="premium-table-header-cell">Status</TableCell>
-                                {!isMobile && <TableCell className="premium-table-header-cell">Department</TableCell>}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {pendingTrials.length > 0 ? (
-                                pendingTrials.map((card) => (
-                                    <TableRow
-                                        key={card.trial_id}
-                                        onClick={() => handleCardClick(card)}
-                                        className="premium-table-row"
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <TableCell className="premium-table-cell-bold">{card.trial_id}</TableCell>
-                                        {!isMobile && <TableCell className="premium-table-cell">{card.pattern_code}</TableCell>}
-                                        <TableCell className="premium-table-cell">{card.part_name}</TableCell>
-                                        {!isTablet && <TableCell className="premium-table-cell">{card.disa}</TableCell>}
-                                        {!isTablet && <TableCell className="premium-table-cell">{card.date_of_sampling ? formatDate(card.date_of_sampling) : ''}</TableCell>}
-                                        <TableCell className="premium-table-cell">
-                                            <span className={`status-pill ${card.approval_status === 'completed' ? 'status-pill-success' : 'status-pill-warning'}`}>
-                                                {card.approval_status === 'completed' ? 'Completed' : 'Pending'}
-                                            </span>
-                                        </TableCell>
-                                        {!isMobile && <TableCell className="premium-table-cell">
-                                            {card.department_name}
-                                        </TableCell>}
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={isMobile ? 3 : isTablet ? 5 : 7} align="center" className="premium-table-cell" sx={{ py: 6 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            No pending sample cards at the moment
-                                        </Typography>
+            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto' }}>
+                <Table size={isMobile ? "small" : "medium"} stickyHeader>
+                    <TableHead className="premium-table-head">
+                        <TableRow>
+                            <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                            {!isMobile && <TableCell className="premium-table-header-cell">Pattern Code</TableCell>}
+                            <TableCell className="premium-table-header-cell">Part Name</TableCell>
+                            {!isTablet && <TableCell className="premium-table-header-cell">Machine</TableCell>}
+                            {!isTablet && <TableCell className="premium-table-header-cell">Sampling Date</TableCell>}
+                            <TableCell className="premium-table-header-cell">Status</TableCell>
+                            {!isMobile && <TableCell className="premium-table-header-cell">Department</TableCell>}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {pendingTrials.length > 0 ? (
+                            pendingTrials.map((card) => (
+                                <TableRow
+                                    key={card.trial_id}
+                                    onClick={() => handleCardClick(card)}
+                                    className="premium-table-row"
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <TableCell className="premium-table-cell-bold">{card.trial_id}</TableCell>
+                                    {!isMobile && <TableCell className="premium-table-cell">{card.pattern_code}</TableCell>}
+                                    <TableCell className="premium-table-cell">{card.part_name}</TableCell>
+                                    {!isTablet && <TableCell className="premium-table-cell">{card.disa}</TableCell>}
+                                    {!isTablet && <TableCell className="premium-table-cell">{card.date_of_sampling ? formatDate(card.date_of_sampling) : ''}</TableCell>}
+                                    <TableCell className="premium-table-cell">
+                                        <span className={`status-pill ${card.approval_status === 'completed' ? 'status-pill-success' : 'status-pill-warning'}`}>
+                                            {card.approval_status === 'completed' ? 'Completed' : 'Pending'}
+                                        </span>
                                     </TableCell>
+                                    {!isMobile && <TableCell className="premium-table-cell">
+                                        {card.department_name}
+                                    </TableCell>}
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
-            {!loading && pendingTrials.length > 0 && (
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={isMobile ? 3 : isTablet ? 5 : 7} align="center" className="premium-table-cell" sx={{ py: 6 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        No pending sample cards at the moment
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            {pendingTrials.length > 0 && (
                 <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
                     Swipe to view more
                 </Typography>
