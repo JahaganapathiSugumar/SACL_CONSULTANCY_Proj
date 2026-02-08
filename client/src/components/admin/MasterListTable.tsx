@@ -18,7 +18,8 @@ import {
     Checkbox,
     Button,
     Stack,
-    InputAdornment
+    InputAdornment,
+    Typography
 } from '@mui/material';
 import { masterListService } from '../../services/masterListService';
 import LoadingState from '../common/LoadingState';
@@ -295,6 +296,9 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                Swipe to view more
+            </Typography>
 
             {/* Modal removed as it is replaced by SweetAlert2 */}
         </Box>

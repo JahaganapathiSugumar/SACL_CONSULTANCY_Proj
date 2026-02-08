@@ -71,179 +71,192 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                 {loadingTrials ? (
                     <LoadingState size={24} />
                 ) : progressingTrials.length > 0 ? (
-                    <Box sx={{ overflowX: 'auto' }}>
-                        <Table
-                            size="small"
+                    <>
+                        <Box sx={{ overflowX: 'auto' }}>
+                            <Table
+                                size="small"
+                                sx={{
+                                    minWidth: 1200,
+                                    '& th': {
+                                        fontSize: '0.75rem',
+                                        py: 1,
+                                        px: 1.5,
+                                        bgcolor: '#f1f5f9',
+                                        fontWeight: 600,
+                                        border: '1px solid #FFE0B2',
+                                        whiteSpace: 'nowrap'
+                                    },
+                                    '& td': {
+                                        fontSize: '0.75rem',
+                                        py: 1,
+                                        px: 1.5,
+                                        border: '1px solid #FFE0B2',
+                                        bgcolor: '#FFF3E0'
+                                    }
+                                }}
+                            >
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Pattern Code</TableCell>
+                                        <TableCell>Part Name</TableCell>
+                                        {departmentId !== 8 && <TableCell>Date of Sampling</TableCell>}
+                                        {departmentId !== 8 && <TableCell>No. of Moulds</TableCell>}
+                                        <TableCell>DISA / FOUNDRY-A</TableCell>
+                                        {departmentId !== 8 && <TableCell>Reason For Sampling</TableCell>}
+                                        {departmentId !== 8 && <TableCell>Sample Traceability</TableCell>}
+                                        {departmentId !== 8 && <TableCell>Trial Type</TableCell>}
+                                        <TableCell align="center">Actions</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {progressingTrials.map((trial) => (
+                                        <TableRow
+                                            key={trial.trial_id}
+                                            sx={{
+                                                '&:hover': {
+                                                    bgcolor: '#FFE0B2 !important',
+                                                    '& td': {
+                                                        bgcolor: '#FFE0B2 !important'
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            <TableCell sx={{ fontWeight: 600 }}>{trial.pattern_code}</TableCell>
+                                            <TableCell>{trial.part_name}</TableCell>
+                                            {departmentId !== 8 && <TableCell>{formatDate(trial.date_of_sampling) || '-'}</TableCell>}
+                                            {departmentId !== 8 && <TableCell>{trial.plan_moulds || '-'}</TableCell>}
+                                            <TableCell>{trial.disa || '-'}</TableCell>
+                                            {departmentId !== 8 && <TableCell>{trial.reason_for_sampling || '-'}</TableCell>}
+                                            {departmentId !== 8 && <TableCell>{trial.sample_traceability || '-'}</TableCell>}
+                                            {departmentId !== 8 && <TableCell>{trial.trial_type || '-'}</TableCell>}
+                                            <TableCell align="center">
+                                                {departmentId === 8 ? (
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/foundry-sample-card?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Foundry Sample Card
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/material-correction?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Material Correction
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/visual-inspection?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Visual Data
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/metallurgical-inspection?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Metallurgical Data
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/dimensional-inspection?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Dimensional Inspection
+                                                        </Button>
+                                                    </Box>
+                                                ) : (
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
+                                                        onClick={() => {
+                                                            setSelectedTrialId(trial.trial_id);
+                                                            setIsModalOpen(true);
+                                                        }}
+                                                        sx={{
+                                                            bgcolor: '#E67E22',
+                                                            fontSize: '0.7rem',
+                                                            py: 0.5,
+                                                            px: 1.5,
+                                                            '&:hover': { bgcolor: '#D35400' },
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                        <Typography
+                            variant="caption"
                             sx={{
-                                minWidth: 1200,
-                                '& th': {
-                                    fontSize: '0.75rem',
-                                    py: 1,
-                                    px: 1.5,
-                                    bgcolor: '#f1f5f9',
-                                    fontWeight: 600,
-                                    border: '1px solid #FFE0B2',
-                                    whiteSpace: 'nowrap'
-                                },
-                                '& td': {
-                                    fontSize: '0.75rem',
-                                    py: 1,
-                                    px: 1.5,
-                                    border: '1px solid #FFE0B2',
-                                    bgcolor: '#FFF3E0'
-                                }
+                                display: { xs: 'block', sm: 'none' },
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                mt: 1
                             }}
                         >
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Pattern Code</TableCell>
-                                    <TableCell>Part Name</TableCell>
-                                    {departmentId !== 8 && <TableCell>Date of Sampling</TableCell>}
-                                    {departmentId !== 8 && <TableCell>No. of Moulds</TableCell>}
-                                    <TableCell>DISA / FOUNDRY-A</TableCell>
-                                    {departmentId !== 8 && <TableCell>Reason For Sampling</TableCell>}
-                                    {departmentId !== 8 && <TableCell>Sample Traceability</TableCell>}
-                                    {departmentId !== 8 && <TableCell>Trial Type</TableCell>}
-                                    <TableCell align="center">Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {progressingTrials.map((trial) => (
-                                    <TableRow
-                                        key={trial.trial_id}
-                                        sx={{
-                                            '&:hover': {
-                                                bgcolor: '#FFE0B2 !important',
-                                                '& td': {
-                                                    bgcolor: '#FFE0B2 !important'
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        <TableCell sx={{ fontWeight: 600 }}>{trial.pattern_code}</TableCell>
-                                        <TableCell>{trial.part_name}</TableCell>
-                                        {departmentId !== 8 && <TableCell>{formatDate(trial.date_of_sampling) || '-'}</TableCell>}
-                                        {departmentId !== 8 && <TableCell>{trial.plan_moulds || '-'}</TableCell>}
-                                        <TableCell>{trial.disa || '-'}</TableCell>
-                                        {departmentId !== 8 && <TableCell>{trial.reason_for_sampling || '-'}</TableCell>}
-                                        {departmentId !== 8 && <TableCell>{trial.sample_traceability || '-'}</TableCell>}
-                                        {departmentId !== 8 && <TableCell>{trial.trial_type || '-'}</TableCell>}
-                                        <TableCell align="center">
-                                            {departmentId === 8 ? (
-                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
-                                                    <Button
-                                                        size="small"
-                                                        variant="contained"
-                                                        onClick={() => navigate(`/foundry-sample-card?trial_id=${trial.trial_id}`)}
-                                                        sx={{
-                                                            bgcolor: '#E67E22',
-                                                            fontSize: '0.7rem',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            '&:hover': { bgcolor: '#D35400' },
-                                                            whiteSpace: 'nowrap',
-                                                            width: '100%',
-                                                            textTransform: 'none'
-                                                        }}
-                                                    >
-                                                        View Foundry Sample Card
-                                                    </Button>
-                                                    <Button
-                                                        size="small"
-                                                        variant="contained"
-                                                        onClick={() => navigate(`/material-correction?trial_id=${trial.trial_id}`)}
-                                                        sx={{
-                                                            bgcolor: '#E67E22',
-                                                            fontSize: '0.7rem',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            '&:hover': { bgcolor: '#D35400' },
-                                                            whiteSpace: 'nowrap',
-                                                            width: '100%',
-                                                            textTransform: 'none'
-                                                        }}
-                                                    >
-                                                        View Material Correction
-                                                    </Button>
-                                                    <Button
-                                                        size="small"
-                                                        variant="contained"
-                                                        onClick={() => navigate(`/visual-inspection?trial_id=${trial.trial_id}`)}
-                                                        sx={{
-                                                            bgcolor: '#E67E22',
-                                                            fontSize: '0.7rem',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            '&:hover': { bgcolor: '#D35400' },
-                                                            whiteSpace: 'nowrap',
-                                                            width: '100%',
-                                                            textTransform: 'none'
-                                                        }}
-                                                    >
-                                                        View Visual Data
-                                                    </Button>
-                                                    <Button
-                                                        size="small"
-                                                        variant="contained"
-                                                        onClick={() => navigate(`/metallurgical-inspection?trial_id=${trial.trial_id}`)}
-                                                        sx={{
-                                                            bgcolor: '#E67E22',
-                                                            fontSize: '0.7rem',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            '&:hover': { bgcolor: '#D35400' },
-                                                            whiteSpace: 'nowrap',
-                                                            width: '100%',
-                                                            textTransform: 'none'
-                                                        }}
-                                                    >
-                                                        View Metallurgical Data
-                                                    </Button>
-                                                    <Button
-                                                        size="small"
-                                                        variant="contained"
-                                                        onClick={() => navigate(`/dimensional-inspection?trial_id=${trial.trial_id}`)}
-                                                        sx={{
-                                                            bgcolor: '#E67E22',
-                                                            fontSize: '0.7rem',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            '&:hover': { bgcolor: '#D35400' },
-                                                            whiteSpace: 'nowrap',
-                                                            width: '100%',
-                                                            textTransform: 'none'
-                                                        }}
-                                                    >
-                                                        View Dimensional Inspection
-                                                    </Button>
-                                                </Box>
-                                            ) : (
-                                                <Button
-                                                    size="small"
-                                                    variant="contained"
-                                                    startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
-                                                    onClick={() => {
-                                                        setSelectedTrialId(trial.trial_id);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                    sx={{
-                                                        bgcolor: '#E67E22',
-                                                        fontSize: '0.7rem',
-                                                        py: 0.5,
-                                                        px: 1.5,
-                                                        '&:hover': { bgcolor: '#D35400' },
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    View Details
-                                                </Button>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Box>
+                            Swipe to view more
+                        </Typography>
+                    </>
                 ) : (
                     <Box
                         sx={{

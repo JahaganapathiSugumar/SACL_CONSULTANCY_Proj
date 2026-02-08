@@ -549,6 +549,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: -2, mb: 2 }}>
+                        Swipe to view all elements
+                    </Typography>
 
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                         Material Properties
@@ -799,6 +802,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 </TableBody>
                             </Table>
                         </TableContainer>
+                        <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: -2, mb: 2 }}>
+                            Swipe to view more tooling details
+                        </Typography>
                     </Collapse>
                 </Box>
             </DialogContent >

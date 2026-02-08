@@ -121,6 +121,11 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
                     </Table>
                 </TableContainer>
             )}
+            {!loading && completedTrials.length > 0 && (
+                <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                    Swipe to view more
+                </Typography>
+            )}
         </Box>
     );
 };

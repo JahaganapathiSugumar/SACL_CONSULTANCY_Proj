@@ -20,6 +20,7 @@ import {
   Grid,
   Chip,
   Divider,
+  useMediaQuery
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
@@ -60,6 +61,7 @@ export default function McShopInspection({
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
 
 
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
@@ -474,8 +476,8 @@ export default function McShopInspection({
           photoRefreshKey={headerRefreshKey}
           showBackButton={true}
         />
-        <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
-          <Container maxWidth="xl">
+        <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 1.5, md: 4 }, px: { xs: 1, sm: 2 } }}>
+          <Container maxWidth="xl" sx={{ p: { xs: 0, sm: 2 } }}>
             <AlertMessage alert={alert} />
 
             {isAssigned === false && (user?.role !== 'Admin') ? (
@@ -598,6 +600,7 @@ export default function McShopInspection({
                       </TableBody>
                     </Table>
                   </Box>
+                  {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}> Swipe to view more </Typography>}
 
                   <Button
                     size="small"
@@ -625,8 +628,8 @@ export default function McShopInspection({
                   </Box>
 
 
-                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
-                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                       <ActionButtons
                         {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
                         onSave={handleSaveAndContinue}

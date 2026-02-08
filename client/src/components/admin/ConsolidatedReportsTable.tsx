@@ -120,6 +120,9 @@ const ConsolidatedReportsTable: React.FC = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                Swipe to view more
+            </Typography>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
                 <DialogTitle>Consolidated Report - {viewReport?.patternCode}</DialogTitle>

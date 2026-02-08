@@ -247,8 +247,8 @@ export default function MaterialCorrection() {
                     photoRefreshKey={headerRefreshKey}
                     showBackButton={true}
                 />
-                <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
-                    <Container maxWidth="xl">
+                <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 1.5, md: 4 }, px: { xs: 1, sm: 2 } }}>
+                    <Container maxWidth="xl" sx={{ p: { xs: 0, sm: 2 } }}>
                         <AlertMessage alert={alert} />
 
                         {isAssigned === false && (user?.role !== 'Admin') ? (
@@ -385,8 +385,8 @@ export default function MaterialCorrection() {
                                     </Grid>
 
                                     <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
-                                        <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2}>
-                                            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                                        <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2}>
+                                            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                                 {user?.department_id !== 8 && (
                                                     <ActionButtons
                                                         {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}

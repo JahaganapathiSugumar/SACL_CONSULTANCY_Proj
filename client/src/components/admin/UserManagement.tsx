@@ -9,6 +9,8 @@ import './UserManagement.css';
 import Swal from 'sweetalert2';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { Box, Typography, useMediaQuery, Button } from '@mui/material';
+import { appTheme } from '../../theme/appTheme';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -146,96 +148,88 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
+
   if (loading) {
     return <LoadingState />;
   }
 
   return (
-    <div className="user-management">
-      <div className="user-management-header">
-        <button
-          className="create-user-button"
+    <Box sx={{ p: { xs: 1, sm: 3 } }}>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3,
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2
+      }}>
+        <Typography variant="h5" fontWeight={700} color="text.primary" sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}>
+          User Management
+        </Typography>
+        <Button
+          variant="contained"
+          color="success"
           onClick={() => setShowCreateModal(true)}
+          sx={{
+            textTransform: 'none',
+            borderRadius: 2,
+            px: 3,
+            width: { xs: '100%', sm: 'auto' }
+          }}
         >
           Create New User
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {selectedUsers.size > 0 && (
-        <div style={{
+        <Box sx={{
           display: 'flex',
-          gap: '10px',
-          marginBottom: '15px',
-          padding: '15px',
-          backgroundColor: '#f0f0f0',
-          borderRadius: '6px',
+          gap: 1.5,
+          mb: 2,
+          p: 2,
+          backgroundColor: '#f8fafc',
+          borderRadius: 2,
           alignItems: 'center',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          border: '1px solid #e2e8f0',
+          flexDirection: { xs: 'column', sm: 'row' }
         }}>
-          <span style={{ fontWeight: 500, fontSize: '14px' }}>
+          <Typography variant="body2" fontWeight={600} sx={{ mr: { sm: 1 }, width: { xs: '100%', sm: 'auto' } }}>
             {selectedUsers.size} user(s) selected
-          </span>
-          <button
-            onClick={() => handleBulkStatusChange(true)}
-            style={{
-              padding: '6px 16px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#218838')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#28a745')}
-          >
-            <CheckCircleIcon sx={{ fontSize: '18px' }} /> Activate
-          </button>
-          <button
-            onClick={() => handleBulkStatusChange(false)}
-            style={{
-              padding: '6px 16px',
-              backgroundColor: '#ffc107',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0a800')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffc107')}
-          >
-            <CancelIcon sx={{ fontSize: '18px' }} /> Deactivate
-          </button>
-          <button
-            onClick={handleBulkDelete}
-            style={{
-              padding: '6px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#c82333')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#dc3545')}
-          >
-            Delete
-          </button>
-        </div>
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' }, flexWrap: 'wrap' }}>
+            <Button
+              size="small"
+              variant="contained"
+              color="success"
+              onClick={() => handleBulkStatusChange(true)}
+              startIcon={<CheckCircleIcon />}
+              sx={{ textTransform: 'none', borderRadius: 1.5, flex: { xs: 1, sm: 'none' } }}
+            >
+              Activate
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              onClick={() => handleBulkStatusChange(false)}
+              startIcon={<CancelIcon />}
+              sx={{ textTransform: 'none', borderRadius: 1.5, color: 'white', flex: { xs: 1, sm: 'none' } }}
+            >
+              Deactivate
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="error"
+              onClick={handleBulkDelete}
+              sx={{ textTransform: 'none', borderRadius: 1.5, flex: { xs: 1, sm: 'none' } }}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Box>
       )}
 
       <UserTable
@@ -266,7 +260,7 @@ const UserManagement: React.FC = () => {
           user={selectedUser}
         />
       )}
-    </div>
+    </Box>
   );
 };
 

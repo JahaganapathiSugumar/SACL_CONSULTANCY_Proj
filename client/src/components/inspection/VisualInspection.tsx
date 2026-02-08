@@ -14,13 +14,14 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    Button,
-    Alert,
     ThemeProvider,
     Container,
     Grid,
+    Button,
+    Alert,
     Chip,
-    Divider
+    Divider,
+    useMediaQuery
 } from "@mui/material";
 import Swal from 'sweetalert2';
 
@@ -99,6 +100,7 @@ function SectionTable({
     isEditing: boolean;
     onSectionChange?: (patch: Partial<NdtRow>) => void;
 }) {
+    const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
     const [cols, setCols] = useState<MicroCol[]>(() => {
         const maxLen = Math.max(...(rows?.map(r => (r?.value ? r.value.split('|').length : 1)) || []), 1);
         return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' }));
@@ -381,6 +383,7 @@ export default function VisualInspection({
 }) {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const isMobile = useMediaQuery(appTheme.breakpoints.down('sm'));
     const [cols, setCols] = useState<string[]>([...initialCols]);
     const [rows, setRows] = useState<Row[]>(() => buildRows(initialRows, initialCols));
     const [visualOk, setVisualOk] = useState<boolean | null>(null);
@@ -923,8 +926,8 @@ export default function VisualInspection({
                     photoRefreshKey={headerRefreshKey}
                     showBackButton={true}
                 />
-                <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 2, md: 4 } }}>
-                    <Container maxWidth="xl">
+                <Box sx={{ flexGrow: 1, overflow: 'auto', py: { xs: 1.5, md: 4 }, px: { xs: 1, sm: 2 } }}>
+                    <Container maxWidth="xl" sx={{ p: { xs: 0, sm: 2 } }}>
                         <AlertMessage alert={alert} />
 
                         {isAssigned === false && (user?.role !== 'Admin') ? (
@@ -1156,6 +1159,7 @@ export default function VisualInspection({
                                             </TableBody>
                                         </Table>
                                     </Box>
+                                    {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}> Swipe to view more </Typography>}
 
                                     <Button
                                         size="small"
@@ -1183,8 +1187,8 @@ export default function VisualInspection({
                                     </Box>
 
 
-                                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="flex-end" gap={2} sx={{ mt: 2, mb: 4 }}>
-                                        <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+                                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
+                                        <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                             {user?.department_id !== 8 && (
                                                 <ActionButtons
                                                     {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: reset } : {})}

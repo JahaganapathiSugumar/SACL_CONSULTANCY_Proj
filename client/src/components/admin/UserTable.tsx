@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import './UserTable.css';
-import { IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
+import { IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -219,7 +219,10 @@ const UserTable: React.FC<UserTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+      <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+        Swipe to view more
+      </Typography>
+    </div >
   );
 };
 

@@ -11,8 +11,11 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Button
+    Button,
+    Drawer,
+    useMediaQuery
 } from '@mui/material';
+import { appTheme } from '../../theme/appTheme';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -26,9 +29,12 @@ import { useAuth } from '../../context/AuthContext';
 interface SidebarProps {
     currentView: string;
     onViewChange: (view: string) => void;
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = false, onClose }) => {
+    const isMobile = useMediaQuery(appTheme.breakpoints.down('md'));
     const { user, logout } = useAuth();
     const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
@@ -101,108 +107,49 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
 
     const visibleMenuItems = menuItems.filter(item => item.show);
 
-    return (
+    const sidebarContent = (
         <Box
             sx={{
-                width: { xs: '100%', sm: 280 },
+                width: 280,
                 flexShrink: 0,
                 bgcolor: '#FFFFFF',
-                borderRight: { xs: 'none', sm: '2px solid #E67E22' },
-                borderBottom: { xs: '2px solid #E67E22', sm: 'none' },
+                borderRight: '2px solid #E67E22',
                 display: 'flex',
-                flexDirection: { xs: 'row', sm: 'column' },
-                height: { xs: 'auto', sm: '100%' },
-                overflowX: { xs: 'auto', sm: 'visible' },
-                overflowY: { xs: 'visible', sm: 'auto' },
+                flexDirection: 'column',
+                height: '100%',
+                overflowY: 'auto',
             }}
         >
-            <List sx={{
-                px: 0,
-                pt: { xs: 0, sm: 2 },
-                display: 'flex',
-                flexDirection: { xs: 'row', sm: 'column' },
-                gap: { xs: 0.5, sm: 0 },
-                width: { xs: 'auto', sm: '100%' },
-                minWidth: { xs: 'min-content', sm: '100%' },
-            }}>
+            <List sx={{ px: 0, pt: 2 }}>
                 {visibleMenuItems.map((item) => {
                     const isActive = currentView === item.view;
                     return (
-                        <ListItem
-                            key={item.id}
-                            disablePadding
-                            sx={{
-                                mb: { xs: 0, sm: 0.5 },
-                                px: { xs: 0.5, sm: 1 },
-                                minWidth: { xs: '140px', sm: 'auto' },
-                                flexShrink: 0,
-                            }}
-                        >
+                        <ListItem key={item.id} disablePadding sx={{ mb: 0.5, px: 1 }}>
                             <ListItemButton
                                 onClick={() => onViewChange(item.view)}
                                 sx={{
                                     borderRadius: 1,
-                                    borderLeft: { xs: 'none', sm: isActive ? '4px solid #E67E22' : '4px solid transparent' },
-                                    borderBottom: { xs: isActive ? '3px solid #E67E22' : '3px solid transparent', sm: 'none' },
+                                    borderLeft: isActive ? '4px solid #E67E22' : '4px solid transparent',
                                     bgcolor: isActive ? '#FFF3E0' : 'transparent',
                                     color: isActive ? '#E67E22' : '#555',
                                     '&:hover': {
                                         bgcolor: '#FFF3E0',
-                                        borderLeftColor: { xs: 'transparent', sm: '#E67E22' },
-                                        borderBottomColor: { xs: '#E67E22', sm: 'transparent' }
+                                        borderLeftColor: '#E67E22',
                                     },
-                                    display: 'flex',
-                                    flexDirection: { xs: 'column', sm: 'column' },
-                                    alignItems: { xs: 'center', sm: 'flex-start' },
-                                    justifyContent: { xs: 'center', sm: 'flex-start' },
-                                    py: { xs: 1.2, sm: 1.75 },
-                                    px: { xs: 1.75, sm: 2.25 },
+                                    py: 1.75,
+                                    px: 2.25,
                                     transition: 'all 0.2s ease',
-                                    textAlign: { xs: 'center', sm: 'left' },
-                                    whiteSpace: { xs: 'nowrap', sm: 'normal' },
-                                    minHeight: { xs: '56px', sm: 'auto' },
-                                    minWidth: { xs: '56px', sm: 'auto' }
                                 }}
                             >
-                                <Box sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    mb: { xs: 0, sm: 0.5 },
-                                    width: '100%',
-                                    justifyContent: { xs: 'center', sm: 'flex-start' },
-                                    flexDirection: { xs: 'column', sm: 'row' }
-                                }}>
-                                    <ListItemIcon sx={{
-                                        minWidth: { xs: 24, sm: 32 },
-                                        color: isActive ? '#E67E22' : '#888',
-                                        mr: { xs: 0, sm: 1 },
-                                        mb: { xs: 0.5, sm: 0 }
-                                    }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5, width: '100%' }}>
+                                    <ListItemIcon sx={{ minWidth: 32, color: isActive ? '#E67E22' : '#888', mr: 1 }}>
                                         {item.icon}
                                     </ListItemIcon>
-                                    <Typography
-                                        variant="subtitle2"
-                                        sx={{
-                                            fontWeight: isActive ? 700 : 600,
-                                            lineHeight: 1.2,
-                                            fontSize: { xs: '11px', sm: '14px' },
-                                            display: { xs: 'block', sm: 'block' }
-                                        }}
-                                    >
+                                    <Typography variant="subtitle2" sx={{ fontWeight: isActive ? 700 : 600, lineHeight: 1.2 }}>
                                         {item.label}
                                     </Typography>
                                 </Box>
-                                <Typography
-                                    variant="caption"
-                                    sx={{
-                                        ml: { xs: 0, sm: '40px' },
-                                        opacity: 0.7,
-                                        display: { xs: 'none', sm: 'block' },
-                                        lineHeight: 1.2,
-                                        fontSize: '0.7rem',
-                                        color: '#888'
-                                    }}
-                                >
+                                <Typography variant="caption" sx={{ ml: '40px', opacity: 0.7, display: 'block', lineHeight: 1.2, fontSize: '0.7rem', color: '#888' }}>
                                     {item.subLabel}
                                 </Typography>
                             </ListItemButton>
@@ -211,49 +158,43 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
                 })}
             </List>
 
-            <Box sx={{
-                mt: { xs: 0, sm: 'auto' },
-                ml: { xs: 'auto', sm: 0 },
-                p: 1,
-                borderTop: { xs: 'none', sm: '2px solid #E67E22' },
-                borderLeft: { xs: '2px solid #E67E22', sm: 'none' },
-                minWidth: { xs: 'fit-content', sm: '100%' }
-            }}>
+            <Box sx={{ mt: 'auto', p: 1, borderTop: '2px solid #E67E22' }}>
                 <ListItemButton
                     onClick={() => setOpenLogoutDialog(true)}
                     sx={{
                         borderRadius: 1,
                         color: '#d32f2f',
-                        py: { xs: 0.75, sm: 1.5 },
-                        px: { xs: 1.5, sm: 2 },
-                        '&:hover': {
-                            bgcolor: '#FFEBEE',
-                        },
+                        py: 1.5,
+                        px: 2,
+                        '&:hover': { bgcolor: '#FFEBEE' },
                         display: 'flex',
-                        flexDirection: { xs: 'column', sm: 'row' },
                         alignItems: 'center',
-                        justifyContent: { xs: 'center', sm: 'flex-start' },
-                        gap: { xs: 0.5, sm: 1 }
+                        gap: 1
                     }}
                 >
-                    <ListItemIcon sx={{
-                        color: '#d32f2f',
-                        minWidth: { xs: 24, sm: 40 },
-                        mb: { xs: 0.25, sm: 0 }
-                    }}>
-                        <LogoutIcon sx={{ fontSize: { xs: '20px', sm: '24px' } }} />
+                    <ListItemIcon sx={{ color: '#d32f2f', minWidth: 40 }}>
+                        <LogoutIcon />
                     </ListItemIcon>
-                    <ListItemText
-                        primary="Logout"
-                        sx={{
-                            '& .MuiTypography-root': {
-                                fontWeight: 600,
-                                fontSize: { xs: '11px', sm: '14px' }
-                            }
-                        }}
-                    />
+                    <ListItemText primary="Logout" sx={{ '& .MuiTypography-root': { fontWeight: 600 } }} />
                 </ListItemButton>
             </Box>
+        </Box>
+    );
+
+    return (
+        <>
+            {isMobile ? (
+                <Drawer
+                    anchor="left"
+                    open={isOpen}
+                    onClose={onClose}
+                    PaperProps={{ sx: { width: 280 } }}
+                >
+                    {sidebarContent}
+                </Drawer>
+            ) : (
+                sidebarContent
+            )}
 
             {/* Logout Confirmation Dialog */}
             <Dialog
@@ -318,7 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </>
     );
 };
 

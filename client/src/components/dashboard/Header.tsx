@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Chip, Typography, Box, IconButton } from '@mui/material';
+import { Paper, Chip, Typography, Box, IconButton, useMediaQuery } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/commonService';
 import { COLORS } from '../../theme/appTheme';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import MenuIcon from '@mui/icons-material/Menu';
+import { appTheme } from '../../theme/appTheme';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -23,6 +25,7 @@ interface HeaderProps {
     setShowProfile?: (show: boolean) => void;
     photoRefreshKey?: number;
     showBackButton?: boolean;
+    onMenuClick?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -32,13 +35,15 @@ const Header: React.FC<HeaderProps> = ({
     logoTextColors,
     setShowProfile,
     photoRefreshKey = 0,
-    showBackButton = false
+    showBackButton = false,
+    onMenuClick
 }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
     const [photoLoading, setPhotoLoading] = useState(true);
+    const isMobile = useMediaQuery(appTheme.breakpoints.down('md'));
 
     // Load profile photo on mount and when refreshKey changes
     useEffect(() => {
@@ -142,6 +147,14 @@ const Header: React.FC<HeaderProps> = ({
                             size="small"
                         >
                             <ArrowBackIcon />
+                        </IconButton>
+                    )}
+                    {isMobile && onMenuClick && (
+                        <IconButton
+                            onClick={onMenuClick}
+                            sx={{ color: 'white', mr: 1 }}
+                        >
+                            <MenuIcon />
                         </IconButton>
                     )}
                     {/* SACL Logo Section */}

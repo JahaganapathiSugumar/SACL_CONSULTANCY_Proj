@@ -38,7 +38,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     children
 }) => {
     return (
-        <Box display="flex" gap={2} justifyContent="flex-end" flexWrap="wrap">
+        <Box sx={{
+            display: "flex",
+            gap: 2,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
+            width: { xs: '100%', sm: 'auto' },
+            '& > button': {
+                width: { xs: '100%', sm: 'auto' }
+            }
+        }}>
             {children}
             {showReset && onReset && (
                 <Button
