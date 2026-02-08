@@ -397,9 +397,19 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                             {loadingProgress[trial.trial_id] ? (
                                                                 <LoadingState size={24} message="Loading details..." />
                                                             ) : (trialProgressData[trial.trial_id] && trialProgressData[trial.trial_id].length > 0) ? (
-                                                                <Grid container spacing={2}>
+                                                                <Box sx={{
+                                                                    display: 'flex',
+                                                                    flexDirection: { xs: 'row', md: 'column' },
+                                                                    overflowX: { xs: 'auto', md: 'visible' },
+                                                                    gap: 2,
+                                                                    pb: { xs: 1, md: 0 },
+                                                                    '&::-webkit-scrollbar': { height: '8px' },
+                                                                    '&::-webkit-scrollbar-track': { background: '#f1f1f1', borderRadius: '4px' },
+                                                                    '&::-webkit-scrollbar-thumb': { background: '#888', borderRadius: '4px' },
+                                                                    '&::-webkit-scrollbar-thumb:hover': { background: '#555' },
+                                                                }}>
                                                                     {trialProgressData[trial.trial_id].map((progress: ProgressItem, index: number) => (
-                                                                        <Grid key={index} size={12}>
+                                                                        <Box key={index} sx={{ minWidth: { xs: '300px', md: '100%' }, flex: { xs: '0 0 auto', md: '1 1 auto' } }}>
                                                                             <Card variant="outlined" sx={{ borderRadius: 2 }}>
                                                                                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                                                                                     <Grid container alignItems="center" spacing={2}>
@@ -480,9 +490,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                                     </Grid>
                                                                                 </CardContent>
                                                                             </Card>
-                                                                        </Grid>
+                                                                        </Box>
                                                                     ))}
-                                                                </Grid>
+                                                                </Box>
                                                             ) : (
                                                                 <Typography variant="body2" color="textSecondary" align="center">
                                                                     No progress data available.
