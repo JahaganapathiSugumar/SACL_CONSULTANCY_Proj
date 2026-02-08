@@ -1,10 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import type { User } from '../../types/user';
 import './UserTable.css';
-import { IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Typography } from '@mui/material';
+import {
+  IconButton, Checkbox, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Typography,
+  Box, FormControl, InputLabel, Select, MenuItem, Button, TextField, InputAdornment, Chip
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SearchIcon from '@mui/icons-material/Search';
 
 interface UserTableProps {
   users: User[];
@@ -25,6 +30,7 @@ const UserTable: React.FC<UserTableProps> = ({
 }) => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Get unique roles from users
   const roleOptions = useMemo(() => {
@@ -46,98 +52,99 @@ const UserTable: React.FC<UserTableProps> = ({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [users]);
 
-  // Filter users based on selected filters
+  // Filter users based on selected filters and search term
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const matchesRole = !roleFilter || user.role === roleFilter;
       const matchesDepartment = !departmentFilter ||
         user.department_id?.toString() === departmentFilter;
-      return matchesRole && matchesDepartment;
+      const matchesSearch = !searchTerm ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesRole && matchesDepartment && matchesSearch;
     });
-  }, [users, roleFilter, departmentFilter]);
+  }, [users, roleFilter, departmentFilter, searchTerm]);
 
   const clearFilters = () => {
     setRoleFilter('');
     setDepartmentFilter('');
+    setSearchTerm('');
   };
 
   return (
-    <div className="user-table-container">
+    <Box className="user-table-container">
       {/* Filter Section */}
-      <div className="filter-section" style={{
+      <Box sx={{
         display: 'flex',
-        gap: '15px',
-        marginBottom: '20px',
-        padding: '15px',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '8px',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        mb: 2.5,
+        gap: 2,
         flexWrap: 'wrap'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontWeight: 500, fontSize: '14px' }}>Role:</label>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-              fontSize: '14px',
-              minWidth: '150px',
-              cursor: 'pointer'
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+          <TextField
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="small"
+            sx={{
+              bgcolor: 'white',
+              width: { xs: '100%', sm: 260 }
             }}
-          >
-            <option value="">All Roles</option>
-            {roleOptions.map(role => (
-              <option key={role} value={role}>{role}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontWeight: 500, fontSize: '14px' }}>Department:</label>
-          <select
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-              fontSize: '14px',
-              minWidth: '200px',
-              cursor: 'pointer'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#94a3b8', fontSize: '1.1rem' }} />
+                </InputAdornment>
+              ),
             }}
-          >
-            <option value="">All Departments</option>
-            {departmentOptions.map(dept => (
-              <option key={dept.id} value={dept.id.toString()}>{dept.name}</option>
-            ))}
-          </select>
-        </div>
+          />
+          <FormControl size="small" sx={{ minWidth: 140, bgcolor: 'white' }}>
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={roleFilter}
+              label="Role"
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <MenuItem value="">All Roles</MenuItem>
+              {roleOptions.map(role => (
+                <MenuItem key={role} value={role}>{role}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        {(roleFilter || departmentFilter) && (
-          <button
-            onClick={clearFilters}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500
-            }}
-          >
-            Clear Filters
-          </button>
-        )}
+          <FormControl size="small" sx={{ minWidth: 180, bgcolor: 'white' }}>
+            <InputLabel>Department</InputLabel>
+            <Select
+              value={departmentFilter}
+              label="Department"
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+            >
+              <MenuItem value="">All Departments</MenuItem>
+              {departmentOptions.map(dept => (
+                <MenuItem key={dept.id} value={dept.id.toString()}>{dept.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <span style={{ marginLeft: 'auto', fontSize: '14px', color: '#666' }}>
+          {(roleFilter || departmentFilter || searchTerm) && (
+            <Button
+              onClick={clearFilters}
+              size="small"
+              color="error"
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              Clear
+            </Button>
+          )}
+        </Box>
+
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
           Showing {filteredUsers.length} of {users.length} users
-        </span>
-      </div>
+        </Typography>
+      </Box>
 
       <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 250px)', overflow: 'auto' }}>
         <Table size="small" stickyHeader>
@@ -166,7 +173,7 @@ const UserTable: React.FC<UserTableProps> = ({
               <TableRow
                 key={user.user_id}
                 className="premium-table-row"
-                sx={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f8fafc' : 'transparent' }}
+                sx={{ backgroundColor: selectedUsers.has(user.user_id) ? '#f0f9ff' : 'transparent' }}
               >
                 <TableCell className="premium-table-cell" sx={{ width: '50px' }}>
                   <Checkbox
@@ -180,30 +187,39 @@ const UserTable: React.FC<UserTableProps> = ({
                 <TableCell className="premium-table-cell">{user.full_name}</TableCell>
                 <TableCell className="premium-table-cell">{user.email}</TableCell>
                 <TableCell className="premium-table-cell">
-                  <span className={`role-badge role-${user.role.toLowerCase()}`}>
-                    {user.role}
-                  </span>
+                  <Chip
+                    label={user.role}
+                    size="small"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      textTransform: 'uppercase',
+                      bgcolor: user.role === 'Admin' ? '#fee2e2' : '#f1f5f9',
+                      color: user.role === 'Admin' ? '#991b1b' : '#475569',
+                      borderRadius: '6px'
+                    }}
+                  />
                 </TableCell>
                 <TableCell className="premium-table-cell">{user.department_name || 'N/A'}</TableCell>
                 <TableCell className="premium-table-cell">
-                  <button
+                  <Chip
+                    label={user.is_active ? 'Active' : 'Inactive'}
+                    size="small"
                     onClick={() => onToggleStatus(user.user_id, !!user.is_active)}
-                    className={`status-pill ${user.is_active ? 'status-pill-active' : 'status-pill-inactive'}`}
-                    style={{
-                      border: 'none',
+                    icon={user.is_active ? <CheckCircleIcon style={{ fontSize: '14px', color: 'inherit' }} /> : <CancelIcon style={{ fontSize: '14px', color: 'inherit' }} />}
+                    sx={{
+                      fontWeight: 500,
                       cursor: 'pointer',
-                      margin: '0 auto'
+                      bgcolor: user.is_active ? '#dcfce7' : '#fee2e2',
+                      color: user.is_active ? '#166534' : '#991b1b',
+                      '&:hover': {
+                        bgcolor: user.is_active ? '#bbf7d0' : '#fecaca',
+                      }
                     }}
-                  >
-                    {user.is_active ? (
-                      <><CheckCircleIcon sx={{ fontSize: '14px' }} /> Active</>
-                    ) : (
-                      <><CancelIcon sx={{ fontSize: '14px' }} /> Inactive</>
-                    )}
-                  </button>
+                  />
                 </TableCell>
                 <TableCell className="premium-table-cell" sx={{ textAlign: 'center' }}>
-                  <IconButton onClick={() => onEdit(user)} size="small" style={{ color: '#3498db' }}>
+                  <IconButton onClick={() => onEdit(user)} size="small" sx={{ color: 'primary.main' }}>
                     <EditIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
@@ -222,7 +238,7 @@ const UserTable: React.FC<UserTableProps> = ({
       <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
         Swipe to view more
       </Typography>
-    </div >
+    </Box>
   );
 };
 

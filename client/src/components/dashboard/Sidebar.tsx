@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
                 {visibleMenuItems.map((item) => {
                     const isActive = currentView === item.view;
                     return (
-                        <ListItem key={item.id} disablePadding sx={{ mb: 0.5, px: 1 }}>
+                        <ListItem key={item.id} disablePadding sx={{ mb: 1, px: 1 }}>
                             <ListItemButton
                                 onClick={() => onViewChange(item.view)}
                                 sx={{
@@ -136,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
                                         bgcolor: '#FFF3E0',
                                         borderLeftColor: '#E67E22',
                                     },
-                                    py: 1.25,
+                                    py: 2.25,
                                     px: 2.25,
                                     transition: 'all 0.2s ease',
                                 }}

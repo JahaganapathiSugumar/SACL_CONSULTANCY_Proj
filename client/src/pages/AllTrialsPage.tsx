@@ -267,358 +267,342 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         showBackButton={true}
                     />
                 )}
-                <Box sx={{ flexGrow: 1, overflow: 'auto', py: embedded ? 0 : 4 }}>
-                    <Container maxWidth={embedded ? false : "xl"}>
-
-                        <Box sx={{
-                            mt: 4,
-                            mb: 3,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexDirection: { xs: 'column', sm: 'column', md: 'row' },
-                            gap: { xs: 2, md: 0 }
-                        }}>
-                            <Box sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                                flexDirection: { xs: 'column', sm: 'row' },
-                                width: { xs: '100%', md: 'auto' }
-                            }}>
-                                {!embedded && <BackButton label="Back to Dashboard" variant="button" />}
-                                {!embedded && (
-                                    <Typography
-                                        variant="h4"
-                                        fontWeight="bold"
-                                        color="primary"
-                                        sx={{
-                                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-                                            textAlign: { xs: 'center', sm: 'left' },
-                                            width: { xs: '100%', sm: 'auto' }
-                                        }}
-                                    >
-                                        All Trials Repository
-                                    </Typography>
-                                )}
-
-                            </Box>
-                            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', md: 'auto' } }}>
-                                <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'white' }}>
-                                    <InputLabel>Status</InputLabel>
-                                    <Select
-                                        value={statusFilter}
-                                        label="Status"
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                    >
-                                        <MenuItem value="ALL">All</MenuItem>
-                                        <MenuItem value="CREATED">Created</MenuItem>
-                                        <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
-                                        <MenuItem value="CLOSED">Closed</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <TextField
-                                    placeholder="Search Trial ID, Part Name..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    size="small"
-                                    sx={{
-                                        bgcolor: 'white',
-                                        minWidth: 300,
-                                        width: { xs: '100%', md: 300 }
-                                    }}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon color="action" />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                                {user?.role === 'Admin' && selectedIds.length > 0 && (
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        startIcon={<DeleteIcon />}
-                                        onClick={handleBulkDelete}
-                                        sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
-                                    >
-                                        Delete Selected ({selectedIds.length})
-                                    </Button>
-                                )}
-                            </Box>
+                <Box sx={{ flexGrow: 1, overflow: 'auto', p: embedded ? 0 : 3 }}>
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 2,
+                        mb: 2.5
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {!embedded && <BackButton label="Back" variant="button" />}
+                            {!embedded && (
+                                <Typography
+                                    variant="h5"
+                                    fontWeight="bold"
+                                    color="primary"
+                                    sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+                                >
+                                    All Trials Repository
+                                </Typography>
+                            )}
                         </Box>
 
-                        {loading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                                <LoadingState />
-                            </Box>
-                        ) : (
-                            <>
-                                <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto' }}>
-                                    <Table stickyHeader size="medium">
-                                        <TableHead className="premium-table-head">
-                                            <TableRow>
-                                                {user?.role === 'Admin' && (
-                                                    <TableCell padding="checkbox" className="premium-table-header-cell">
-                                                        <Checkbox
-                                                            indeterminate={selectedIds.length > 0 && selectedIds.length < filteredTrials.length}
-                                                            checked={filteredTrials.length > 0 && selectedIds.length === filteredTrials.length}
-                                                            onChange={handleToggleSelectAll}
-                                                            size="small"
-                                                        />
-                                                    </TableCell>
-                                                )}
-                                                {user?.role === 'Admin' && <TableCell className="premium-table-header-cell" />}
+                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <FormControl size="small" sx={{ minWidth: 140, bgcolor: 'white' }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    label="Status"
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <MenuItem value="ALL">All Status</MenuItem>
+                                    <MenuItem value="CREATED">Created</MenuItem>
+                                    <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+                                    <MenuItem value="CLOSED">Closed</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <TextField
+                                placeholder="Search Trial ID, Part Name..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                size="small"
+                                sx={{
+                                    bgcolor: 'white',
+                                    width: { xs: '100%', sm: 280 }
+                                }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon sx={{ color: '#94a3b8', fontSize: '1.1rem' }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            {user?.role === 'Admin' && selectedIds.length > 0 && (
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    size="small"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={handleBulkDelete}
+                                    sx={{ textTransform: 'none', fontWeight: 600, py: 1 }}
+                                >
+                                    Delete ({selectedIds.length})
+                                </Button>
+                            )}
+                        </Box>
+                    </Box>
 
-                                                <TableCell className="premium-table-header-cell">Trial ID</TableCell>
-                                                <TableCell className="premium-table-header-cell">Part Name</TableCell>
-                                                <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
-                                                <TableCell className="premium-table-header-cell">Grade</TableCell>
-                                                <TableCell className="premium-table-header-cell">Date</TableCell>
-                                                <TableCell className="premium-table-header-cell">Dept</TableCell>
-                                                <TableCell className="premium-table-header-cell">Status</TableCell>
-                                                <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {filteredTrials.length > 0 ? (
-                                                filteredTrials.map((trial) => (
-                                                    <React.Fragment key={trial.trial_id}>
-                                                        <TableRow
-                                                            hover
-                                                            selected={selectedIds.includes(trial.trial_id)}
-                                                            className="premium-table-row"
-                                                        >
-                                                            {user?.role === 'Admin' && (
-                                                                <TableCell padding="checkbox" className="premium-table-cell">
-                                                                    <Checkbox
-                                                                        checked={selectedIds.includes(trial.trial_id)}
-                                                                        onChange={() => handleToggleSelect(trial.trial_id)}
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+                            <LoadingState />
+                        </Box>
+                    ) : (
+                        <>
+                            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto' }}>
+                                <Table stickyHeader size="medium">
+                                    <TableHead className="premium-table-head">
+                                        <TableRow>
+                                            {user?.role === 'Admin' && (
+                                                <TableCell padding="checkbox" className="premium-table-header-cell">
+                                                    <Checkbox
+                                                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredTrials.length}
+                                                        checked={filteredTrials.length > 0 && selectedIds.length === filteredTrials.length}
+                                                        onChange={handleToggleSelectAll}
+                                                        size="small"
+                                                    />
+                                                </TableCell>
+                                            )}
+                                            {user?.role === 'Admin' && <TableCell className="premium-table-header-cell" />}
+
+                                            <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                                            <TableCell className="premium-table-header-cell">Part Name</TableCell>
+                                            <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
+                                            <TableCell className="premium-table-header-cell">Grade</TableCell>
+                                            <TableCell className="premium-table-header-cell">Date</TableCell>
+                                            <TableCell className="premium-table-header-cell">Dept</TableCell>
+                                            <TableCell className="premium-table-header-cell">Status</TableCell>
+                                            <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {filteredTrials.length > 0 ? (
+                                            filteredTrials.map((trial) => (
+                                                <React.Fragment key={trial.trial_id}>
+                                                    <TableRow
+                                                        hover
+                                                        selected={selectedIds.includes(trial.trial_id)}
+                                                        className="premium-table-row"
+                                                    >
+                                                        {user?.role === 'Admin' && (
+                                                            <TableCell padding="checkbox" className="premium-table-cell">
+                                                                <Checkbox
+                                                                    checked={selectedIds.includes(trial.trial_id)}
+                                                                    onChange={() => handleToggleSelect(trial.trial_id)}
+                                                                    size="small"
+                                                                />
+                                                            </TableCell>
+                                                        )}
+                                                        {user?.role === 'Admin' && (
+                                                            <TableCell className="premium-table-cell">
+                                                                <IconButton
+                                                                    aria-label="expand row"
+                                                                    size="small"
+                                                                    onClick={() => handleExpandRow(trial.trial_id)}
+                                                                >
+                                                                    {expandedTrialId === trial.trial_id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                                                </IconButton>
+                                                            </TableCell>
+                                                        )}
+
+                                                        <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                                        <TableCell className="premium-table-cell">
+                                                            <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                {trial.part_name}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell className="premium-table-cell">{trial.pattern_code}</TableCell>
+                                                        <TableCell className="premium-table-cell">{trial.material_grade}</TableCell>
+                                                        <TableCell className="premium-table-cell">{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
+                                                        <TableCell className="premium-table-cell">
+                                                            <Box sx={{
+                                                                display: 'inline-block',
+                                                                px: 1, py: 0.3,
+                                                                borderRadius: 5,
+                                                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                                bgcolor: '#e0f2fe',
+                                                                color: '#0369a1',
+                                                                fontWeight: 500,
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {trial.department || 'N/A'}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell className="premium-table-cell">
+                                                            <Box sx={{
+                                                                display: 'inline-block',
+                                                                px: 1, py: 0.3,
+                                                                borderRadius: 5,
+                                                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                                                bgcolor:
+                                                                    trial.status === 'CLOSED' ? '#dcfce7' :
+                                                                        trial.status === 'CREATED' ? '#e0f2fe' :
+                                                                            '#fff7ed',
+                                                                color:
+                                                                    trial.status === 'CLOSED' ? '#166534' :
+                                                                        trial.status === 'CREATED' ? '#0369a1' :
+                                                                            '#9a3412',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {trial.status || 'CREATED'}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell align="center" className="premium-table-cell">
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                                {trial.status === 'CLOSED' && trial.file_base64 ? (
+                                                                    <Button
+                                                                        variant="outlined"
                                                                         size="small"
-                                                                    />
-                                                                </TableCell>
-                                                            )}
-                                                            {user?.role === 'Admin' && (
-                                                                <TableCell className="premium-table-cell">
-                                                                    <IconButton
-                                                                        aria-label="expand row"
-                                                                        size="small"
-                                                                        onClick={() => handleExpandRow(trial.trial_id)}
+                                                                        startIcon={<DescriptionIcon />}
+                                                                        onClick={() => handleViewReport(trial)}
+                                                                        sx={{
+                                                                            borderRadius: 1,
+                                                                            textTransform: 'none',
+                                                                            fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                                                                            padding: { xs: '2px 8px', sm: '4px 12px' }
+                                                                        }}
                                                                     >
-                                                                        {expandedTrialId === trial.trial_id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                                                                    </IconButton>
-                                                                </TableCell>
-                                                            )}
-
-                                                            <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
-                                                            <TableCell className="premium-table-cell">
-                                                                <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                    {trial.part_name}
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell className="premium-table-cell">{trial.pattern_code}</TableCell>
-                                                            <TableCell className="premium-table-cell">{trial.material_grade}</TableCell>
-                                                            <TableCell className="premium-table-cell">{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
-                                                            <TableCell className="premium-table-cell">
-                                                                <Box sx={{
-                                                                    display: 'inline-block',
-                                                                    px: 1, py: 0.3,
-                                                                    borderRadius: 5,
-                                                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                                    bgcolor: '#e0f2fe',
-                                                                    color: '#0369a1',
-                                                                    fontWeight: 500,
-                                                                    whiteSpace: 'nowrap'
-                                                                }}>
-                                                                    {trial.department || 'N/A'}
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell className="premium-table-cell">
-                                                                <Box sx={{
-                                                                    display: 'inline-block',
-                                                                    px: 1, py: 0.3,
-                                                                    borderRadius: 5,
-                                                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                                                    bgcolor:
-                                                                        trial.status === 'CLOSED' ? '#dcfce7' :
-                                                                            trial.status === 'CREATED' ? '#e0f2fe' :
-                                                                                '#fff7ed',
-                                                                    color:
-                                                                        trial.status === 'CLOSED' ? '#166534' :
-                                                                            trial.status === 'CREATED' ? '#0369a1' :
-                                                                                '#9a3412',
-                                                                    whiteSpace: 'nowrap'
-                                                                }}>
-                                                                    {trial.status || 'CREATED'}
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell align="center" className="premium-table-cell">
-                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                                                                    {trial.status === 'CLOSED' && trial.file_base64 ? (
-                                                                        <Button
-                                                                            variant="outlined"
+                                                                        Report
+                                                                    </Button>
+                                                                ) : "N/A"}
+                                                                {user.role === 'Admin' && trial.file_base64 && (
+                                                                    <Tooltip title="Delete Trial Report Only">
+                                                                        <IconButton
                                                                             size="small"
-                                                                            startIcon={<DescriptionIcon />}
-                                                                            onClick={() => handleViewReport(trial)}
-                                                                            sx={{
-                                                                                borderRadius: 1,
-                                                                                textTransform: 'none',
-                                                                                fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                                                                                padding: { xs: '2px 8px', sm: '4px 12px' }
-                                                                            }}
+                                                                            color="warning"
+                                                                            onClick={() => handleDeleteReport(trial.trial_id)}
                                                                         >
-                                                                            Report
-                                                                        </Button>
-                                                                    ) : "N/A"}
-                                                                    {user.role === 'Admin' && trial.file_base64 && (
-                                                                        <Tooltip title="Delete Trial Report Only">
-                                                                            <IconButton
-                                                                                size="small"
-                                                                                color="warning"
-                                                                                onClick={() => handleDeleteReport(trial.trial_id)}
-                                                                            >
-                                                                                <DeleteIcon fontSize="small" />
-                                                                            </IconButton>
-                                                                        </Tooltip>
+                                                                            <DeleteIcon fontSize="small" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </Box>
+                                                        </TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
+                                                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 10 : 8} className="premium-table-cell">
+                                                            <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
+                                                                <Box sx={{ margin: 2, bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
+                                                                    <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
+                                                                        Detailed Progress History
+                                                                    </Typography>
+                                                                    {loadingProgress[trial.trial_id] ? (
+                                                                        <LoadingState size={24} message="Loading details..." />
+                                                                    ) : (trialProgressData[trial.trial_id] && trialProgressData[trial.trial_id].length > 0) ? (
+                                                                        <Grid container spacing={2}>
+                                                                            {trialProgressData[trial.trial_id].map((progress: ProgressItem, index: number) => (
+                                                                                <Grid key={index} size={{ xs: 12 }}>
+                                                                                    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                                                                                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                                                                            <Grid container alignItems="center" spacing={2}>
+                                                                                                <Grid size={{ xs: 12, sm: 3 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Department</Typography>
+                                                                                                    <Typography variant="body2" fontWeight="medium">{progress.department_name || `Dept ID: ${progress.department_id}`}</Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                                                                                    <Chip
+                                                                                                        label={progress.approval_status}
+                                                                                                        size="small"
+                                                                                                        color={progress.approval_status === 'approved' ? 'success' : 'warning'}
+                                                                                                        variant="outlined"
+                                                                                                        sx={{ textTransform: 'capitalize' }}
+                                                                                                    />
+                                                                                                    {user?.role === 'Admin' && (
+                                                                                                        <Tooltip title="Toggle Status">
+                                                                                                            <IconButton
+                                                                                                                size="small"
+                                                                                                                onClick={async () => {
+                                                                                                                    try {
+                                                                                                                        const result = await Swal.fire({
+                                                                                                                            title: 'Toggle Status?',
+                                                                                                                            text: `Change status from ${progress.approval_status}?`,
+                                                                                                                            icon: 'question',
+                                                                                                                            showCancelButton: true,
+                                                                                                                            confirmButtonText: 'Yes, change it'
+                                                                                                                        });
+
+                                                                                                                        if (result.isConfirmed) {
+                                                                                                                            setLoadingProgress(prev => ({ ...prev, [trial.trial_id]: true }));
+                                                                                                                            const response = await departmentProgressService.toggleApprovalStatus(trial.trial_id, progress.department_id);
+                                                                                                                            if (response.success) {
+                                                                                                                                const data = await departmentProgressService.getProgressByTrialId(trial.trial_id);
+                                                                                                                                setTrialProgressData(prev => ({ ...prev, [trial.trial_id]: data }));
+                                                                                                                                Swal.fire('Updated!', 'Status has been updated.', 'success');
+                                                                                                                            } else {
+                                                                                                                                Swal.fire('Error!', response.message || 'Failed to update.', 'error');
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    } catch (error) {
+                                                                                                                        console.error("Toggle error:", error);
+                                                                                                                        Swal.fire('Error!', 'Failed to toggle status.', 'error');
+                                                                                                                    } finally {
+                                                                                                                        setLoadingProgress(prev => ({ ...prev, [trial.trial_id]: false }));
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <PublishedWithChangesIcon fontSize="small" color="primary" />
+                                                                                                            </IconButton>
+                                                                                                        </Tooltip>
+                                                                                                    )}
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 3 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Completed At</Typography>
+                                                                                                    <Typography variant="body2">
+                                                                                                        {progress.completed_at ? new Date(progress.completed_at).toLocaleString() : '-'}
+                                                                                                    </Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }}>
+                                                                                                    <Typography variant="subtitle2" color="textSecondary">Remarks</Typography>
+                                                                                                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                                                                                        {progress.remarks || 'No remarks'}
+                                                                                                    </Typography>
+                                                                                                </Grid>
+                                                                                                <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                                                                    <Button
+                                                                                                        variant="contained"
+                                                                                                        size="small"
+                                                                                                        color="primary"
+                                                                                                        onClick={() => navigate(`${getPendingRoute(progress.department_id)}?trial_id=${trial.trial_id}`)}
+                                                                                                        sx={{ textTransform: 'none' }}
+                                                                                                    >
+                                                                                                        View Details
+                                                                                                    </Button>
+                                                                                                </Grid>
+                                                                                            </Grid>
+                                                                                        </CardContent>
+                                                                                    </Card>
+                                                                                </Grid>
+                                                                            ))}
+                                                                        </Grid>
+                                                                    ) : (
+                                                                        <Typography variant="body2" color="textSecondary" align="center">
+                                                                            No progress data available.
+                                                                        </Typography>
                                                                     )}
                                                                 </Box>
-                                                            </TableCell>
-                                                        </TableRow>
+                                                            </Collapse>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </React.Fragment>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={8} align="center" className="premium-table-cell" sx={{ py: 5, color: 'text.secondary' }}>
+                                                    No trials found.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                            <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                                Swipe to view more
+                            </Typography>
+                        </>
+                    )}
 
-                                                        <TableRow>
-                                                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 10 : 8} className="premium-table-cell">
-                                                                <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
-                                                                    <Box sx={{ margin: 2, bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
-                                                                        <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
-                                                                            Detailed Progress History
-                                                                        </Typography>
-                                                                        {loadingProgress[trial.trial_id] ? (
-                                                                            <LoadingState size={24} message="Loading details..." />
-                                                                        ) : (trialProgressData[trial.trial_id] && trialProgressData[trial.trial_id].length > 0) ? (
-                                                                            <Grid container spacing={2}>
-                                                                                {trialProgressData[trial.trial_id].map((progress: ProgressItem, index: number) => (
-                                                                                    <Grid key={index} size={{ xs: 12 }}>
-                                                                                        <Card variant="outlined" sx={{ borderRadius: 2 }}>
-                                                                                            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                                                                                <Grid container alignItems="center" spacing={2}>
-                                                                                                    <Grid size={{ xs: 12, sm: 3 }}>
-                                                                                                        <Typography variant="subtitle2" color="textSecondary">Department</Typography>
-                                                                                                        <Typography variant="body2" fontWeight="medium">{progress.department_name || `Dept ID: ${progress.department_id}`}</Typography>
-                                                                                                    </Grid>
-                                                                                                    <Grid size={{ xs: 12, sm: 2 }}>
-                                                                                                        <Typography variant="subtitle2" color="textSecondary">Status</Typography>
-                                                                                                        <Chip
-                                                                                                            label={progress.approval_status}
-                                                                                                            size="small"
-                                                                                                            color={progress.approval_status === 'approved' ? 'success' : 'warning'}
-                                                                                                            variant="outlined"
-                                                                                                            sx={{ textTransform: 'capitalize' }}
-                                                                                                        />
-                                                                                                        {user?.role === 'Admin' && (
-                                                                                                            <Tooltip title="Toggle Status">
-                                                                                                                <IconButton
-                                                                                                                    size="small"
-                                                                                                                    onClick={async () => {
-                                                                                                                        try {
-                                                                                                                            const result = await Swal.fire({
-                                                                                                                                title: 'Toggle Status?',
-                                                                                                                                text: `Change status from ${progress.approval_status}?`,
-                                                                                                                                icon: 'question',
-                                                                                                                                showCancelButton: true,
-                                                                                                                                confirmButtonText: 'Yes, change it'
-                                                                                                                            });
-
-                                                                                                                            if (result.isConfirmed) {
-                                                                                                                                setLoadingProgress(prev => ({ ...prev, [trial.trial_id]: true }));
-                                                                                                                                const response = await departmentProgressService.toggleApprovalStatus(trial.trial_id, progress.department_id);
-                                                                                                                                if (response.success) {
-                                                                                                                                    const data = await departmentProgressService.getProgressByTrialId(trial.trial_id);
-                                                                                                                                    setTrialProgressData(prev => ({ ...prev, [trial.trial_id]: data }));
-                                                                                                                                    Swal.fire('Updated!', 'Status has been updated.', 'success');
-                                                                                                                                } else {
-                                                                                                                                    Swal.fire('Error!', response.message || 'Failed to update.', 'error');
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        } catch (error) {
-                                                                                                                            console.error("Toggle error:", error);
-                                                                                                                            Swal.fire('Error!', 'Failed to toggle status.', 'error');
-                                                                                                                        } finally {
-                                                                                                                            setLoadingProgress(prev => ({ ...prev, [trial.trial_id]: false }));
-                                                                                                                        }
-                                                                                                                    }}
-                                                                                                                >
-                                                                                                                    <PublishedWithChangesIcon fontSize="small" color="primary" />
-                                                                                                                </IconButton>
-                                                                                                            </Tooltip>
-                                                                                                        )}
-                                                                                                    </Grid>
-                                                                                                    <Grid size={{ xs: 12, sm: 3 }}>
-                                                                                                        <Typography variant="subtitle2" color="textSecondary">Completed At</Typography>
-                                                                                                        <Typography variant="body2">
-                                                                                                            {progress.completed_at ? new Date(progress.completed_at).toLocaleString() : '-'}
-                                                                                                        </Typography>
-                                                                                                    </Grid>
-                                                                                                    <Grid size={{ xs: 12, sm: 2 }}>
-                                                                                                        <Typography variant="subtitle2" color="textSecondary">Remarks</Typography>
-                                                                                                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                                                                                                            {progress.remarks || 'No remarks'}
-                                                                                                        </Typography>
-                                                                                                    </Grid>
-                                                                                                    <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                                                                        <Button
-                                                                                                            variant="contained"
-                                                                                                            size="small"
-                                                                                                            color="primary"
-                                                                                                            onClick={() => navigate(`${getPendingRoute(progress.department_id)}?trial_id=${trial.trial_id}`)}
-                                                                                                            sx={{ textTransform: 'none' }}
-                                                                                                        >
-                                                                                                            View Details
-                                                                                                        </Button>
-                                                                                                    </Grid>
-                                                                                                </Grid>
-                                                                                            </CardContent>
-                                                                                        </Card>
-                                                                                    </Grid>
-                                                                                ))}
-                                                                            </Grid>
-                                                                        ) : (
-                                                                            <Typography variant="body2" color="textSecondary" align="center">
-                                                                                No progress data available.
-                                                                            </Typography>
-                                                                        )}
-                                                                    </Box>
-                                                                </Collapse>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    </React.Fragment>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={8} align="center" className="premium-table-cell" sx={{ py: 5, color: 'text.secondary' }}>
-                                                        No trials found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
-                                    Swipe to view more
-                                </Typography>
-                            </>
-                        )}
-
-                        <Box sx={{ mt: 3, textAlign: 'right' }}>
-                        </Box>
-                    </Container>
+                    <Box sx={{ mt: 3, textAlign: 'right' }}>
+                    </Box>
                 </Box>
-            </Box >
+            </Box>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-                <DialogTitle>
-                    Trial Report - {viewReport?.trialId}
-                </DialogTitle>
+                <DialogTitle>Trial Report - {viewReport?.trial_id}</DialogTitle>
                 <DialogContent>
                     {viewReport && (
                         <DocumentViewer
@@ -632,14 +616,12 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 </DialogActions>
             </Dialog>
 
-            {
-                !embedded && showProfile && (
-                    <ProfileModal
-                        onClose={() => setShowProfile(false)}
-                        onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
-                    />
-                )
-            }
-        </ThemeProvider >
+            {!embedded && showProfile && (
+                <ProfileModal
+                    onClose={() => setShowProfile(false)}
+                    onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+                />
+            )}
+        </ThemeProvider>
     );
 }

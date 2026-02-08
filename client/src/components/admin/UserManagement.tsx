@@ -155,27 +155,37 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 3 } }}>
+    <Box sx={{ p: { xs: 2.25, sm: 3 } }}>
       <Box sx={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         mb: 3,
-        flexDirection: { xs: 'column', sm: 'row' },
+        flexWrap: 'wrap',
         gap: 2
       }}>
-        <Typography variant="h5" fontWeight={700} color="text.primary" sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="primary"
+          sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+        >
           User Management
         </Typography>
         <Button
           variant="contained"
-          color="success"
+          color="primary"
           onClick={() => setShowCreateModal(true)}
           sx={{
             textTransform: 'none',
-            borderRadius: 2,
+            fontWeight: 600,
+            borderRadius: 1.5,
             px: 3,
-            width: { xs: '100%', sm: 'auto' }
+            py: 1,
+            boxShadow: '0 4px 12px rgba(30, 58, 138, 0.15)',
+            '&:hover': {
+              boxShadow: '0 6px 16px rgba(30, 58, 138, 0.25)',
+            }
           }}
         >
           Create New User
@@ -185,37 +195,37 @@ const UserManagement: React.FC = () => {
       {selectedUsers.size > 0 && (
         <Box sx={{
           display: 'flex',
-          gap: 1.5,
-          mb: 2,
-          p: 2,
-          backgroundColor: '#f8fafc',
-          borderRadius: 2,
+          justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
+          mb: 2.5,
+          p: 2,
+          bgcolor: 'rgba(248, 250, 252, 0.8)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: 2,
           border: '1px solid #e2e8f0',
-          flexDirection: { xs: 'column', sm: 'row' }
+          animation: 'fadeIn 0.3s ease-out'
         }}>
-          <Typography variant="body2" fontWeight={600} sx={{ mr: { sm: 1 }, width: { xs: '100%', sm: 'auto' } }}>
-            {selectedUsers.size} user(s) selected
+          <Typography variant="body2" fontWeight={600} color="primary">
+            {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''} selected
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' }, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
             <Button
               size="small"
-              variant="contained"
+              variant="outlined"
               color="success"
               onClick={() => handleBulkStatusChange(true)}
               startIcon={<CheckCircleIcon />}
-              sx={{ textTransform: 'none', borderRadius: 1.5, flex: { xs: 1, sm: 'none' } }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
             >
               Activate
             </Button>
             <Button
               size="small"
-              variant="contained"
+              variant="outlined"
               color="warning"
               onClick={() => handleBulkStatusChange(false)}
               startIcon={<CancelIcon />}
-              sx={{ textTransform: 'none', borderRadius: 1.5, color: 'white', flex: { xs: 1, sm: 'none' } }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
             >
               Deactivate
             </Button>
@@ -224,7 +234,7 @@ const UserManagement: React.FC = () => {
               variant="contained"
               color="error"
               onClick={handleBulkDelete}
-              sx={{ textTransform: 'none', borderRadius: 1.5, flex: { xs: 1, sm: 'none' } }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
             >
               Delete
             </Button>
