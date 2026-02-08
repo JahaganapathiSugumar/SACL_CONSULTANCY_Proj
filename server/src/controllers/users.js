@@ -229,9 +229,9 @@ export const getProfilePhoto = async (req, res, next) => {
         throw new CustomError('User not found', 404);
     }
 
-    const profilePhoto = rows[0].profile_photo;
+    const profilePhoto = rows[0]?.profile_photo ?? null;
 
-    return res.json({ success: true, profilePhoto: profilePhoto || null });
+    return res.json({ success: true, profilePhoto: profilePhoto });
 };
 
 export const adminUpdateUser = async (req, res, next) => {
