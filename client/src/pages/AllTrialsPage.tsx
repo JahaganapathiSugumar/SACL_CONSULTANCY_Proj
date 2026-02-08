@@ -334,21 +334,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         </Box>
                     </Box>
 
-                    <TableContainer
-                        className="premium-table-container"
-                        sx={{
-                            maxHeight: 'calc(100vh - 350px)',
-                            overflow: 'auto',
-                            position: 'relative',
-                            p: 2,
-                            pt: 1,
-                            backgroundColor: '#fff',
-                            '& .MuiTable-root': {
-                                borderCollapse: 'separate',
-                                borderSpacing: 0,
-                            }
-                        }}
-                    >
+                    <Box sx={{ position: 'relative' }}>
                         {loading && (
                             <Box sx={{
                                 display: 'flex',
@@ -597,7 +583,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 )}
                             </TableBody>
                         </Table>
-                    </TableContainer>
+                    </Box>
                     <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
                         Swipe to view more
                     </Typography>

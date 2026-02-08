@@ -155,11 +155,12 @@ const UserTable: React.FC<UserTableProps> = ({
           maxHeight: 'calc(100vh - 250px)',
           overflow: 'auto',
           position: 'relative',
-          px: 2,
-          pb: 2,
+          p: 2,
+          pt: 1,
+          backgroundColor: '#fff',
           '& .MuiTable-root': {
             borderCollapse: 'separate',
-            borderSpacing: '0 8px', // Optional: adds space between rows if wanted, but user asked for padding btw table and container
+            borderSpacing: 0,
           }
         }}
       >

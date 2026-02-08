@@ -229,15 +229,17 @@ const UserManagement: React.FC = () => {
         </Box>
       )}
 
-      <UserTable
-        users={users}
-        loading={loading}
-        onToggleStatus={handleToggleStatus}
-        onEdit={handleEdit}
-        selectedUsers={selectedUsers}
-        onSelectUser={handleSelectUser}
-        onSelectAllUsers={handleSelectAllUsers}
-      />
+      <Box sx={{ pb: 3 }}>
+        <UserTable
+          users={users}
+          loading={loading}
+          onToggleStatus={handleToggleStatus}
+          onEdit={handleEdit}
+          selectedUsers={selectedUsers}
+          onSelectUser={handleSelectUser}
+          onSelectAllUsers={handleSelectAllUsers}
+        />
+      </Box>
 
       {showCreateModal && (
         <AddUserModal
