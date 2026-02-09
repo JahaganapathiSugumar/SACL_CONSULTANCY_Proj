@@ -4,7 +4,7 @@ import { updateDepartment, updateRole, triggerNextDepartment } from '../services
 import logger from '../config/logger.js';
 
 export const createInspection = async (req, res, next) => {
-    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, is_draft } = req.body || {};
+    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_draft } = req.body || {};
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
@@ -14,7 +14,7 @@ export const createInspection = async (req, res, next) => {
     const hardnessJson = JSON.stringify(hardness || []);
 
     await Client.transaction(async (trx) => {
-        const sql = 'INSERT INTO visual_inspection (trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks) VALUES (@trial_id, @inspections, @visual_ok, @remarks, @ndt_inspection, @ndt_inspection_ok, @ndt_inspection_remarks, @hardness, @hardness_ok, @hardness_remarks)';
+        const sql = 'INSERT INTO visual_inspection (trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date) VALUES (@trial_id, @inspections, @visual_ok, @remarks, @ndt_inspection, @ndt_inspection_ok, @ndt_inspection_remarks, @hardness, @hardness_ok, @hardness_remarks, @inspection_date)';
         await trx.query(sql, {
             trial_id,
             inspections: inspectionsJson,
@@ -25,7 +25,8 @@ export const createInspection = async (req, res, next) => {
             ndt_inspection_remarks: ndt_inspection_remarks || null,
             hardness: hardnessJson,
             hardness_ok: hardness_ok ?? null,
-            hardness_remarks: hardness_remarks || null
+            hardness_remarks: hardness_remarks || null,
+            inspection_date: inspection_date || null
         });
 
         const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
@@ -50,7 +51,7 @@ export const createInspection = async (req, res, next) => {
 };
 
 export const updateInspection = async (req, res, next) => {
-    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, is_edit } = req.body || {};
+    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_edit } = req.body || {};
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
@@ -71,7 +72,8 @@ export const updateInspection = async (req, res, next) => {
                 ndt_inspection_remarks = COALESCE(@ndt_inspection_remarks, ndt_inspection_remarks),
                 hardness = COALESCE(@hardness, hardness),
                 hardness_ok = COALESCE(@hardness_ok, hardness_ok),
-                hardness_remarks = COALESCE(@hardness_remarks, hardness_remarks)
+                hardness_remarks = COALESCE(@hardness_remarks, hardness_remarks),
+                inspection_date = COALESCE(@inspection_date, inspection_date)
                 WHERE trial_id = @trial_id`;
 
             await trx.query(sql, {
@@ -84,6 +86,7 @@ export const updateInspection = async (req, res, next) => {
                 hardness: hardnessJson,
                 hardness_ok: hardness_ok ?? null,
                 hardness_remarks: hardness_remarks || null,
+                inspection_date: inspection_date || null,
                 trial_id
             });
 

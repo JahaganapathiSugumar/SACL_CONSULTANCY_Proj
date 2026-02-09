@@ -253,16 +253,11 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             {user?.role === 'Admin' && selectedIds.length > 0 && (
                                 <Button
                                     variant="contained"
+                                    color="error"
                                     size="small"
-                                    startIcon={<DeleteIcon />}
+                                    startIcon={<DeleteIcon fontSize="small" />}
                                     onClick={handleBulkDelete}
-                                    sx={{
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        py: 1,
-                                        bgcolor: '#E67E22', // Custom orange color
-                                        '&:hover': { bgcolor: '#D35400' } // Darker orange on hover
-                                    }}
+                                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1 }}
                                 >
                                     Delete ({selectedIds.length})
                                 </Button>

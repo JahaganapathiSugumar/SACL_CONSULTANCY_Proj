@@ -104,6 +104,9 @@ function MouldingTable() {
               hardness: String(data?.mould_hardness || ""),
               remarks: data?.remarks || ""
             });
+            if (data?.date) {
+              setMouldDate(new Date(data.date).toISOString().split('T')[0]);
+            }
             setDataExists(true);
           }
         } catch (error) {
@@ -444,6 +447,10 @@ function MouldingTable() {
               isSubmitting={loading}
             >
               <Box sx={{ p: 4 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} p={2} sx={{ bgcolor: '#f1f5f9', borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.primary }}>Inspection Date</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.secondary }}>{mouldDate}</Typography>
+                </Box>
 
                 <Typography variant="caption" sx={{ color: COLORS.blueHeaderText, mb: 2, display: 'block' }}>MOULDING PARAMETERS</Typography>
                 <Grid container spacing={2} sx={{ mb: 4 }}>

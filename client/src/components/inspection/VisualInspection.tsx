@@ -1236,7 +1236,10 @@ export default function VisualInspection({
                                         <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
                                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                                                 <Typography variant="h6" sx={{ textTransform: 'uppercase' }}>Visual Inspection Report</Typography>
-                                                <Typography variant="body2" color="textSecondary">Created: {previewPayload?.created_at}</Typography>
+                                                <Box display="flex" flexDirection="column" alignItems="flex-end">
+                                                    <Typography variant="body2" color="textSecondary">Inspection Date: <b>{date}</b></Typography>
+                                                    <Typography variant="caption" color="textSecondary">Created: {previewPayload?.created_at}</Typography>
+                                                </Box>
                                             </Box>
                                             <Divider sx={{ mb: 3 }} />
                                             {previewPayload?.cols && (

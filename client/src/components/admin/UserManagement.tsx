@@ -8,7 +8,8 @@ import './UserManagement.css';
 import Swal from 'sweetalert2';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { Box, Typography, useMediaQuery, Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Box, Typography, useMediaQuery, Button, Stack } from '@mui/material';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -194,37 +195,38 @@ const UserManagement: React.FC = () => {
           <Typography variant="body2" fontWeight={600} color="primary">
             {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''} selected
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
             <Button
-              size="small"
-              variant="outlined"
+              variant="contained"
               color="success"
+              size="small"
+              startIcon={<CheckCircleIcon fontSize="small" />}
               onClick={() => handleBulkStatusChange(true)}
-              startIcon={<CheckCircleIcon />}
-              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1 }}
             >
-              Activate
+              Activate ({selectedUsers.size})
             </Button>
             <Button
-              size="small"
-              variant="outlined"
+              variant="contained"
               color="warning"
+              size="small"
+              startIcon={<CancelIcon fontSize="small" />}
               onClick={() => handleBulkStatusChange(false)}
-              startIcon={<CancelIcon />}
-              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1, color: 'white' }}
             >
-              Deactivate
+              Deactivate ({selectedUsers.size})
             </Button>
             <Button
-              size="small"
               variant="contained"
               color="error"
+              size="small"
+              startIcon={<DeleteIcon fontSize="small" />}
               onClick={handleBulkDelete}
-              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1 }}
             >
-              Delete
+              Delete ({selectedUsers.size})
             </Button>
-          </Box>
+          </Stack>
         </Box>
       )}
 

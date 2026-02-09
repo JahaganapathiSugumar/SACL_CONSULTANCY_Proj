@@ -69,6 +69,7 @@ export default function MaterialCorrection() {
 
     const [chemState, setChemState] = useState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
     const [processState, setProcessState] = useState({ pouringTemp: "", inoculantPerSec: "", inoculantType: "" });
+    const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
@@ -143,6 +144,10 @@ export default function MaterialCorrection() {
                             inoculantType: proc?.inoculantType || ""
                         });
 
+                        if (data?.date) {
+                            setDate(new Date(data.date).toISOString().slice(0, 10));
+                        }
+
                         setRemarks(data?.remarks || "");
                     }
                 } catch (error) {
@@ -171,6 +176,7 @@ export default function MaterialCorrection() {
             chemical_composition: chemState,
             process_parameters: processState,
             remarks,
+            date,
             is_edit: isEditing
         };
 
@@ -189,6 +195,7 @@ export default function MaterialCorrection() {
             chemical_composition: chemState,
             process_parameters: processState,
             remarks,
+            date,
             is_edit: isEditing
         };
 
@@ -271,6 +278,17 @@ export default function MaterialCorrection() {
                                         <Paper sx={{ p: { xs: 2, md: 3 } }}>
                                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                                                 <SectionHeader icon={<ScienceIcon />} title="Material correction details" color={COLORS.accentBlue} />
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
+                                                    <TextField
+                                                        type="date"
+                                                        size="small"
+                                                        value={date}
+                                                        onChange={(e) => setDate(e.target.value)}
+                                                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                                                    />
+                                                </Box>
                                             </Box>
 
                                             <Box sx={{ overflowX: "auto", width: "100%", pb: 1 }}>
@@ -422,6 +440,10 @@ export default function MaterialCorrection() {
                                 >
                                     {previewPayload && (
                                         <Box>
+                                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} p={1.5} sx={{ bgcolor: COLORS.headerBg, borderRadius: 1 }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Inspection Date:</Typography>
+                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{date}</Typography>
+                                            </Box>
                                             <Typography variant="subtitle2" sx={{ mb: 1, color: COLORS.accentBlue }}>Composition Check</Typography>
                                             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: 1, mb: 3 }}>
                                                 {["C", "Si", "Mn", "P", "S", "Mg", "Cu", "Cr"].map(k => (

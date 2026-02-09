@@ -16,6 +16,7 @@ export const materialCorrectionSchema = z.object({
     chemical_composition: jsonValueSchema.optional().nullable(),
     process_parameters: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),
+    date: z.string().optional().nullable(),
     is_edit: z.boolean().default(true)
 });
 
@@ -93,6 +94,7 @@ export const visualInspectionSchema = z.object({
     hardness: jsonValueSchema.optional().nullable(),
     hardness_ok: z.boolean().optional().nullable(),
     hardness_remarks: z.string().optional().nullable(),
+    inspection_date: z.string().optional().nullable(),
     is_draft: z.boolean().default(false),
     is_edit: z.boolean().default(true)
 });

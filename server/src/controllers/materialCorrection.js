@@ -4,7 +4,7 @@ import { updateDepartment, updateRole } from '../services/departmentProgress.js'
 import logger from '../config/logger.js';
 
 export const createMaterialCorrection = async (req, res, next) => {
-    const { trial_id, chemical_composition, process_parameters, remarks } = req.body || {};
+    const { trial_id, chemical_composition, process_parameters, remarks, date } = req.body || {};
     if (!trial_id || !chemical_composition || !process_parameters || !remarks) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -13,8 +13,8 @@ export const createMaterialCorrection = async (req, res, next) => {
     const processParametersJson = JSON.stringify(process_parameters);
 
     await Client.transaction(async (trx) => {
-        const sql = 'INSERT INTO material_correction (trial_id, chemical_composition, process_parameters, remarks) VALUES (@trial_id, @chemical_composition, @process_parameters, @remarks)';
-        await trx.query(sql, { trial_id, chemical_composition: chemicalCompositionJson, process_parameters: processParametersJson, remarks });
+        const sql = 'INSERT INTO material_correction (trial_id, chemical_composition, process_parameters, remarks, date) VALUES (@trial_id, @chemical_composition, @process_parameters, @remarks, @date)';
+        await trx.query(sql, { trial_id, chemical_composition: chemicalCompositionJson, process_parameters: processParametersJson, remarks, date });
 
         const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
         await trx.query(audit_sql, {
@@ -38,7 +38,7 @@ export const createMaterialCorrection = async (req, res, next) => {
 };
 
 export const updateMaterialCorrection = async (req, res, next) => {
-    const { trial_id, chemical_composition, process_parameters, remarks, is_edit } = req.body || {};
+    const { trial_id, chemical_composition, process_parameters, remarks, date, is_edit } = req.body || {};
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
@@ -52,14 +52,16 @@ export const updateMaterialCorrection = async (req, res, next) => {
             const sql = `UPDATE material_correction SET 
                 chemical_composition = COALESCE(@chemical_composition, chemical_composition),
                 process_parameters = COALESCE(@process_parameters, process_parameters),
-                remarks = COALESCE(@remarks, remarks)
+                remarks = COALESCE(@remarks, remarks),
+                date = COALESCE(@date, date)
                 WHERE trial_id = @trial_id`;
 
             await trx.query(sql, {
                 trial_id,
                 chemical_composition: chemicalCompositionJson,
                 process_parameters: processParametersJson,
-                remarks: remarks || null
+                remarks: remarks || null,
+                date: date || null
             });
 
             const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';

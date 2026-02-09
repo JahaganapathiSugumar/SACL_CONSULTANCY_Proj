@@ -104,6 +104,7 @@ CREATE TABLE material_correction (
     chemical_composition NVARCHAR(MAX),
     process_parameters NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
+    date DATE,
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
 );
 GO
@@ -173,6 +174,7 @@ GO
 
 CREATE TABLE visual_inspection (
     trial_id NVARCHAR(255) PRIMARY KEY,
+    inspection_date DATE,
     inspections NVARCHAR(MAX),
     visual_ok BIT,
     remarks NVARCHAR(MAX),
