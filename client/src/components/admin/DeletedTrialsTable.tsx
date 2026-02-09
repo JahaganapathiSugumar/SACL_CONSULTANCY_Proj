@@ -117,8 +117,8 @@ const DeletedTrialsTable: React.FC = () => {
                 <TableBody>
                     {!loading && deletedTrials.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} align="center" className="premium-table-cell" sx={{ py: 12 }}>
-                                <Typography variant="body1" color="textSecondary">
+                            <TableCell colSpan={6} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                     No deleted trial cards found.
                                 </Typography>
                             </TableCell>

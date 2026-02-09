@@ -255,8 +255,10 @@ const UserTable: React.FC<UserTableProps> = ({
             ))}
             {filteredUsers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} align="center" className="premium-table-cell" sx={{ py: 12, color: '#94a3b8' }}>
-                  No users found matching the criteria
+                <TableCell colSpan={9} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                  <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                    No users found matching the criteria
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}

@@ -260,8 +260,8 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={departmentId === 8 ? 5 : 9} align="center" sx={{ py: 12, bgcolor: '#f8f9fa !important' }}>
-                                        <Typography variant="body2" sx={{ color: '#999', fontStyle: 'italic' }}>
+                                    <TableCell colSpan={departmentId === 8 ? 5 : 9} align="center" sx={{ py: 20, bgcolor: '#f8f9fa !important' }}>
+                                        <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                             No progressing trials at the moment
                                         </Typography>
                                     </TableCell>

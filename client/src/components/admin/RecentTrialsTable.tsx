@@ -168,8 +168,10 @@ const RecentTrialsTable: React.FC = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center" className="premium-table-cell" sx={{ py: 12 }}>
-                  No trials found
+                <TableCell colSpan={8} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                  <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                    No trials found
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}

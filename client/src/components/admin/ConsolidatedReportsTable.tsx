@@ -136,8 +136,8 @@ const ConsolidatedReportsTable: React.FC = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={3} align="center" className="premium-table-cell" sx={{ py: 12 }}>
-                                    <Typography variant="body2" color="text.secondary">
+                                <TableCell colSpan={3} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                    <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                         No consolidated reports found
                                     </Typography>
                                 </TableCell>

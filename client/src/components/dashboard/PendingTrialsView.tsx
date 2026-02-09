@@ -160,8 +160,8 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={isMobile ? 3 : isTablet ? 5 : 7} align="center" className="premium-table-cell" sx={{ py: 12 }}>
-                                    <Typography variant="body2" color="text.secondary">
+                                <TableCell colSpan={isMobile ? 3 : isTablet ? 5 : 7} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                    <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                         No pending sample cards at the moment
                                     </Typography>
                                 </TableCell>

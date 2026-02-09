@@ -305,8 +305,10 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" className="premium-table-cell" sx={{ py: 12, color: '#94a3b8' }}>
-                                    No data found matching your search.
+                                <TableCell colSpan={5} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                    <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                        No data found matching your search.
+                                    </Typography>
                                 </TableCell>
                             </TableRow>
                         )}
