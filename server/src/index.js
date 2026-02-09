@@ -46,21 +46,21 @@ logDirs.forEach(dir => {
   }
 });
 
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 app.use(cors({
   origin: ['http://localhost:9011', 'https://sacl-consultancy-proj.onrender.com', 'https://digitaltrialcard-sakthiauto.vercel.app'],
   credentials: true
 }))
 
-// app.use(
-//   morgan("combined", {
-//     stream: {
-//       write: message => logger.info(message.trim())
-//     }
-//   })
-// );
+app.use(
+  morgan("combined", {
+    stream: {
+      write: message => logger.info(message.trim())
+    }
+  })
+);
 
 app.use((req, res, next) => {
   req.clientIp = getClientIp(req);
