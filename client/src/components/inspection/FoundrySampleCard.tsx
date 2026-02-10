@@ -92,17 +92,17 @@ const parseChemicalComposition = (composition: any) => {
   try {
     const data = typeof composition === 'string' ? JSON.parse(composition) : composition;
     return {
-      c: data.C || data.c || "--",
-      si: data.Si || data.si || "--",
-      mn: data.Mn || data.mn || "--",
-      p: data.P || data.p || "--",
-      s: data.S || data.s || "--",
-      mg: data.Mg || data.mg || "--",
-      cr: data.Cr || data.cr || "--",
-      cu: data.Cu || data.cu || "--",
-      nodularity: data.Nodularity || data.nodularity || "--",
-      pearlite: data.Pearlite || data.pearlite || "--",
-      carbide: data.Carbide || data.carbide || "--"
+      c: data?.C || data?.c || "--",
+      si: data?.Si || data?.si || "--",
+      mn: data?.Mn || data?.mn || "--",
+      p: data?.P || data?.p || "--",
+      s: data?.S || data?.s || "--",
+      mg: data?.Mg || data?.mg || "--",
+      cr: data?.Cr || data?.cr || "--",
+      cu: data?.Cu || data?.cu || "--",
+      nodularity: data?.Nodularity || data?.nodularity || "--",
+      pearlite: data?.Pearlite || data?.pearlite || "--",
+      carbide: data?.Carbide || data?.carbide || "--"
     };
   } catch (e) {
     return {
@@ -211,15 +211,15 @@ function FoundrySampleCard() {
     const checkAssignment = async () => {
       if (!user) return;
 
-      if (user.role === 'Admin' || user.role === 'User' || user.department_id === 8) {
+      if (user?.role === 'Admin' || user?.role === 'User' || user?.department_id === 8) {
         setIsAssigned(true);
         return;
       }
 
       if (trialIdFromUrl) {
         try {
-          const pending = await departmentProgressService.getProgress(user.username, user.department_id);
-          const found = pending.find(p => p.trial_id === trialIdFromUrl);
+          const pending = await departmentProgressService.getProgress(user?.username || "", user?.department_id || 0);
+          const found = pending?.find(p => p.trial_id === trialIdFromUrl);
           setIsAssigned(!!found);
         } catch (error) {
           console.error("Failed to check assignment:", error);
@@ -241,55 +241,55 @@ function FoundrySampleCard() {
       if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && trialIdFromUrl) {
         try {
           const response = await trialService.getTrialById(trialIdFromUrl);
-          if (response && response.data) {
+          if (response?.data) {
             const data = response.data;
             if (data) {
-              setTrialId(data.trial_id || trialIdFromUrl);
-              setSamplingDate(data.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
-              setPlanMoulds(data.plan_moulds || '');
-              setMachine(data.disa || '');
-              setInitiatedBy(data.initiated_by || '');
-              setReason(data.reason_for_sampling || '');
-              setSampleTraceability(data.sample_traceability || '');
-              setTrialType(data.trial_type || '');
-              setToolingModification(data.tooling_modification || '');
-              setRemarks(data.remarks || '');
+              setTrialId(data?.trial_id || trialIdFromUrl);
+              setSamplingDate(data?.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
+              setPlanMoulds(data?.plan_moulds || '');
+              setMachine(data?.disa || '');
+              setInitiatedBy(data?.initiated_by || '');
+              setReason(data?.reason_for_sampling || '');
+              setSampleTraceability(data?.sample_traceability || '');
+              setTrialType(data?.trial_type || '');
+              setToolingModification(data?.tooling_modification || '');
+              setRemarks(data?.remarks || '');
 
-              const comp = safeParse<any>(data.chemical_composition, {});
+              const comp = safeParse<any>(data?.chemical_composition, {});
               setChemState({
-                c: comp.c || "", si: comp.si || "", mn: comp.mn || "",
-                p: comp.p || "", s: comp.s || "", mg: comp.mg || "",
-                cr: comp.cr || "", cu: comp.cu || ""
+                c: comp?.c || "", si: comp?.si || "", mn: comp?.mn || "",
+                p: comp?.p || "", s: comp?.s || "", mg: comp?.mg || "",
+                cr: comp?.cr || "", cu: comp?.cu || ""
               });
 
-              const micro = safeParse<any>(data.micro_structure, {});
+              const micro = safeParse<any>(data?.micro_structure, {});
               setMicroState({
-                nodularity: micro.nodularity || "",
-                pearlite: micro.pearlite || "",
-                carbide: micro.carbide || ""
+                nodularity: micro?.nodularity || "",
+                pearlite: micro?.pearlite || "",
+                carbide: micro?.carbide || ""
               });
 
-              const tensile = safeParse<any>(data.tensile, {});
+              const tensile = safeParse<any>(data?.tensile, {});
               setTensileState({
-                tensileStrength: tensile.tensileStrength || "",
-                yieldStrength: tensile.yieldStrength || "",
-                elongation: tensile.elongation || "",
-                impactCold: tensile.impactCold || "",
-                impactRoom: tensile.impactRoom || ""
+                tensileStrength: tensile?.tensileStrength || "",
+                yieldStrength: tensile?.yieldStrength || "",
+                elongation: tensile?.elongation || "",
+                impactCold: tensile?.impactCold || "",
+                impactRoom: tensile?.impactRoom || ""
               });
 
-              const hardness = safeParse<any>(data.hardness, {});
+              const hardness = safeParse<any>(data?.hardness, {});
               setHardnessState({
-                surface: hardness.surface || "",
-                core: hardness.core || ""
+                surface: hardness?.surface || "",
+                core: hardness?.core || ""
               });
 
-              const mouldCorr = safeParse<any[]>(data.mould_correction, []);
-              if (mouldCorr.length > 0) {
+              const mouldCorr = safeParse<any[]>(data?.mould_correction, []);
+              if (mouldCorr?.length > 0) {
                 setMouldCorrections(mouldCorr.map((m: any, i: number) => ({ id: i + 1, ...m })));
               }
 
-              const matchingPart = masterParts.find((p: PartData) => p.part_name === data.part_name);
+              const matchingPart = masterParts?.find((p: PartData) => p.part_name === data?.part_name);
               if (matchingPart) {
                 setSelectedPart(matchingPart);
                 setSelectedPattern(matchingPart);
@@ -318,7 +318,7 @@ function FoundrySampleCard() {
       try {
         setLoading(true);
         const parts = await trialService.getMasterList();
-        setMasterParts(parts);
+        setMasterParts(parts || []);
       } catch (e) {
         setMasterParts([]);
         showAlert("error", "Failed to load master parts.");
@@ -332,32 +332,32 @@ function FoundrySampleCard() {
   useEffect(() => {
     if (selectedPart) {
       setSelectedPattern(selectedPart);
-      const parsedChem = parseChemicalComposition(selectedPart.chemical_composition);
+      const parsedChem = parseChemicalComposition(selectedPart?.chemical_composition);
       setChemState({
-        c: parsedChem.c,
-        si: parsedChem.si,
-        mn: parsedChem.mn,
-        p: parsedChem.p,
-        s: parsedChem.s,
-        mg: parsedChem.mg,
-        cr: parsedChem.cr,
-        cu: parsedChem.cu
+        c: parsedChem?.c,
+        si: parsedChem?.si,
+        mn: parsedChem?.mn,
+        p: parsedChem?.p,
+        s: parsedChem?.s,
+        mg: parsedChem?.mg,
+        cr: parsedChem?.cr,
+        cu: parsedChem?.cu
       });
       setTensileState({
-        tensileStrength: selectedPart.tensile || "",
-        yieldStrength: selectedPart.yield || "",
-        elongation: selectedPart.elongation || "",
-        impactCold: selectedPart.impact_cold || "",
-        impactRoom: selectedPart.impact_room || ""
+        tensileStrength: selectedPart?.tensile || "",
+        yieldStrength: selectedPart?.yield || "",
+        elongation: selectedPart?.elongation || "",
+        impactCold: selectedPart?.impact_cold || "",
+        impactRoom: selectedPart?.impact_room || ""
       });
       setMicroState({
-        nodularity: parsedChem.nodularity || "--",
-        pearlite: parsedChem.pearlite || "--",
-        carbide: parsedChem.carbide || "--"
+        nodularity: parsedChem?.nodularity || "--",
+        pearlite: parsedChem?.pearlite || "--",
+        carbide: parsedChem?.carbide || "--"
       });
       setHardnessState({
-        surface: selectedPart.hardness_surface || "--",
-        core: selectedPart.hardness_core || "--"
+        surface: selectedPart?.hardness_surface || "--",
+        core: selectedPart?.hardness_core || "--"
       });
     } else { setSelectedPattern(null); }
   }, [selectedPart]);
@@ -366,8 +366,8 @@ function FoundrySampleCard() {
     if (!selectedPart) return;
     setTrialLoading(true);
     try {
-      const json = await trialService.getTrialIdByPartName(selectedPart.part_name);
-      const trialId = (json && (json.trialId || json.data)) as string | undefined;
+      const json = await trialService.getTrialIdByPartName(selectedPart?.part_name || "");
+      const trialId = (json && (json?.trialId || json?.data)) as string | undefined;
       if (trialId) {
         setTrialId(trialId);
       } else {
@@ -441,7 +441,7 @@ function FoundrySampleCard() {
       }
 
       try {
-        if (toolingFiles.length > 0) {
+        if (toolingFiles?.length > 0) {
           await uploadFiles(
             toolingFiles,
             trialId || trialIdFromUrl,
@@ -829,11 +829,11 @@ function FoundrySampleCard() {
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>MODIFICATION DETAILS</Typography>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#333', mt: 0.5 }}>{previewPayload?.tooling_modification || previewPayload?.toolingModification || "-"}</Typography>
                   </Box>
-                  {previewPayload?.toolingFiles && previewPayload.toolingFiles.length > 0 && (
+                  {previewPayload?.toolingFiles?.length > 0 && (
                     <Box sx={{ mb: 1.5 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>TOOLING FILES</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 0.5 }}>
-                        {previewPayload.toolingFiles.map((file: any, idx: number) => {
+                        {previewPayload?.toolingFiles?.map((file: any, idx: number) => {
                           const fileUrl = file.url || file.path || '#';
                           const fileName = file.name || file.fileName || `File ${idx + 1}`;
                           const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
@@ -1145,7 +1145,7 @@ function FoundrySampleCard() {
                             <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8} />
                           </TableCell>
                           <TableCell align="center">
-                            {mouldCorrections.length > 1 && !(((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8) && (
+                            {mouldCorrections?.length > 1 && !(((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8) && (
                               <IconButton size="small" onClick={() => removeMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
                                 <DeleteIcon />
                               </IconButton>
