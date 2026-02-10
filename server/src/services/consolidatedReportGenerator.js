@@ -262,19 +262,22 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         // 1.1 Met Spec (Top Right)
         let yRight = drawSectionTitle(doc, "1.1 METALLURGICAL SPECIFICATION", col2X, y);
         const specChem = safeParse(matCorr?.chemical_composition, {});
-        const specMicro = safeParse(matCorr?.process_parameters, {});
+        const actualChem = safeParse(pouring?.composition, {});
 
-        const chemRows = [["C", specChem?.c], ["Si", specChem?.si], ["Mn", specChem?.mn], ["P", specChem?.p], ["S", specChem?.s], ["Mg", specChem?.mg]];
+        // Chem Actual Table
+        const chemRows = [
+            ["C", actualChem?.C],
+            ["Si", actualChem?.Si],
+            ["Mn", actualChem?.Mn],
+            ["P", actualChem?.P],
+            ["S", actualChem?.S],
+            ["Mg", actualChem?.Mg],
+            ["Cu", actualChem?.Cu],
+            ["Cr", actualChem?.Cr]
+        ];
         doc.font('Helvetica-Bold').fontSize(7).text("Chemical Elements (%)", col2X, yRight);
         yRight += 10;
-        yRight = drawTable(doc, { headers: ["Ele", "Spec"], rows: chemRows }, col2X, yRight, [130, 130]) + 8;
-
-        const microSpecRows = [
-            { label: "Pouring Temp", value: specMicro?.pouringTemp },
-            { label: "Inoculant Per Sec", value: specMicro?.inoculantPerSec },
-            { label: "Inoculant Type", value: specMicro?.inoculantType }
-        ];
-        yRight = drawVerticalTable(doc, microSpecRows, col2X, yRight, colWidth) + 12;
+        yRight = drawTable(doc, { headers: ["Ele", "Act"], rows: chemRows }, col2X, yRight, [130, 130]) + 12;
 
         let yNext = Math.max(yLeft, yRight);
 

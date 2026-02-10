@@ -1,18 +1,10 @@
 *Tasks to be completed:-*
 
-->Ask mandatory fields and add validation in frontend and backend
-
-->If machine shop selected while user creation ask two different types(NPD OR REGULAR)
-
 ->Remove delete option in master card
 
 ->fdyqa need critical dimension attachment mandatory
 
 ----------------------------------------------------------------------BY HR SIR-------------------------------------------------------------------------------------
-
-->login page color code
-
-->Grey orange silver - color code
 
 ->font - trebuchet (inside) futura (heading)
 
