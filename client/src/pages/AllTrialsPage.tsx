@@ -395,16 +395,12 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                             ) : (trialProgressData[trial.trial_id] && trialProgressData[trial.trial_id].length > 0) ? (
                                                                 <Box sx={{
                                                                     display: 'flex',
-                                                                    flexDirection: 'row',
-                                                                    overflowX: 'auto',
+                                                                    flexDirection: 'column',
                                                                     gap: 2,
-                                                                    pb: 1,
-                                                                    '&::-webkit-scrollbar': { height: '8px' },
-                                                                    '&::-webkit-scrollbar-track': { background: '#f1f1f1', borderRadius: '4px' },
-                                                                    '&::-webkit-scrollbar-thumb': { background: '#555' },
+                                                                    pb: 1
                                                                 }}>
                                                                     {trialProgressData[trial.trial_id].map((progress: ProgressItem, index: number) => (
-                                                                        <Box key={index} sx={{ minWidth: '100%', flex: 1 }}>
+                                                                        <Box key={index} sx={{ width: '100%' }}>
                                                                             <Card variant="outlined" sx={{ borderRadius: 2 }}>
                                                                                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                                                                                     <Grid container alignItems="center" spacing={2}>
@@ -511,9 +507,6 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             </TableBody>
                         </Table>
                     </Box>
-                    <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
-                        Swipe to view more
-                    </Typography>
 
                     <Box sx={{ mt: 3, textAlign: 'right' }}>
                     </Box>

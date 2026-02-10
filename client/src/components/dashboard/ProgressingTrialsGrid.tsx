@@ -235,25 +235,47 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                                                     </Button>
                                                 </Box>
                                             ) : (
-                                                <Button
-                                                    size="small"
-                                                    variant="contained"
-                                                    startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
-                                                    onClick={() => {
-                                                        setSelectedTrialId(trial.trial_id);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                    sx={{
-                                                        bgcolor: '#E67E22',
-                                                        fontSize: '0.7rem',
-                                                        py: 0.5,
-                                                        px: 1.5,
-                                                        '&:hover': { bgcolor: '#D35400' },
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    View Details
-                                                </Button>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
+                                                        onClick={() => {
+                                                            setSelectedTrialId(trial.trial_id);
+                                                            setIsModalOpen(true);
+                                                        }}
+                                                        sx={{
+                                                            bgcolor: '#E67E22',
+                                                            fontSize: '0.7rem',
+                                                            py: 0.5,
+                                                            px: 1.5,
+                                                            '&:hover': { bgcolor: '#D35400' },
+                                                            whiteSpace: 'nowrap',
+                                                            width: '100%'
+                                                        }}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    {(departmentId === 6 || departmentId === 7) && (
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => navigate(`/material-correction?trial_id=${trial.trial_id}`)}
+                                                            sx={{
+                                                                bgcolor: '#E67E22',
+                                                                fontSize: '0.7rem',
+                                                                py: 0.5,
+                                                                px: 1.5,
+                                                                '&:hover': { bgcolor: '#D35400' },
+                                                                whiteSpace: 'nowrap',
+                                                                width: '100%',
+                                                                textTransform: 'none'
+                                                            }}
+                                                        >
+                                                            View Material Correction
+                                                        </Button>
+                                                    )}
+                                                </Box>
                                             )}
                                         </TableCell>
                                     </TableRow>
