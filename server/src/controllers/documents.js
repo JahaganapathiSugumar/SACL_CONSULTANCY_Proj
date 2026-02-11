@@ -39,3 +39,31 @@ export const getDocuments = async (req, res, next) => {
         data: documents || []
     });
 };
+
+export const viewDocument = async (req, res, next) => {
+    const { id } = req.params;
+
+    const [rows] = await Client.query(
+        `SELECT file_base64, file_name FROM documents WHERE document_id = @id`,
+        { id }
+    );
+
+    if (!rows || rows.length === 0) {
+        return res.status(404).send("Document not found");
+    }
+
+    const doc = rows[0];
+    const base64Data = doc.file_base64.replace(/^data:.*?;base64,/, "");
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const ext = doc.file_name.split('.').pop()?.toLowerCase();
+    let mimeType = 'application/octet-stream';
+    if (ext === 'pdf') mimeType = 'application/pdf';
+    else if (ext === 'png') mimeType = 'image/png';
+    else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+    else if (ext === 'gif') mimeType = 'image/gif';
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+    res.send(buffer);
+};

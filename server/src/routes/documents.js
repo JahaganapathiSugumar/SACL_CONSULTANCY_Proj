@@ -7,5 +7,6 @@ const router = express.Router();
 
 router.post('/', verifyToken, asyncErrorHandler(documentsController.uploadDocument));
 router.get('/', verifyToken, asyncErrorHandler(documentsController.getDocuments));
+router.get('/view/:id', asyncErrorHandler(documentsController.viewDocument));
 
 export default router;

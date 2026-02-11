@@ -539,7 +539,17 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         }
 
                         doc.image(img, 45, currentAttY, { fit: [maxWidth, maxHeight], align: 'center' });
-                        currentAttY += maxHeight + 30;
+                        currentAttY += maxHeight + 10;
+
+                        const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                        doc.font('Helvetica').fontSize(8).fillColor('#2980b9')
+                            .text("Click to view full size image", 45, currentAttY, {
+                                link: viewUrl,
+                                underline: true
+                            });
+
+                        doc.fillColor('black');
+                        currentAttY += 20;
                     } catch (err) {
                         doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image]`, 45, currentAttY);
                         currentAttY += 20;
@@ -548,7 +558,14 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                     doc.font('Helvetica').fontSize(8).fillColor('#666')
                         .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
                     currentAttY += 12;
-                    doc.fillColor('#2980b9').text("Available for separate download in the system.", 45, currentAttY);
+
+                    const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                    doc.fillColor('#2980b9')
+                        .text("Click here to view/download document", 45, currentAttY, {
+                            link: viewUrl,
+                            underline: true
+                        });
+
                     doc.fillColor('black');
                     currentAttY += 25;
                 } else {
