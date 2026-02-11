@@ -66,23 +66,31 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
     }, [trialId, category, refreshTrigger, externalDocuments]);
 
     const handleViewFile = (file: Document) => {
-        const win = window.open();
-        if (win) {
-            let src = file.file_base64;
-            if (!src.startsWith('data:')) {
-                const ext = file.file_name.split('.').pop()?.toLowerCase();
-                let mimeType = 'application/octet-stream';
-                if (ext === 'pdf') mimeType = 'application/pdf';
-                else if (ext === 'png') mimeType = 'image/png';
-                else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
-                else if (ext === 'gif') mimeType = 'image/gif';
+        try {
+            const ext = file.file_name.split('.').pop()?.toLowerCase();
+            let mimeType = 'application/octet-stream';
+            if (ext === 'pdf') mimeType = 'application/pdf';
+            else if (ext === 'png') mimeType = 'image/png';
+            else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+            else if (ext === 'gif') mimeType = 'image/gif';
 
-                src = `data:${mimeType};base64,${file.file_base64}`;
+            const base64Content = file.file_base64.split(',').pop() || '';
+            const byteCharacters = atob(base64Content);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
             }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            const fileURL = URL.createObjectURL(blob);
 
-            win.document.write(
-                `<html><head><title>${file.file_name}</title></head><body style="margin:0"><iframe src="${src}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe></body></html>`
-            );
+            const win = window.open(fileURL, '_blank');
+            if (win) {
+                setTimeout(() => URL.revokeObjectURL(fileURL), 60000);
+            }
+        } catch (err) {
+            console.error("Error viewing file:", err);
+            alert("Could not open this file version. It might be too large or corrupted.");
         }
     };
 

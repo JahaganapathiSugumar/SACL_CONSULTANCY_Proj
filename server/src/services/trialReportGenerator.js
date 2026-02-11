@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { PDFDocument as PDFLib } from 'pdf-lib';
+import logger from '../config/logger.js';
 
 // Helper to fetch data (extracted from the controller logic)
 export const fetchTrialData = async (trial_id, trx) => {
@@ -528,7 +529,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
                 if (isImage) {
                     try {
-                        const img = Buffer.from(item.file_base64, 'base64');
+                        const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
+                        const img = Buffer.from(base64Data, 'base64');
                         const maxWidth = 515;
                         const maxHeight = 400;
 
@@ -558,9 +560,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         }
     }
 
-    doc.end();
-
-    return new Promise((resolve, reject) => {
+    const generationPromise = new Promise((resolve, reject) => {
         doc.on('end', async () => {
             let finalBuffer = Buffer.concat(chunks);
 
@@ -572,17 +572,18 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         const mergedPdf = await PDFLib.load(finalBuffer);
                         for (const item of pdfAttachments) {
                             try {
-                                const donorPdf = await PDFLib.load(Buffer.from(item.file_base64, 'base64'), { ignoreEncryption: true });
+                                const base64Data = item.file_base64.replace(/^data:application\/pdf;base64,/, "");
+                                const donorPdf = await PDFLib.load(Buffer.from(base64Data, 'base64'), { ignoreEncryption: true });
                                 const donorPages = await mergedPdf.copyPages(donorPdf, donorPdf.getPageIndices());
                                 donorPages.forEach((page) => mergedPdf.addPage(page));
                             } catch (itemErr) {
-                                console.error(`Error merging PDF ${item.file_name}:`, itemErr);
+                                logger.error(`Error merging PDF ${item.file_name}:`, itemErr);
                             }
                         }
                         const savedBytes = await mergedPdf.save();
                         finalBuffer = Buffer.from(savedBytes);
                     } catch (libErr) {
-                        console.error("Error during pdf-lib merging:", libErr);
+                        reject(libErr);
                     }
                 }
 
@@ -616,6 +617,11 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                 reject(outerErr);
             }
         });
-        doc.on('error', reject);
+        doc.on('error', (err) => {
+            reject(err);
+        });
     });
+
+    doc.end();
+    return generationPromise;
 };
