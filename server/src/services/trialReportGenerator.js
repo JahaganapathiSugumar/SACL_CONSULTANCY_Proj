@@ -35,6 +35,9 @@ export const fetchTrialData = async (trial_id, trx) => {
     const [material_correction] = await trx.query(
         `SELECT * FROM material_correction WHERE trial_id = @trial_id`, { trial_id }
     );
+    const [documents] = await trx.query(
+        `SELECT * FROM documents WHERE trial_id = @trial_id ORDER BY document_type`, { trial_id }
+    );
 
     return {
         trial_cards,
@@ -45,7 +48,8 @@ export const fetchTrialData = async (trial_id, trx) => {
         visual_inspection,
         dimensional_inspection,
         machine_shop,
-        material_correction
+        material_correction,
+        documents
     };
 };
 
@@ -489,6 +493,67 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             const rows = mcInspections.map(r => Object.values(r));
             const colW = 535 / headers.length;
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, headers.map(() => colW));
+        }
+    }
+
+    // --- ATTACHMENTS (Page 3+) ---
+    const attachments = data.documents || [];
+    if (attachments.length > 0) {
+        const groupedDocs = attachments.reduce((acc, d) => {
+            const cat = d.document_type || 'GENERAL';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(d);
+            return acc;
+        }, {});
+
+        for (const [category, docs] of Object.entries(groupedDocs)) {
+            doc.addPage();
+            doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')}`, 30, 25);
+            doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+
+            let currentAttY = 55;
+            for (const item of docs) {
+                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
+                const isPdf = /\.pdf$/i.test(item.file_name);
+
+                if (currentAttY > 750) {
+                    doc.addPage();
+                    currentAttY = 40;
+                }
+
+                doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                currentAttY += 15;
+
+                if (isImage) {
+                    try {
+                        const img = Buffer.from(item.file_base64, 'base64');
+                        const maxWidth = 515;
+                        const maxHeight = 400;
+
+                        if (currentAttY + maxHeight > 780) {
+                            doc.addPage();
+                            currentAttY = 40;
+                        }
+
+                        doc.image(img, 45, currentAttY, { fit: [maxWidth, maxHeight], align: 'center' });
+                        currentAttY += maxHeight + 30;
+                    } catch (err) {
+                        doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image]`, 45, currentAttY);
+                        currentAttY += 20;
+                    }
+                } else if (isPdf) {
+                    doc.font('Helvetica').fontSize(8).fillColor('#666')
+                        .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
+                    currentAttY += 12;
+                    doc.fillColor('#2980b9').text("Available for separate download in the system.", 45, currentAttY);
+                    doc.fillColor('black');
+                    currentAttY += 25;
+                } else {
+                    doc.font('Helvetica-Oblique').fontSize(8).fillColor('#666').text("Format not supported for embedding.", 45, currentAttY);
+                    currentAttY += 20;
+                }
+            }
         }
     }
 
