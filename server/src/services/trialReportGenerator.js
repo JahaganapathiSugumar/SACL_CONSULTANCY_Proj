@@ -497,7 +497,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         }
     }
 
-    // --- ATTACHMENTS (Page 3+) ---
+    // ---- ATTACHMENTS (Page 3+) ----
     const attachments = data.documents || [];
     if (attachments.length > 0) {
         const groupedDocs = attachments.reduce((acc, d) => {
