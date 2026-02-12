@@ -342,7 +342,6 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
             doc.font('Helvetica-Bold').fontSize(7).text(`Mechanical Properties (Result: ${mechRes})`, col1X, metLeftY);
             metLeftY += 10;
-
             if (meta?.mech_properties_remarks) {
                 doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.mech_properties_remarks}`, col1X, metLeftY);
                 metLeftY += 10;
@@ -360,7 +359,6 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
             doc.font('Helvetica-Bold').fontSize(7).text(`Impact Strength (Result: ${impactRes})`, col2X, metRightY);
             metRightY += 10;
-
             if (meta?.impact_strength_remarks) {
                 doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.impact_strength_remarks}`, col2X, metRightY);
                 metRightY += 10;
@@ -374,45 +372,44 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         p2y = Math.max(metLeftY, metRightY);
 
+        let metSubLeftY = p2y;
+        let metSubRightY = p2y;
+
         if (microRows.length > 0) {
             const microOk = meta?.micro_structure_ok;
             const microRes = microOk === null || microOk === undefined ? "-" : (microOk ? "OK" : "NOT OK");
 
-            doc.font('Helvetica-Bold').fontSize(7).text(`Microstructure (Result: ${microRes})`, col1X, p2y);
-            p2y += 10;
-
+            doc.font('Helvetica-Bold').fontSize(7).text(`Microstructure (Result: ${microRes})`, col1X, metSubLeftY, { width: 260 });
+            metSubLeftY += 10;
             if (meta?.micro_structure_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.micro_structure_remarks}`, col1X, p2y);
-                p2y += 10;
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.micro_structure_remarks}`, col1X, metSubLeftY, { width: 260 });
+                metSubLeftY += 10;
             }
 
             const headers = Object.keys(microRows[0]);
             const rows = microRows.map(r => headers.map(h => r[h]));
-            const colWidths = headers.map(() => 535 / headers.length); // Full width
-            p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 10;
+            const colWidths = headers.map(() => colWidth / headers.length);
+            metSubLeftY = drawTable(doc, { headers, rows }, col1X, metSubLeftY, colWidths) + 10;
         }
 
         if (metaHardRows.length > 0) {
             const hardOk = meta?.hardness_ok;
             const hardRes = hardOk === null || hardOk === undefined ? "-" : (hardOk ? "OK" : "NOT OK");
 
-            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col1X, p2y);
-            p2y += 10;
-
+            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col2X, metSubRightY);
+            metSubRightY += 10;
             if (meta?.hardness_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.hardness_remarks}`, col1X, p2y);
-                p2y += 10;
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.hardness_remarks}`, col2X, metSubRightY);
+                metSubRightY += 10;
             }
 
             const headers = Object.keys(metaHardRows[0]);
             const rows = metaHardRows.map(r => headers.map(h => r[h]));
-
-            // Define custom widths for better fit
-            const colWidths = headers.map(() => 535 / headers.length);
-            p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 12;
+            const colWidths = headers.map(() => colWidth / headers.length);
+            metSubRightY = drawTable(doc, { headers, rows }, col2X, metSubRightY, colWidths) + 10;
         }
 
-        p2y += 5;
+        p2y = Math.max(metSubLeftY, metSubRightY) + 5;
 
         // 6. Visual & 7. Dimensional
         let visitY = p2y;
@@ -453,19 +450,17 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         let p2NextY = Math.max(visitY, dimY) + 15;
 
-        // NDT (Full Width)
+        // NDT
         const ndtRows = safeParse(visual?.ndt_inspection, []);
         if (ndtRows.length > 0) {
             const sectionOk = visual?.ndt_inspection_ok;
             const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
             doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, p2NextY);
-            p2NextY += 10;
-
             if (visual?.ndt_inspection_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, p2NextY);
-                p2NextY += 10;
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, doc.y + 2, { width: 535 });
             }
+            p2NextY = doc.y + 10;
 
             const headers = Object.keys(ndtRows[0]);
             const rows = ndtRows.map(r => headers.map(h => r[h]));
@@ -474,19 +469,17 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
         }
 
-        // Hardness (Full Width)
+        // Hardness
         const hardRows = safeParse(visual?.hardness, []);
         if (hardRows.length > 0) {
             const sectionOk = visual?.hardness_ok;
             const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
             doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col1X, p2NextY);
-            p2NextY += 10;
-
             if (visual?.hardness_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, p2NextY);
-                p2NextY += 10;
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, doc.y + 2, { width: 535 });
             }
+            p2NextY = doc.y + 10;
 
             const headers = Object.keys(hardRows[0]);
             const rows = hardRows.map(r => headers.map(h => r[h]));

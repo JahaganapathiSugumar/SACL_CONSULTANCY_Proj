@@ -354,45 +354,46 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     p2y = Math.max(metLeftY, metRightY);
 
+    let metSubLeftY = p2y;
+    let metSubRightY = p2y;
+
     if (microRows.length > 0) {
         const microOk = meta?.micro_structure_ok;
         const microRes = microOk === null || microOk === undefined ? "-" : (microOk ? "OK" : "NOT OK");
 
-        doc.font('Helvetica-Bold').fontSize(7).text(`Microstructure (Result: ${microRes})`, col1X, p2y);
-        p2y += 10;
+        doc.font('Helvetica-Bold').fontSize(7).text(`Microstructure (Result: ${microRes})`, col1X, metSubLeftY, { width: 260 });
+        metSubLeftY += 10;
 
         if (meta?.micro_structure_remarks) {
-            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.micro_structure_remarks}`, col1X, p2y);
-            p2y += 10;
+            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.micro_structure_remarks}`, col1X, metSubLeftY, { width: 260 });
+            metSubLeftY += doc.heightOfString(`Remarks: ${meta.micro_structure_remarks}`, { width: 260 }) + 2;
         }
 
         const headers = Object.keys(microRows[0]);
         const rows = microRows.map(r => headers.map(h => r[h]));
-        const colWidths = headers.map(() => 535 / headers.length); // Full width
-        p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 10;
+        const colWidths = headers.map(() => colWidth / headers.length);
+        metSubLeftY = drawTable(doc, { headers, rows }, col1X, metSubLeftY, colWidths) + 10;
     }
 
     if (metaHardRows.length > 0) {
         const hardOk = meta?.hardness_ok;
         const hardRes = hardOk === null || hardOk === undefined ? "-" : (hardOk ? "OK" : "NOT OK");
 
-        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col1X, p2y);
-        p2y += 10;
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col2X, metSubRightY);
+        metSubRightY += 10;
 
         if (meta?.hardness_remarks) {
-            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.hardness_remarks}`, col1X, p2y);
-            p2y += 10;
+            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${meta.hardness_remarks}`, col2X, metSubRightY);
+            metSubRightY += 10;
         }
 
         const headers = Object.keys(metaHardRows[0]);
         const rows = metaHardRows.map(r => headers.map(h => r[h]));
-
-        // Define custom widths for better fit
-        const colWidths = headers.map(() => 535 / headers.length);
-        p2y = drawTable(doc, { headers, rows }, col1X, p2y, colWidths) + 12;
+        const colWidths = headers.map(() => colWidth / headers.length);
+        metSubRightY = drawTable(doc, { headers, rows }, col2X, metSubRightY, colWidths) + 10;
     }
 
-    p2y += 5;
+    p2y = Math.max(metSubLeftY, metSubRightY) + 5;
 
     // 7. Visual & Dimensional & Machine Shop
     let p2NextY = p2y;
@@ -514,47 +515,61 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
 
             let currentAttY = 55;
+            let imageInPageCount = 0;
+            const colWidth = 260;
+            const xPos = [45, 305];
+
             for (const item of docs) {
                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
                 const isPdf = /\.pdf$/i.test(item.file_name);
 
-                if (currentAttY > 750) {
+                if (currentAttY > 750 || (isImage && imageInPageCount >= 2)) {
                     doc.addPage();
                     currentAttY = 40;
+                    imageInPageCount = 0;
+                    doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                        .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Cont.)`, 30, 25, { align: 'center', width: 535 });
+                    doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+                    currentAttY = 55;
                 }
-
-                doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
-                currentAttY += 15;
 
                 if (isImage) {
                     try {
+                        const col = imageInPageCount % 2;
+                        const drawX = xPos[col];
                         const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
                         const img = Buffer.from(base64Data, 'base64');
-                        const maxWidth = 515;
-                        const maxHeight = 400;
+                        const maxWidth = 250;
+                        const maxHeight = 300;
 
-                        if (currentAttY + maxHeight > 780) {
-                            doc.addPage();
-                            currentAttY = 40;
-                        }
+                        doc.font('Helvetica-Bold').fontSize(8).fillColor('black').text(`- ${item.file_name}`, drawX, currentAttY, { width: 250 });
 
-                        doc.image(img, 45, currentAttY, { fit: [maxWidth, maxHeight], align: 'center' });
-                        currentAttY += maxHeight + 10;
+                        doc.image(img, drawX, currentAttY + 15, { fit: [maxWidth, maxHeight], align: 'center' });
 
                         const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
-                        doc.font('Helvetica').fontSize(8).fillColor('#2980b9')
-                            .text("Click to view full size image", 45, currentAttY, {
+                        doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
+                            .text("Click to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
                                 link: viewUrl,
                                 underline: true
                             });
 
-                        doc.fillColor('black');
-                        currentAttY += 20;
+                        imageInPageCount++;
+
+                        if (imageInPageCount % 2 === 0) {
+                            currentAttY += maxHeight + 60;
+                        }
                     } catch (err) {
-                        doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image]`, 45, currentAttY);
+                        doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image: ${item.file_name}]`, 45, currentAttY);
                         currentAttY += 20;
                     }
                 } else if (isPdf) {
+                    if (imageInPageCount % 2 !== 0) {
+                        currentAttY += 350;
+                        imageInPageCount = 0;
+                    }
+
+                    doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                    currentAttY += 15;
                     doc.font('Helvetica').fontSize(8).fillColor('#666')
                         .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
                     currentAttY += 12;
@@ -567,10 +582,16 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         });
 
                     doc.fillColor('black');
-                    currentAttY += 25;
+                    currentAttY += 30;
                 } else {
+                    if (imageInPageCount % 2 !== 0) {
+                        currentAttY += 350;
+                        imageInPageCount = 0;
+                    }
+                    doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                    currentAttY += 15;
                     doc.font('Helvetica-Oblique').fontSize(8).fillColor('#666').text("Format not supported for embedding.", 45, currentAttY);
-                    currentAttY += 20;
+                    currentAttY += 25;
                 }
             }
         }
