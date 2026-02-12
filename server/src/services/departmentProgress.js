@@ -294,6 +294,20 @@ export const approveProgress = async (trial_id, user, trx) => {
         `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND approval_status = 'pending'`,
         { trial_id }
     );
+    const [pending] = await trx.query(
+        `SELECT TOP 1 df.department_id FROM department_flow df
+        JOIN department_progress dp ON dp.department_id = df.department_id
+        WHERE dp.trial_id = @trial_id AND dp.approval_status = 'pending'
+        ORDER BY df.sequence_no`,
+        { trial_id }
+    );
+    if (pending && pending.length > 0) {
+        await trx.query(
+            `UPDATE trial_cards SET current_department_id = @pending_department_id, status = 'IN_PROGRESS' WHERE trial_id = @trial_id`,
+            { pending_department_id: pending[0].department_id, trial_id }
+        );
+        return;
+    }
     await trx.query(
         `UPDATE trial_cards SET status = 'CLOSED' WHERE trial_id = @trial_id`,
         { trial_id }
