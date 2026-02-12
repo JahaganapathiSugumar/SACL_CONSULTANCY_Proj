@@ -410,16 +410,15 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 Report
                                                             </Button>
                                                         ) : "N/A"}
-                                                        {user?.role === 'Admin' && (
+                                                        {trial.file_base64 && user?.role === 'Admin' && (
                                                             <Tooltip title="Delete Report">
                                                                 <IconButton
                                                                     size="small"
                                                                     color="error"
                                                                     onClick={() => handleDeleteTrialReport(trial.trial_id)}
                                                                     sx={{
-                                                                        bgcolor: 'rgba(239, 68, 68, 0.08)',
                                                                         ml: 0.5,
-                                                                        '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.15)' }
+                                                                        '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' }
                                                                     }}
                                                                 >
                                                                     <DeleteIcon fontSize="small" />
