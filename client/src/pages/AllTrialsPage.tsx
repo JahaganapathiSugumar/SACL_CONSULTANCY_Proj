@@ -156,6 +156,37 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         );
     };
 
+    const handleDeleteTrialReport = async (trialId: string) => {
+        const result = await Swal.fire({
+            title: 'Delete Trial Report?',
+            text: `You are about to delete trial report for Trial ID: ${trialId}. This action will move it to the recycle bin.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                setLoading(true);
+                const response = await trialService.deleteTrialReport(trialId);
+                if (response.success) {
+                    Swal.fire('Deleted!', 'Trial report has been moved to recycle bin.', 'success');
+                    const data = await trialService.getAllTrialReports();
+                    setTrials(data);
+                } else {
+                    Swal.fire('Failed!', response.message || 'Failed to delete trial report.', 'error');
+                }
+            } catch (error) {
+                console.error("Error deleting trial report:", error);
+                Swal.fire('Error!', 'An unexpected error occurred.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     const handleViewReport = (trial: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -379,6 +410,22 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 Report
                                                             </Button>
                                                         ) : "N/A"}
+                                                        {user?.role === 'Admin' && (
+                                                            <Tooltip title="Delete Report">
+                                                                <IconButton
+                                                                    size="small"
+                                                                    color="error"
+                                                                    onClick={() => handleDeleteTrialReport(trial.trial_id)}
+                                                                    sx={{
+                                                                        bgcolor: 'rgba(239, 68, 68, 0.08)',
+                                                                        ml: 0.5,
+                                                                        '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.15)' }
+                                                                    }}
+                                                                >
+                                                                    <DeleteIcon fontSize="small" />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        )}
                                                     </Box>
                                                 </TableCell>
                                             </TableRow>
