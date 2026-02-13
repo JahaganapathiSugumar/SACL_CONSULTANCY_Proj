@@ -130,7 +130,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
             setSelectedItems(new Set());
             Swal.fire({
                 title: 'Success',
-                text: `Successfully ${status ? 'deactivated' : 'activated'} ${selectedIds.length} items.`,
+                text: `Successfully ${status ? 'activated' : 'deactivated'} ${selectedIds.length} items.`,
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false
