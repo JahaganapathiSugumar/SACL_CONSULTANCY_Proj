@@ -523,7 +523,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
                 const isPdf = /\.pdf$/i.test(item.file_name);
 
-                if (currentAttY > 750 || (isImage && imageInPageCount >= 2)) {
+                if (currentAttY > 750 || (isImage && imageInPageCount >= 4)) {
                     doc.addPage();
                     currentAttY = 40;
                     imageInPageCount = 0;
@@ -540,7 +540,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
                         const img = Buffer.from(base64Data, 'base64');
                         const maxWidth = 250;
-                        const maxHeight = 300;
+                        const maxHeight = 280;
 
                         doc.font('Helvetica-Bold').fontSize(8).fillColor('black').text(`- ${item.file_name}`, drawX, currentAttY, { width: 250 });
 
@@ -548,7 +548,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
                         const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
                         doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
-                            .text("Click to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
+                            .text("Click here to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
                                 link: viewUrl,
                                 underline: true
                             });
@@ -564,8 +564,13 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                     }
                 } else if (isPdf) {
                     if (imageInPageCount % 2 !== 0) {
-                        currentAttY += 350;
+                        currentAttY += 340;
                         imageInPageCount = 0;
+                    }
+
+                    if (currentAttY > 750) {
+                        doc.addPage();
+                        currentAttY = 55;
                     }
 
                     doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
@@ -585,7 +590,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                     currentAttY += 30;
                 } else {
                     if (imageInPageCount % 2 !== 0) {
-                        currentAttY += 350;
+                        currentAttY += 340;
                         imageInPageCount = 0;
                     }
                     doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
