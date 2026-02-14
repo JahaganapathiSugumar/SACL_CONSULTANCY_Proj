@@ -11,7 +11,7 @@ export const requestReset = async (req, res, next) => {
     if (!username || !email) {
         throw new CustomError('Username and email are required', 400);
     }
-    const [rows] = await Client.query('SELECT * FROM users WHERE username = @username AND email = @email', { username, email });
+    const [rows] = await Client.query('SELECT * FROM dtc_users WHERE username = @username AND email = @email', { username, email });
     if (!rows || rows.length === 0) {
         logger.warn('Password reset requested for invalid user', { username, email });
         throw new CustomError('User not found with provided username and email', 404);
@@ -47,7 +47,7 @@ export const resetPassword = async (req, res, next) => {
     }
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
     const hash = await bcrypt.hash(newPassword, saltRounds);
-    await Client.query('UPDATE users SET password_hash = @hash, email_verified = 1 WHERE username = @username', { hash, username });
+    await Client.query('UPDATE dtc_users SET password_hash = @hash, email_verified = 1 WHERE username = @username', { hash, username });
     delete otpStore[username];
 
     logger.info('Password reset successful', { username });

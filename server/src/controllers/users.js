@@ -9,7 +9,7 @@ export const getAllUsers = async (req, res, next) => {
     const [rows] = await Client.execute(`
     SELECT u.user_id, u.username, u.full_name, u.email, u.department_id, 
            d.department_name, u.role, u.is_active, u.created_at 
-    FROM users u 
+    FROM dtc_users u 
     LEFT JOIN departments d ON u.department_id = d.department_id WHERE u.role NOT IN ('Admin')
   `);
     res.status(200).json({ users: rows });
@@ -20,14 +20,14 @@ export const createUser = async (req, res, next) => {
     if (!username || !password || !full_name || !department_id || !role || !machine_shop_user_type) {
         throw new CustomError('Missing required fields', 400);
     }
-    const [existing] = await Client.query('SELECT TOP 1 user_id FROM users WHERE username = @username', { username });
+    const [existing] = await Client.query('SELECT TOP 1 user_id FROM dtc_users WHERE username = @username', { username });
     if (existing && existing.length > 0) {
         logger.warn('User creation failed: Username exists', { username });
         throw new CustomError('Username already in use', 409);
     }
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
     const hash = await bcrypt.hash(password, saltRounds);
-    const sql = 'INSERT INTO users (username, full_name, password_hash, department_id, role, needs_password_change, email_verified, machine_shop_user_type) VALUES (@username, @full_name, @password_hash, @department_id, @role, 1, 0, @machine_shop_user_type)';
+    const sql = 'INSERT INTO dtc_users (username, full_name, password_hash, department_id, role, needs_password_change, email_verified, machine_shop_user_type) VALUES (@username, @full_name, @password_hash, @department_id, @role, 1, 0, @machine_shop_user_type)';
     await Client.query(sql, { username, full_name, password_hash: hash, department_id, role, machine_shop_user_type });
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -45,7 +45,7 @@ export const deleteUser = async (req, res, next) => {
     const { userId } = req.params;
     const user = req.user;
     if (!userId) throw new CustomError('User ID is required', 400);
-    const sql = 'DELETE FROM users WHERE user_id = @user_id';
+    const sql = 'DELETE FROM dtc_users WHERE user_id = @user_id';
     await Client.query(sql, { user_id: userId });
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -64,7 +64,7 @@ export const sendOtp = async (req, res, next) => {
     const user = req.user;
     if (!email) throw new CustomError('Email is required', 400);
 
-    const [existing] = await Client.query('SELECT TOP 1 user_id FROM users WHERE email = @email AND user_id != @user_id', { email, user_id: user.user_id });
+    const [existing] = await Client.query('SELECT TOP 1 user_id FROM dtc_users WHERE email = @email AND user_id != @user_id', { email, user_id: user.user_id });
     if (existing && existing.length > 0) {
         throw new CustomError('Email already in use by another account', 409);
     }
@@ -121,7 +121,7 @@ export const verifyOtp = async (req, res, next) => {
     }
 
     try {
-        await Client.query('UPDATE users SET email = @email, email_verified = 1 WHERE user_id = @user_id', { email, user_id: user.user_id });
+        await Client.query('UPDATE dtc_users SET email = @email, email_verified = 1 WHERE user_id = @user_id', { email, user_id: user.user_id });
     } catch (err) {
         await Client.query('UPDATE email_otps SET used = 1 WHERE otp_id = @otp_id', { otp_id: otpId });
         logger.error('Error updating user email', err);
@@ -145,7 +145,7 @@ export const changePassword = async (req, res, next) => {
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
     const hash = await bcrypt.hash(newPassword, saltRounds);
 
-    await Client.query('UPDATE users SET password_hash = @password_hash, needs_password_change = 0 WHERE user_id = @user_id', { password_hash: hash, user_id: user.user_id });
+    await Client.query('UPDATE dtc_users SET password_hash = @password_hash, needs_password_change = 0 WHERE user_id = @user_id', { password_hash: hash, user_id: user.user_id });
 
     logger.info('Password updated', { userId: user.user_id });
     return res.json({ success: true, message: 'Password updated' });
@@ -159,12 +159,12 @@ export const updateUsername = async (req, res, next) => {
     if (typeof username !== 'string' || username.trim().length === 0) throw new CustomError('Username cannot be empty', 400);
     if (username === user.username) throw new CustomError('New username must be different from current username', 400);
 
-    const [existing] = await Client.query('SELECT TOP 1 user_id FROM users WHERE username = @username', { username });
+    const [existing] = await Client.query('SELECT TOP 1 user_id FROM dtc_users WHERE username = @username', { username });
     if (existing && existing.length > 0) {
         throw new CustomError('Username already in use', 409);
     }
 
-    await Client.query('UPDATE users SET username = @username WHERE user_id = @user_id', { username, user_id: user.user_id });
+    await Client.query('UPDATE dtc_users SET username = @username WHERE user_id = @user_id', { username, user_id: user.user_id });
 
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -183,7 +183,7 @@ export const changeStatus = async (req, res, next) => {
     if (!userId) throw new CustomError('User ID and status are required', 400);
     if (typeof status !== 'boolean') throw new CustomError('Status must be a boolean', 400);
 
-    await Client.query('UPDATE users SET is_active = @is_active WHERE user_id = @user_id', { is_active: status, user_id: userId });
+    await Client.query('UPDATE dtc_users SET is_active = @is_active WHERE user_id = @user_id', { is_active: status, user_id: userId });
 
     logger.info('User status updated', { userId, status, updatedBy: req.user.username });
     return res.json({ success: true, message: 'User status updated' });
@@ -203,7 +203,7 @@ export const uploadProfilePhoto = async (req, res, next) => {
         throw new CustomError('Photo size exceeds maximum limit of 5MB', 400);
     }
 
-    await Client.query('UPDATE users SET profile_photo = @profile_photo WHERE user_id = @user_id', {
+    await Client.query('UPDATE dtc_users SET profile_photo = @profile_photo WHERE user_id = @user_id', {
         profile_photo: photoBase64,
         user_id: user.user_id
     });
@@ -223,7 +223,7 @@ export const uploadProfilePhoto = async (req, res, next) => {
 export const getProfilePhoto = async (req, res, next) => {
     const user = req.user;
 
-    const [rows] = await Client.query('SELECT profile_photo FROM users WHERE user_id = @user_id', { user_id: user.user_id });
+    const [rows] = await Client.query('SELECT profile_photo FROM dtc_users WHERE user_id = @user_id', { user_id: user.user_id });
 
     if (!rows || rows.length === 0) {
         throw new CustomError('User not found', 404);
@@ -241,13 +241,13 @@ export const adminUpdateUser = async (req, res, next) => {
     if (!userId || isNaN(userId)) {
         throw new CustomError('Valid User ID is required', 400);
     }
-    const [existingUser] = await Client.query('SELECT * FROM users WHERE user_id = @userId', { userId });
+    const [existingUser] = await Client.query('SELECT * FROM dtc_users WHERE user_id = @userId', { userId });
     if (!existingUser || existingUser.length === 0) {
         throw new CustomError('User not found', 404);
     }
 
     if (username && username !== existingUser[0].username) {
-        const [duplicate] = await Client.query('SELECT user_id FROM users WHERE username = @username AND user_id != @userId', { username, userId });
+        const [duplicate] = await Client.query('SELECT user_id FROM dtc_users WHERE username = @username AND user_id != @userId', { username, userId });
         if (duplicate && duplicate.length > 0) {
             throw new CustomError('Username already in use', 409);
         }
@@ -267,7 +267,7 @@ export const adminUpdateUser = async (req, res, next) => {
     }
 
     const sql = `
-        UPDATE users 
+        UPDATE dtc_users 
         SET username = COALESCE(@username, username),
             full_name = COALESCE(@full_name, full_name),
             email = COALESCE(@email, email),

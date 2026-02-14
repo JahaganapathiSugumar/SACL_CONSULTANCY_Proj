@@ -76,22 +76,22 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     if (next_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
                 { next_department_id }
             );
         } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
                 { next_department_id }
             );
         }
     } else {
         next_department_user_result = await trx.query(
-            `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1`,
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1`,
             { next_department_id }
         );
     }
@@ -207,22 +207,22 @@ export const updateRole = async (trial_id, user, trx) => {
     if (current_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = 9 AND role = 'HOD' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'HOD' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
                 { current_department_id }
             );
         } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
             current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
                 { current_department_id }
             );
         }
     } else {
         current_department_hod_result = await trx.query(
-            `SELECT TOP 1 * FROM users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1`,
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1`,
             { current_department_id }
         );
     }
@@ -244,7 +244,7 @@ export const updateRole = async (trial_id, user, trx) => {
             remarks: `Department progress for trial ${trial_id} updated by ${user.username} in ${user.department_name} department`
         });
         const user_result = await trx.query(
-            `SELECT * FROM users WHERE username = @username`,
+            `SELECT * FROM dtc_users WHERE username = @username`,
             { username: current_department_hod_username }
         );
         const [targetUser] = user_result;
@@ -369,22 +369,22 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
     if (next_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
                 { next_department_id }
             );
         } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
                 { next_department_id }
             );
         }
     } else {
         next_department_user_result = await trx.query(
-            `SELECT TOP 1 * FROM users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1`,
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @next_department_id AND role = 'User' AND is_active = 1`,
             { next_department_id }
         );
     }

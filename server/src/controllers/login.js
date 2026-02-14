@@ -31,7 +31,7 @@ export const login = async (req, res, next) => {
     }
 
     try {
-        const [rows] = await Client.query('SELECT TOP 1 users.*, departments.department_name as department FROM users LEFT JOIN departments ON users.department_id = departments.department_id WHERE username = @username', { username });
+        const [rows] = await Client.query('SELECT TOP 1 dtc_users.*, departments.department_name as department FROM dtc_users LEFT JOIN departments ON dtc_users.department_id = departments.department_id WHERE username = @username', { username });
 
         if (!rows || rows.length === 0) {
             logger.warn('Login failed: Invalid credentials', { username });

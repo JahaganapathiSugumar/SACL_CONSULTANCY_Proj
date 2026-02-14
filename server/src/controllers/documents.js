@@ -29,7 +29,7 @@ export const getDocuments = async (req, res, next) => {
     const [documents] = await Client.query(
         `SELECT d.*, u.username as uploaded_by_username 
          FROM documents d 
-         LEFT JOIN users u ON d.uploaded_by = u.user_id 
+         LEFT JOIN dtc_users u ON d.uploaded_by = u.user_id 
          WHERE d.trial_id = @trial_id 
          ORDER BY d.document_id`,
         { trial_id }

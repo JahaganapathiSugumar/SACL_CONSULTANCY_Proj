@@ -4,7 +4,7 @@ CREATE TABLE departments (
 );
 GO
 
-CREATE TABLE users (
+CREATE TABLE dtc_users (
     user_id BIGINT NOT NULL IDENTITY(1,1),
     username VARCHAR(50) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
@@ -22,15 +22,15 @@ CREATE TABLE users (
     profile_photo NVARCHAR(MAX),
     PRIMARY KEY (user_id),
     CONSTRAINT ux_username UNIQUE (username),
-    CONSTRAINT users_chk_1 CHECK (role IN ('User','HOD','Admin')),
-    CONSTRAINT users_chk_2 CHECK (machine_shop_user_type IN ('N/A','NPD','REGULAR')),
+    CONSTRAINT dtc_users_chk_1 CHECK (role IN ('User','HOD','Admin')),
+    CONSTRAINT dtc_users_chk_2 CHECK (machine_shop_user_type IN ('N/A','NPD','REGULAR')),
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 GO
 
-CREATE INDEX idx_users_department ON users(department_id);
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_active ON users(is_active);
+CREATE INDEX idx_dtc_users_department ON dtc_users(department_id);
+CREATE INDEX idx_dtc_users_role ON dtc_users(role);
+CREATE INDEX idx_dtc_users_active ON dtc_users(is_active);
 GO
 
 CREATE TABLE master_card (
@@ -212,7 +212,7 @@ CREATE TABLE department_progress (
     CONSTRAINT uq_trial_department UNIQUE (trial_id, department_id),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id),
-    FOREIGN KEY (username) REFERENCES users(username)
+    FOREIGN KEY (username) REFERENCES dtc_users(username)
 );
 GO
 
@@ -230,7 +230,7 @@ CREATE TABLE documents (
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
-    FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
+    FOREIGN KEY (uploaded_by) REFERENCES dtc_users(user_id)
 );
 GO
 
@@ -249,7 +249,7 @@ CREATE TABLE email_otps (
     created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
     PRIMARY KEY (otp_id),
     CONSTRAINT chk_otp_attempts CHECK (attempts >= 0 AND attempts <= 10),
-    CONSTRAINT fk_emailotps_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    CONSTRAINT fk_emailotps_user FOREIGN KEY (user_id) REFERENCES dtc_users (user_id) ON DELETE CASCADE
 );
 GO
 
@@ -352,6 +352,6 @@ GO
 ALTER TABLE trial_cards ADD CONSTRAINT DF_trial_cards_trial_type DEFAULT 'INHOUSE MACHINING(NPD)' FOR trial_type;
 ALTER TABLE trial_cards ADD CONSTRAINT CHK_plan_moulds CHECK (plan_moulds >= 0);
 ALTER TABLE trial_cards ADD CONSTRAINT CHK_actual_moulds CHECK (actual_moulds >= 0);
-ALTER TABLE users ADD COLUMN profile_photo NVARCHAR(MAX);
-CREATE INDEX idx_users_active ON users(is_active);
+ALTER TABLE dtc_users ADD COLUMN profile_photo NVARCHAR(MAX);
+CREATE INDEX idx_dtc_users_active ON dtc_users(is_active);
 GO

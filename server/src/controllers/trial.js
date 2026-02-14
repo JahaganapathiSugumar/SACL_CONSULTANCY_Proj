@@ -167,7 +167,7 @@ export const updateTrial = async (req, res, next) => {
             logger.info('Trial updated', { trial_id, updatedBy: req.user.username });
 
             const [userRows] = await trx.query(
-                'SELECT email FROM users WHERE department_id IN (4, 6, 7) AND is_active = 1 AND email IS NOT NULL'
+                'SELECT email FROM dtc_users WHERE department_id IN (4, 6, 7) AND is_active = 1 AND email IS NOT NULL'
             );
 
             const emails = [...new Set(userRows.map(u => u.email))];
