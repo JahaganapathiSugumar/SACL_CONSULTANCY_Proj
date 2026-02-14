@@ -16,7 +16,7 @@ router.post('/verify-otp', verifyToken, asyncErrorHandler(userController.verifyO
 router.post('/change-password', verifyToken, validate(changePasswordSchema), asyncErrorHandler(userController.changePassword));
 router.post('/update-username', verifyToken, asyncErrorHandler(userController.updateUsername));
 router.post('/change-status', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(userController.changeStatus));
-router.post('/profile-photo', verifyToken, asyncErrorHandler(userController.uploadProfilePhoto));
+router.post('/upload-photo', verifyToken, asyncErrorHandler(userController.uploadProfilePhoto));
 router.get('/profile-photo', verifyToken, asyncErrorHandler(userController.getProfilePhoto));
 router.put('/:userId', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(userController.adminUpdateUser));
 
