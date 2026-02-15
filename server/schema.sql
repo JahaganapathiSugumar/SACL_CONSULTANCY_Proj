@@ -348,10 +348,3 @@ CREATE TABLE department_flow (
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 GO
-
-ALTER TABLE trial_cards ADD CONSTRAINT DF_trial_cards_trial_type DEFAULT 'INHOUSE MACHINING(NPD)' FOR trial_type;
-ALTER TABLE trial_cards ADD CONSTRAINT CHK_plan_moulds CHECK (plan_moulds >= 0);
-ALTER TABLE trial_cards ADD CONSTRAINT CHK_actual_moulds CHECK (actual_moulds >= 0);
-ALTER TABLE dtc_users ADD COLUMN profile_photo NVARCHAR(MAX);
-CREATE INDEX idx_dtc_users_active ON dtc_users(is_active);
-GO

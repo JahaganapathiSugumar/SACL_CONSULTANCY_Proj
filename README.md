@@ -132,6 +132,7 @@ At minimum, the server requires database and JWT-related environment variables. 
 - DB_USER — database username
 - DB_PASSWORD — database password
 - DB_SERVER — database host (e.g., localhost or server address)
+- DB_PORT — database port (e.g., 1433)
 - DB_DATABASE — database name
 - JWT_SECRET — secret used for JWT signing
 - REFRESH_TOKEN_SECRET — secret used for refresh tokens
@@ -141,7 +142,7 @@ At minimum, the server requires database and JWT-related environment variables. 
 Client `.env`:
 - VITE_API_BASE — base URL for API requests (e.g., http://localhost:3000/api)
 
-The SQL connection in `server/src/config/connection.js` sets `encrypt: true` and `trustServerCertificate: true` — adapt these for your environment (especially when using production SQL Server).
+The SQL connection in `server/src/config/connection.js` uses `process.env.DB_PORT` (defaulting to 1433), sets `encrypt: true`, and `trustServerCertificate: true` — adapt these for your environment (especially when using production SQL Server).
 
 ---
 
@@ -164,7 +165,7 @@ client/package.json
 All routes are prefixed with `/api` in the server:
 
 - /api/master-list — Master list endpoints (get, search, create, update, toggle status, bulk delete)
-- /api/users — User management (create/update/list, requires auth)
+- /api/dtc-users — User management (create/update/list, profile photo, OTP verify, password change, etc.)
 - /api/login — Authentication (login returns token and refresh token)
 - /api/departments — Department list
 - /api/trial — Trial card endpoints (create, get, get by id, etc.)
