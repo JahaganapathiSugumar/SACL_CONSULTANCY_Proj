@@ -47,15 +47,4 @@ const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
   }
 };
 
-const verifyConnection = async () => {
-  try {
-    await getTransporter().verify();
-    logger.info('SMTP connection verified successfully');
-    return true;
-  } catch (error) {
-    logger.error('SMTP connection verification failed:', error.message);
-    return false;
-  }
-};
-
-export { sendMail as default, verifyConnection };
+export default sendMail;
