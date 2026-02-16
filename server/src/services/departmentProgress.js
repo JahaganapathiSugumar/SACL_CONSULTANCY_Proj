@@ -143,10 +143,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
             cid: 'sacllogo'
         }]
     };
-    const result = await sendMail(mailOptions);
-    if (!result.success) {
-        logger.error(`Failed to send assignment email to ${next_department_user_rows[0].email}: ${result.error}`);
-    }
+    sendMail(mailOptions);
     return "Department progress added successfully";
 };
 
@@ -272,10 +269,7 @@ export const updateRole = async (trial_id, user, trx) => {
                 cid: 'sacllogo'
             }]
         };
-        const result = await sendMail(mailOptions);
-        if (!result.success) {
-            logger.error(`Failed to send HOD assignment email to ${targetUser.email}: ${result.error}`);
-        }
+        sendMail(mailOptions);
         return "Department progress updated successfully";
     } else {
         const [rows] = await trx.query(
@@ -438,9 +432,6 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
             cid: 'sacllogo'
         }]
     };
-    const result = await sendMail(mailOptions);
-    if (!result.success) {
-        logger.error(`Failed to send progress update email to ${next_department_user[0].email}: ${result.error}`);
-    }
+    sendMail(mailOptions);
     return "Next department updated successfully";
 };

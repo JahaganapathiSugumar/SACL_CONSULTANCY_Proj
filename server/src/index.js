@@ -24,6 +24,7 @@ import machineShop from './routes/machineShop.js';
 import document from './routes/documents.js';
 import stats from './routes/stats.js';
 import forgotPasswordRoutes from './routes/forgotPassword.js';
+import { verifyConnection } from './utils/mailSender.js';
 import logger from './config/logger.js';
 import path from 'path';
 import fs from 'fs';
@@ -117,6 +118,7 @@ const port = process.env.PORT || 9012;
 
 app.listen(port, async () => {
   console.log(`Server is listening on port ${port}`);
+  await verifyConnection();
 });
 
 process.on("SIGTERM", () => {

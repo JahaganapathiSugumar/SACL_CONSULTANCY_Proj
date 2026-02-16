@@ -17,8 +17,9 @@ const getTransporter = () => {
       pool: true,
       maxConnections: 5,
       maxMessages: 10,
-      tls: {
-        rejectUnauthorized: false
+      rateLimit: {
+        max: 10,
+        time: 60 * 1000
       }
     });
   }
@@ -46,4 +47,15 @@ const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
   }
 };
 
-export default sendMail;
+const verifyConnection = async () => {
+  try {
+    await getTransporter().verify();
+    logger.info('SMTP connection verified successfully');
+    return true;
+  } catch (error) {
+    logger.error('SMTP connection verification failed:', error.message);
+    return false;
+  }
+};
+
+export { sendMail as default, verifyConnection };

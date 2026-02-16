@@ -173,7 +173,7 @@ export const updateTrial = async (req, res, next) => {
             const emails = [...new Set(userRows.map(u => u.email))];
 
             if (emails.length > 0) {
-                const result = await sendMail({
+                sendMail({
                     to: emails,
                     subject: `Trial Updated: ${trial_id}`,
                     text: `The trial card ${trial_id} (${part_name}) has been updated by ${req.user.username}.`,
@@ -192,12 +192,6 @@ export const updateTrial = async (req, res, next) => {
                         </div>
                     `
                 });
-
-                if (result.success) {
-                    logger.info('Notification emails sent', { trial_id, recipients: emails.length });
-                } else {
-                    logger.error('Failed to send notification emails', { trial_id, error: result.error });
-                }
             }
         }
 

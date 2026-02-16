@@ -19,19 +19,14 @@ export const requestReset = async (req, res, next) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore[username] = { otp, expires: Date.now() + 10 * 60 * 1000 };
 
-    const result = await sendMail({
+    sendMail({
         to: email,
         subject: 'Your Password Reset OTP',
         text: `Your OTP for password reset is: ${otp}`,
         html: `<p>Your OTP for password reset is: <b>${otp}</b></p>`
     });
 
-    if (!result.success) {
-        logger.error('Failed to send password reset email', { error: result.error, email });
-        throw new CustomError('Failed to send password reset email', 500);
-    }
-    logger.info('Password reset OTP sent', { username, email });
-
+    logger.info('Password reset OTP requested', { username, email });
     res.json({ success: true, message: 'OTP sent to your email.' });
 };
 
