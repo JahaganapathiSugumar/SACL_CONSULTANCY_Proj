@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from server directory
-dotenv.config({ path: path.join(__dirname, 'server', '.env') });
+// Load .env from same directory (server folder)
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 console.log('--- Mail Configuration ---');
 console.log('Host:', process.env.SMTP_HOST);
