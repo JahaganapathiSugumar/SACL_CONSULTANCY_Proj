@@ -101,15 +101,15 @@ function SandTable() {
             const data = response?.data?.[0];
             setSandDate(data?.date ? new Date(data?.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
             setSandProps({
-              tClay: String(data?.t_clay || ""),
-              aClay: String(data?.a_clay || ""),
-              vcm: String(data?.vcm || ""),
-              loi: String(data?.loi || ""),
-              afs: String(data?.afs || ""),
-              gcs: String(data?.gcs || ""),
-              moi: String(data?.moi || ""),
-              compactability: String(data?.compactability || ""),
-              perm: String(data?.permeability || ""),
+              tClay: data?.t_clay !== null && data?.t_clay !== undefined ? String(data.t_clay) : "",
+              aClay: data?.a_clay !== null && data?.a_clay !== undefined ? String(data.a_clay) : "",
+              vcm: data?.vcm !== null && data?.vcm !== undefined ? String(data.vcm) : "",
+              loi: data?.loi !== null && data?.loi !== undefined ? String(data.loi) : "",
+              afs: data?.afs !== null && data?.afs !== undefined ? String(data.afs) : "",
+              gcs: data?.gcs !== null && data?.gcs !== undefined ? String(data.gcs) : "",
+              moi: data?.moi !== null && data?.moi !== undefined ? String(data.moi) : "",
+              compactability: data?.compactability !== null && data?.compactability !== undefined ? String(data.compactability) : "",
+              perm: data?.permeability !== null && data?.permeability !== undefined ? String(data.permeability) : "",
               remarks: data?.remarks || ""
             });
             setDataExists(true);
@@ -403,72 +403,40 @@ function SandTable() {
                       <DocumentViewer trialId={trialId || ""} category="SAND_PROPERTIES" />
                     </Box>
 
-                    <Box sx={{ p: 3, display: "flex", flexDirection: { xs: 'column', sm: 'row' }, justifyContent: "flex-end", alignItems: "stretch", gap: 2, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', sm: 'auto' } }}>
-                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                          <Button
-                            variant="outlined"
-                            onClick={handleReset}
-                            fullWidth={isMobile}
-                            sx={{
-                              color: COLORS.primary,
-                              borderColor: COLORS.primary,
-                              borderWidth: '1.5px',
-                              '&:hover': {
-                                borderColor: COLORS.primary,
-                                borderWidth: '1.5px',
-                                bgcolor: '#f3f4f6'
-                              }
-                            }}
-                          >
-                            Reset Form
-                          </Button>
-                        )}
-
-                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                          <Button
-                            variant="outlined"
-                            onClick={() => setIsEditing(!isEditing)}
-                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                          >
-                            {isEditing ? "Cancel Edit" : "Edit Details"}
-                          </Button>
-                        )}
-
-                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                          <Button
-                            variant="outlined"
-                            startIcon={<SaveIcon />}
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            sx={{
-                              color: COLORS.secondary,
-                              borderColor: COLORS.secondary,
-                              borderWidth: '1.5px',
-                              '&:hover': {
-                                borderColor: COLORS.secondary,
-                                borderWidth: '1.5px',
-                                bgcolor: '#fff7ed'
-                              }
-                            }}
-                          >
-                            Save as Draft
-                          </Button>
-                        )}
-
-                        <Button
-                          variant="contained"
-                          onClick={handleSaveAndContinue}
-                          fullWidth={isMobile}
-                          startIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                          sx={{
-                            bgcolor: COLORS.secondary,
-                            color: 'white',
-                            '&:hover': { bgcolor: '#c2410c' }
-                          }}
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
+                      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
+                        <ActionButtons
+                          {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                          onSave={handleSaveAndContinue}
+                          showSubmit={false}
+                          saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                          saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
                         >
-                          {user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                        </Button>
+                          {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                            <Button
+                              variant="outlined"
+                              startIcon={<SaveIcon />}
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              sx={{ mr: 2 }}
+                            >
+                              Save as Draft
+                            </Button>
+                          )}
+                          {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                            <Button
+                              variant="outlined"
+                              onClick={() => setIsEditing(!isEditing)}
+                              sx={{
+                                color: COLORS.secondary,
+                                borderColor: COLORS.secondary,
+                                mr: 2
+                              }}
+                            >
+                              {isEditing ? "Cancel Edit" : "Edit Details"}
+                            </Button>
+                          )}
+                        </ActionButtons>
                       </Box>
                     </Box>
 

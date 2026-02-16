@@ -232,7 +232,7 @@ export default function DimensionalInspection({
         setCavRows((prev) => prev?.map((r) => (r.id === rowId ? { ...r, values: r?.values?.map((v, i) => (i === colIndex ? value : v)) } : r)));
     };
 
-    const resetAll = () => {
+    const handleReset = () => {
         setDate(new Date().toISOString().slice(0, 10));
         setWeightTarget("");
         setCavities([...initialCavities]);
@@ -591,7 +591,7 @@ export default function DimensionalInspection({
                                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                             <ActionButtons
-                                                {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
+                                                {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                                                 onSave={handleSaveAndContinue}
                                                 showSubmit={false}
                                                 saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}

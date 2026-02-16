@@ -299,7 +299,7 @@ export default function McShopInspection({
     });
   };
 
-  const resetAll = () => {
+  const handleReset = () => {
     setDate(new Date().toISOString().slice(0, 10));
     setCavities([...initialCavities]);
     setRows(makeInitialRows(initialCavities));
@@ -631,7 +631,7 @@ export default function McShopInspection({
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                       <ActionButtons
-                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: resetAll } : {})}
+                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                         onSave={handleSaveAndContinue}
                         showSubmit={false}
                         saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}

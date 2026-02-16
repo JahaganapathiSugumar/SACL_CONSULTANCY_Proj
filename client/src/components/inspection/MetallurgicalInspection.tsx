@@ -686,6 +686,30 @@ export default function MetallurgicalInspection() {
     if (trialId) fetchData();
   }, [user, trialId]);
 
+  const handleReset = () => {
+    setDate(new Date().toISOString().slice(0, 10));
+    setMicroCols([{ id: 'c1', label: '' }]);
+    setMicroValues(() => {
+      const init: Record<string, string[]> = {};
+      MICRO_PARAMS.forEach((p) => { init[p] = ['']; });
+      return init;
+    });
+    setMicroOk(null);
+    setMicroRemarks("");
+    setMechOk(null);
+    setMechRemarks("");
+    setImpactOk(null);
+    setImpactRemarks("");
+    setHardOk(null);
+    setHardRemarks("");
+    setMechRows(initialRows(["Cavity Number", "Tensile strength", "Yield strength", "Elongation"]));
+    setImpactRows(initialRows(["Cavity Number", "Cold Temp °C", "Room Temp °C"]));
+    setHardRows(initialRows(["Cavity Number", "Surface", "Core"]));
+    setAttachedFiles([]);
+    setPreviewSubmitted(false);
+    setMessage(null);
+  };
+
   const updateRow = (setRows: React.Dispatch<React.SetStateAction<Row[]>>) => (id: string, patch: Partial<Row>) => {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)));
   };
@@ -1179,7 +1203,7 @@ export default function MetallurgicalInspection() {
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                       {!isMachineShop && (
                         <ActionButtons
-                          {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                          {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                           onSave={handleSaveAndContinue}
                           showSubmit={false}
                           saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}

@@ -289,7 +289,25 @@ function PouringDetailsTable() {
         if (trialId) fetchData();
     }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
+    const handleReset = () => {
+        setPouringDate(new Date().toISOString().split('T')[0]);
+        setHeatCode("");
+        setChemState({
+            c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: ""
+        });
+        setPouringTemp("");
+        setPouringTime("");
+        setInoculationText("");
+        setInoculationStream("");
+        setInoculationInmould("");
+        setFicHeatNo("");
+        setPpCode("");
+        setFollowedBy("");
+        setRemarksText("");
+        setAttachedFiles([]);
+        setNoOfMouldPoured("");
+        setSubmitted(false);
+    };
 
     const buildPreviewPayload = () => {
         return {
@@ -670,7 +688,7 @@ function PouringDetailsTable() {
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2}>
                                             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                                 <ActionButtons
-                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                                                     onSave={handleSaveAndContinue}
                                                     showSubmit={false}
                                                     saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}

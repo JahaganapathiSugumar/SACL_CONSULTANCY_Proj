@@ -387,6 +387,27 @@ function FoundrySampleCard() {
     if (selectedPart) fetchTrialId();
   }, [selectedPart, user, trialIdFromUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleReset = () => {
+    setSelectedPart(null);
+    setSelectedPattern(null);
+    setSamplingDate(new Date().toISOString().split("T")[0]);
+    setPlanMoulds("");
+    setMachine("");
+    setReason("");
+    setCustomReason("");
+    setSampleTraceability("");
+    setTrialType("");
+    setToolingModification("");
+    setToolingFiles([]);
+    setRemarks("");
+    setMouldCorrections([{ id: 1, compressibility: "", squeezePressure: "", fillerSize: "" }]);
+    setChemState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
+    setTensileState({ tensileStrength: "", yieldStrength: "", elongation: "", impactCold: "", impactRoom: "" });
+    setMicroState({ nodularity: "", pearlite: "", carbide: "" });
+    setHardnessState({ surface: "", core: "" });
+    setSubmitted(false);
+  };
+
   const handlePartChange = (v: PartData | null) => { setSelectedPart(v); };
   const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
 
@@ -1177,7 +1198,7 @@ function FoundrySampleCard() {
                 {user?.department_id !== 8 && (
                   <Box sx={{ mt: 2, mb: 4 }}>
                     <ActionButtons
-                      {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                      {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                       onSave={handleSaveAndContinue}
                       showSubmit={false}
                       saveLabel={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}

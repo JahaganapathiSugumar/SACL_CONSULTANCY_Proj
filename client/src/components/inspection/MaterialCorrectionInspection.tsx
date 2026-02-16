@@ -170,6 +170,15 @@ export default function MaterialCorrection() {
     };
 
 
+    const handleReset = () => {
+        setRemarks("");
+        setAttachedFiles([]);
+        setChemState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
+        setProcessState({ pouringTemp: "", inoculantPerSec: "", inoculantType: "" });
+        setDate(new Date().toISOString().slice(0, 10));
+        setSubmitted(false);
+    };
+
     const buildServerPayload = () => {
         const source = previewPayload || {
             trial_id: trialId,
@@ -407,7 +416,7 @@ export default function MaterialCorrection() {
                                             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                                 {user?.department_id !== 8 && user?.department_id !== 6 && user?.department_id !== 7 && (
                                                     <ActionButtons
-                                                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: () => window.location.reload() } : {})}
+                                                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                                                         onSave={handleSaveAndContinue}
                                                         showSubmit={false}
                                                         saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}

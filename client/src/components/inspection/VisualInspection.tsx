@@ -653,7 +653,7 @@ export default function VisualInspection({
         setCols((prev) => prev.map((c, i) => (i === index ? label : c)));
     };
 
-    const reset = () => {
+    const handleReset = () => {
         setCols([...initialCols]);
         setRows(buildRows(initialRows, initialCols));
         setVisualOk(null);
@@ -1187,7 +1187,7 @@ export default function VisualInspection({
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                             {user?.department_id !== 8 && (
                                                 <ActionButtons
-                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: reset } : {})}
+                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                                                     onSave={handleSaveAndContinue}
                                                     showSubmit={false}
                                                     saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
