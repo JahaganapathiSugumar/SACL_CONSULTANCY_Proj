@@ -79,18 +79,18 @@ export const sendOtp = async (req, res, next) => {
         throw new CustomError('Server error storing OTP', 500);
     }
 
-    try {
-        await sendMail({
-            to: email,
-            subject: 'Your verification code',
-            text: `Your OTP code is: ${otp}. It expires in 5 minutes.`
-        });
-        logger.info('OTP sent', { email, userId: user.user_id });
-    } catch (err) {
-        logger.error('Failed to send verification email', err);
+    const result = await sendMail({
+        to: email,
+        subject: 'Your verification code',
+        text: `Your OTP code is: ${otp}. It expires in 5 minutes.`
+    });
+
+    if (!result.success) {
+        logger.error('Failed to send verification email', { error: result.error, email });
         throw new CustomError('Failed to send verification email', 500);
     }
 
+    logger.info('OTP sent', { email, userId: user.user_id });
     return res.json({ success: true, message: 'OTP sent' });
 };
 

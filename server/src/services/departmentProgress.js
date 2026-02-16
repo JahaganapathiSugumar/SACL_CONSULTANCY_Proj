@@ -2,6 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import CustomError from '../utils/customError.js';
 import sendMail from '../utils/mailSender.js';
+import logger from '../config/logger.js';
 import { generateAndStoreTrialReport } from './trialReportGenerator.js';
 import { generateAndStoreConsolidatedReport } from './consolidatedReportGenerator.js';
 
@@ -124,7 +125,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
 
     const mailOptions = {
         to: next_department_user_rows[0].email,
-
+        cc: "cae_sacl@sakthiauto.com",
         subject: 'A new request assigned',
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -142,7 +143,10 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
             cid: 'sacllogo'
         }]
     };
-    await sendMail(mailOptions);
+    const result = await sendMail(mailOptions);
+    if (!result.success) {
+        logger.error(`Failed to send assignment email to ${next_department_user_rows[0].email}: ${result.error}`);
+    }
     return "Department progress added successfully";
 };
 
@@ -250,6 +254,7 @@ export const updateRole = async (trial_id, user, trx) => {
         const [targetUser] = user_result;
         const mailOptions = {
             to: targetUser.email,
+            cc: "cae_sacl@sakthiauto.com",
             subject: 'A new request assigned',
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -267,7 +272,10 @@ export const updateRole = async (trial_id, user, trx) => {
                 cid: 'sacllogo'
             }]
         };
-        await sendMail(mailOptions);
+        const result = await sendMail(mailOptions);
+        if (!result.success) {
+            logger.error(`Failed to send HOD assignment email to ${targetUser.email}: ${result.error}`);
+        }
         return "Department progress updated successfully";
     } else {
         const [rows] = await trx.query(
@@ -412,6 +420,7 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
 
     const mailOptions = {
         to: next_department_user[0].email,
+        cc: "cae_sacl@sakthiauto.com",
         subject: 'A new request assigned',
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
@@ -429,6 +438,9 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
             cid: 'sacllogo'
         }]
     };
-    await sendMail(mailOptions);
+    const result = await sendMail(mailOptions);
+    if (!result.success) {
+        logger.error(`Failed to send progress update email to ${next_department_user[0].email}: ${result.error}`);
+    }
     return "Next department updated successfully";
 };

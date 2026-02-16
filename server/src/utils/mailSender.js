@@ -2,37 +2,45 @@ import nodemailer from 'nodemailer';
 import CustomError from './customError.js';
 import logger from '../config/logger.js';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+let transporter = null;
 
-const sendMail = async ({ to, subject, text, html }) => {
-  if(Array.isArray(to)){
-    to.forEach(email => {
-      transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: email, subject, text, html }, (error, info) => {
-        if (error) {
-           logger.error('Email sending unexpected error:', error.message);
-           return { success: false, error: error.message };
-        }
-      });
-    });
-  }else{
-    transporter.sendMail({ from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`, to: to, subject, text, html }, (error, info) => {
-      if (error) {
-         logger.error('Email sending unexpected error:', error.message);
-         return { success: false, error: error.message };
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
   }
-}
+  return transporter;
+};
+
+const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
+  try {
+    const mailOptions = {
+      from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`,
+      to,
+      cc,
+      bcc,
+      subject,
+      text,
+      html
+    };
+
+    const info = await getTransporter().sendMail(mailOptions);
+    logger.info(`Email sent successfully: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error('Email sending error:', error.message);
+    return { success: false, error: error.message };
+  }
+};
 
 export default sendMail;
