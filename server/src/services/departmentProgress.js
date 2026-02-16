@@ -125,8 +125,8 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
 
     const mailOptions = {
         to: next_department_user_rows[0].email,
-        cc: "cae_sacl@sakthiauto.com",
-        subject: 'A new request assigned',
+        cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+        subject: `Digital Sample Card For ${trial_id}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
@@ -134,7 +134,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
                 <p>Hello,</p>
                 <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
-                <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>
         `,
         attachments: [{
@@ -251,8 +251,8 @@ export const updateRole = async (trial_id, user, trx) => {
         const [targetUser] = user_result;
         const mailOptions = {
             to: targetUser.email,
-            cc: "cae_sacl@sakthiauto.com",
-            subject: 'A new request assigned',
+            cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+            subject: `Digital Sample Card For ${trial_id}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                     <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
@@ -260,7 +260,7 @@ export const updateRole = async (trial_id, user, trx) => {
                     <p>Hello,</p>
                     <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
                     <p>Please check the progress by logging into the application.</p>
-                    <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                    <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
                 </div>
             `,
             attachments: [{
@@ -414,8 +414,8 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
 
     const mailOptions = {
         to: next_department_user[0].email,
-        cc: "cae_sacl@sakthiauto.com",
-        subject: 'A new request assigned',
+        cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+        subject: `Digital Sample Card For ${trial_id}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
@@ -423,7 +423,7 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
                 <p>Hello,</p>
                 <p>The trial <strong>${trial_id}</strong> has been partially completed and assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
-                <p><a href="http://localhost:5173/dashboard" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>
         `,
         attachments: [{
