@@ -95,7 +95,7 @@ CREATE TABLE material_correction (
     process_parameters NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
     date DATE,
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -110,7 +110,7 @@ CREATE TABLE pouring_details (
     inoculation NVARCHAR(MAX),
     other_remarks NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -127,7 +127,7 @@ CREATE TABLE sand_properties (
     compactability DECIMAL(7,2) CHECK (compactability >= 0),
     permeability DECIMAL(7,2) CHECK (permeability >= 0),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -139,7 +139,7 @@ CREATE TABLE mould_correction (
     mould_hardness VARCHAR(30),
     remarks NVARCHAR(MAX),
     date DATE,
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -158,7 +158,7 @@ CREATE TABLE metallurgical_inspection (
     hardness NVARCHAR(MAX),
     hardness_ok BIT,
     hardness_remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -174,7 +174,7 @@ CREATE TABLE visual_inspection (
     hardness NVARCHAR(MAX),
     hardness_ok BIT,
     hardness_remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -187,7 +187,7 @@ CREATE TABLE dimensional_inspection (
     yields INT CHECK (yields >= 0),
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -196,7 +196,7 @@ CREATE TABLE machine_shop (
     inspection_date DATE,
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
@@ -210,7 +210,7 @@ CREATE TABLE department_progress (
     remarks NVARCHAR(MAX),
     CONSTRAINT chk_approval_status CHECK (approval_status IN ('pending', 'approved')),
     CONSTRAINT uq_trial_department UNIQUE (trial_id, department_id),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id),
     FOREIGN KEY (username) REFERENCES dtc_users(username)
 );
@@ -229,7 +229,7 @@ CREATE TABLE documents (
     uploaded_by BIGINT,
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE,
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES dtc_users(user_id)
 );
 GO
@@ -316,7 +316,7 @@ CREATE TABLE trial_reports (
     deleted_by VARCHAR(50),
     remarks NVARCHAR(MAX),
     CONSTRAINT uq_trial_reports_trial UNIQUE (trial_id),
-    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE
+    FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 

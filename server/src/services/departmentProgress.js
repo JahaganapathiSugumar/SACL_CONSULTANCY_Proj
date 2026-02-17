@@ -134,7 +134,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
                 <p>Hello,</p>
                 <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
-                <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>
         `,
         attachments: [{
@@ -260,7 +260,7 @@ export const updateRole = async (trial_id, user, trx) => {
                     <p>Hello,</p>
                     <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
                     <p>Please check the progress by logging into the application.</p>
-                    <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                    <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
                 </div>
             `,
             attachments: [{
@@ -423,7 +423,7 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
                 <p>Hello,</p>
                 <p>The trial <strong>${trial_id}</strong> has been partially completed and assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
-                <p><a href=${process.env.APP_URL} style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>
         `,
         attachments: [{
