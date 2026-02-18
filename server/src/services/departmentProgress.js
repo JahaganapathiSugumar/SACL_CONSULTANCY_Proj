@@ -123,16 +123,22 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
         remarks: `Department progress for trial ${trial_id} added by ${user.username} in ${user.department_name} department`
     });
 
+    const [trial_details_result] = await trx.query(
+        `SELECT part_name, pattern_code, trial_no FROM trial_cards WHERE trial_id = @trial_id`,
+        { trial_id }
+    );
+    const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
+
     const mailOptions = {
         to: next_department_user_rows[0].email,
         cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card For ${trial_id}`,
+        subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
                 <h2 style="color: #2950bb;">New Request Assigned</h2>
                 <p>Hello,</p>
-                <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
+                <p>Department progress for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
                 <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>
@@ -198,11 +204,11 @@ export const updateRole = async (trial_id, user, trx) => {
         remarks: `Department progress for trial ${trial_id} updated by ${user.username} in ${user.department_name} department`
     });
     const [current_trial] = await trx.query(
-        `SELECT trial_type FROM trial_cards WHERE trial_id = @trial_id`,
+        `SELECT trial_type, part_name, pattern_code, trial_no FROM trial_cards WHERE trial_id = @trial_id`,
         { trial_id }
     );
     const current_department_id = user.department_id;
-    const trial_type = current_trial[0].trial_type;
+    const { trial_type, part_name, pattern_code, trial_no } = current_trial[0];
 
     let current_department_hod_result;
     if (current_department_id == 8) {
@@ -252,13 +258,13 @@ export const updateRole = async (trial_id, user, trx) => {
         const mailOptions = {
             to: targetUser.email,
             cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-            subject: `Digital Sample Card For ${trial_id}`,
+            subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                     <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
                     <h2 style="color: #2950bb;">New Request Assigned</h2>
                     <p>Hello,</p>
-                    <p>Department progress for trial <strong>${trial_id}</strong> has been assigned to you by <strong>${user.username}</strong>.</p>
+                    <p>Department progress for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been assigned to you by <strong>${user.username}</strong>.</p>
                     <p>Please check the progress by logging into the application.</p>
                     <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
                 </div>
@@ -338,10 +344,10 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
     const current_department_id = user.department_id;
 
     const [trialData] = await trx.query(
-        `SELECT trial_type FROM trial_cards WHERE trial_id = @trial_id`,
+        `SELECT trial_type, part_name, pattern_code, trial_no FROM trial_cards WHERE trial_id = @trial_id`,
         { trial_id }
     );
-    const trial_type = trialData[0]?.trial_type;
+    const { trial_type, part_name, pattern_code, trial_no } = trialData[0] || {};
 
     const [rows] = await trx.query(
         `SELECT df2.department_id AS next_department_id
@@ -415,13 +421,13 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
     const mailOptions = {
         to: next_department_user[0].email,
         cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card For ${trial_id}`,
+        subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
                 <h2 style="color: #2950bb;">New Request Assigned</h2>
                 <p>Hello,</p>
-                <p>The trial <strong>${trial_id}</strong> has been partially completed and assigned to you by <strong>${user.username}</strong>.</p>
+                <p>The trial for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been partially completed and assigned to you by <strong>${user.username}</strong>.</p>
                 <p>Please check the progress by logging into the application.</p>
                 <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
             </div>

@@ -5,7 +5,6 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Paper,
     Button,
     Dialog,
     DialogTitle,
@@ -14,9 +13,11 @@ import {
     Box,
     Typography,
     TableContainer,
-    useMediaQuery,
-    useTheme,
+    IconButton,
+    Tooltip
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CloseIcon from '@mui/icons-material/Close';
 import LoadingState from '../common/LoadingState';
 import { trialService } from '../../services/trialService';
 import DocumentViewer from '../common/DocumentViewer';
@@ -33,9 +34,6 @@ const ConsolidatedReportsTable: React.FC = () => {
     const [reports, setReports] = useState<ConsolidatedReport[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
     useEffect(() => {
         const fetchReports = async () => {
@@ -70,88 +68,87 @@ const ConsolidatedReportsTable: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: { xs: 1, sm: 2.5, md: 3 } }}>
-            <TableContainer
-                className="premium-table-container"
-                sx={{
-                    maxHeight: 'calc(100vh - 350px)',
-                    overflow: 'auto',
-                    position: 'relative',
-                    minHeight: loading || reports.length === 0 ? '300px' : 'auto'
-                }}
-            >
-                {loading ? (
-                    <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'rgba(255,255,255,0.7)',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 10,
-                        borderRadius: '12px',
-                        backdropFilter: 'blur(2px)'
-                    }}>
-                        <LoadingState message="Fetching reports..." />
-                    </Box>
-                ) : null}
-                <Table stickyHeader size={isMobile ? "small" : "medium"}>
-                    <TableHead className="premium-table-head">
+        <TableContainer
+            className="premium-table-container"
+            sx={{
+                maxHeight: 'calc(100vh - 400px)',
+                overflow: 'auto',
+                position: 'relative',
+                minHeight: loading || reports.length === 0 ? '300px' : 'auto'
+            }}
+        >
+            {loading ? (
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 10,
+                    borderRadius: '12px',
+                    backdropFilter: 'blur(2px)'
+                }}>
+                    <LoadingState message="Fetching reports..." />
+                </Box>
+            ) : null}
+            <Table stickyHeader sx={{ minWidth: 650 }}>
+                <TableHead className="premium-table-head">
+                    <TableRow>
+                        <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
+                        <TableCell className="premium-table-header-cell">Part Name</TableCell>
+                        <TableCell className="premium-table-header-cell" align="right">Actions</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {!loading && reports.length === 0 ? (
                         <TableRow>
-                            <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
-                            <TableCell className="premium-table-header-cell">Part Name</TableCell>
-                            <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
+                            <TableCell colSpan={3} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                    No consolidated reports found.
+                                </Typography>
+                            </TableCell>
                         </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {reports.length > 0 ? (
-                            reports.map((report) => (
-                                <TableRow key={report.document_id} className="premium-table-row">
-                                    <TableCell className="premium-table-cell-bold">{report.pattern_code}</TableCell>
-                                    <TableCell className="premium-table-cell">{report.part_name}</TableCell>
-                                    <TableCell className="premium-table-cell" align="center">
-                                        <Button
-                                            variant="contained"
-                                            size="small"
+                    ) : (
+                        reports.map((report) => (
+                            <TableRow key={report.document_id} className="premium-table-row">
+                                <TableCell className="premium-table-cell-bold">{report.pattern_code}</TableCell>
+                                <TableCell className="premium-table-cell">{report.part_name}</TableCell>
+                                <TableCell className="premium-table-cell" align="right">
+                                    <Tooltip title="View History">
+                                        <IconButton
                                             onClick={() => handleViewReport(report)}
+                                            color="primary"
+                                            size="small"
                                             sx={{
-                                                borderRadius: 2,
-                                                textTransform: 'none',
-                                                fontSize: '0.75rem',
-                                                px: 2,
-                                                bgcolor: '#E67E22',
+                                                bgcolor: 'rgba(230, 126, 34, 0.1)',
+                                                color: '#E67E22',
                                                 '&:hover': {
-                                                    bgcolor: '#D35400'
+                                                    bgcolor: 'rgba(230, 126, 34, 0.2)',
                                                 }
                                             }}
                                         >
-                                            View History
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={3} align="center" className="premium-table-cell" sx={{ py: 20 }}>
-                                    <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                                        No consolidated reports found
-                                    </Typography>
+                                            <VisibilityIcon />
+                                        </IconButton>
+                                    </Tooltip>
                                 </TableCell>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <Typography variant="caption" sx={{ display: { xs: 'block', sm: 'none' }, color: 'text.secondary', textAlign: 'center', mt: 1 }}>
-                Swipe to view more
-            </Typography>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-                <DialogTitle>Consolidated Report - {viewReport?.patternCode}</DialogTitle>
-                <DialogContent>
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6">Consolidated Report - {viewReport?.patternCode}</Typography>
+                    <IconButton onClick={() => setViewReport(null)} size="small">
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
                     {viewReport && (
                         <DocumentViewer
                             documents={viewReport.documents}
@@ -160,10 +157,10 @@ const ConsolidatedReportsTable: React.FC = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setViewReport(null)}>Close</Button>
+                    <Button onClick={() => setViewReport(null)} color="inherit">Close</Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </TableContainer>
     );
 };
 
