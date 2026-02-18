@@ -12,7 +12,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress approved' 
+             AND (al.action = 'Department progress approved' OR al.action = 'Department progress completed')
              AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
         );
@@ -22,7 +22,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress approved' 
+             AND (al.action = 'Department progress approved' OR al.action = 'Department progress completed')
              AND YEAR(al.action_timestamp) = YEAR(GETDATE()) - 1`,
             { department_id: userDepartmentId }
         );
@@ -32,7 +32,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress approved' 
+             AND (al.action = 'Department progress approved' OR al.action = 'Department progress completed')
              AND MONTH(al.action_timestamp) = MONTH(GETDATE())
              AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
@@ -60,7 +60,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress completed' 
+             AND (al.action = 'Department progress completed' OR al.action = 'Department progress approved')
              AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
         );
@@ -70,7 +70,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress completed' 
+             AND (al.action = 'Department progress completed' OR al.action = 'Department progress approved')
              AND YEAR(al.action_timestamp) = YEAR(GETDATE()) - 1`,
             { department_id: userDepartmentId }
         );
@@ -80,7 +80,7 @@ export const getDashboardStats = async (req, res, next) => {
             `SELECT COUNT(DISTINCT al.trial_id) as count 
              FROM audit_log al
              WHERE al.department_id = @department_id
-             AND al.action = 'Department progress completed' 
+             AND (al.action = 'Department progress completed' OR al.action = 'Department progress approved')
              AND MONTH(al.action_timestamp) = MONTH(GETDATE())
              AND YEAR(al.action_timestamp) = YEAR(GETDATE())`,
             { department_id: userDepartmentId }
