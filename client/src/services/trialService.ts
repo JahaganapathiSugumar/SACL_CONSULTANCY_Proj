@@ -37,11 +37,11 @@ export const trialService = {
      * @param partName - Name of the part to search for
      * @returns Promise resolving to trial data
      */
-    async getTrialIdByPartName(partName: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getTrialIdByPartName(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            return await apiService.request(`/trial/id?part_name=${encodeURIComponent(partName)}`);
+            return await apiService.request(`/trial/id?pattern_code=${encodeURIComponent(patternCode)}`);
         } catch (error) {
-            console.error('Failed to fetch trial by part name:', error);
+            console.error('Failed to fetch trial by pattern code:', error);
             throw error;
         }
     },
@@ -51,9 +51,9 @@ export const trialService = {
      * @param trialId - Trial ID to search for
      * @returns Promise resolving to trial data
      */
-    async getTrialByTrialId(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getTrialByTrialId(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`);
+            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(String(trialId))}`);
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 return data.data[0];
             }
@@ -129,9 +129,9 @@ export const trialService = {
      * @param trialId - Trial ID to fetch
      * @returns Promise resolving to trial data
      */
-    async getTrialById(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getTrialById(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(trialId)}`);
+            const data = await apiService.request(`/trial/trial_id?trial_id=${encodeURIComponent(String(trialId))}`);
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 return { success: true, data: data.data[0] };
             }
@@ -165,7 +165,7 @@ export const trialService = {
      * @param trialIds - Array of trial IDs to delete
      * @returns Promise resolving to API response
      */
-    async deleteTrialReport(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async deleteTrialReport(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/delete-reports', {
                 method: 'DELETE',
@@ -210,7 +210,7 @@ export const trialService = {
      * @param trialId - Trial ID to restore
      * @returns Promise resolving to API response
      */
-    async restoreTrialReport(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async restoreTrialReport(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/restore-report', {
                 method: 'POST',
@@ -227,7 +227,7 @@ export const trialService = {
      * @param trialId - Trial ID to permanently delete
      * @returns Promise resolving to API response
      */
-    async permanentlyDeleteTrialReport(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async permanentlyDeleteTrialReport(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/permanent-delete-report', {
                 method: 'DELETE',
@@ -258,7 +258,7 @@ export const trialService = {
      * @param trialId - Trial ID to delete
      * @returns Promise resolving to API response
      */
-    async deleteTrialCard(trialId: string, patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async deleteTrialCard(trialId: number | string, patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/delete-trial', {
                 method: 'DELETE',
@@ -275,7 +275,7 @@ export const trialService = {
      * @param trialIds - Array of trial IDs to delete
      * @returns Promise resolving to API response
      */
-    async bulkDeleteTrialCards(trialIds: string[], patternCodes: string[]): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async bulkDeleteTrialCards(trialIds: (number | string)[], patternCodes: string[]): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/delete-trial', {
                 method: 'DELETE',
@@ -306,7 +306,7 @@ export const trialService = {
      * @param trialId - Trial ID to restore
      * @returns Promise resolving to API response
      */
-    async restoreTrialCard(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async restoreTrialCard(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/restore-trial', {
                 method: 'POST',
@@ -323,7 +323,7 @@ export const trialService = {
      * @param trialId - Trial ID to permanently delete
      * @returns Promise resolving to API response
      */
-    async permanentlyDeleteTrialCard(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async permanentlyDeleteTrialCard(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request('/trial/permanent-delete-trial', {
                 method: 'DELETE',

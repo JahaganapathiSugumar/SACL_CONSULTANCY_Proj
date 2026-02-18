@@ -115,7 +115,7 @@ export const updatePouringDetails = async (req, res, next) => {
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
                 await triggerNextDepartment(trial_id, req.user, trx);
-            } else if(req.user.role === 'User'){
+            } else if (req.user.role === 'User') {
                 await updateRole(trial_id, req.user, trx);
             } else {
                 await updateDepartment(trial_id, req.user, trx);
@@ -139,7 +139,6 @@ export const getPouringDetailsByTrialId = async (req, res, next) => {
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
-    trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM pouring_details WHERE trial_id = @trial_id', { trial_id });
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
     await Client.query(audit_sql, {

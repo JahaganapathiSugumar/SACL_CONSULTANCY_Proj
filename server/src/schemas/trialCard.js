@@ -12,7 +12,8 @@ const jsonValueSchema = z.lazy(() =>
 );
 
 export const trialCardSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required").max(255),
+    trial_id: z.union([z.number(), z.string()]).optional().nullable(),
+    trial_no: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive("Trial Number is required")),
     part_name: z.string().min(1, "Part Name is required").max(100),
     pattern_code: z.string().min(1, "Pattern Code is required").max(150),
     material_grade: z.string().min(1, "Material Grade is required").max(50),

@@ -4,7 +4,6 @@ import logger from '../config/logger.js';
 // Helper to fetch data (extracted from the controller logic)
 export const fetchTrialData = async (trial_id, trx) => {
     if (!trial_id) return null;
-    trial_id = trial_id.replace(/['"]+/g, '');
 
     const [trial_cards] = await trx.query(
         `SELECT tc.*, mc.chemical_composition AS spec_chem, mc.micro_structure AS spec_micro 
@@ -209,7 +208,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // Header
     doc.rect(0, 0, 595, 60).fillColor('#2c3e50').fill();
     doc.font('Helvetica-Bold').fontSize(18).fillColor('white').text('FULL INSPECTION REPORT', 30, 20, { align: 'left' });
-    doc.fontSize(10).text(`Trial ID: ${trial_id}   |   Date: ${new Date().toLocaleDateString()}`, 30, 42, { align: 'left' });
+    doc.fontSize(10).text(`Trial No: ${trialCard?.trial_no || ""}   |   Date: ${new Date().toLocaleDateString()}`, 30, 42, { align: 'left' });
     doc.fillColor('black'); // Reset
 
     let y = 80;
@@ -224,7 +223,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     const trialRows = [
         { label: "Part Name", value: trialCard?.part_name },
         { label: "Pattern Code", value: trialCard?.pattern_code },
-        { label: "Trial No", value: trialCard?.trial_id },
+        { label: "Trial No", value: trialCard?.trial_no },
         { label: "Date of Sampling", value: trialCard?.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
         { label: "Mould Count (Plan/Act)", value: `${trialCard?.plan_moulds || trialCard?.no_of_moulds || '-'} / ${trialCard?.actual_moulds || '-'}` },
         { label: "Machine", value: trialCard?.disa },
@@ -301,7 +300,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     let p2y = 40;
 
     // Header P2
-    doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${trial_id} - Inspection Results   |   Page: 2`, 30, 20);
+    doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${trialCard?.trial_no || ""} - Inspection Results   |   Page: 2`, 30, 20);
     doc.moveTo(30, 35).lineTo(565, 35).stroke();
 
     // 6. Metallurgical Inspection

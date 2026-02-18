@@ -5,7 +5,7 @@ export const userSchema = z.object({
     full_name: z.string().min(1, "Full name is required").max(100),
     email: z.string().email("Invalid email address").max(100).optional().nullable(),
     password: z.string().optional(),
-    department_id: z.number().int().optional().nullable(),
+    department_id: z.number().int(),
     role: z.enum(['User', 'HOD', 'Admin']).default('User'),
     machine_shop_user_type: z.enum(['N/A', 'NPD', 'REGULAR']).default('N/A'),
     is_active: z.boolean().default(true),
@@ -18,5 +18,6 @@ export const loginSchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
+    oldPassword: z.string().min(1, "Old password is required").optional(),
     newPassword: z.string().min(6, "New password must be at least 6 characters")
 });

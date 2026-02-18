@@ -14,7 +14,7 @@ import BasicInfo from './BasicInfo';
 interface ProgressingTrialModalProps {
     isOpen: boolean;
     onClose: () => void;
-    trialId: string;
+    trialId: number | string;
 }
 
 const ProgressingTrialModal: React.FC<ProgressingTrialModalProps> = ({ isOpen, onClose, trialId }) => {

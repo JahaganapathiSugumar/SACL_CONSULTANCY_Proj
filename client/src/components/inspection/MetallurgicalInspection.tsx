@@ -580,7 +580,7 @@ export default function MetallurgicalInspection() {
         }
         try {
           const pending = await getProgress(user.username, user.department_id);
-          const found = pending.find(p => p.trial_id === trialId);
+          const found = pending.find(p => String(p.trial_id) === String(trialId));
           setIsAssigned(!!found);
         } catch (error) {
           console.error("Failed to check assignment:", error);

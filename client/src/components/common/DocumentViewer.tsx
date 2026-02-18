@@ -9,7 +9,7 @@ import { documentService } from '../../services/documentService';
 import { formatFileSize } from '../../utils';
 
 interface DocumentViewerProps {
-    trialId?: string;
+    trialId?: number | string;
     category?: string;
     label?: string;
     refreshTrigger?: number;

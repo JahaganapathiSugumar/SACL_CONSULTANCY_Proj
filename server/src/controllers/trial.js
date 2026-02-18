@@ -5,17 +5,18 @@ import sendMail from '../utils/mailSender.js';
 import { generateAndStoreConsolidatedReport } from '../services/consolidatedReportGenerator.js';
 
 export const createTrial = async (req, res, next) => {
-    const { trial_id, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
+    const { trial_no, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
 
-    if (!trial_id || !part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
+    if (!trial_no || !part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
 
+    let trial_id;
     await Client.transaction(async (trx) => {
-        const sql = 'INSERT INTO trial_cards (trial_id, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_id, @part_name, @pattern_code, @trial_type, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks)';
-        await trx.query(sql, {
-            trial_id,
+        const sql = 'INSERT INTO trial_cards (trial_no, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_no, @part_name, @pattern_code, @trial_type, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks); SELECT SCOPE_IDENTITY() AS trial_id;';
+        const result = await trx.query(sql, {
+            trial_no,
             part_name,
             pattern_code,
             trial_type,
@@ -31,8 +32,10 @@ export const createTrial = async (req, res, next) => {
             sample_traceability,
             mould_correction: mouldJson,
             tooling_modification: tooling_modification,
-            remarks: remarks || null
+            remarks: remarks
         });
+
+        trial_id = result[0][0].trial_id;
 
         const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
         await trx.query(audit_sql, {
@@ -40,7 +43,7 @@ export const createTrial = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Trial created',
-            remarks: `Trial ${trial_id} created by ${req.user.username} with part name ${part_name}`
+            remarks: `Trial (No: ${trial_no}) created by ${req.user.username} for part name ${part_name}`
         });
 
         await createDepartmentProgress(trial_id, req.user, part_name, trx);
@@ -50,7 +53,7 @@ export const createTrial = async (req, res, next) => {
     });
 
     logger.info('Trial created successfully', { trial_id, part_name, createdBy: req.user.username });
-    res.status(201).json({ success: true, message: 'Trial created successfully.' });
+    return res.status(201).json({ success: true, message: 'Trial created successfully.', trial_id });
 };
 
 export const getTrials = async (req, res, next) => {
@@ -63,13 +66,12 @@ export const getTrialById = async (req, res, next) => {
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
-    trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM trial_cards WHERE trial_id = @trial_id AND deleted_at IS NULL', { trial_id });
     res.status(200).json({ success: true, data: rows });
 };
 
 export const getTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -79,21 +81,20 @@ export const getConsolidatedReports = async (req, res, next) => {
 };
 
 export const getRecentTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_base64, t.file_name, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
+    const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
     res.status(200).json({ success: true, data: rows });
 };
 
-export const generateTrialId = async (req, res, next) => {
-    let part_name = req.query.part_name;
-    if (!part_name) {
-        return res.status(400).json({ success: false, message: 'part_name query parameter is required' });
+export const generateTrialNo = async (req, res, next) => {
+    let pattern_code = req.query.pattern_code;
+    if (!pattern_code) {
+        return res.status(400).json({ success: false, message: 'pattern_code query parameter is required' });
     }
-    part_name = part_name.replace(/['"]+/g, '');
-    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards WHERE part_name = @part_name', { part_name });
+    pattern_code = pattern_code.replace(/['"]+/g, '');
+    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards WHERE pattern_code = @pattern_code', { pattern_code });
 
     const count = rows[0].count + 1;
-    const formattedId = `${part_name}-T${count}`;
-    res.status(200).json({ success: true, data: formattedId });
+    res.status(200).json({ success: true, data: count });
 };
 
 export const updateTrial = async (req, res, next) => {
@@ -101,6 +102,7 @@ export const updateTrial = async (req, res, next) => {
         trial_id,
         part_name,
         pattern_code,
+        trial_no,
         trial_type,
         material_grade,
         date_of_sampling,
@@ -126,6 +128,7 @@ export const updateTrial = async (req, res, next) => {
             const sql = `UPDATE trial_cards SET 
                 part_name = COALESCE(@part_name, part_name),
                 pattern_code = COALESCE(@pattern_code, pattern_code),
+                trial_no = COALESCE(@trial_no, trial_no),
                 trial_type = COALESCE(@trial_type, trial_type),
                 material_grade = COALESCE(@material_grade, material_grade),
                 date_of_sampling = COALESCE(@date_of_sampling, date_of_sampling),
@@ -142,6 +145,7 @@ export const updateTrial = async (req, res, next) => {
             await trx.query(sql, {
                 part_name,
                 pattern_code,
+                trial_no,
                 trial_type,
                 material_grade,
                 date_of_sampling,
@@ -162,7 +166,7 @@ export const updateTrial = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Trial updated',
-                remarks: `Trial ${trial_id} updated by ${req.user.username}`
+                remarks: `Trial ID: ${trial_id}, Trial No: ${trial_no} updated by ${req.user.username}`
             });
             logger.info('Trial updated', { trial_id, updatedBy: req.user.username });
 
@@ -175,14 +179,15 @@ export const updateTrial = async (req, res, next) => {
             if (emails.length > 0) {
                 sendMail({
                     to: emails,
-                    subject: `Trial Updated: ${trial_id}`,
-                    text: `The trial card ${trial_id} (${part_name}) has been updated by ${req.user.username}.`,
+                    subject: `Trial Updated: ${part_name} - ${trial_no}`,
+                    text: `The trial card ${trial_no} (ID: ${trial_id}, Part: ${part_name}) has been updated by ${req.user.username}.`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                             <h2 style="color: #E67E22;">Trial Card Update Notification</h2>
                             <p>The following trial card has been updated:</p>
                             <ul style="list-style: none; padding: 0;">
-                                <li><strong>Trial ID:</strong> ${trial_id}</li>
+                                <li><strong>Trial No:</strong> ${trial_no}</li>
+                                <li><strong>Trial ID (DB):</strong> ${trial_id}</li>
                                 <li><strong>Part Name:</strong> ${part_name}</li>
                                 <li><strong>Pattern Code:</strong> ${pattern_code}</li>
                             </ul>
@@ -228,7 +233,7 @@ export const deleteTrialReports = async (req, res, next) => {
 };
 
 export const getDeletedTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, t.deleted_at, t.deleted_by, c.trial_id, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NOT NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, t.deleted_at, t.deleted_by, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NOT NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -269,7 +274,7 @@ export const deleteTrialCard = async (req, res, next) => {
 };
 
 export const getDeletedTrialCards = async (req, res, next) => {
-    const sql = `SELECT c.trial_id, c.part_name, c.pattern_code, c.material_grade, c.date_of_sampling, c.status, c.deleted_at, c.deleted_by, d.department_name AS department 
+    const sql = `SELECT c.trial_id, c.trial_no, c.part_name, c.pattern_code, c.material_grade, c.date_of_sampling, c.status, c.deleted_at, c.deleted_by, d.department_name AS department 
                  FROM trial_cards c 
                  LEFT JOIN departments d ON c.current_department_id = d.department_id 
                  WHERE c.deleted_at IS NOT NULL`;
@@ -377,7 +382,7 @@ export const permanentlyDeleteTrialReport = async (req, res, next) => {
 
 export const getProgressingTrials = async (req, res, next) => {
     const sql = `
-        SELECT t.trial_id, t.part_name, t.pattern_code, t.current_department_id,
+        SELECT t.trial_id, t.trial_no, t.part_name, t.pattern_code, t.current_department_id,
                t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
                t.sample_traceability, t.trial_type
         FROM trial_cards t

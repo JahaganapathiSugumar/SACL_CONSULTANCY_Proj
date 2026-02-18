@@ -146,7 +146,8 @@ function FoundrySampleCard() {
 
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
   const [selectedPattern, setSelectedPattern] = useState<PartData | null>(null);
-  const [trialId, setTrialId] = useState<string>("");
+  const [trialNo, setTrialNo] = useState<string>("");
+  const [trialId, setTrialId] = useState<number | null>(null);
   const [initiatedBy, setInitiatedBy] = useState<string>("");
   const [masterParts, setMasterParts] = useState<PartData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,7 +220,7 @@ function FoundrySampleCard() {
       if (trialIdFromUrl) {
         try {
           const pending = await departmentProgressService.getProgress(user?.username || "", user?.department_id || 0);
-          const found = pending?.find(p => p.trial_id === trialIdFromUrl);
+          const found = pending?.find(p => String(p.trial_id) === trialIdFromUrl);
           setIsAssigned(!!found);
         } catch (error) {
           console.error("Failed to check assignment:", error);
@@ -244,7 +245,8 @@ function FoundrySampleCard() {
           if (response?.data) {
             const data = response.data;
             if (data) {
-              setTrialId(data?.trial_id || trialIdFromUrl);
+              setTrialId(data?.trial_id || null);
+              setTrialNo(data?.trial_no || "");
               setSamplingDate(data?.date_of_sampling?.split('T')[0] || new Date().toISOString().split("T")[0]);
               setPlanMoulds(data?.plan_moulds || '');
               setMachine(data?.disa || '');
@@ -362,19 +364,19 @@ function FoundrySampleCard() {
     } else { setSelectedPattern(null); }
   }, [selectedPart]);
 
-  const fetchTrialId = async () => {
+  const fetchTrialNo = async () => {
     if (!selectedPart) return;
     setTrialLoading(true);
     try {
-      const json = await trialService.getTrialIdByPartName(selectedPart?.part_name || "");
-      const trialId = (json && (json?.trialId || json?.data)) as string | undefined;
-      if (trialId) {
-        setTrialId(trialId);
+      const json = await trialService.getTrialIdByPartName(selectedPart?.pattern_code || "");
+      const trial_no = (json && (json?.trialNo || json?.data)) as string | undefined;
+      if (trial_no) {
+        setTrialNo(trial_no);
       } else {
         throw new Error("Invalid response");
       }
     } catch (error) {
-      console.warn("Using fallback trial ID", error);
+      console.warn("Using fallback trial number", error);
     } finally {
       setTrialLoading(false);
     }
@@ -384,7 +386,7 @@ function FoundrySampleCard() {
     if ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) {
       return;
     }
-    if (selectedPart) fetchTrialId();
+    if (selectedPart) fetchTrialNo();
   }, [selectedPart, user, trialIdFromUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleReset = () => {
@@ -415,6 +417,7 @@ function FoundrySampleCard() {
     const reasonFinal = reason === 'Others' ? `Others (${customReason})` : reason;
     const source = previewPayload || {
       trial_id: trialId || trialIdFromUrl,
+      trial_no: trialNo,
       pattern_code: selectedPart?.pattern_code,
       part_name: selectedPart?.part_name,
       material_grade: selectedPart?.material_grade,
@@ -455,17 +458,20 @@ function FoundrySampleCard() {
     try {
       const apiPayload = buildServerPayload();
 
+      let response;
       if ((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) {
-        await trialService.updateTrial(apiPayload);
+        response = await trialService.updateTrial(apiPayload);
       } else {
-        await trialService.submitTrial(apiPayload);
+        response = await trialService.submitTrial(apiPayload);
       }
 
+      const currentTrialId = response?.trial_id;
+
       try {
-        if (toolingFiles?.length > 0) {
+        if (toolingFiles?.length > 0 && currentTrialId) {
           await uploadFiles(
             toolingFiles,
-            trialId || trialIdFromUrl,
+            currentTrialId,
             "TOOLING_MODIFICATION",
             user?.username || "Unknown",
             "Tooling Modification files"
@@ -566,17 +572,17 @@ function FoundrySampleCard() {
                           />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>TRIAL REFERENCE</Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary }}>TRIAL NUMBER</Typography>
                           <TextField
                             fullWidth
-                            value={trialId}
+                            value={trialNo}
                             placeholder={"Generating..."}
                             InputProps={{
                               readOnly: true,
                               sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
                               endAdornment: user?.role !== 'HOD' && user?.role !== 'Admin' ? (
                                 <InputAdornment position="end">
-                                  <IconButton onClick={() => fetchTrialId()} disabled={!selectedPart || trialLoading} size="small">
+                                  <IconButton onClick={() => fetchTrialNo()} disabled={!selectedPart || trialLoading} size="small">
                                     {trialLoading ? <GearSpinner size={16} color={COLORS.primary} /> : <RefreshIcon fontSize="small" />}
                                   </IconButton>
                                 </InputAdornment>
@@ -737,8 +743,8 @@ function FoundrySampleCard() {
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <Paper elevation={0} sx={{ p: 2, border: `1px solid ${COLORS.accentGreen}`, bgcolor: "#ecfdf5" }}>
-                      <Typography variant="caption" color="success.main">TRIAL ID</Typography>
-                      <Typography variant="subtitle1" color="success.main">{previewPayload?.trial_id || previewPayload?.trial_no}</Typography>
+                      <Typography variant="caption" color="success.main">TRIAL NO</Typography>
+                      <Typography variant="subtitle1" color="success.main">{previewPayload?.trial_no}</Typography>
                     </Paper>
                   </Grid>
                 </Grid>

@@ -78,7 +78,7 @@ function SandTable() {
         }
         try {
           const pending = await departmentProgressService.getProgress(user?.username || "", user?.department_id || 0);
-          const found = pending?.find(p => p?.trial_id === trialId);
+          const found = pending?.find(p => String(p?.trial_id) === String(trialId));
           setIsAssigned(!!found);
         } catch (error) {
           console.error("Failed to check assignment:", error);
@@ -403,7 +403,7 @@ function SandTable() {
                       <DocumentViewer trialId={trialId || ""} category="SAND_PROPERTIES" />
                     </Box>
 
-                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
+                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4, px: 3 }}>
                       <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                         <ActionButtons
                           {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}

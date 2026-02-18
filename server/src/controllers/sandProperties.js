@@ -87,7 +87,7 @@ export const updateSandProperties = async (req, res, next) => {
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
                 await triggerNextDepartment(trial_id, req.user, trx);
-            } else if(req.user.role === 'User'){
+            } else if (req.user.role === 'User') {
                 await updateRole(trial_id, req.user, trx);
             } else {
                 await updateDepartment(trial_id, req.user, trx);
@@ -111,7 +111,6 @@ export const getSandPropertiesByTrialId = async (req, res, next) => {
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
-    trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM sand_properties WHERE trial_id = @trial_id', { trial_id });
     res.status(200).json({ success: true, data: rows });
 };

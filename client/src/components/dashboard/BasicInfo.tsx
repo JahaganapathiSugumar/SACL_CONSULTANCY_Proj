@@ -41,7 +41,8 @@ type MouldCorrection = {
 };
 
 type TrialData = {
-  trial_id?: string;
+  trial_id?: number | string;
+  trial_no?: string;
   part_name?: string;
   pattern_code?: string;
   material_grade?: string;
@@ -238,7 +239,7 @@ const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, d
 };
 
 interface BasicInfoProps {
-  trialId?: string;
+  trialId?: number | string;
 }
 
 const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) => {
@@ -267,7 +268,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
     fetchIP();
   }, []);
 
-  const fetchTrial = async (id: string) => {
+  const fetchTrial = async (id: number | string) => {
     if (!id) {
       setError("Please provide a Trial ID");
       setData(null);
@@ -381,11 +382,11 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                             />
                           </Grid>
                           <Grid size={{ xs: 12, md: 4 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>TRIAL REFERENCE</Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>TRIAL NUMBER</Typography>
                             <TextField
                               fullWidth
                               size="small"
-                              value={initialTrialId || 'No Trial ID'}
+                              value={data?.trial_no || 'No Trial Number'}
                               InputProps={{
                                 readOnly: true,
                                 sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary, fontSize: { xs: '0.8rem', sm: '0.9rem' } }
@@ -788,7 +789,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                     No Trial Data Loaded
                   </Typography>
                   <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
-                    Provide a valid Trial ID to load details
+                    Provide a valid Trial Number to load details
                   </Typography>
                 </Paper>
               )}

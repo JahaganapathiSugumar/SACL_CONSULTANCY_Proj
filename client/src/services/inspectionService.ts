@@ -158,7 +158,7 @@ export const inspectionService = {
     },
 
     // Sand Properties
-    async getSandProperties(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getSandProperties(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/sand-properties/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching sand properties:', error); throw error; }
@@ -174,7 +174,7 @@ export const inspectionService = {
     },
 
     // Moulding Correction
-    async getMouldingCorrection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getMouldingCorrection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/moulding-correction/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching moulding correction:', error); throw error; }
@@ -190,7 +190,7 @@ export const inspectionService = {
     },
 
     // Visual Inspection
-    async getVisualInspection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getVisualInspection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/visual-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching visual inspection:', error); throw error; }
@@ -206,7 +206,7 @@ export const inspectionService = {
     },
 
     // Dimensional Inspection
-    async getDimensionalInspection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getDimensionalInspection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/dimensional-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching dimensional inspection:', error); throw error; }
@@ -222,7 +222,7 @@ export const inspectionService = {
     },
 
     // Metallurgical Inspection
-    async getMetallurgicalInspection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getMetallurgicalInspection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/metallurgical-inspection/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching metallurgical inspection:', error); throw error; }
@@ -238,7 +238,7 @@ export const inspectionService = {
     },
 
     // Pouring Details
-    async getPouringDetails(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getPouringDetails(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/pouring-details/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching pouring details:', error); throw error; }
@@ -254,7 +254,7 @@ export const inspectionService = {
     },
 
     // Machine Shop
-    async getMachineShopInspection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getMachineShopInspection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/machine-shop/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching machine shop inspection:', error); throw error; }
@@ -282,7 +282,7 @@ export const inspectionService = {
         }
     },
 
-    async getMaterialCorrection(trialId: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getMaterialCorrection(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/material-correction/trial_id?trial_id=${trialId}`);
         } catch (error) { console.error('Error fetching material correction:', error); throw error; }

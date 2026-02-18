@@ -12,7 +12,7 @@ const jsonValueSchema = z.lazy(() =>
 );
 
 export const materialCorrectionSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     chemical_composition: jsonValueSchema.optional().nullable(),
     process_parameters: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),
@@ -21,7 +21,7 @@ export const materialCorrectionSchema = z.object({
 });
 
 export const pouringDetailsSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     pour_date: z.string({ required_error: "Pour Date is required" }).or(z.date({ required_error: "Pour Date is required" })),
     heat_code: z.string().optional().nullable(),
     composition: jsonValueSchema.optional().nullable(),
@@ -36,7 +36,7 @@ export const pouringDetailsSchema = z.object({
 });
 
 export const sandPropertiesSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     date: z.string({ required_error: "Date is required" }).or(z.date({ required_error: "Date is required" })),
     t_clay: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().nonnegative().nullable().optional()),
     a_clay: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().nonnegative().nullable().optional()),
@@ -53,7 +53,7 @@ export const sandPropertiesSchema = z.object({
 });
 
 export const mouldCorrectionSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     mould_thickness: z.string().optional().nullable(),
     compressability: z.string().optional().nullable(),
     squeeze_pressure: z.string().optional().nullable(),
@@ -65,7 +65,7 @@ export const mouldCorrectionSchema = z.object({
 });
 
 export const metallurgicalInspectionSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     micro_structure: jsonValueSchema.optional().nullable(),
     micro_structure_ok: z.boolean().optional().nullable(),
@@ -84,7 +84,7 @@ export const metallurgicalInspectionSchema = z.object({
 });
 
 export const visualInspectionSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     inspections: jsonValueSchema.optional().nullable(),
     visual_ok: z.boolean().optional().nullable(),
     remarks: z.string().optional().nullable(),
@@ -100,7 +100,7 @@ export const visualInspectionSchema = z.object({
 });
 
 export const dimensionalInspectionSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     casting_weight: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     bunch_weight: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
@@ -113,7 +113,7 @@ export const dimensionalInspectionSchema = z.object({
 });
 
 export const machineShopSchema = z.object({
-    trial_id: z.string().min(1, "Trial ID is required"),
+    trial_id: z.union([z.number(), z.string().min(1, "Trial ID is required")]),
     inspection_date: z.string({ required_error: "Inspection Date is required" }).or(z.date({ required_error: "Inspection Date is required" })),
     inspections: jsonValueSchema.optional().nullable(),
     remarks: z.string().optional().nullable(),

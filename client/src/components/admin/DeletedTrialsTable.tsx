@@ -6,12 +6,10 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
     IconButton,
     Tooltip,
     Typography,
-    Box,
-    Chip
+    Box
 } from '@mui/material';
 import LoadingState from '../common/LoadingState';
 import RestoreIcon from '@mui/icons-material/Restore';
@@ -40,10 +38,12 @@ const DeletedTrialsTable: React.FC = () => {
         fetchDeletedTrials();
     }, []);
 
-    const handleRestore = async (trialId: string) => {
+    const handleRestore = async (trial: any) => {
+        const trialId = trial.trial_id;
+        const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Restore Trial Card?',
-            text: `Are you sure you want to restore trial ${trialId}?`,
+            text: `Are you sure you want to restore trial ${trialNo || trialId}?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#E67E22',
@@ -61,10 +61,12 @@ const DeletedTrialsTable: React.FC = () => {
         }
     };
 
-    const handlePermanentDelete = async (trialId: string) => {
+    const handlePermanentDelete = async (trial: any) => {
+        const trialId = trial.trial_id;
+        const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Delete Permanently?',
-            text: `Warning: This will permanently delete trial ${trialId}, all its progress history, and all generated reports! This action cannot be undone.`,
+            text: `Warning: This will permanently delete trial ${trialNo || trialId}, all its progress history, and all generated reports! This action cannot be undone.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -106,7 +108,7 @@ const DeletedTrialsTable: React.FC = () => {
             <Table sx={{ minWidth: 650 }} stickyHeader>
                 <TableHead className="premium-table-head">
                     <TableRow>
-                        <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                        <TableCell className="premium-table-header-cell">Trial No</TableCell>
                         <TableCell className="premium-table-header-cell">Part Name</TableCell>
                         <TableCell className="premium-table-header-cell">Status</TableCell>
                         <TableCell className="premium-table-header-cell">Deleted By</TableCell>
@@ -126,7 +128,7 @@ const DeletedTrialsTable: React.FC = () => {
                     ) : (
                         deletedTrials.map((trial) => (
                             <TableRow key={trial.trial_id} className="premium-table-row">
-                                <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                <TableCell className="premium-table-cell-bold">{trial.trial_no}</TableCell>
                                 <TableCell className="premium-table-cell">{trial.part_name}</TableCell>
                                 <TableCell className="premium-table-cell">
                                     <span className={`status-pill ${trial.status === 'CLOSED' ? 'status-pill-success' : 'status-pill-info'}`}>
@@ -140,7 +142,7 @@ const DeletedTrialsTable: React.FC = () => {
                                 <TableCell className="premium-table-cell" align="right">
                                     <Tooltip title="Restore Trial Card">
                                         <IconButton
-                                            onClick={() => handleRestore(trial.trial_id)}
+                                            onClick={() => handleRestore(trial)}
                                             color="primary"
                                             size="small"
                                             sx={{ mr: 1 }}
@@ -150,7 +152,7 @@ const DeletedTrialsTable: React.FC = () => {
                                     </Tooltip>
                                     <Tooltip title="Delete Permanently">
                                         <IconButton
-                                            onClick={() => handlePermanentDelete(trial.trial_id)}
+                                            onClick={() => handlePermanentDelete(trial)}
                                             color="error"
                                             size="small"
                                         >

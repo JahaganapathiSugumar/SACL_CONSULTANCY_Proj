@@ -3,7 +3,7 @@ import Client from '../config/connection.js';
 export const getProgress = async (req, res, next) => {
     const username = req.query.username;
     const [result] = await Client.query(
-        `SELECT department_progress.*, departments.department_name, t.part_name, t.pattern_code, t.disa, t.date_of_sampling FROM department_progress 
+        `SELECT department_progress.*, departments.department_name, t.trial_no, t.part_name, t.pattern_code, t.disa, t.date_of_sampling FROM department_progress 
          JOIN departments ON department_progress.department_id = departments.department_id 
          JOIN trial_cards t ON department_progress.trial_id = t.trial_id 
          WHERE t.deleted_at IS NULL AND department_progress.username = @username AND department_progress.approval_status = 'pending'`,
@@ -19,6 +19,7 @@ export const getCompletedTrials = async (req, res, next) => {
     const [result] = await Client.query(
         `SELECT DISTINCT 
             dp.trial_id,
+            t.trial_no,
             dp.department_id,
             dp.completed_at,
             dp.remarks,
@@ -56,7 +57,7 @@ export const getProgressByTrialId = async (req, res, next) => {
 };
 export const toggleApprovalStatus = async (req, res, next) => {
     const { trial_id, department_id } = req.body;
-    
+
     const [current] = await Client.query(
         `SELECT approval_status FROM department_progress WHERE trial_id = @trial_id AND department_id = @department_id`,
         { trial_id, department_id }
@@ -67,7 +68,7 @@ export const toggleApprovalStatus = async (req, res, next) => {
     }
 
     const newStatus = current[0].approval_status === 'pending' ? 'approved' : 'pending';
-    
+
     await Client.query(
         `UPDATE department_progress SET approval_status = @newStatus WHERE trial_id = @trial_id AND department_id = @department_id`,
         { newStatus, trial_id, department_id }
@@ -75,11 +76,11 @@ export const toggleApprovalStatus = async (req, res, next) => {
 
     await Client.query(
         `INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)`,
-        { 
-            user_id: req.user.user_id, 
-            department_id: req.user.department_id, 
-            trial_id, 
-            action: 'Approval Status Toggled', 
+        {
+            user_id: req.user.user_id,
+            department_id: req.user.department_id,
+            trial_id,
+            action: 'Approval Status Toggled',
             remarks: `Status changed to ${newStatus} by Admin`
         }
     );

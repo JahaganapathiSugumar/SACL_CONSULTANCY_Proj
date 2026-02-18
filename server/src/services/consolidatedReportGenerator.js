@@ -3,7 +3,6 @@ import PDFDocument from 'pdfkit';
 // Helper to fetch data (extracted from the controller logic)
 export const fetchTrialData = async (trial_id, trx) => {
     if (!trial_id) return null;
-    trial_id = trial_id.replace(/['"]+/g, '');
 
     const [trial_cards] = await trx.query(
         `SELECT tc.*, mc.chemical_composition AS spec_chem, mc.micro_structure AS spec_micro 
@@ -251,7 +250,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         const trialRows = [
             { label: "Part Name", value: trialCard?.part_name },
             { label: "Pattern Code", value: trialCard?.pattern_code },
-            { label: "Trial No", value: trialCard?.trial_id },
+            { label: "Trial No", value: trialCard?.trial_no },
             { label: "Date of Sampling", value: trialCard?.date_of_sampling ? new Date(trialCard.date_of_sampling).toISOString().slice(0, 10) : '-' },
             { label: "Mould Count (P/A)", value: `${trialCard?.plan_moulds || trialCard?.no_of_moulds || '-'} / ${trialCard?.actual_moulds || '-'}` },
             { label: "Machine", value: trialCard?.disa },
@@ -323,7 +322,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         let p2y = 40;
 
         // Header P2
-        doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${currentTrialId} - Inspection Results   |   Page: ${i * 2 + 2}`, 30, 20);
+        doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${trialCard?.trial_no} - Inspection Results   |   Page: ${i * 2 + 2}`, 30, 20);
         doc.moveTo(30, 35).lineTo(565, 35).stroke();
 
         // 5. Metallurgical Inspection

@@ -85,7 +85,7 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
                 <Table size={isMobile ? "small" : "medium"} stickyHeader>
                     <TableHead className="premium-table-head">
                         <TableRow>
-                            <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                            <TableCell className="premium-table-header-cell">Trial No</TableCell>
                             {!isMobile && <TableCell className="premium-table-header-cell">Pattern Code</TableCell>}
                             <TableCell className="premium-table-header-cell">Part Name</TableCell>
                             {!isTablet && <TableCell className="premium-table-header-cell">Machine</TableCell>}
@@ -102,7 +102,7 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
                                     key={`${trial.trial_id}-${trial.department_id}`}
                                     className="premium-table-row"
                                 >
-                                    <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                    <TableCell className="premium-table-cell-bold">{trial.trial_no}</TableCell>
                                     {!isMobile && <TableCell className="premium-table-cell">{trial.pattern_code || 'N/A'}</TableCell>}
                                     <TableCell className="premium-table-cell">{trial.part_name || 'N/A'}</TableCell>
                                     {!isTablet && <TableCell className="premium-table-cell">{trial.disa || 'N/A'}</TableCell>}

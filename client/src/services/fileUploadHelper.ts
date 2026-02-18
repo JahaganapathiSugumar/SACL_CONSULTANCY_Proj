@@ -46,7 +46,7 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
  */
 export const uploadFiles = async (
     files: File[],
-    trialId: string,
+    trialId: number | string,
     documentType: string,
     uploadedBy: string,
     remarks: string = ''

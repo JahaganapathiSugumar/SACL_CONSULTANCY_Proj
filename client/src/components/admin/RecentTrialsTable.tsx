@@ -20,7 +20,8 @@ import { trialService } from '../../services/trialService';
 import DocumentViewer from '../common/DocumentViewer';
 
 interface Trial {
-  trial_id: string;
+  trial_id: number | string;
+  trial_no: string;
   part_name: string;
   pattern_code: string;
   material_grade: string;
@@ -93,7 +94,7 @@ const RecentTrialsTable: React.FC = () => {
         <Table stickyHeader size="medium">
           <TableHead className="premium-table-head">
             <TableRow>
-              <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+              <TableCell className="premium-table-header-cell">Trial No</TableCell>
               <TableCell className="premium-table-header-cell">Part Name</TableCell>
               <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
               <TableCell className="premium-table-header-cell">Grade</TableCell>
@@ -110,7 +111,7 @@ const RecentTrialsTable: React.FC = () => {
                   <TableCell className="premium-table-cell-bold">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f39c12' }} />
-                      {trial.trial_id}
+                      {trial.trial_no}
                     </Box>
                   </TableCell>
                   <TableCell className="premium-table-cell">
@@ -180,7 +181,7 @@ const RecentTrialsTable: React.FC = () => {
       </TableContainer>
 
       <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-        <DialogTitle>Trial Report - {viewReport?.trialId}</DialogTitle>
+        <DialogTitle>Trial Report - {viewReport?.trial_no || ""}</DialogTitle>
         <DialogContent>
           {viewReport && (
             <DocumentViewer

@@ -18,7 +18,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
     const { user } = useAuth();
     const [progressingTrials, setProgressingTrials] = useState<any[]>([]);
     const [loadingTrials, setLoadingTrials] = useState(false);
-    const [selectedTrialId, setSelectedTrialId] = useState<string | null>(null);
+    const [selectedTrialId, setSelectedTrialId] = useState<number | string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
@@ -112,6 +112,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                     >
                         <TableHead>
                             <TableRow>
+                                <TableCell>Trial No</TableCell>
                                 <TableCell>Pattern Code</TableCell>
                                 <TableCell>Part Name</TableCell>
                                 {departmentId !== 8 && <TableCell>Date of Sampling</TableCell>}
@@ -137,6 +138,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                                             }
                                         }}
                                     >
+                                        <TableCell sx={{ fontWeight: 600 }}>{trial.trial_no}</TableCell>
                                         <TableCell sx={{ fontWeight: 600 }}>{trial.pattern_code}</TableCell>
                                         <TableCell>{trial.part_name}</TableCell>
                                         {departmentId !== 8 && <TableCell>{formatDate(trial.date_of_sampling) || '-'}</TableCell>}
@@ -282,7 +284,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={departmentId === 8 ? 5 : 9} align="center" sx={{ py: 20, bgcolor: '#f8f9fa !important' }}>
+                                    <TableCell colSpan={departmentId === 8 ? 6 : 10} align="center" sx={{ py: 20, bgcolor: '#f8f9fa !important' }}>
                                         <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                             No progressing trials at the moment
                                         </Typography>

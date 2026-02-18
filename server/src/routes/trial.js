@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/', verifyToken, authorizeDepartments(1, 2), validate(trialCardSchema), asyncErrorHandler(trialController.createTrial));
 router.get('/', verifyToken, asyncErrorHandler(trialController.getTrials));
 router.get('/trial_id', verifyToken, asyncErrorHandler(trialController.getTrialById));
-router.get('/id', verifyToken, asyncErrorHandler(trialController.generateTrialId));
+router.get('/id', verifyToken, asyncErrorHandler(trialController.generateTrialNo));
 router.get('/trial-reports', verifyToken, asyncErrorHandler(trialController.getTrialReports));
 router.get('/recent-trial-reports', verifyToken, asyncErrorHandler(trialController.getRecentTrialReports));
 router.get('/progressing', verifyToken, asyncErrorHandler(trialController.getProgressingTrials));

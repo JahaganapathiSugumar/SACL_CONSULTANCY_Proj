@@ -66,13 +66,13 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
     const departmentInfo = getDepartmentInfo(user);
 
 
-    const [expandedTrialId, setExpandedTrialId] = useState<string | null>(null);
-    const [trialProgressData, setTrialProgressData] = useState<Record<string, ProgressItem[]>>({});
-    const [loadingProgress, setLoadingProgress] = useState<Record<string, boolean>>({});
+    const [expandedTrialId, setExpandedTrialId] = useState<number | string | null>(null);
+    const [trialProgressData, setTrialProgressData] = useState<Record<string | number, ProgressItem[]>>({});
+    const [loadingProgress, setLoadingProgress] = useState<Record<string | number, boolean>>({});
 
 
     useEffect(() => {
@@ -92,7 +92,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
 
     const filteredTrials = trials
         .filter(trial =>
-            trial.trial_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            trial.trial_id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+            trial.trial_no?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
             trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             trial.pattern_code?.toLowerCase().includes(searchTerm.toLowerCase())
         )
@@ -148,7 +149,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         }
     };
 
-    const handleToggleSelect = (trialId: string) => {
+    const handleToggleSelect = (trialId: number | string) => {
         setSelectedIds(prev =>
             prev.includes(trialId)
                 ? prev.filter(id => id !== trialId)
@@ -156,10 +157,10 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         );
     };
 
-    const handleDeleteTrialReport = async (trialId: string) => {
+    const handleDeleteTrialReport = async (trial: any) => {
         const result = await Swal.fire({
             title: 'Delete Trial Report?',
-            text: `You are about to delete trial report for Trial ID: ${trialId}. This action will move it to the recycle bin.`,
+            text: `You are about to delete trial report for Trial No: ${trial.trial_no} (${trial.part_name}). This action will move it to the recycle bin.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -170,7 +171,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         if (result.isConfirmed) {
             try {
                 setLoading(true);
-                const response = await trialService.deleteTrialReport(trialId);
+                const response = await trialService.deleteTrialReport(trial.trial_id);
                 if (response.success) {
                     Swal.fire('Deleted!', 'Trial report has been moved to recycle bin.', 'success');
                     const data = await trialService.getAllTrialReports();
@@ -205,7 +206,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         });
     };
 
-    const handleExpandRow = async (trialId: string) => {
+    const handleExpandRow = async (trialId: number | string) => {
         if (expandedTrialId === trialId) {
             setExpandedTrialId(null);
             return;
@@ -265,7 +266,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 </Select>
                             </FormControl>
                             <TextField
-                                placeholder="Search Trial ID, Part Name..."
+                                placeholder="Search Trial No, Part Name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 size="small"
@@ -330,7 +331,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     )}
                                     {user?.role === 'Admin' && <TableCell className="premium-table-header-cell" />}
 
-                                    <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                                    <TableCell className="premium-table-header-cell">Trial No</TableCell>
                                     <TableCell className="premium-table-header-cell">Part Name</TableCell>
                                     <TableCell className="premium-table-header-cell">Pattern Code</TableCell>
                                     <TableCell className="premium-table-header-cell">Grade</TableCell>
@@ -370,7 +371,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                     </TableCell>
                                                 )}
 
-                                                <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                                <TableCell className="premium-table-cell-bold">{trial.trial_no}</TableCell>
                                                 <TableCell className="premium-table-cell">
                                                     <Box sx={{ maxWidth: { xs: '60px', sm: '100%' }, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                         {trial.part_name}
@@ -415,7 +416,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 <IconButton
                                                                     size="small"
                                                                     color="error"
-                                                                    onClick={() => handleDeleteTrialReport(trial.trial_id)}
+                                                                    onClick={() => handleDeleteTrialReport(trial)}
                                                                     sx={{
                                                                         ml: 0.5,
                                                                         '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' }
@@ -560,7 +561,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             </Box>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-                <DialogTitle>Trial Report - {viewReport?.trial_id}</DialogTitle>
+                <DialogTitle>Trial Report - {viewReport?.trial_no || ""}</DialogTitle>
                 <DialogContent>
                     {viewReport && (
                         <DocumentViewer

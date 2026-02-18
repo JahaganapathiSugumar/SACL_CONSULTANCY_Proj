@@ -58,9 +58,10 @@ CREATE TABLE master_card (
 GO
 
 CREATE TABLE trial_cards (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
     part_name VARCHAR(100) NOT NULL,
     pattern_code VARCHAR(150) NOT NULL,
+    trial_no INT NOT NULL,
     material_grade VARCHAR(50) NOT NULL,
     trial_type VARCHAR(50) NOT NULL DEFAULT 'INHOUSE MACHINING(NPD)',  
     initiated_by VARCHAR(50) NOT NULL,
@@ -90,7 +91,7 @@ CREATE INDEX idx_trial_department ON trial_cards(current_department_id);
 GO
 
 CREATE TABLE material_correction (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     chemical_composition NVARCHAR(MAX),
     process_parameters NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
@@ -100,7 +101,7 @@ CREATE TABLE material_correction (
 GO
 
 CREATE TABLE pouring_details (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     pour_date DATE,
     heat_code NVARCHAR(MAX),
     composition NVARCHAR(MAX),
@@ -115,7 +116,7 @@ CREATE TABLE pouring_details (
 GO
 
 CREATE TABLE sand_properties (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     date DATE,
     t_clay DECIMAL(7,2) CHECK (t_clay >= 0),
     a_clay DECIMAL(7,2) CHECK (a_clay >= 0),
@@ -132,7 +133,7 @@ CREATE TABLE sand_properties (
 GO
 
 CREATE TABLE mould_correction (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     mould_thickness VARCHAR(30),
     compressability VARCHAR(30),
     squeeze_pressure VARCHAR(30),
@@ -144,7 +145,7 @@ CREATE TABLE mould_correction (
 GO
 
 CREATE TABLE metallurgical_inspection (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     inspection_date DATE,
     micro_structure NVARCHAR(MAX),
     micro_structure_ok BIT,
@@ -163,7 +164,7 @@ CREATE TABLE metallurgical_inspection (
 GO
 
 CREATE TABLE visual_inspection (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     inspection_date DATE,
     inspections NVARCHAR(MAX),
     visual_ok BIT,
@@ -179,7 +180,7 @@ CREATE TABLE visual_inspection (
 GO
 
 CREATE TABLE dimensional_inspection (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     inspection_date DATE,
     casting_weight INT CHECK (casting_weight > 0),
     bunch_weight INT CHECK (bunch_weight > 0),
@@ -192,7 +193,7 @@ CREATE TABLE dimensional_inspection (
 GO
 
 CREATE TABLE machine_shop (
-    trial_id NVARCHAR(255) PRIMARY KEY,
+    trial_id INT PRIMARY KEY,
     inspection_date DATE,
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
@@ -202,7 +203,7 @@ GO
 
 CREATE TABLE department_progress (
     progress_id INT IDENTITY(1,1) PRIMARY KEY,
-    trial_id NVARCHAR(255) NOT NULL,
+    trial_id INT NOT NULL,
     department_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,
     completed_at DATETIME2 DEFAULT GETDATE(),
@@ -222,7 +223,7 @@ GO
 
 CREATE TABLE documents (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
-    trial_id NVARCHAR(255) NOT NULL,
+    trial_id INT NOT NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
@@ -261,7 +262,7 @@ GO
 CREATE TABLE audit_log (
     audit_id BIGINT NOT NULL IDENTITY(1,1),
     user_id INT DEFAULT NULL,
-    trial_id NVARCHAR(255) DEFAULT NULL,
+    trial_id INT DEFAULT NULL,
     department_id INT DEFAULT NULL,
     action VARCHAR(100) NOT NULL,
     action_timestamp DATETIME2 NULL DEFAULT GETDATE(),
@@ -307,7 +308,7 @@ GO
 
 CREATE TABLE trial_reports (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
-    trial_id NVARCHAR(255) NOT NULL,
+    trial_id INT NOT NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),

@@ -22,7 +22,8 @@ import { useNavigate } from 'react-router-dom';
 import { getPendingRoute } from '../../utils/dashboardUtils';
 
 interface PendingTrials {
-    trial_id: string;
+    trial_id: number | string;
+    trial_no: string;
     part_name?: string;
     pattern_code?: string;
     disa?: string;
@@ -125,7 +126,7 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
                 <Table size={isMobile ? "small" : "medium"} stickyHeader>
                     <TableHead className="premium-table-head">
                         <TableRow>
-                            <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                            <TableCell className="premium-table-header-cell">Trial No</TableCell>
                             {!isMobile && <TableCell className="premium-table-header-cell">Pattern Code</TableCell>}
                             <TableCell className="premium-table-header-cell">Part Name</TableCell>
                             {!isTablet && <TableCell className="premium-table-header-cell">Machine</TableCell>}
@@ -143,7 +144,7 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
                                     className="premium-table-row"
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <TableCell className="premium-table-cell-bold">{card.trial_id}</TableCell>
+                                    <TableCell className="premium-table-cell-bold">{card.trial_no}</TableCell>
                                     {!isMobile && <TableCell className="premium-table-cell">{card.pattern_code}</TableCell>}
                                     <TableCell className="premium-table-cell">{card.part_name}</TableCell>
                                     {!isTablet && <TableCell className="premium-table-cell">{card.disa}</TableCell>}

@@ -6,12 +6,10 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
     IconButton,
     Tooltip,
     Typography,
-    Box,
-    Button
+    Box
 } from '@mui/material';
 import LoadingState from '../common/LoadingState';
 import RestoreIcon from '@mui/icons-material/Restore';
@@ -40,10 +38,11 @@ const RecycleBinTable: React.FC = () => {
         fetchDeletedTrials();
     }, []);
 
-    const handleRestore = async (trialId: string) => {
+    const handleRestore = async (trial: any) => {
+        const trialId = trial.trial_id;
         const result = await Swal.fire({
             title: 'Restore Report?',
-            text: `Are you sure you want to restore trial report ${trialId}?`,
+            text: `Are you sure you want to restore trial report for Trial No: ${trial.trial_no} (${trial.part_name})?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#E67E22',
@@ -61,10 +60,12 @@ const RecycleBinTable: React.FC = () => {
         }
     };
 
-    const handlePermanentDelete = async (trialId: string) => {
+    const handlePermanentDelete = async (trial: any) => {
+        const trialId = trial.trial_id;
+        const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Delete Permanently?',
-            text: `You will not be able to recover trial report ${trialId}!`,
+            text: `You will not be able to recover trial report for Trial No: ${trialNo} (${trial.part_name})!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -106,7 +107,7 @@ const RecycleBinTable: React.FC = () => {
             <Table sx={{ minWidth: 650 }} stickyHeader>
                 <TableHead className="premium-table-head">
                     <TableRow>
-                        <TableCell className="premium-table-header-cell">Trial ID</TableCell>
+                        <TableCell className="premium-table-header-cell">Trial No</TableCell>
                         <TableCell className="premium-table-header-cell">Part Name</TableCell>
                         <TableCell className="premium-table-header-cell">Deleted By</TableCell>
                         <TableCell className="premium-table-header-cell">Deleted At</TableCell>
@@ -125,7 +126,7 @@ const RecycleBinTable: React.FC = () => {
                     ) : (
                         deletedTrials.map((trial) => (
                             <TableRow key={trial.document_id} className="premium-table-row">
-                                <TableCell className="premium-table-cell-bold">{trial.trial_id}</TableCell>
+                                <TableCell className="premium-table-cell-bold">{trial.trial_no}</TableCell>
                                 <TableCell className="premium-table-cell">{trial.part_name}</TableCell>
                                 <TableCell className="premium-table-cell">{trial.deleted_by || 'Unknown'}</TableCell>
                                 <TableCell className="premium-table-cell">
@@ -134,7 +135,7 @@ const RecycleBinTable: React.FC = () => {
                                 <TableCell className="premium-table-cell" align="right">
                                     <Tooltip title="Restore Report">
                                         <IconButton
-                                            onClick={() => handleRestore(trial.trial_id)}
+                                            onClick={() => handleRestore(trial)}
                                             color="primary"
                                             size="small"
                                             sx={{ mr: 1 }}
@@ -144,7 +145,7 @@ const RecycleBinTable: React.FC = () => {
                                     </Tooltip>
                                     <Tooltip title="Delete Permanently">
                                         <IconButton
-                                            onClick={() => handlePermanentDelete(trial.trial_id)}
+                                            onClick={() => handlePermanentDelete(trial)}
                                             color="error"
                                             size="small"
                                         >

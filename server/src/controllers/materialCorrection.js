@@ -95,7 +95,6 @@ export const getMaterialCorrectionByTrialId = async (req, res, next) => {
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
-    trial_id = trial_id.replace(/['"]+/g, '');
     const [rows] = await Client.query('SELECT * FROM material_correction WHERE trial_id = @trial_id', { trial_id });
     res.status(200).json({ success: true, data: rows });
 };
