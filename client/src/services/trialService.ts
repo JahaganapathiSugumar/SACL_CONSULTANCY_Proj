@@ -33,11 +33,11 @@ export const trialService = {
     },
 
     /**
-     * Fetches trial information by part name
-     * @param partName - Name of the part to search for
+     * Fetches trial information by pattern code
+     * @param patternCode - Number of the pattern to search for
      * @returns Promise resolving to trial data
      */
-    async getTrialIdByPartName(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getTrialIdByPatternCode(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             return await apiService.request(`/trial/id?pattern_code=${encodeURIComponent(patternCode)}`);
         } catch (error) {
