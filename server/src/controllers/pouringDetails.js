@@ -40,13 +40,13 @@ export const createPouringDetails = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Pouring details created',
-            remarks: `Pouring details ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Pouring details ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
             if (is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             }
         }
     });
@@ -108,17 +108,17 @@ export const updatePouringDetails = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Pouring details updated',
-                remarks: `Pouring details ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
+                remarks: `Pouring details ${trial_id} updated by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
             });
             logger.info('Pouring details updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else if (req.user.role === 'User') {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             } else {
-                await updateDepartment(trial_id, req.user, trx);
+                await updateDepartment(trial_id, req.user, trx, req.ip);
             }
         }
     });
@@ -145,7 +145,7 @@ export const getPouringDetailsByTrialId = async (req, res, next) => {
         user_id: req.user.user_id,
         department_id: req.user.department_id,
         action: 'Pouring details fetched',
-        remarks: `Pouring details ${trial_id} fetched by ${req.user.username}`
+        remarks: `Pouring details ${trial_id} fetched by ${req.user.username} (IP: ${req.ip})`
     });
     res.status(200).json({ success: true, data: rows });
 };

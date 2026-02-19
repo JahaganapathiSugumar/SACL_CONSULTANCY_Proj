@@ -20,13 +20,13 @@ export const createSandProperties = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Sand properties created',
-            remarks: `Sand properties ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Sand properties ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
             if (is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             }
         }
     });
@@ -80,17 +80,17 @@ export const updateSandProperties = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Sand properties updated',
-                remarks: `Sand properties ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
+                remarks: `Sand properties ${trial_id} updated by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
             });
             logger.info('Sand properties updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else if (req.user.role === 'User') {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             } else {
-                await updateDepartment(trial_id, req.user, trx);
+                await updateDepartment(trial_id, req.user, trx, req.ip);
             }
         }
     });

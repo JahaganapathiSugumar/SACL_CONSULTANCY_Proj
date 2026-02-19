@@ -43,12 +43,12 @@ export const createTrial = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Trial created',
-            remarks: `Trial (No: ${trial_no}) created by ${req.user.username} for part name ${part_name}`
+            remarks: `Trial (No: ${trial_no}) created by ${req.user.username} (IP: ${req.ip}) for part name ${part_name}`
         });
 
-        await createDepartmentProgress(trial_id, req.user, part_name, trx);
+        await createDepartmentProgress(trial_id, req.user, part_name, trx, req.ip);
         if (req.user.role !== 'Admin') {
-            await updateRole(trial_id, req.user, trx);
+            await updateRole(trial_id, req.user, trx, req.ip);
         }
     });
 
@@ -166,7 +166,7 @@ export const updateTrial = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Trial updated',
-                remarks: `Trial ID: ${trial_id}, Trial No: ${trial_no} updated by ${req.user.username}`
+                remarks: `Trial ID: ${trial_id}, Trial No: ${trial_no} updated by ${req.user.username} (IP: ${req.ip})`
             });
             logger.info('Trial updated', { trial_id, updatedBy: req.user.username });
 
@@ -201,7 +201,7 @@ export const updateTrial = async (req, res, next) => {
         }
 
         if (req.user.role !== 'Admin') {
-            await updateDepartment(trial_id, req.user, trx);
+            await updateDepartment(trial_id, req.user, trx, req.ip);
         }
     });
 
@@ -224,7 +224,7 @@ export const deleteTrialReports = async (req, res, next) => {
         user_id: req.user.user_id,
         department_id: req.user.department_id,
         action: 'Trial report deleted',
-        remarks: `Trial report soft deleted by ${req.user.username}: ${trial_id}`
+        remarks: `Trial report soft deleted by ${req.user.username} (IP: ${req.ip}): ${trial_id}`
     });
 
     logger.info('Trial report deleted', { trial_id, deletedBy: req.user.username });
@@ -261,7 +261,7 @@ export const deleteTrialCard = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id: id,
                 action: 'Trial card deleted',
-                remarks: `Trial card ${id} soft deleted by ${req.user.username} (Bulk Delete)`
+                remarks: `Trial card ${id} soft deleted by ${req.user.username} (IP: ${req.ip}) (Bulk Delete)`
             });
         }
         for (const pattern_code of patternCodes) {
@@ -308,7 +308,7 @@ export const restoreTrialCard = async (req, res, next) => {
         department_id: req.user.department_id,
         trial_id,
         action: 'Trial card restored',
-        remarks: `Trial card ${trial_id} restored by ${req.user.username}`
+        remarks: `Trial card ${trial_id} restored by ${req.user.username} (IP: ${req.ip})`
     });
 
     logger.info('Trial card restored', { trial_id, restoredBy: req.user.username });
@@ -330,7 +330,7 @@ export const permanentlyDeleteTrialCard = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Trial card permanently deleted',
-            remarks: `Trial card ${trial_id} permanently deleted by ${req.user.username}`
+            remarks: `Trial card ${trial_id} permanently deleted by ${req.user.username} (IP: ${req.ip})`
         });
     });
 
@@ -352,7 +352,7 @@ export const restoreTrialReport = async (req, res, next) => {
         user_id: req.user.user_id,
         department_id: req.user.department_id,
         action: 'Trial report restored',
-        remarks: `Trial report restored by ${req.user.username}: ${trial_id}`
+        remarks: `Trial report restored by ${req.user.username} (IP: ${req.ip}): ${trial_id}`
     });
 
     logger.info('Trial report restored', { trial_id, restoredBy: req.user.username });
@@ -373,7 +373,7 @@ export const permanentlyDeleteTrialReport = async (req, res, next) => {
         user_id: req.user.user_id,
         department_id: req.user.department_id,
         action: 'Trial report permanently deleted',
-        remarks: `Trial report permanently deleted by ${req.user.username}: ${trial_id}`
+        remarks: `Trial report permanently deleted by ${req.user.username} (IP: ${req.ip}): ${trial_id}`
     });
 
     logger.info('Trial report permanently deleted', { trial_id, deletedBy: req.user.username });

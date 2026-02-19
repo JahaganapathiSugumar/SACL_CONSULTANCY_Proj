@@ -19,13 +19,13 @@ export const createCorrection = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Mould correction created',
-            remarks: `Mould correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Mould correction ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
             if (is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             }
         }
     });
@@ -68,15 +68,15 @@ export const updateCorrection = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Mould correction updated',
-            remarks: `Mould correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Mould correction ${trial_id} updated by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else if (req.user.role === 'User') {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             } else {
-                await updateDepartment(trial_id, req.user, trx);
+                await updateDepartment(trial_id, req.user, trx, req.ip);
             }
         }
         logger.info('Mould correction updated', { trial_id, updatedBy: req.user.username });

@@ -26,13 +26,13 @@ export const createMachineShop = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Machine shop created',
-            remarks: `Machine shop ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Machine shop ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
             if (is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
             } else {
-                await updateRole(trial_id, req.user, trx);
+                await updateRole(trial_id, req.user, trx, req.ip);
             }
         }
     });
@@ -69,20 +69,20 @@ export const updateMachineShop = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Machine shop updated',
-                remarks: `Machine shop ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
+                remarks: `Machine shop ${trial_id} updated by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
             });
             logger.info('Machine shop updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
             if (req.body.is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx);
-            } else if(req.user.role === 'User'){
-                await updateRole(trial_id, req.user, trx);
+                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
+            } else if (req.user.role === 'User') {
+                await updateRole(trial_id, req.user, trx, req.ip);
             } else {
-                await updateDepartment(trial_id, req.user, trx);
+                await updateDepartment(trial_id, req.user, trx, req.ip);
             }
         } else {
-            await approveProgress(trial_id, req.user, trx);
+            await approveProgress(trial_id, req.user, trx, req.ip);
         }
     });
 

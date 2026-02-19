@@ -22,10 +22,10 @@ export const createMaterialCorrection = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Material correction created',
-            remarks: `Material correction ${trial_id} created by ${req.user.username} with trial id ${trial_id}`
+            remarks: `Material correction ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
-            await updateRole(trial_id, req.user, trx);
+            await updateRole(trial_id, req.user, trx, req.ip);
         }
     });
 
@@ -70,12 +70,12 @@ export const updateMaterialCorrection = async (req, res, next) => {
                 department_id: req.user.department_id,
                 trial_id,
                 action: 'Material correction updated',
-                remarks: `Material correction ${trial_id} updated by ${req.user.username} with trial id ${trial_id}`
+                remarks: `Material correction ${trial_id} updated by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
             });
             logger.info('Material correction updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
-            await updateDepartment(trial_id, req.user, trx);
+            await updateDepartment(trial_id, req.user, trx, req.ip);
         }
     });
 

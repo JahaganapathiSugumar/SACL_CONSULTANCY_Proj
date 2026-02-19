@@ -13,7 +13,7 @@ export const uploadDocument = async (req, res, next) => {
         department_id: req.user.department_id,
         trial_id,
         action: 'Document uploaded',
-        remarks: `Document ${file_name} uploaded by ${req.user.username} with trial id ${trial_id} for ${document_type}`
+        remarks: `Document ${file_name} uploaded by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id} for ${document_type}`
     });
 
     logger.info('Document uploaded', { trial_id, document_type, file_name, uploadedBy: req.user.username });

@@ -81,7 +81,7 @@ export const toggleApprovalStatus = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Approval Status Toggled',
-            remarks: `Status changed to ${newStatus} by Admin`
+            remarks: `Status changed to ${newStatus} by Admin (IP: ${req.ip})`
         }
     );
 
