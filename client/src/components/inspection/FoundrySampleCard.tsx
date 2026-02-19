@@ -32,10 +32,10 @@ import {
   DialogActions,
   RadioGroup,
   FormControlLabel,
-  Radio
+  Radio,
+  Autocomplete
 } from "@mui/material";
 import Swal from 'sweetalert2';
-import Autocomplete from "@mui/material/Autocomplete";
 
 import CloseIcon from "@mui/icons-material/Close";
 import ScienceIcon from '@mui/icons-material/Science';
@@ -111,7 +111,6 @@ const parseChemicalComposition = (composition: any) => {
     };
   }
 };
-
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode, title: string, color: string }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, pb: 1, borderBottom: `2px solid ${color}`, width: '100%' }}>
@@ -1342,9 +1341,25 @@ function FoundrySampleCard() {
 }
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: React.ReactNode }) { super(props); this.state = { hasError: false }; }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  render() { if (this.state.hasError) return <Alert severity="error">System Error. Please refresh.</Alert>; return this.props.children; }
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Alert severity="error" sx={{ m: 2 }}>
+          Something went wrong. Please refresh the page or contact support.
+        </Alert>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export default function FoundrySampleCardApp() {
