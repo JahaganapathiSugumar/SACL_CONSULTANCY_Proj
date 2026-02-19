@@ -29,14 +29,6 @@ export const createUser = async (req, res, next) => {
     const hash = await bcrypt.hash(password, saltRounds);
     const sql = 'INSERT INTO dtc_users (username, full_name, password_hash, department_id, role, needs_password_change, email_verified, machine_shop_user_type) VALUES (@username, @full_name, @password_hash, @department_id, @role, 1, 0, @machine_shop_user_type)';
     await Client.query(sql, { username, full_name, password_hash: hash, department_id, role, machine_shop_user_type });
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'User created',
-        remarks: `User ${username} created by ${req.user.username}`
-    });
-
     logger.info('User created', { username, createdBy: req.user.username });
     res.status(201).json({ success: true, message: 'User created successfully.' });
 };
@@ -47,14 +39,6 @@ export const deleteUser = async (req, res, next) => {
     if (!userId) throw new CustomError('User ID is required', 400);
     const sql = 'DELETE FROM dtc_users WHERE user_id = @user_id';
     await Client.query(sql, { user_id: userId });
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: user.user_id,
-        department_id: user.department_id,
-        action: 'User deleted',
-        remarks: `User ${userId} deleted by ${user.username}`
-    });
-
     logger.info('User deleted', { userId, deletedBy: user.username });
     res.status(200).json({ success: true, message: 'User deleted successfully.' });
 };
@@ -161,14 +145,6 @@ export const updateUsername = async (req, res, next) => {
 
     await Client.query('UPDATE dtc_users SET username = @username WHERE user_id = @user_id', { username, user_id: user.user_id });
 
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: user.user_id,
-        department_id: user.department_id,
-        action: 'Username updated',
-        remarks: `Username changed from ${user.username} to ${username}`
-    });
-
     logger.info('Username updated', { userId: user.user_id, oldUsername: user.username, newUsername: username });
     return res.json({ success: true, message: 'Username updated successfully' });
 };
@@ -201,14 +177,6 @@ export const uploadProfilePhoto = async (req, res, next) => {
     await Client.query('UPDATE dtc_users SET profile_photo = @profile_photo WHERE user_id = @user_id', {
         profile_photo: photoBase64,
         user_id: user.user_id
-    });
-
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: user.user_id,
-        department_id: user.department_id,
-        action: 'Profile photo updated',
-        remarks: `Profile photo updated by ${user.username}`
     });
 
     logger.info('Profile photo updated', { userId: user.user_id });
@@ -284,14 +252,6 @@ export const adminUpdateUser = async (req, res, next) => {
         role: role || null,
         password_hash: passwordHash,
         needs_password_change: needsChange
-    });
-
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@admin_id, @admin_dept, @action, @remarks)';
-    await Client.query(audit_sql, {
-        admin_id: req.user.user_id,
-        admin_dept: req.user.department_id,
-        action: 'Admin Update User',
-        remarks: `Admin ${req.user.username} updated user ${username || existingUser[0].username}`
     });
 
     logger.info('Admin updated user', { adminId: req.user.user_id, targetUserId: userId });

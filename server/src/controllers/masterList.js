@@ -232,14 +232,6 @@ export const createMasterList = async (req, res, next) => {
         }
     });
 
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'Master list created',
-        remarks: `Master list ${pattern_code} created by ${req.user.username} with part name ${part_name}`
-    });
-
     logger.info('Master list created', { pattern_code, part_name, createdBy: req.user.username });
 
     res.status(201).json({
@@ -377,14 +369,6 @@ export const updateMasterList = async (req, res, next) => {
         }
     });
 
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'Master list updated',
-        remarks: `Master list ${pattern_code} updated by ${req.user.username}`
-    });
-
     logger.info('Master list updated', { pattern_code, updatedBy: req.user.username });
 
     res.status(200).json({
@@ -408,14 +392,6 @@ export const bulkDeleteMasterList = async (req, res, next) => {
         });
         const sql = `DELETE FROM master_card WHERE id IN (${placeholders.join(',')})`;
         await trx.query(sql, params);
-    });
-
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'Master list bulk delete',
-        remarks: `Deleted ${ids.length} master list items by ${req.user.username}`
     });
 
     logger.info('Master list bulk delete', { count: ids.length, deletedBy: req.user.username, ids });
@@ -448,14 +424,6 @@ export const toggleMasterListStatus = async (req, res, next) => {
 
     const sql = `UPDATE master_card SET is_active = @is_active WHERE id IN (${placeholders.join(',')})`;
     await Client.query(sql, params);
-
-    const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-    await Client.query(audit_sql, {
-        user_id: req.user.user_id,
-        department_id: req.user.department_id,
-        action: 'Master list status updated',
-        remarks: `Master list items [${ids.join(', ')}] status changed to ${is_active ? 'Active' : 'Inactive'} by ${req.user.username}`
-    });
 
     logger.info('Master list status updated', { ids, isActive: is_active, updatedBy: req.user.username });
 

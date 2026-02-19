@@ -53,14 +53,6 @@ export const login = async (req, res, next) => {
         const needsEmailVerification = user.email_verified === false || user.email_verified === 0;
         const needsPasswordChange = user.needs_password_change === true || user.needs_password_change === 1;
 
-        const audit_sql = 'INSERT INTO audit_log (user_id, department_id, action, remarks) VALUES (@user_id, @department_id, @action, @remarks)';
-        await Client.query(audit_sql, {
-            user_id: user.user_id,
-            department_id: user.department_id,
-            action: 'Login',
-            remarks: `User ${user.username} logged in with IP ${req.ip}`
-        });
-
         logger.info('User logged in successfully', { userId: user.user_id, username: user.username });
 
         return res.status(200).json({
