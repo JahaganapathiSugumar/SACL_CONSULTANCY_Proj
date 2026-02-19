@@ -132,7 +132,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     const mailOptions = {
         to: next_department_user_rows[0].email,
         cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
+        subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
@@ -258,7 +258,7 @@ export const updateRole = async (trial_id, user, trx) => {
         const mailOptions = {
             to: targetUser.email,
             cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-            subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
+            subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                     <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
@@ -421,7 +421,7 @@ export const triggerNextDepartment = async (trial_id, user, trx) => {
     const mailOptions = {
         to: next_department_user[0].email,
         cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card: ${part_name} - ${trial_no}`,
+        subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
         html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                 <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
