@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
                   </Box>
                 )}
 
-                {true && (
+                {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && (
                   <>
                     {/* Filters & Actions Bar */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
@@ -273,9 +273,6 @@ const Dashboard: React.FC = () => {
                 <Box sx={{ px: 3, py: 2, borderBottom: '1px solid #f0f0f0', bgcolor: '#fafafa' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#333' }}>
                     Consolidated Reports Directory
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#888' }}>
-                    Full history of trials by pattern code
                   </Typography>
                 </Box>
                 <ConsolidatedReportsTable />

@@ -6,8 +6,8 @@ import { apiService } from '../services/commonService';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>(() => authService.getStoredUser());
+  const [token, setToken] = useState<string | null>(() => authService.getToken());
   const [loading, setLoading] = useState(true);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
@@ -26,15 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const storedToken = authService.getToken();
-    const storedUser = authService.getStoredUser();
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(storedUser);
-      fetchProfilePhoto();
-    }
-    setLoading(false);
+    const initialize = async () => {
+      if (token && user) {
+        await fetchProfilePhoto();
+      }
+      setLoading(false);
+    };
+    initialize();
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
@@ -55,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfilePhoto(null);
   };
 
-  const updateUser = (updatedUser: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const updateUser = (updatedUser: any) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
