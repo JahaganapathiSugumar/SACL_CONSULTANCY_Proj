@@ -38,30 +38,10 @@ const Header: React.FC<HeaderProps> = ({
     showBackButton = false,
     onMenuClick
 }) => {
-    const { user, logout } = useAuth();
+    const { user, logout, profilePhoto } = useAuth();
     const navigate = useNavigate();
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-    const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-    const [photoLoading, setPhotoLoading] = useState(true);
     const isMobile = useMediaQuery(appTheme.breakpoints.down('md'));
-
-    // Load profile photo on mount and when refreshKey changes
-    useEffect(() => {
-        loadProfilePhoto();
-    }, [photoRefreshKey]);
-
-    const loadProfilePhoto = async () => {
-        try {
-            const response = await apiService.getProfilePhoto();
-            if (response.profilePhoto) {
-                setProfilePhoto(response.profilePhoto);
-            }
-        } catch (err) {
-            console.error('Error loading profile photo:', err);
-        } finally {
-            setPhotoLoading(false);
-        }
-    };
 
     // Default colors - Dark Theme for Sakthi Auto Component Limited
     const defaultTextColor = '#FFFFFF';

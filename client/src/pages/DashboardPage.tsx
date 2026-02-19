@@ -101,7 +101,7 @@ const Dashboard: React.FC = () => {
       case 'dashboard': return `Welcome back, ${user?.username}!`;
       case 'employees': return 'Manage users and roles';
       case 'master-list': return 'Manage master data and pattern codes';
-      case 'manage-trials': return 'View, search and manage all trials';
+      case 'manage-trials': return user?.role === 'Admin' ? 'View, search and manage all trials' : 'View and search all trial records';
       case 'pending-cards': return 'Sample cards waiting for your action';
       case 'completed-trials': return 'View history of completed trials';
       case 'all-trials': return 'Browse all trial records';
@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
                   </Box>
                 )}
 
-                {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && (
+                {true && (
                   <>
                     {/* Filters & Actions Bar */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
@@ -264,11 +264,11 @@ const Dashboard: React.FC = () => {
               </>
             )}
 
-            {(user?.role === 'Admin' || user?.department_id == 2 || user?.department_id == 3) && currentView === 'manage-trials' && (
+            {currentView === 'manage-trials' && (
               <AllTrialsPage embedded={true} />
             )}
 
-            {(user?.role === 'Admin' || user?.department_id == 2 || user?.department_id == 3) && currentView === 'consolidated-reports' && (
+            {currentView === 'consolidated-reports' && (
               <Box sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
                 <Box sx={{ px: 3, py: 2, borderBottom: '1px solid #f0f0f0', bgcolor: '#fafafa' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#333' }}>

@@ -11,4 +11,6 @@ export interface AuthContextType {
   updateUser: (user: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   isAuthenticated: boolean;
   loading: boolean;
+  profilePhoto: string | null;
+  refreshProfilePhoto: () => Promise<void>;
 }

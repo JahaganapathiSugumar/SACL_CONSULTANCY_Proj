@@ -1,6 +1,7 @@
 ﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { AuthContextType, LoginCredentials } from '../types/auth';
 import { authService } from '../services/authService';
+import { apiService } from '../services/commonService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -8,6 +9,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  const fetchProfilePhoto = async () => {
+    try {
+      const response = await apiService.getProfilePhoto();
+      if (response.profilePhoto) {
+        setProfilePhoto(response.profilePhoto);
+      } else {
+        setProfilePhoto(null);
+      }
+    } catch (err) {
+      console.error('Error loading profile photo:', err);
+      setProfilePhoto(null);
+    }
+  };
 
   useEffect(() => {
     const storedToken = authService.getToken();
@@ -16,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(storedUser);
+      fetchProfilePhoto();
     }
     setLoading(false);
   }, []);
@@ -27,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
     setUser(response.user);
     setToken(response.token);
+    fetchProfilePhoto();
     return response;
   };
 
@@ -34,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authService.logout();
     setUser(null);
     setToken(null);
+    setProfilePhoto(null);
   };
 
   const updateUser = (updatedUser: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -50,7 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         updateUser,
         isAuthenticated: !!token,
-        loading
+        loading,
+        profilePhoto,
+        refreshProfilePhoto: fetchProfilePhoto
       }}
     >
       {children}

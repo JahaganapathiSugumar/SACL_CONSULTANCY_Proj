@@ -21,21 +21,20 @@ const RecycleBinTable: React.FC = () => {
     const [deletedTrials, setDeletedTrials] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
 
-    const fetchDeletedTrials = async () => {
+    const fetchDeletedTrialReports = async () => {
         try {
             setLoading(true);
             const data = await trialService.getDeletedTrialReports();
             setDeletedTrials(data);
         } catch (error) {
             console.error('Failed to fetch deleted trials:', error);
-            Swal.fire('Error', 'Failed to load recycle bin items', 'error');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchDeletedTrials();
+        fetchDeletedTrialReports();
     }, []);
 
     const handleRestore = async (trial: any) => {
@@ -53,7 +52,7 @@ const RecycleBinTable: React.FC = () => {
             try {
                 await trialService.restoreTrialReport(trialId);
                 Swal.fire('Restored!', 'The trial report has been restored.', 'success');
-                fetchDeletedTrials();
+                fetchDeletedTrialReports();
             } catch (error) {
                 Swal.fire('Error', 'Failed to restore the report.', 'error');
             }
@@ -77,7 +76,7 @@ const RecycleBinTable: React.FC = () => {
             try {
                 await trialService.permanentlyDeleteTrialReport(trialId);
                 Swal.fire('Deleted!', 'The report has been permanently removed.', 'success');
-                fetchDeletedTrials();
+                fetchDeletedTrialReports();
             } catch (error) {
                 Swal.fire('Error', 'Failed to delete the report.', 'error');
             }

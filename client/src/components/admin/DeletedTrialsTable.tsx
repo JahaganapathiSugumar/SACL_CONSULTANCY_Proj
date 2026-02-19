@@ -28,7 +28,6 @@ const DeletedTrialsTable: React.FC = () => {
             setDeletedTrials(data);
         } catch (error) {
             console.error('Failed to fetch deleted trials:', error);
-            Swal.fire('Error', 'Failed to load deleted trial cards', 'error');
         } finally {
             setLoading(false);
         }

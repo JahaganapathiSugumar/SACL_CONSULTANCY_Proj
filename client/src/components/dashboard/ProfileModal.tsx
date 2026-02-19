@@ -16,33 +16,12 @@ interface ProfileModalProps {
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, profilePhoto, refreshProfilePhoto } = useAuth();
   const departmentInfo = getDepartmentInfo(user);
 
-
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [photoSuccess, setPhotoSuccess] = useState('');
-
-
-  useEffect(() => {
-    loadProfilePhoto();
-  }, []);
-
-  const loadProfilePhoto = async () => {
-    try {
-      const response = await apiService.getProfilePhoto();
-      if (response && response.profilePhoto) {
-        setProfilePhoto(response.profilePhoto);
-      }
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      if (err.message && !err.message.includes('404')) {
-        console.error('Error loading profile photo:', err);
-      }
-    }
-  };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -70,7 +49,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onPhotoUpdate }) =
         const base64String = e.target?.result as string;
         try {
           await apiService.uploadProfilePhoto(base64String);
-          setProfilePhoto(base64String);
+          await refreshProfilePhoto();
           setPhotoSuccess('Profile photo updated successfully!');
 
           if (onPhotoUpdate) {
