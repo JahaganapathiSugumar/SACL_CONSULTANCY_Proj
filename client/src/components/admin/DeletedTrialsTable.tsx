@@ -42,7 +42,7 @@ const DeletedTrialsTable: React.FC = () => {
         const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Restore Trial Card?',
-            text: `Are you sure you want to restore trial ${trialNo || trialId}?`,
+            text: `Are you sure you want to restore trial ${trial.part_name} - Trial No: ${trial.trial_no}?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#E67E22',
@@ -65,7 +65,7 @@ const DeletedTrialsTable: React.FC = () => {
         const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Delete Permanently?',
-            text: `Warning: This will permanently delete trial ${trialNo || trialId}, all its progress history, and all generated reports! This action cannot be undone.`,
+            text: `Warning: This will permanently delete trial ${trial.part_name} - Trial No: ${trial.trial_no}, all its progress history, and all generated reports! This action cannot be undone.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',

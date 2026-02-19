@@ -41,7 +41,7 @@ const RecycleBinTable: React.FC = () => {
         const trialId = trial.trial_id;
         const result = await Swal.fire({
             title: 'Restore Report?',
-            text: `Are you sure you want to restore trial report for Trial No: ${trial.trial_no} (${trial.part_name})?`,
+            text: `Are you sure you want to restore trial report for ${trial.part_name} - Trial No: ${trial.trial_no}?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#E67E22',
@@ -64,7 +64,7 @@ const RecycleBinTable: React.FC = () => {
         const trialNo = trial.trial_no;
         const result = await Swal.fire({
             title: 'Delete Permanently?',
-            text: `You will not be able to recover trial report for Trial No: ${trialNo} (${trial.part_name})!`,
+            text: `You will not be able to recover trial report for ${trial.part_name} - Trial No: ${trial.trial_no}!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',

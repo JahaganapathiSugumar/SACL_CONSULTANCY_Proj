@@ -202,6 +202,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         };
         setViewReport({
             trialId: trial.trial_id,
+            trialNo: trial.trial_no,
+            partName: trial.part_name,
             documents: [document]
         });
     };
@@ -561,7 +563,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             </Box>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-                <DialogTitle>Trial Report - {viewReport?.trial_no || ""}</DialogTitle>
+                <DialogTitle>Trial Report - {viewReport?.partName} - Trial No: {viewReport?.trialNo}</DialogTitle>
                 <DialogContent>
                     {viewReport && (
                         <DocumentViewer

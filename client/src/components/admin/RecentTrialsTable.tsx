@@ -66,6 +66,8 @@ const RecentTrialsTable: React.FC = () => {
     };
     setViewReport({
       trialId: trial.trial_id,
+      trialNo: trial.trial_no,
+      partName: trial.part_name,
       documents: [document]
     });
   };
@@ -181,7 +183,7 @@ const RecentTrialsTable: React.FC = () => {
       </TableContainer>
 
       <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
-        <DialogTitle>Trial Report - {viewReport?.trial_no || ""}</DialogTitle>
+        <DialogTitle>Trial Report - {viewReport?.partName} - {viewReport?.trialNo}</DialogTitle>
         <DialogContent>
           {viewReport && (
             <DocumentViewer

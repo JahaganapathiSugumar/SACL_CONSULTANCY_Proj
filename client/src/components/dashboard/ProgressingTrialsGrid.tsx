@@ -18,7 +18,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
     const { user } = useAuth();
     const [progressingTrials, setProgressingTrials] = useState<any[]>([]);
     const [loadingTrials, setLoadingTrials] = useState(false);
-    const [selectedTrialId, setSelectedTrialId] = useState<number | string | null>(null);
+    const [selectedTrial, setSelectedTrial] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
@@ -243,7 +243,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                                                         variant="contained"
                                                         startIcon={<InfoIcon sx={{ fontSize: '14px !important' }} />}
                                                         onClick={() => {
-                                                            setSelectedTrialId(trial.trial_id);
+                                                            setSelectedTrial(trial);
                                                             setIsModalOpen(true);
                                                         }}
                                                         sx={{
@@ -309,14 +309,14 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
                 )}
             </Box>
 
-            {selectedTrialId && (
+            {selectedTrial && (
                 <ProgressingTrialModal
                     isOpen={isModalOpen}
                     onClose={() => {
                         setIsModalOpen(false);
-                        setSelectedTrialId(null);
+                        setSelectedTrial(null);
                     }}
-                    trialId={selectedTrialId}
+                    trial={selectedTrial}
                 />
             )}
         </>

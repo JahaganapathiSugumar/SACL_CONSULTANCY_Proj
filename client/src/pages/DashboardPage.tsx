@@ -184,7 +184,7 @@ const Dashboard: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                       {/* Search */}
                       <TextField
-                        placeholder="Search trials by title or ID..."
+                        placeholder="Search trials by Part Name or Trial No..."
                         size="small"
                         sx={{ width: 300, bgcolor: 'white' }}
                         InputProps={{

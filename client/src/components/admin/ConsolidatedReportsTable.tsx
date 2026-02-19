@@ -63,6 +63,7 @@ const ConsolidatedReportsTable: React.FC = () => {
         };
         setViewReport({
             patternCode: report.pattern_code,
+            partName: report.part_name,
             documents: [document]
         });
     };
@@ -143,7 +144,7 @@ const ConsolidatedReportsTable: React.FC = () => {
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Consolidated Report - {viewReport?.patternCode}</Typography>
+                    <Typography variant="h6">Consolidated Report - {viewReport?.partName} ({viewReport?.patternCode})</Typography>
                     <IconButton onClick={() => setViewReport(null)} size="small">
                         <CloseIcon />
                     </IconButton>

@@ -14,10 +14,10 @@ import BasicInfo from './BasicInfo';
 interface ProgressingTrialModalProps {
     isOpen: boolean;
     onClose: () => void;
-    trialId: number | string;
+    trial: any;
 }
 
-const ProgressingTrialModal: React.FC<ProgressingTrialModalProps> = ({ isOpen, onClose, trialId }) => {
+const ProgressingTrialModal: React.FC<ProgressingTrialModalProps> = ({ isOpen, onClose, trial }) => {
     return (
         <Dialog
             open={isOpen}
@@ -41,7 +41,7 @@ const ProgressingTrialModal: React.FC<ProgressingTrialModalProps> = ({ isOpen, o
                 justifyContent: 'space-between',
                 alignItems: 'center'
             }}>
-                Trial Details: {trialId}
+                Trial Details: {trial.part_name} - Trial No: {trial.trial_no}
                 <IconButton
                     aria-label="close"
                     onClick={onClose}
@@ -52,7 +52,7 @@ const ProgressingTrialModal: React.FC<ProgressingTrialModalProps> = ({ isOpen, o
             </DialogTitle>
             <DialogContent dividers sx={{ p: 0 }}>
                 <Box sx={{ bgcolor: '#f8fafc' }}>
-                    <BasicInfo trialId={trialId} />
+                    <BasicInfo trialId={trial.trial_id} />
                 </Box>
             </DialogContent>
             <DialogActions sx={{ p: 2, bgcolor: '#f8fafc' }}>
