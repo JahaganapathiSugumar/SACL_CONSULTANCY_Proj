@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StatItem } from '../../data/dashboardData';
+import type { StatItem } from '../../data/dashboardData';
 
 interface StatsGridProps {
     stats: StatItem[];
