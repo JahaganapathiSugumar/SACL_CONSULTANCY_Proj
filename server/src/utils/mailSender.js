@@ -31,7 +31,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-const sendMail = async ({ to, cc, bcc, subject, text, html, attachments = [] }) => {
+const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
   try {
     const mailOptions = {
       from: `"Digital Trial Card" <${process.env.SMTP_USER}>`,
