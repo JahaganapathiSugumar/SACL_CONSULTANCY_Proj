@@ -5,18 +5,26 @@ import sendMail from '../utils/mailSender.js';
 import { generateAndStoreConsolidatedReport } from '../services/consolidatedReportGenerator.js';
 
 export const createTrial = async (req, res, next) => {
-    const { trial_no, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
+    const { part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
 
-    if (!trial_no || !part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
+    if (!part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
 
     let trial_id;
+    let next_trial_no;
+
     await Client.transaction(async (trx) => {
+        const [countRows] = await trx.query(
+            'SELECT COUNT(*) AS count FROM trial_cards WITH (UPDLOCK, HOLDLOCK) WHERE pattern_code = @pattern_code',
+            { pattern_code }
+        );
+        next_trial_no = countRows[0].count + 1;
+
         const sql = 'INSERT INTO trial_cards (trial_no, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_no, @part_name, @pattern_code, @trial_type, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks); SELECT SCOPE_IDENTITY() AS trial_id;';
         const result = await trx.query(sql, {
-            trial_no,
+            trial_no: next_trial_no,
             part_name,
             pattern_code,
             trial_type,
@@ -43,7 +51,7 @@ export const createTrial = async (req, res, next) => {
             department_id: req.user.department_id,
             trial_id,
             action: 'Trial created',
-            remarks: `Trial (No: ${trial_no}) created by ${req.user.username} (IP: ${req.ip}) for part name ${part_name}`
+            remarks: `Trial (No: ${next_trial_no}) created by ${req.user.username} (IP: ${req.ip}) for part name ${part_name}`
         });
 
         await createDepartmentProgress(trial_id, req.user, part_name, trx, req.ip);
@@ -52,8 +60,8 @@ export const createTrial = async (req, res, next) => {
         }
     });
 
-    logger.info('Trial created successfully', { trial_id, part_name, createdBy: req.user.username });
-    return res.status(201).json({ success: true, message: 'Trial created successfully.', trial_id });
+    logger.info('Trial created successfully', { trial_id, part_name, trial_no: next_trial_no, createdBy: req.user.username });
+    return res.status(201).json({ success: true, message: 'Trial created successfully.', trial_id, trial_no: next_trial_no });
 };
 
 export const getTrials = async (req, res, next) => {
