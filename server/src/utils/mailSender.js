@@ -26,7 +26,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
+const sendMail = async ({ to, cc, bcc, subject, text, html, attachments }) => {
   try {
     const mailOptions = {
       from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`,
@@ -35,7 +35,8 @@ const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
       bcc,
       subject,
       text,
-      html
+      html,
+      attachments
     };
 
     const info = await getTransporter().sendMail(mailOptions);
