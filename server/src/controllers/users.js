@@ -69,6 +69,7 @@ export const sendOtp = async (req, res, next) => {
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                 <div style="background-color: #2950bb; padding: 25px; text-align: center;">
+                    <img src="cid:sacllogo" alt="SACL Logo" style="max-height: 40px; margin-bottom: 10px;" />
                     <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Email Verification</h2>
                 </div>
                 <div style="padding: 35px; color: #333333; text-align: center;">
