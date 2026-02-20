@@ -1,6 +1,11 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import CustomError from './customError.js';
 import logger from '../config/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let transporter = null;
 
@@ -26,17 +31,21 @@ const getTransporter = () => {
   return transporter;
 };
 
-const sendMail = async ({ to, cc, bcc, subject, text, html, attachments }) => {
+const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
   try {
     const mailOptions = {
-      from: `"SACL Digital Trial Card" <${process.env.SMTP_USER}>`,
+      from: `"Digital Trial Card" <${process.env.SMTP_USER}>`,
       to,
       cc,
       bcc,
       subject,
       text,
       html,
-      attachments
+      attachments: [{
+        filename: 'SACL-LOGO.jpg',
+        path: path.resolve(__dirname, '../../assets/SACL-LOGO.jpg'),
+        cid: 'sacllogo'
+      }]
     };
 
     const info = await getTransporter().sendMail(mailOptions);

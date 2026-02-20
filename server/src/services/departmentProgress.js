@@ -1,13 +1,8 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import CustomError from '../utils/customError.js';
 import sendMail from '../utils/mailSender.js';
 import logger from '../config/logger.js';
 import { generateAndStoreTrialReport } from './trialReportGenerator.js';
 import { generateAndStoreConsolidatedReport } from './consolidatedReportGenerator.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export const createDepartmentProgress = async (trial_id, user, part_name, trx, ipAddress) => {
     const initial_department_sql = 'SELECT department_id FROM department_flow WHERE sequence_no=1';
@@ -130,24 +125,48 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
 
     const mailOptions = {
-        to: next_department_user_rows[0].email,
-        cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
+        to: "trackkumaran@gmail.com",
+        subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
-                <h2 style="color: #2950bb;">New Request Assigned</h2>
-                <p>Hello,</p>
-                <p>Department progress for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been assigned to you by <strong>${user.username}</strong>.</p>
-                <p>Please check the progress by logging into the application.</p>
-                <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+                <div style="background-color: #2950bb; padding: 20px; text-align: center;">
+                    <img src="cid:sacllogo" alt="SACL Logo" style="max-height: 50px;" />
+                </div>
+                <div style="padding: 30px; color: #333333;">
+                    <h2 style="color: #2950bb; margin-top: 0; font-size: 22px;">New Trial Assigned</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello,</p>
+                    <p style="font-size: 16px; line-height: 1.6;">A new trial has been assigned to you by <strong>${user.username}</strong>. Please find the details below:</p>
+                    
+                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #2950bb;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666; width: 130px;"><strong>Part Name:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${part_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Trial No:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${trial_no}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Pattern Code:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${pattern_code}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Assigned From:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${user.department_name}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.APP_URL}" style="background-color: #2950bb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View in Dashboard</a>
+                    </div>
+                </div>
+                <div style="background-color: #f4f4f4; padding: 15px; text-align: center; color: #888888; font-size: 12px; border-top: 1px solid #eeeeee;">
+                    <p style="margin: 0;">&copy; ${new Date().getFullYear()} Sakthi Auto Component Limited. All rights reserved.</p>
+                </div>
             </div>
-        `,
-        attachments: [{
-            filename: 'SACL-LOGO.jpg',
-            path: path.resolve(__dirname, '../../assets/SACL-LOGO.jpg'),
-            cid: 'sacllogo'
-        }]
+        `
     };
     sendMail(mailOptions);
     return "Department progress added successfully";
@@ -258,22 +277,47 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
         const mailOptions = {
             to: targetUser.email,
             cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-            subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
+            subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
             html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                    <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
-                    <h2 style="color: #2950bb;">New Request Assigned</h2>
-                    <p>Hello,</p>
-                    <p>Department progress for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been assigned to you by <strong>${user.username}</strong>.</p>
-                    <p>Please check the progress by logging into the application.</p>
-                    <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+                    <div style="background-color: #2950bb; padding: 20px; text-align: center;">
+                        <img src="cid:sacllogo" alt="SACL Logo" style="max-height: 50px;" />
+                    </div>
+                    <div style="padding: 30px; color: #333333;">
+                        <h2 style="color: #2950bb; margin-top: 0; font-size: 22px;">New Trial Assigned</h2>
+                        <p style="font-size: 16px; line-height: 1.6;">Hello,</p>
+                        <p style="font-size: 16px; line-height: 1.6;">A new trial has been assigned to you by <strong>${user.username}</strong>. Please find the details below:</p>
+                        
+                        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #2950bb;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666666; width: 130px;"><strong>Part Name:</strong></td>
+                                    <td style="padding: 8px 0; color: #333333;">${part_name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666666;"><strong>Trial No:</strong></td>
+                                    <td style="padding: 8px 0; color: #333333;">${trial_no}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666666;"><strong>Pattern Code:</strong></td>
+                                    <td style="padding: 8px 0; color: #333333;">${pattern_code}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #666666;"><strong>Assigned From:</strong></td>
+                                    <td style="padding: 8px 0; color: #333333;">${user.department_name}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="${process.env.APP_URL}" style="background-color: #2950bb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View in Dashboard</a>
+                        </div>
+                    </div>
+                    <div style="background-color: #f4f4f4; padding: 15px; text-align: center; color: #888888; font-size: 12px; border-top: 1px solid #eeeeee;">
+                        <p style="margin: 0;">&copy; ${new Date().getFullYear()} Sakthi Auto Component Limited. All rights reserved.</p>
+                    </div>
                 </div>
-            `,
-            attachments: [{
-                filename: 'SACL-LOGO.jpg',
-                path: path.resolve(__dirname, '../../assets/SACL-LOGO.jpg'),
-                cid: 'sacllogo'
-            }]
+            `
         };
         sendMail(mailOptions);
         return "Department progress updated successfully";
@@ -421,22 +465,47 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
     const mailOptions = {
         to: next_department_user[0].email,
         cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
-        subject: `Digital Sample Card: ${part_name} Trial No: ${trial_no}`,
+        subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                <img src="cid:sacllogo" alt="SACL Logo" style="max-width: 200px; margin-bottom: 20px;" />
-                <h2 style="color: #2950bb;">New Request Assigned</h2>
-                <p>Hello,</p>
-                <p>The trial for <strong>${part_name}</strong> (Trial No: <strong>${trial_no}</strong>, Pattern Code: <strong>${pattern_code}</strong>) has been partially completed and assigned to you by <strong>${user.username}</strong>.</p>
-                <p>Please check the progress by logging into the application.</p>
-                <p><a href="${process.env.APP_URL}" style="background-color: #2950bb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+                <div style="background-color: #2950bb; padding: 20px; text-align: center;">
+                    <img src="cid:sacllogo" alt="SACL Logo" style="max-height: 50px;" />
+                </div>
+                <div style="padding: 30px; color: #333333;">
+                    <h2 style="color: #2950bb; margin-top: 0; font-size: 22px;">New Trial Assigned</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello,</p>
+                    <p style="font-size: 16px; line-height: 1.6;">A new trial has been assigned to you by <strong>${user.username}</strong>. Please find the details below:</p>
+                    
+                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #2950bb;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666; width: 130px;"><strong>Part Name:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${part_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Trial No:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${trial_no}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Pattern Code:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${pattern_code}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #666666;"><strong>Assigned From:</strong></td>
+                                <td style="padding: 8px 0; color: #333333;">${user.department_name}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.APP_URL}" style="background-color: #2950bb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View in Dashboard</a>
+                    </div>
+                </div>
+                <div style="background-color: #f4f4f4; padding: 15px; text-align: center; color: #888888; font-size: 12px; border-top: 1px solid #eeeeee;">
+                    <p style="margin: 0;">&copy; ${new Date().getFullYear()} Sakthi Auto Component Limited. All rights reserved.</p>
+                </div>
             </div>
-        `,
-        attachments: [{
-            filename: 'SACL-LOGO.jpg',
-            path: path.resolve(__dirname, '../../assets/SACL-LOGO.jpg'),
-            cid: 'sacllogo'
-        }]
+        `
     };
     sendMail(mailOptions);
     return "Next department updated successfully";

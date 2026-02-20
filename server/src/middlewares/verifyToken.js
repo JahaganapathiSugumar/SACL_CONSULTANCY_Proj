@@ -27,7 +27,10 @@ const verifyToken = asyncErrorHandler(async (req, res, next) => {
     if (!username) throw new CustomError('Invalid token payload', 401);
 
     const [rows] = await Client.query(
-        'SELECT TOP 1 user_id, username, department_id, role FROM dtc_users WHERE username = @username',
+        `SELECT TOP 1 u.user_id, u.username, u.department_id, u.role, d.department_name 
+         FROM dtc_users u
+         LEFT JOIN departments d ON u.department_id = d.department_id
+         WHERE u.username = @username`,
         { username }
     );
 
