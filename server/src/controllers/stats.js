@@ -49,10 +49,10 @@ export const getDashboardStats = async (req, res, next) => {
         const pendingCards = pendingCardsResult[0].count;
 
         stats = [
-            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear.toString(), color: '#6c757d', description: 'Trials completed in previous year' },
-            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear.toString(), color: '#28a745', description: 'Trials completed in current year' },
-            { label: 'Completed (Current Month)', value: completedCurrentMonth.toString(), color: '#20c997', description: 'Trials completed in current month' },
-            { label: 'Pending Cards', value: pendingCards.toString(), color: '#ffc107', description: 'Trials awaiting completion' }
+            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear, color: '#6c757d', description: 'Trials completed in previous year' },
+            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear, color: '#28a745', description: 'Trials completed in current year' },
+            { label: 'Completed (Current Month)', value: completedCurrentMonth, color: '#20c997', description: 'Trials completed in current month' },
+            { label: 'Pending Cards', value: pendingCards, color: '#ffc107', description: 'Trials awaiting completion' }
         ];
     }
     else if (role === 'User') {
@@ -97,10 +97,10 @@ export const getDashboardStats = async (req, res, next) => {
         const pendingCards = pendingCardsResult[0].count;
 
         stats = [
-            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear.toString(), color: '#6c757d', description: 'Trials completed in previous year' },
-            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear.toString(), color: '#28a745', description: 'Trials completed in current year' },
-            { label: 'Completed (Current Month)', value: completedCurrentMonth.toString(), color: '#20c997', description: 'Trials completed in current month' },
-            { label: 'Pending Cards', value: pendingCards.toString(), color: '#ffc107', description: 'Tasks awaiting review' }
+            { label: `Completed (${new Date().getFullYear() - 1})`, value: completedLastYear, color: '#6c757d', description: 'Trials completed in previous year' },
+            { label: `Completed (${new Date().getFullYear()})`, value: completedCurrentYear, color: '#28a745', description: 'Trials completed in current year' },
+            { label: 'Completed (Current Month)', value: completedCurrentMonth, color: '#20c997', description: 'Trials completed in current month' },
+            { label: 'Pending Cards', value: pendingCards, color: '#ffc107', description: 'Tasks awaiting review' }
         ];
     }
 
@@ -125,9 +125,9 @@ export const getDashboardStats = async (req, res, next) => {
         const approved = approvedResult[0].count;
 
         stats = [
-            { label: 'Total Trials', value: totalTrials.toString(), color: '#007bff' },
-            { label: 'Ongoing', value: ongoing.toString(), color: '#17a2b8' },
-            { label: 'Approved', value: approved.toString(), color: '#28a745' }
+            { label: 'Total Trials', value: totalTrials, color: '#007bff' },
+            { label: 'Ongoing', value: ongoing, color: '#17a2b8' },
+            { label: 'Approved', value: approved, color: '#28a745' }
         ];
     }
 
@@ -164,9 +164,9 @@ export const getDashboardStats = async (req, res, next) => {
         const initiatedCurrentMonth = initiatedCurrentMonthResult[0].count;
 
         stats = [
-            { label: `Initiated (${new Date().getFullYear() - 1})`, value: initiatedLastYear.toString(), color: '#6c757d', description: 'Trials initiated in previous year' },
-            { label: `Initiated (${new Date().getFullYear()})`, value: initiatedCurrentYear.toString(), color: '#28a745', description: 'Trials initiated in current year' },
-            { label: 'Initiated (Current Month)', value: initiatedCurrentMonth.toString(), color: '#20c997', description: 'Trials initiated in current month' },
+            { label: `Initiated (${new Date().getFullYear() - 1})`, value: initiatedLastYear, color: '#6c757d', description: 'Trials initiated in previous year' },
+            { label: `Initiated (${new Date().getFullYear()})`, value: initiatedCurrentYear, color: '#28a745', description: 'Trials initiated in current year' },
+            { label: 'Initiated (Current Month)', value: initiatedCurrentMonth, color: '#20c997', description: 'Trials initiated in current month' },
         ];
     }
 
