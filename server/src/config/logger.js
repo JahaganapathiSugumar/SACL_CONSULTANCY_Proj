@@ -20,7 +20,7 @@ const transports = [
     filename: "logs/combined/app-%DATE%.log",
     datePattern: "YYYY-MM-DD",
     maxSize: "20m",
-    maxFiles: "14d",
+    maxFiles: "3d",
     level: "info"
   }),
 
@@ -28,7 +28,7 @@ const transports = [
     filename: "logs/error/error-%DATE%.log",
     datePattern: "YYYY-MM-DD",
     maxSize: "20m",
-    maxFiles: "30d",
+    maxFiles: "3d",
     level: "error"
   })
 ];
