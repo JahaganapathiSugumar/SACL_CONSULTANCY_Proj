@@ -502,7 +502,7 @@ export default function DimensionalInspection({
                                                                     variant="standard"
                                                                     value={c}
                                                                     onChange={(e) => updateCavityLabel(ci, e.target.value)}
-                                                                    InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                                    InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                                     sx={{ input: { textAlign: 'center' } }}
                                                                     disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                                                                 />
@@ -529,7 +529,7 @@ export default function DimensionalInspection({
                                                                     value={val}
                                                                     onChange={(e) => updateCavCell(r?.id, ci, e.target.value)}
                                                                     variant="outlined"
-                                                                    sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                                                                    sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
                                                                     disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                                                                 />
                                                             </TableCell>

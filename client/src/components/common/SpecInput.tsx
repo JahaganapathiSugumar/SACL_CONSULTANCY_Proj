@@ -26,7 +26,8 @@ const SpecInput: React.FC<SpecInputProps> = ({
                 style: {
                     textAlign: centered ? 'center' : 'left',
                     fontFamily: 'Roboto Mono',
-                    fontSize: '0.85rem',
+                    fontSize: '1rem',
+                    fontWeight: 500,
                     ...inputStyle,
                     ...inputProps?.style
                 }

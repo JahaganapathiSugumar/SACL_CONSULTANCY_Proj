@@ -276,7 +276,7 @@ function SectionTable({
                                             value={c.label}
                                             onChange={(e) => setCols((prev) => prev.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
                                             variant="standard"
-                                            InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                            InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                             sx={{ input: { textAlign: 'center' } }}
                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                                         />
@@ -305,7 +305,7 @@ function SectionTable({
                                         value={cavityRow ? (values[cavityRow.id]?.[ci] ?? "") : ""}
                                         onChange={(e) => cavityRow && updateCell(cavityRow.id, ci, e.target.value)}
                                         variant="outlined"
-                                        sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                                        sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
                                         disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                                     />
                                 </TableCell>
@@ -353,7 +353,7 @@ function SectionTable({
                                                 value={values[r.id]?.[ci] ?? ""}
                                                 onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                                 variant="outlined"
-                                                sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                                                sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
                                                 disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || isRejectedQty || r.label.toLowerCase().includes('percentage')}
                                             />
                                         </TableCell>
@@ -963,7 +963,7 @@ export default function VisualInspection({
                                                                     variant="standard"
                                                                     value={col}
                                                                     onChange={(e) => updateColLabel(ci, e.target.value)}
-                                                                    InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                                    InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                                     size="small"
                                                                     sx={{ input: { textAlign: 'center' } }}
                                                                     disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
@@ -1033,12 +1033,10 @@ export default function VisualInspection({
                                                                                 "& .MuiInputBase-input": {
                                                                                     textAlign: 'center',
                                                                                     fontFamily: 'Roboto Mono',
-                                                                                    fontSize: '0.85rem',
                                                                                     bgcolor: isRejectionPercentage ? '#fffbeb' :
                                                                                         isRejectedQty ? '#f3f4f6' :
                                                                                             (isInvalid || isRejectedInvalid) ? '#fee2e2' :
                                                                                                 'transparent',
-                                                                                    fontWeight: isRejectionPercentage ? 700 : 400,
                                                                                 },
                                                                                 "& .MuiInputBase-root": {
                                                                                     bgcolor: isRejectionPercentage ? '#fffbeb' :

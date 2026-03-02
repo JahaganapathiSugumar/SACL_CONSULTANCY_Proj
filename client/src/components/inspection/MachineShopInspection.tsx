@@ -533,7 +533,7 @@ export default function McShopInspection({
                                   variant="standard"
                                   value={cav}
                                   onChange={(e) => updateCavityLabel(i, e.target.value)}
-                                  InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                  InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                   size="small"
                                   sx={{ input: { textAlign: 'center' } }}
                                   disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}

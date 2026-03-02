@@ -82,6 +82,7 @@ const AppRoutes: React.FC = () => {
             } />
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
     );

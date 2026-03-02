@@ -205,7 +205,7 @@ function SectionTable({
                       value={c?.label}
                       onChange={(e) => setCols((prev) => prev?.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
                       variant="standard"
-                      InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                      InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                       sx={{ input: { textAlign: 'center' } }}
                       disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                     />
@@ -238,7 +238,7 @@ function SectionTable({
                     value={cavityRow ? (values?.[cavityRow?.id]?.[ci] ?? "") : ""}
                     onChange={(e) => cavityRow && updateCell(cavityRow?.id, ci, e.target.value)}
                     variant="outlined"
-                    sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                    sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
                     disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                   />
                 </TableCell>
@@ -299,7 +299,6 @@ function SectionTable({
                             "& .MuiInputBase-input": {
                               textAlign: 'center',
                               fontFamily: 'Roboto Mono',
-                              fontSize: '0.85rem',
                               bgcolor: 'inherit'
                             }
                           }}
@@ -428,7 +427,7 @@ function MicrostructureTable({
                       value={c?.label}
                       onChange={(e) => setCols((prev) => prev?.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
                       variant="standard"
-                      InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                      InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                       sx={{ input: { textAlign: 'center' } }}
                       disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}
                     />
@@ -457,7 +456,7 @@ function MicrostructureTable({
                       value={values?.[param]?.[ci] ?? ""}
                       onChange={(e) => updateCell(param, ci, e.target.value)}
                       variant="outlined"
-                      sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono', fontSize: '0.85rem' } }}
+                      sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
                       disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                     />
                   </TableCell>

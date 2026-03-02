@@ -304,7 +304,7 @@ function MouldingTable() {
                         onChange={(e) => {
                           setMouldDate(e.target.value);
                         }}
-                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
+                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5 } }}
                         disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
                       />
                     </Box>

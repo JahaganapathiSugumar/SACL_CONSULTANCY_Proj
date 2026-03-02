@@ -369,7 +369,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                               fullWidth
                               size="small"
                               value={data?.pattern_code || ''}
-                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc", fontSize: { xs: '0.8rem', sm: '0.9rem' } } }}
+                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
                             />
                           </Grid>
                           <Grid size={{ xs: 12, sm: 6, md: 5 }}>
@@ -378,7 +378,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                               fullWidth
                               size="small"
                               value={data?.part_name || ''}
-                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc", fontSize: { xs: '0.8rem', sm: '0.9rem' } } }}
+                              InputProps={{ readOnly: true, sx: { bgcolor: "#f8fafc" } }}
                             />
                           </Grid>
                           <Grid size={{ xs: 12, md: 4 }}>
@@ -389,7 +389,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                               value={data?.trial_no || 'No Trial Number'}
                               InputProps={{
                                 readOnly: true,
-                                sx: { bgcolor: "#f1f5f9", fontSize: { xs: '0.8rem', sm: '0.9rem' } }
+                                sx: { bgcolor: "#f1f5f9" }
                               }}
                             />
                           </Grid>

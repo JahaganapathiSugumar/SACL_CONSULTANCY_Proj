@@ -294,7 +294,7 @@ export default function MaterialCorrection() {
                                                         size="small"
                                                         value={date}
                                                         onChange={(e) => setDate(e.target.value)}
-                                                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5, fontSize: "0.8rem" } }}
+                                                        sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5 } }}
                                                         disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing}
                                                     />
                                                 </Box>
