@@ -276,7 +276,7 @@ function SectionTable({
                                             value={c.label}
                                             onChange={(e) => setCols((prev) => prev.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
                                             variant="standard"
-                                            InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                            InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                             sx={{ input: { textAlign: 'center' } }}
                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                                         />

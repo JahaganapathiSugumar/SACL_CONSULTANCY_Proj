@@ -476,7 +476,6 @@ export default function DimensionalInspection({
                                                 error={isYieldInvalid}
                                                 sx={{
                                                     bgcolor: isYieldInvalid ? '#ffebee' : 'white',
-                                                    '& .MuiInputBase-input': { fontWeight: 700 },
                                                     '& .MuiOutlinedInput-root': {
                                                         borderColor: isYieldInvalid ? '#d32f2f' : undefined
                                                     }
@@ -503,7 +502,7 @@ export default function DimensionalInspection({
                                                                     variant="standard"
                                                                     value={c}
                                                                     onChange={(e) => updateCavityLabel(ci, e.target.value)}
-                                                                    InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', fontWeight: 700, color: COLORS.blueHeaderText, textAlign: 'center' } }}
+                                                                    InputProps={{ disableUnderline: true, style: { fontSize: '0.8rem', color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                                     sx={{ input: { textAlign: 'center' } }}
                                                                     disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                                                                 />

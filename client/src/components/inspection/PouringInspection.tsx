@@ -120,7 +120,15 @@ const theme = createTheme({
                     },
                     "& .MuiInputBase-input": {
                         padding: "6px 8px",
-                    }
+                        fontWeight: 600,
+                        color: '#000 !important',
+                        WebkitTextFillColor: '#000 !important',
+                    },
+                    "& .MuiInputBase-input.Mui-disabled": {
+                        fontWeight: 600,
+                        color: '#000 !important',
+                        WebkitTextFillColor: '#000 !important',
+                    },
                 },
             },
         },

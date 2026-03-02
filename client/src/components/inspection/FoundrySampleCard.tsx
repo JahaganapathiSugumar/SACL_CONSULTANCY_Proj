@@ -578,7 +578,7 @@ function FoundrySampleCard() {
                             placeholder={"Generating..."}
                             InputProps={{
                               readOnly: true,
-                              sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary },
+                              sx: { bgcolor: "#f1f5f9" },
                               endAdornment: user?.role !== 'HOD' && user?.role !== 'Admin' ? (
                                 <InputAdornment position="end">
                                   <IconButton onClick={() => fetchTrialNo()} disabled={!selectedPart || trialLoading} size="small">

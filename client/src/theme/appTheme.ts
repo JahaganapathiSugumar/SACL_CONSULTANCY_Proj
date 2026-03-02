@@ -105,6 +105,30 @@ export const appTheme = createTheme({
                             borderWidth: 1
                         },
                     },
+                    '& .MuiInputBase-input': {
+                        fontWeight: 600,
+                        color: '#000 !important',
+                        WebkitTextFillColor: '#000 !important',
+                    },
+                    '& .MuiInputBase-input.Mui-disabled': {
+                        fontWeight: 600,
+                        color: '#000 !important',
+                        WebkitTextFillColor: '#000 !important',
+                    },
+                },
+            },
+        },
+        MuiInputBase: {
+            styleOverrides: {
+                input: {
+                    fontWeight: 600,
+                    color: '#000 !important',
+                    WebkitTextFillColor: '#000 !important',
+                    '&.Mui-disabled': {
+                        fontWeight: 600,
+                        color: '#000 !important',
+                        WebkitTextFillColor: '#000 !important',
+                    },
                 },
             },
         },

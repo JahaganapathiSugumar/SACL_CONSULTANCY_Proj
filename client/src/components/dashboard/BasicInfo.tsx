@@ -389,7 +389,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                               value={data?.trial_no || 'No Trial Number'}
                               InputProps={{
                                 readOnly: true,
-                                sx: { bgcolor: "#f1f5f9", fontWeight: 700, color: COLORS.primary, fontSize: { xs: '0.8rem', sm: '0.9rem' } }
+                                sx: { bgcolor: "#f1f5f9", fontSize: { xs: '0.8rem', sm: '0.9rem' } }
                               }}
                             />
                           </Grid>
