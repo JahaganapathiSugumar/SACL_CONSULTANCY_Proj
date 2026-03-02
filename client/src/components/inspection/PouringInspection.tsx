@@ -235,7 +235,7 @@ function PouringDetailsTable() {
     const [ficHeatNo, setFicHeatNo] = useState<string>("");
     const [ppCode, setPpCode] = useState<string>("");
     const [followedBy, setFollowedBy] = useState<string>("");
-    const [userName] = useState<string>(user?.username || "Admin_User");
+    const [userName] = useState<string>(user?.username || "N/A");
     const [remarksText, setRemarksText] = useState<string>("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
