@@ -892,7 +892,7 @@ function FoundrySampleCard() {
                   )}
                 </Paper>
 
-                <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Mould Corrections</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Moulding</Typography>
                 <Table size="small" sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1, mb: 3 }}>
                   <TableHead>
                     <TableRow>
@@ -1137,7 +1137,7 @@ function FoundrySampleCard() {
 
                 <Paper sx={{ p: 3, mb: 3, overflowX: "auto" }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <SectionHeader icon={<EditIcon />} title="Mould Correction Details" color={COLORS.primary} />
+                    <SectionHeader icon={<EditIcon />} title="Moulding Details" color={COLORS.primary} />
                   </Box>
                   <Table size="small">
                     <TableHead>

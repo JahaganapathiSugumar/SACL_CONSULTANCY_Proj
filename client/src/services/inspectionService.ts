@@ -147,7 +147,7 @@ export const inspectionService = {
             });
 
             if (!data?.success) {
-                throw new Error(data?.message || 'Failed to save mould correction');
+                throw new Error(data?.message || 'Failed to save moulding');
             }
 
             return data;

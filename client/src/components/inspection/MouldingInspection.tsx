@@ -292,7 +292,7 @@ function MouldingTable() {
                   <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
                     <Box display="flex" alignItems="center" gap={1}>
                       <EngineeringIcon sx={{ color: COLORS.blueHeaderText, fontSize: 20 }} />
-                      <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULD CORRECTION DETAILS</Typography>
+                      <Typography variant="subtitle2" sx={{ color: COLORS.primary }}>MOULDING DETAILS</Typography>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.primary }}>Date</Typography>
