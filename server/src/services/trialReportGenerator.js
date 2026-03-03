@@ -228,6 +228,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "Mould Count (Plan/Act)", value: `${trialCard?.plan_moulds || trialCard?.no_of_moulds || '-'} / ${trialCard?.actual_moulds || '-'}` },
         { label: "Machine", value: trialCard?.disa },
         { label: "Reason", value: trialCard?.reason_for_sampling },
+        { label: "Remarks", value: trialCard?.remarks },
     ];
     yLeft = drawVerticalTable(doc, trialRows, col1X, yLeft, colWidth) + 12;
 
@@ -266,6 +267,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         { label: "No. Moulds Poured", value: pouring?.no_of_mould_poured },
         { label: "Inoculation Type", value: pInoc?.text },
         { label: "Stream / Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
+        { label: "Remarks", value: pouring?.remarks },
     ];
     yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, 535) + 12;
 
@@ -424,7 +426,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     const dimSubRows = [
         { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
         { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
-        { label: "Yield", value: `${dimensional?.yields || '-'} %` }
+        { label: "Yield", value: `${dimensional?.yields || '-'} %` },
+        { label: "Remarks", value: dimensional?.remarks }
     ];
     dimY = drawVerticalTable(doc, dimSubRows, col2X, dimY, colWidth) + 8;
 

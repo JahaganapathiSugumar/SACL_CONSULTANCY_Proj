@@ -255,6 +255,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             { label: "Mould Count (P/A)", value: `${trialCard?.plan_moulds || trialCard?.no_of_moulds || '-'} / ${trialCard?.actual_moulds || '-'}` },
             { label: "Machine", value: trialCard?.disa },
             { label: "Reason", value: trialCard?.reason_for_sampling },
+            { label: "Remarks", value: trialCard?.remarks },
         ];
         yLeft = drawVerticalTable(doc, trialRows, col1X, yLeft, colWidth) + 12;
 
@@ -291,6 +292,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             { label: "No. Mould Poured", value: pouring?.no_of_mould_poured },
             { label: "Inoculation Type", value: pInoc?.text },
             { label: "Stream/Inmould", value: `${pInoc?.stream || '-'} / ${pInoc?.inmould || '-'}` },
+            { label: "Remarks", value: pouring?.remarks },
         ];
         yNext = drawVerticalTable(doc, pouringRows, col1X, yNext, 535) + 12;
 
@@ -303,6 +305,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             { label: "A.F.S. / G.C.S.", value: `${sand?.afs || '-'} / ${sand?.gcs || '-'}` },
             { label: "M.O.I. / Comp.", value: `${sand?.moi || '-'} / ${sand?.compactability || '-'}` },
             { label: "Permeability", value: sand?.permeability },
+            { label: "Remarks", value: sand?.remarks },
         ];
         yNext = drawVerticalTable(doc, sandRows, col1X, yNext, 535) + 12;
 
@@ -314,6 +317,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             { label: "Compressibility", value: moulding?.compressability },
             { label: "Squeeze Pressure", value: moulding?.squeeze_pressure },
             { label: "Mould Hardness", value: moulding?.mould_hardness },
+            { label: "Remarks", value: moulding?.remarks },
         ];
         yNext = drawVerticalTable(doc, mouldRows, col1X, yNext, 535);
 
@@ -439,7 +443,8 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         const dimSubRows = [
             { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
             { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
-            { label: "Yield", value: `${dimensional?.yields || '-'} %` }
+            { label: "Yield", value: `${dimensional?.yields || '-'} %` },
+            { label: "Remarks", value: dimensional?.remarks }
         ];
         dimY = drawVerticalTable(doc, dimSubRows, col2X, dimY, colWidth) + 8;
         const dimInspections = safeParse(dimensional?.inspections, []);
