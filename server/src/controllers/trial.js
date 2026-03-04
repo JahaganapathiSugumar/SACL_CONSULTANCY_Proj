@@ -79,31 +79,13 @@ export const getTrialById = async (req, res, next) => {
 };
 
 export const getTrialReports = async (req, res, next) => {
-    if (req.user.role === 'Admin') {
-        const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
-        res.status(200).json({ success: true, data: rows });
-    } else {
-        const [rows] = await Client.query(`
-            SELECT DISTINCT 
-                t.document_id, t.file_base64, t.file_name, 
-                c.trial_id, c.trial_no, c.part_name, c.pattern_code, 
-                d.department_name AS department, 
-                c.current_department_id, c.material_grade, c.date_of_sampling, c.status 
-            FROM trial_cards c 
-            JOIN department_progress dp ON c.trial_id = dp.trial_id 
-            LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL 
-            LEFT JOIN departments d ON c.current_department_id = d.department_id 
-            WHERE c.deleted_at IS NULL 
-            AND dp.department_id = @department_id 
-            AND dp.approval_status = 'approved'
-        `, { department_id: req.user.department_id });
-        res.status(200).json({ success: true, data: rows });
-    }
+    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    res.status(200).json({ success: true, data: rows });
 };
 
 export const getConsolidatedReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT c.document_id, c.file_base64, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
-    res.status(200).json({ success: true, data: rows });
+        const [rows] = await Client.query("SELECT c.document_id, c.file_base64, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
+        res.status(200).json({ success: true, data: rows });
 };
 
 export const getRecentTrialReports = async (req, res, next) => {

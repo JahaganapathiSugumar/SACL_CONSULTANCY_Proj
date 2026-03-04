@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
             subLabel: user?.role === 'Admin' ? 'View & Edit all trials' : 'View all trial records',
             icon: <LibraryBooksIcon />,
             view: 'manage-trials' as const,
-            show: true
+            show: user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3
         },
         {
             id: 'consolidated-reports',
@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
             subLabel: 'View full trial history',
             icon: <LibraryBooksIcon />,
             view: 'consolidated-reports' as const,
-            show: true
+            show: user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3
         },
         {
             id: 'master-list',
