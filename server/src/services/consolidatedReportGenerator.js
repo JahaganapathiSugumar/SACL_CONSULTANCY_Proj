@@ -34,6 +34,9 @@ export const fetchTrialData = async (trial_id, trx) => {
     const [material_correction] = await trx.query(
         `SELECT * FROM material_correction WHERE trial_id = @trial_id`, { trial_id }
     );
+    const [documents] = await trx.query(
+        `SELECT * FROM documents WHERE trial_id = @trial_id ORDER BY uploaded_at ASC, document_type`, { trial_id }
+    );
 
     return {
         trial_cards,
@@ -44,7 +47,8 @@ export const fetchTrialData = async (trial_id, trx) => {
         visual_inspection,
         dimensional_inspection,
         machine_shop,
-        material_correction
+        material_correction,
+        documents
     };
 };
 
@@ -508,6 +512,110 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
                 const rows = mcInspections.map(r => Object.values(r));
                 const colW = 535 / headers.length;
                 p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW));
+            }
+
+            // ---- ATTACHMENTS (Per Trial) ----
+            const attachments = data.documents || [];
+            if (attachments.length > 0) {
+                const groupedDocs = attachments.reduce((acc, d) => {
+                    const cat = d.document_type || 'GENERAL';
+                    if (!acc[cat]) acc[cat] = [];
+                    acc[cat].push(d);
+                    return acc;
+                }, {});
+
+                for (const [category, docs] of Object.entries(groupedDocs)) {
+                    doc.addPage();
+                    doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                        .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Trial: ${trialCard?.trial_no})`, 30, 25, { align: 'center', width: 535 });
+                    doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+
+                    let currentAttY = 55;
+                    let imageInPageCount = 0;
+                    const colWidth = 260;
+                    const xPos = [45, 305];
+
+                    for (const item of docs) {
+                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
+                        const isPdf = /\.pdf$/i.test(item.file_name);
+
+                        if (currentAttY > 750 || (isImage && imageInPageCount >= 4)) {
+                            doc.addPage();
+                            currentAttY = 40;
+                            imageInPageCount = 0;
+                            doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                                .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Cont.)`, 30, 25, { align: 'center', width: 535 });
+                            doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+                            currentAttY = 55;
+                        }
+
+                        if (isImage) {
+                            try {
+                                const col = imageInPageCount % 2;
+                                const drawX = xPos[col];
+                                const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
+                                const img = Buffer.from(base64Data, 'base64');
+                                const maxWidth = 250;
+                                const maxHeight = 280;
+
+                                doc.font('Helvetica-Bold').fontSize(8).fillColor('black').text(`- ${item.file_name}`, drawX, currentAttY, { width: 250 });
+
+                                doc.image(img, drawX, currentAttY + 15, { fit: [maxWidth, maxHeight], align: 'center' });
+
+                                const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                                doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
+                                    .text("Click here to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
+                                        link: viewUrl,
+                                        underline: true
+                                    });
+
+                                imageInPageCount++;
+
+                                if (imageInPageCount % 2 === 0) {
+                                    currentAttY += maxHeight + 60;
+                                }
+                            } catch (err) {
+                                doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image: ${item.file_name}]`, 45, currentAttY);
+                                currentAttY += 20;
+                            }
+                        } else if (isPdf) {
+                            if (imageInPageCount % 2 !== 0) {
+                                currentAttY += 340;
+                                imageInPageCount = 0;
+                            }
+
+                            if (currentAttY > 750) {
+                                doc.addPage();
+                                currentAttY = 55;
+                            }
+
+                            doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                            currentAttY += 15;
+                            doc.font('Helvetica').fontSize(8).fillColor('#666')
+                                .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
+                            currentAttY += 12;
+
+                            const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                            doc.fillColor('#2980b9')
+                                .text("Click here to view/download document", 45, currentAttY, {
+                                    link: viewUrl,
+                                    underline: true
+                                });
+
+                            doc.fillColor('black');
+                            currentAttY += 30;
+                        } else {
+                            if (imageInPageCount % 2 !== 0) {
+                                currentAttY += 340;
+                                imageInPageCount = 0;
+                            }
+                            doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                            currentAttY += 15;
+                            doc.font('Helvetica-Oblique').fontSize(8).fillColor('#666').text("Format not supported for embedding.", 45, currentAttY);
+                            currentAttY += 25;
+                        }
+                    }
+                }
             }
         }
     }
