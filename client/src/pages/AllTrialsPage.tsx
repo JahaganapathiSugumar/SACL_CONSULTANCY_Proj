@@ -44,6 +44,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/dashboard/Header';
 import ProfileModal from '../components/dashboard/ProfileModal';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
+import { apiService } from '../services/commonService';
 
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -65,6 +66,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [deptFilter, setDeptFilter] = useState('ALL');
+    const [departments, setDepartments] = useState<any[]>([]);
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
@@ -88,20 +90,18 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             }
         };
 
-        fetchTrialReports();
-    }, []);
-
-    const uniqueDepartments = useMemo(() => {
-        const deptMap = new Map();
-        trials.forEach(trial => {
-            if (trial.current_department_id && trial.department) {
-                deptMap.set(trial.current_department_id, trial.department);
+        const fetchDepartments = async () => {
+            try {
+                const data = await apiService.getDepartments();
+                setDepartments(data);
+            } catch (error) {
+                console.error("Error fetching departments:", error);
             }
-        });
-        return Array.from(deptMap.entries())
-            .map(([id, name]) => ({ id, name }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-    }, [trials]);
+        };
+
+        fetchTrialReports();
+        fetchDepartments();
+    }, []);
 
     const filteredTrials = trials
         .filter(trial =>
@@ -279,9 +279,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     sx={{ bgcolor: 'white' }}
                                 >
                                     <MenuItem value="ALL">All Departments</MenuItem>
-                                    {uniqueDepartments.map((dept) => (
-                                        <MenuItem key={dept.id} value={dept.id}>
-                                            {dept.name}
+                                    {departments.map((dept) => (
+                                        <MenuItem key={dept.department_id} value={dept.department_id}>
+                                            {dept.department_name}
                                         </MenuItem>
                                     ))}
                                 </Select>
