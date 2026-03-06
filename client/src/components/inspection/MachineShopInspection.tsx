@@ -72,6 +72,7 @@ export default function McShopInspection({
   const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
   const departmentInfo = getDepartmentInfo(user);
   const [cavities, setCavities] = useState<string[]>([...initialCavities]);
+  const [cachedCavityNumbers, setCachedCavityNumbers] = useState<string[]>([]);
 
 
 
@@ -132,6 +133,43 @@ export default function McShopInspection({
   }, []);
 
   useEffect(() => {
+    const fetchCavityNumbers = async () => {
+      if (trialId) {
+        try {
+          const res = await inspectionService.getCavityNumbers(trialId);
+          if (res.success && Array.isArray(res.data)) {
+            const fetchedValues = res.data;
+            if (fetchedValues.length > 0) {
+              setCachedCavityNumbers(fetchedValues);
+              setCavities(fetchedValues);
+              setRows(prevRows => prevRows.map(row => {
+                let newValues = [...row.values];
+                if (row.label === "Cavity Number") {
+                  newValues = fetchedValues;
+                } else if (newValues.length < fetchedValues.length) {
+                  newValues = [...newValues, ...Array(fetchedValues.length - newValues.length).fill("")];
+                } else if (newValues.length > fetchedValues.length) {
+                  newValues = newValues.slice(0, fetchedValues.length);
+                }
+                return { ...row, values: newValues };
+              }));
+            } else {
+              setCavities([""]);
+              setRows(prev => prev.map(row => ({ ...row, values: [""] })));
+            }
+          } else {
+            setCavities([""]);
+            setRows(prev => prev.map(row => ({ ...row, values: [""] })));
+          }
+        } catch (error) {
+          console.error("Failed to fetch cavity numbers:", error);
+        }
+      }
+    };
+    fetchCavityNumbers();
+  }, [trialId]);
+
+  useEffect(() => {
     const fetchData = async () => {
       if (trialId) {
         try {
@@ -158,7 +196,12 @@ export default function McShopInspection({
                     const isMetadata = labelSnippet?.includes('cavity') || labelSnippet?.includes('reason') || labelSnippet?.includes('rejection percentage');
 
                     targetRow.values = values?.map(String);
-                    targetRow.total = isMetadata ? null : values?.reduce((acc: number, v: any) => acc + (parseFloat(String(v)) || 0), 0);
+                    const totalVal = values?.reduce((acc: number, v: any) => {
+                      const n = parseFloat(String(v));
+                      return acc + (isNaN(n) ? 0 : n);
+                    }, 0);
+                    const hasData = values?.some((v: any) => v !== null && v !== undefined && String(v).trim() !== "");
+                    targetRow.total = isMetadata ? null : (hasData ? totalVal : null);
                   }
                 };
 
@@ -200,8 +243,12 @@ export default function McShopInspection({
 
 
   const addColumn = () => {
-    setCavities((c) => [...(c || []), ""]);
-    setRows((r) => r?.map((row) => ({ ...row, values: [...(row?.values || []), ""] })));
+    const nextCavity = cachedCavityNumbers.find(c => !cavities.includes(c)) || "";
+    setCavities((c) => [...(c || []), nextCavity]);
+    setRows((r) => r?.map((row) => ({
+      ...row,
+      values: [...(row?.values || []), row.label === "Cavity Number" ? nextCavity : ""]
+    })));
   };
 
   const handleAttachFiles = (newFiles: File[]) => {
@@ -236,10 +283,12 @@ export default function McShopInspection({
         return updatedRows;
       }
 
-      const total = newValues?.reduce((sum, val) => {
+      const totalVal = newValues?.reduce((sum, val) => {
         const n = parseFloat(String(val).trim());
         return sum + (isNaN(n) ? 0 : n);
       }, 0);
+      const hasData = newValues?.some(v => v !== null && v !== undefined && String(v).trim() !== "");
+      const total = hasData ? totalVal : null;
 
       updatedRows[rIndex] = { ...updatedRows[rIndex], values: newValues, total };
 
@@ -265,7 +314,12 @@ export default function McShopInspection({
             const calculatedRejected = inspectedNum - acceptedNum;
             const newRejectedValues = [...(rejectedRow?.values || [])];
             newRejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
-            updated = updated?.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues, total: newRejectedValues?.reduce((s, v) => s + (parseFloat(v) || 0), 0) } : r);
+            const rejTotal = newRejectedValues?.reduce((s, v) => {
+              const n = parseFloat(String(v));
+              return s + (isNaN(n) ? 0 : n);
+            }, 0);
+            const hasRejData = newRejectedValues?.some(v => v !== null && v !== undefined && String(v).trim() !== "");
+            updated = updated?.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues, total: hasRejData ? rejTotal : null } : r);
           }
         }
       }
@@ -531,12 +585,12 @@ export default function McShopInspection({
                               <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
                                 <TextField
                                   variant="standard"
-                                  value={cav}
+                                  value={""}
                                   onChange={(e) => updateCavityLabel(i, e.target.value)}
                                   InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                   size="small"
                                   sx={{ input: { textAlign: 'center' } }}
-                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                  disabled={true}
                                 />
                                 <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} >
                                   <DeleteIcon fontSize="small" />
@@ -565,7 +619,7 @@ export default function McShopInspection({
                                     onChange={(e) => updateCell(r?.id, ci, e.target.value)}
                                     variant="outlined"
                                     sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
-                                    disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
+                                    disabled={r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
                               ))}
@@ -687,7 +741,7 @@ export default function McShopInspection({
                         <TableRow sx={{ bgcolor: '#f8fafc' }}>
                           <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
                           {previewPayload?.cavities?.map((c: string, i: number) => (
-                            <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                            <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}></TableCell>
                           ))}
                           <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
                         </TableRow>

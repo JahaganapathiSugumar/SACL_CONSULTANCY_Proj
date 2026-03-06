@@ -19,7 +19,7 @@ export interface InspectionRow {
     label: string;
     values: string[];
     freeText?: string;
-    total?: number | null;
+    total?: number | string | null;
 }
 
 /**

@@ -84,8 +84,8 @@ export const getTrialReports = async (req, res, next) => {
 };
 
 export const getConsolidatedReports = async (req, res, next) => {
-        const [rows] = await Client.query("SELECT c.document_id, c.file_base64, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
-        res.status(200).json({ success: true, data: rows });
+    const [rows] = await Client.query("SELECT c.document_id, c.file_base64, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
+    res.status(200).json({ success: true, data: rows });
 };
 
 export const getRecentTrialReports = async (req, res, next) => {
@@ -394,7 +394,7 @@ export const getProgressingTrials = async (req, res, next) => {
                t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
                t.sample_traceability, t.trial_type
         FROM trial_cards t
-        WHERE t.status = 'IN_PROGRESS'
+        WHERE t.status = 'IN_PROGRESS' AND t.deleted_at IS NULL
         AND NOT EXISTS (
             SELECT 1
             FROM department_progress dp
@@ -404,4 +404,36 @@ export const getProgressingTrials = async (req, res, next) => {
     `;
     const [rows] = await Client.query(sql, { department_id: req.user.department_id });
     res.status(200).json({ success: true, data: rows });
+};
+
+export const getCavityNumbers = async (req, res, next) => {
+    const { trial_id } = req.query;
+
+    if (!trial_id) {
+        return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
+    }
+
+    try {
+        const sql = `
+            SELECT t.cavity_identification 
+            FROM tooling_pattern_data t
+            JOIN master_card m ON t.master_card_id = m.id
+            JOIN trial_cards tc ON m.pattern_code = tc.pattern_code
+            WHERE tc.trial_id = @trial_id
+        `;
+
+        const [rows] = await Client.query(sql, { trial_id });
+
+        if (!rows || rows.length === 0) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        const cavityStr = rows[0].cavity_identification || '';
+        const cavityNumbers = cavityStr.split(/[,\s;]+/).filter(item => item.trim() !== '');
+
+        res.status(200).json({ success: true, data: cavityNumbers });
+    } catch (error) {
+        logger.error('Error fetching cavity numbers', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
 };

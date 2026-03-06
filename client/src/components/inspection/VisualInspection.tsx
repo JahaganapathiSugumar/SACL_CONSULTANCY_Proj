@@ -64,7 +64,7 @@ interface NdtRow {
     ok: boolean | null;
     remarks: string;
     value?: string;
-    total?: number | null;
+    total?: number | string | null;
 }
 
 interface MicroCol {
@@ -229,8 +229,14 @@ function SectionTable({
                 }
             }
 
+            const targetRow = rows.find(r => r.id === rowId);
+            const labelLower = targetRow?.label?.toLowerCase() || "";
+            const isNonNumericRow = labelLower.includes("cavity") ||
+                labelLower.includes("reason") ||
+                labelLower.includes("percentage");
+
             const combined = arr?.map(v => v || "").join('|');
-            const total = arr?.reduce((acc, s) => {
+            const total = isNonNumericRow ? null : arr?.reduce((acc, s) => {
                 const n = parseFloat(String(s).trim());
                 return acc + (isNaN(n) ? 0 : n);
             }, 0);
@@ -306,7 +312,7 @@ function SectionTable({
                                         onChange={(e) => cavityRow && updateCell(cavityRow.id, ci, e.target.value)}
                                         variant="outlined"
                                         sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                                        disabled={true}
                                     />
                                 </TableCell>
                             ))}
@@ -334,11 +340,14 @@ function SectionTable({
                         </TableRow>
                         {dataRows.map((r: NdtRow) => {
                             const rowVals = values[r.id] ?? [];
+                            const labelLower = r.label.toLowerCase();
+                            const isNonNumericRow = labelLower.includes("cavity") || labelLower.includes("reason") || labelLower.includes("percentage");
+
                             const displayTotal = rowVals.reduce((acc, s) => {
                                 const n = parseFloat(String(s).trim());
                                 return acc + (isNaN(n) ? 0 : n);
                             }, 0);
-                            const totalToShow = rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null);
+                            const totalToShow = isNonNumericRow ? null : (rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null));
                             const isRejectedQty = r.label.toLowerCase().includes('rejected') && !r.label.toLowerCase().includes('reason');
                             const isAcceptedQty = r.label.toLowerCase().includes('accepted');
 
@@ -447,6 +456,58 @@ export default function VisualInspection({
         };
         checkAssignment();
     }, [user, trialId]);
+
+    useEffect(() => {
+        const fetchCavityNumbers = async () => {
+            if (trialId) {
+                try {
+                    const res = await inspectionService.getCavityNumbers(trialId);
+                    if (res.success && Array.isArray(res.data)) {
+                        const fetched = res.data;
+                        if (fetched.length > 0) {
+                            setCols(fetched);
+                            setRows(prev => prev.map(row => {
+                                let newValues = [...row.values];
+                                if (row.label === "Cavity Number") {
+                                    newValues = fetched;
+                                } else if (newValues.length < fetched.length) {
+                                    newValues = [...newValues, ...Array(fetched.length - newValues.length).fill("")];
+                                } else if (newValues.length > fetched.length) {
+                                    newValues = newValues.slice(0, fetched.length);
+                                }
+                                return { ...row, values: newValues };
+                            }));
+                            setNdtRows(prev => prev.map(row => {
+                                if (row.label === "Cavity Number") {
+                                    return { ...row, value: fetched.join('|') };
+                                }
+                                return row;
+                            }));
+                            setHardRows(prev => prev.map(row => {
+                                if (row.label === "Cavity Number") {
+                                    return { ...row, value: fetched.join('|') };
+                                }
+                                return row;
+                            }));
+                        } else {
+                            setCols([""]);
+                            setRows(prev => prev.map(row => ({ ...row, values: [""] })));
+                            setNdtRows(prev => prev.map(row => (row.label === "Cavity Number" ? { ...row, value: "" } : row)));
+                            setHardRows(prev => prev.map(row => (row.label === "Cavity Number" ? { ...row, value: "" } : row)));
+                        }
+                    } else {
+                        setCols([""]);
+                        setRows(prev => prev.map(row => ({ ...row, values: [""] })));
+                        setNdtRows(prev => prev.map(row => (row.label === "Cavity Number" ? { ...row, value: "" } : row)));
+                        setHardRows(prev => prev.map(row => (row.label === "Cavity Number" ? { ...row, value: "" } : row)));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch cavity numbers:", error);
+                }
+            }
+        };
+        fetchCavityNumbers();
+    }, [trialId]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -638,7 +699,10 @@ export default function VisualInspection({
             }
 
             return updated?.map(r => {
-                if (r?.label === "Cavity Number") return r;
+                const labelLower = r?.label?.toLowerCase() || "";
+                if (labelLower.includes("cavity") || labelLower.includes("reason") || labelLower.includes("percentage")) {
+                    return { ...r, total: null };
+                }
                 const total = r?.values?.reduce((sum, val) => {
                     const n = parseFloat(String(val).trim());
                     return sum + (isNaN(n) ? 0 : n);
@@ -668,25 +732,49 @@ export default function VisualInspection({
     };
 
     const buildPayload = () => {
-        const processedRows = rows?.map(r => {
-            const totalVal = r?.label?.toLowerCase()?.includes("cavity") ? null : r?.values?.reduce((acc, v) => {
+        const findR = (lp: string) => rows?.find(r => r?.label?.toLowerCase()?.includes(lp.toLowerCase()));
+        const inspRow = findR("Inspected Quantity");
+        const rejRow = findR("Rejected Quantity");
+        const percRow = findR("Rejection Percentage");
+
+        const processedRows: (InspectionRow & { total?: number | string | null })[] = rows?.map(r => {
+            const isRejectionPercentage = r?.label?.toLowerCase()?.includes("rejection percentage");
+            const rowValues = [...(r?.values || [])];
+
+            if (isRejectionPercentage && inspRow && rejRow) {
+                cols.forEach((_, ci) => {
+                    const ins = parseFloat(String(inspRow.values?.[ci] || "0").trim());
+                    const rej = parseFloat(String(rejRow.values?.[ci] || "0").trim());
+                    if (!isNaN(ins) && ins > 0 && !isNaN(rej)) {
+                        rowValues[ci] = ((rej / ins) * 100).toFixed(2);
+                    } else if (ins === 0 && rej === 0) {
+                        rowValues[ci] = "0.00";
+                    } else {
+                        rowValues[ci] = "";
+                    }
+                });
+            }
+
+            const totalVal = (r?.label?.toLowerCase()?.includes("cavity") || r?.label?.toLowerCase()?.includes("reason") || isRejectionPercentage) ? null : rowValues?.reduce((acc, v) => {
                 const n = parseFloat(String(v).trim());
                 return acc + (isNaN(n) ? 0 : n);
             }, 0);
-            return { ...r, total: totalVal };
+
+            return { ...r, values: rowValues, total: totalVal };
         });
 
-        const inspRow = processedRows?.find(r => r?.label === "Inspected Quantity");
-        const rejRow = processedRows?.find(r => r?.label === "Rejected Quantity");
-        const percRow = processedRows?.find(r => r?.label === "Rejection Percentage");
+        const findProcessed = (lp: string) => processedRows?.find(r => r?.label?.toLowerCase()?.includes(lp.toLowerCase()));
+        const processedInsp = findProcessed("Inspected Quantity");
+        const processedRej = findProcessed("Rejected Quantity");
+        const processedPerc = findProcessed("Rejection Percentage");
 
-        if (inspRow && rejRow && percRow) {
-            const totalInsp = inspRow?.total || 0;
-            const totalRej = rejRow?.total || 0;
+        if (processedInsp && processedRej && processedPerc) {
+            const totalInsp = Number(processedInsp?.total) || 0;
+            const totalRej = Number(processedRej?.total) || 0;
             if (totalInsp > 0) {
-                percRow.total = parseFloat(((totalRej / totalInsp) * 100).toFixed(2));
+                processedPerc.total = `${((totalRej / totalInsp) * 100).toFixed(2)}%`;
             } else {
-                percRow.total = 0;
+                processedPerc.total = "0.00%";
             }
         }
 
@@ -961,12 +1049,12 @@ export default function VisualInspection({
                                                             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
                                                                 <TextField
                                                                     variant="standard"
-                                                                    value={col}
+                                                                    value={""}
                                                                     onChange={(e) => updateColLabel(ci, e.target.value)}
                                                                     InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                                     size="small"
                                                                     sx={{ input: { textAlign: 'center' } }}
-                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                                                                    disabled={true}
                                                                 />
                                                                 <IconButton
                                                                     size="small"
@@ -1013,7 +1101,7 @@ export default function VisualInspection({
                                                                 const isRejectedInvalid = rejectedValue === 'Invalid';
 
                                                                 const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r?.values?.[ci] ?? "");
-                                                                const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
+                                                                const isFieldDisabled = r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
                                                                     (isAcceptedQty && !inspectedValue) ||
                                                                     isRejectedQty ||
                                                                     isRejectionPercentage;
@@ -1067,6 +1155,8 @@ export default function VisualInspection({
                                                                         return "0.00%";
                                                                     }
 
+                                                                    const hasNumeric = r?.values?.some(v => v !== null && v !== undefined && String(v).trim() !== "" && !isNaN(parseFloat(String(v))));
+                                                                    if (!hasNumeric) return "-";
                                                                     const sum = r?.values?.reduce((acc: number, v: any) => acc + (parseFloat(String(v).trim()) || 0), 0);
                                                                     return sum;
                                                                 })()}
@@ -1144,6 +1234,7 @@ export default function VisualInspection({
                                         title="HARDNESS INSPECTION"
                                         rows={hardRows}
                                         onChange={handleHardnessChange}
+                                        showTotal={true}
                                         showAlert={showAlert}
                                         user={user}
                                         isEditing={isEditing}
@@ -1241,8 +1332,12 @@ export default function VisualInspection({
                                                         <TableHead>
                                                             <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                                 <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                                {previewPayload?.cols?.map((c: string, i: number) => (<TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                                {previewPayload?.cols?.map((c: any, i: number) => (
+                                                                    <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>
+                                                                        {typeof c === 'object' ? (c.label || `Cavity ${i + 1}`) : (c || `Cavity ${i + 1}`)}
+                                                                    </TableCell>
                                                                 ))}
+                                                                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center', bgcolor: '#f1f5f9' }}>Total</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
@@ -1251,15 +1346,24 @@ export default function VisualInspection({
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>{r.label}</TableCell>
                                                                     {r.values?.map((v: any, j: number) => (
                                                                         <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.8rem', fontFamily: 'Roboto Mono' }}>
-                                                                            {v === null ? "-" : String(v)}
+                                                                            {v === null || String(v).trim() === "" ? "-" : String(v)}
                                                                         </TableCell>
                                                                     ))}
+                                                                    <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, bgcolor: '#f1f5f9' }}>
+                                                                        {r.total === null || r.total === undefined ? "-" : r.total}
+                                                                    </TableCell>
                                                                 </TableRow>
                                                             ))}
                                                             <TableRow>
                                                                 <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>
-                                                                    {previewPayload?.visual_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.visual_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
+                                                                <TableCell colSpan={(previewPayload?.cols?.length || 0) + 2} sx={{ textAlign: 'center' }}>
+                                                                    {previewPayload?.visual_ok === true ? (
+                                                                        <Chip label="OK" color="success" size="small" />
+                                                                    ) : previewPayload?.visual_ok === false ? (
+                                                                        <Chip label="NOT OK" color="error" size="small" />
+                                                                    ) : (
+                                                                        "-"
+                                                                    )}
                                                                 </TableCell>
                                                             </TableRow>
                                                         </TableBody>
@@ -1276,8 +1380,10 @@ export default function VisualInspection({
                                                             <TableHead>
                                                                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                                    {previewPayload?.cols?.map((col: string, i: number) => (
-                                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{col}</TableCell>
+                                                                    {previewPayload?.cols?.map((c: any, i: number) => (
+                                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>
+                                                                            {typeof c === 'object' ? (c.label || `Cavity ${i + 1}`) : (c || `Cavity ${i + 1}`)}
+                                                                        </TableCell>
                                                                     ))}
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
                                                                 </TableRow>
@@ -1290,7 +1396,7 @@ export default function VisualInspection({
                                                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r?.label}</TableCell>
                                                                             {previewPayload?.cols?.map((_: any, j: number) => (
                                                                                 <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
-                                                                                    {vals?.[j]?.trim() || "-"}
+                                                                                    {vals?.[j] === null || vals?.[j] === undefined || String(vals?.[j]).trim() === "" ? "-" : String(vals?.[j])}
                                                                                 </TableCell>
                                                                             ))}
                                                                             <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700 }}>{r?.total ?? "-"}</TableCell>
@@ -1299,7 +1405,14 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.hard_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.hard_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
+                                                                    <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center' }}>
+                                                                        {previewPayload?.hard_ok === true ? (
+                                                                            <Chip label="OK" color="success" size="small" />
+                                                                        ) : previewPayload?.hard_ok === false ? (
+                                                                            <Chip label="NOT OK" color="error" size="small" />
+                                                                        ) : (
+                                                                            "-"
+                                                                        )}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 {previewPayload?.hard_remarks && (
@@ -1322,8 +1435,10 @@ export default function VisualInspection({
                                                             <TableHead>
                                                                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                                    {previewPayload?.cols?.map((col: string, i: number) => (
-                                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{col}</TableCell>
+                                                                    {previewPayload?.cols?.map((c: any, i: number) => (
+                                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>
+                                                                            {typeof c === 'object' ? (c.label || `Cavity ${i + 1}`) : (c || `Cavity ${i + 1}`)}
+                                                                        </TableCell>
                                                                     ))}
                                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>
                                                                 </TableRow>
@@ -1336,7 +1451,7 @@ export default function VisualInspection({
                                                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{r?.label}</TableCell>
                                                                             {previewPayload?.cols?.map((_: any, j: number) => (
                                                                                 <TableCell key={j} sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'Roboto Mono' }}>
-                                                                                    {vals?.[j]?.trim() || "-"}
+                                                                                    {vals?.[j] === null || vals?.[j] === undefined || String(vals?.[j]).trim() === "" ? "-" : String(vals?.[j])}
                                                                                 </TableCell>
                                                                             ))}
                                                                             <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700 }}>{r?.total ?? "-"}</TableCell>
@@ -1345,7 +1460,14 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.ndt_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.ndt_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
+                                                                    <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>
+                                                                        {previewPayload?.ndt_ok === true ? (
+                                                                            <Chip label="OK" color="success" size="small" />
+                                                                        ) : previewPayload?.ndt_ok === false ? (
+                                                                            <Chip label="NOT OK" color="error" size="small" />
+                                                                        ) : (
+                                                                            "-"
+                                                                        )}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 {previewPayload?.ndt_remarks && (

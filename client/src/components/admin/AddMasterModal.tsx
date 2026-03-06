@@ -374,7 +374,8 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             right: "Pattern plate weight in kgs",
             fieldLeft: "cavity_identification",
             sp: "pattern_plate_weight_sp",
-            pp: "pattern_plate_weight_pp"
+            pp: "pattern_plate_weight_pp",
+            helper: "Enter values separated by commas"
         },
         {
             left: "Pattern material",
@@ -691,7 +692,14 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                 </>
                                             ) : (
                                                 <>
-                                                    <TableCell>{row.left}</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>
+                                                        {row.left}
+                                                        {row.helper && (
+                                                            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontStyle: 'italic', lineHeight: 1.1, mt: 0.5 }}>
+                                                                ({row.helper})
+                                                            </Typography>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell sx={{ p: 0.5 }}>
                                                         <TextField
                                                             fullWidth

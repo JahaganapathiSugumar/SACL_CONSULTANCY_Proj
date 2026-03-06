@@ -83,27 +83,45 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
     const padding = 5;
     const fontSize = 7;
     const headerColor = '#f5f5f5';
+    const pageBottom = 780;
 
-    // Headers
+    // 1. Calculate Heights
     doc.font('Helvetica-Bold').fontSize(fontSize);
-
-    // Calculate header row height based on text wrapping
     let headerHeight = 18;
     tableData.headers.forEach((header, i) => {
         const h = doc.heightOfString(header, { width: colWidths[i] - 2 * padding });
         if (h + padding * 2 > headerHeight) headerHeight = h + padding * 2;
     });
 
-    let currentX = startX;
+    let totalTableHeight = headerHeight;
+    const rowHeights = [];
+    doc.font('Helvetica').fontSize(fontSize);
+    tableData.rows.forEach(row => {
+        let dataRowHeight = 18;
+        row.forEach((cell, i) => {
+            const text = cell !== null && cell !== undefined ? String(cell) : '-';
+            const h = doc.heightOfString(text, { width: colWidths[i] - 2 * padding });
+            if (h + padding * 2 > dataRowHeight) dataRowHeight = h + padding * 2;
+        });
+        rowHeights.push(dataRowHeight);
+        totalTableHeight += dataRowHeight;
+    });
 
-    // Draw Header Background
+    // 2. Pagination Check
+    if (currentY + totalTableHeight > pageBottom) {
+        doc.addPage();
+        currentY = 40;
+    }
+
+    // 3. Draw Headers
+    doc.font('Helvetica-Bold').fontSize(fontSize);
+    let currentX = startX;
     doc.save();
     doc.fillColor(headerColor)
         .rect(startX, currentY, colWidths.reduce((a, b) => a + b, 0), headerHeight)
         .fill();
     doc.restore();
 
-    // Draw Header Text and Borders
     tableData.headers.forEach((header, i) => {
         doc.fillColor('black')
             .text(header, currentX + padding, currentY + padding, { width: colWidths[i] - 2 * padding, align: 'left' });
@@ -113,17 +131,11 @@ const drawTable = (doc, tableData, startX, startY, colWidths = []) => {
 
     currentY += headerHeight;
 
-    // Rows
+    // 4. Draw Rows
     doc.font('Helvetica').fontSize(fontSize);
-    tableData.rows.forEach(row => {
+    tableData.rows.forEach((row, ri) => {
         currentX = startX;
-
-        let dataRowHeight = 18;
-        row.forEach((cell, i) => {
-            const text = cell !== null && cell !== undefined ? String(cell) : '-';
-            const h = doc.heightOfString(text, { width: colWidths[i] - 2 * padding });
-            if (h + padding * 2 > dataRowHeight) dataRowHeight = h + padding * 2;
-        });
+        const dataRowHeight = rowHeights[ri];
 
         row.forEach((cell, i) => {
             const text = cell !== null && cell !== undefined ? String(cell) : '-';
@@ -144,20 +156,37 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
     const labelWidth = width * 0.45;
     const valueWidth = width * 0.55;
     const padding = 3;
+    const pageBottom = 780;
 
+    // 1. Calculate total height
     doc.fontSize(fontSize);
-
+    let totalHeight = 0;
+    const rowHeights = [];
     data.forEach(item => {
         const labelText = item.label || "";
         const valueText = item.value !== null && item.value !== undefined ? String(item.value) : "-";
 
-        // Calculate heights
         doc.font('Helvetica-Bold');
         const h1 = doc.heightOfString(labelText, { width: labelWidth - 2 * padding });
         doc.font('Helvetica');
         const h2 = doc.heightOfString(valueText, { width: valueWidth - 2 * padding });
 
         const rowHeight = Math.max(h1, h2) + padding * 2 + 2;
+        rowHeights.push(rowHeight);
+        totalHeight += rowHeight;
+    });
+
+    // 2. Pagination check
+    if (currentY + totalHeight > pageBottom) {
+        doc.addPage();
+        currentY = 40;
+    }
+
+    // 3. Draw rows
+    data.forEach((item, i) => {
+        const labelText = item.label || "";
+        const valueText = item.value !== null && item.value !== undefined ? String(item.value) : "-";
+        const rowHeight = rowHeights[i];
 
         // Label Bg
         doc.save();
@@ -179,6 +208,10 @@ const drawVerticalTable = (doc, data, startX, startY, width) => {
 };
 
 const drawSectionTitle = (doc, title, x, y) => {
+    if (y > 750) {
+        doc.addPage();
+        y = 40;
+    }
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c3e50').text(title, x, y);
     const width = doc.widthOfString(title);
     doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke(); // Underline
@@ -458,47 +491,54 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         let p2NextY = Math.max(visitY, dimY) + 15;
 
-        // NDT
-        const ndtRows = safeParse(visual?.ndt_inspection, []);
-        if (ndtRows.length > 0) {
+        // NDT and Hardness Side-by-Side
+        let ndtY = p2NextY;
+        let hardY = p2NextY;
+
+        // NDT (Left)
+        const ndtRowsForSection = safeParse(visual?.ndt_inspection, []);
+        if (ndtRowsForSection.length > 0) {
             const sectionOk = visual?.ndt_inspection_ok;
             const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
-            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, p2NextY);
+            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, ndtY, { width: colWidth });
             if (visual?.ndt_inspection_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, doc.y + 2, { width: 535 });
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, doc.y + 2, { width: colWidth });
             }
-            p2NextY = doc.y + 10;
+            ndtY = doc.y + 10;
 
-            const headers = Object.keys(ndtRows[0]);
-            const rows = ndtRows.map(r => headers.map(h => r[h]));
-            const colWidths = headers.map(h => h.toLowerCase().includes('reason') ? 300 : (235 / (headers.length - 1)));
+            const headers = Object.keys(ndtRowsForSection[0]);
+            const rows = ndtRowsForSection.map(r => headers.map(h => r[h]));
+            const colWidths = headers.map(() => colWidth / headers.length);
 
-            p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
+            ndtY = drawTable(doc, { headers, rows }, col1X, ndtY, colWidths) + 15;
         }
 
-        // Hardness
-        const hardRows = safeParse(visual?.hardness, []);
-        if (hardRows.length > 0) {
+        // Hardness (Right)
+        const hardRowsForSection = safeParse(visual?.hardness, []);
+        if (hardRowsForSection.length > 0) {
             const sectionOk = visual?.hardness_ok;
             const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
-            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col1X, p2NextY);
+            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col2X, hardY, { width: colWidth });
             if (visual?.hardness_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, doc.y + 2, { width: 535 });
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col2X, doc.y + 2, { width: colWidth });
             }
-            p2NextY = doc.y + 10;
+            hardY = doc.y + 10;
 
-            const headers = Object.keys(hardRows[0]);
-            const rows = hardRows.map(r => headers.map(h => r[h]));
-            const colWidths = headers.map(h => h.toLowerCase().includes('reason') ? 300 : (235 / (headers.length - 1)));
+            const headers = Object.keys(hardRowsForSection[0]);
+            const rows = hardRowsForSection.map(r => headers.map(h => r[h]));
+            const colWidths = headers.map(() => colWidth / headers.length);
 
-            p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
+            hardY = drawTable(doc, { headers, rows }, col2X, hardY, colWidths) + 15;
         }
+
+        p2NextY = Math.max(ndtY, hardY);
 
         p2y = p2NextY + 10;
 
         // 8. Machine Shop
+        const mcInspections = safeParse(mcShop?.inspections, []);
         if (Object.keys(mcShop).length > 0) {
             p2y = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, p2y);
             p2y = drawVerticalTable(doc, [
@@ -506,114 +546,178 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
                 { label: "Remarks", value: mcShop?.remarks }
             ], col1X, p2y, colWidth * 2 + 15) + 8;
 
-            const mcInspections = safeParse(mcShop?.inspections, []);
             if (mcInspections.length > 0) {
                 const headers = Object.keys(mcInspections[0]);
                 const rows = mcInspections.map(r => Object.values(r));
                 const colW = 535 / headers.length;
-                p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW));
+                p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW)) + 15;
+            }
+        }
+
+        // 9. YIELD SUMMARY
+        const allCavitiesForSummary = visInspections.map(r => r['Cavity Number']).filter(Boolean);
+        if (allCavitiesForSummary.length > 0) {
+            if (p2y > 650) {
+                doc.addPage();
+                p2y = 40;
+                doc.font('Helvetica-Bold').fontSize(12).text(`Trial: ${trialCard?.trial_no || ""} - Yield Summary`, 30, 20);
+                doc.moveTo(30, 35).lineTo(565, 35).stroke();
             }
 
-            // ---- ATTACHMENTS (Per Trial) ----
-            const attachments = data.documents || [];
-            if (attachments.length > 0) {
-                const groupedDocs = attachments.reduce((acc, d) => {
-                    const cat = d.document_type || 'GENERAL';
-                    if (!acc[cat]) acc[cat] = [];
-                    acc[cat].push(d);
-                    return acc;
-                }, {});
+            p2y = drawSectionTitle(doc, "9. YIELD SUMMARY", col1X, p2y);
 
-                for (const [category, docs] of Object.entries(groupedDocs)) {
-                    doc.addPage();
-                    doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
-                        .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Trial: ${trialCard?.trial_no})`, 30, 25, { align: 'center', width: 535 });
-                    doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+            const productionCount = trialCard?.actual_moulds || 0;
+            const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Remarks"];
 
-                    let currentAttY = 55;
-                    let imageInPageCount = 0;
-                    const colWidth = 260;
-                    const xPos = [45, 305];
+            const getSummVal = (array, cav, key) => {
+                const row = array.find(r => r['Cavity Number'] === cav);
+                const val = parseFloat(row?.[key] || 0);
+                return isNaN(val) ? 0 : val;
+            };
 
-                    for (const item of docs) {
-                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
-                        const isPdf = /\.pdf$/i.test(item.file_name);
+            const prodRowsArr = ["Production", ...allCavitiesForSummary.map(() => productionCount)];
+            const visRejRowsArr = ["Visual Inspection Rejection", ...allCavitiesForSummary.map(c => getSummVal(visInspections, c, 'Rejected Quantity'))];
+            const hardRejRowsArr = ["Hardness Inspection Rejection", ...allCavitiesForSummary.map(c => getSummVal(hardRowsForSection, c, 'Rejected Quantity'))];
+            const ndtRejRowsArr = ["NDT X-Ray Rejection", ...allCavitiesForSummary.map(c => getSummVal(ndtRowsForSection, c, 'Rejected Quantity'))];
+            const mcRejRowsArr = ["M/C Rejection", ...allCavitiesForSummary.map(c => getSummVal(mcInspections, c, 'Rejected Quantity'))];
 
-                        if (currentAttY > 750 || (isImage && imageInPageCount >= 4)) {
-                            doc.addPage();
-                            currentAttY = 40;
-                            imageInPageCount = 0;
-                            doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
-                                .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Cont.)`, 30, 25, { align: 'center', width: 535 });
-                            doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
-                            currentAttY = 55;
-                        }
+            const calcOkRowsArr = ["Calculated OK Quantity"];
+            const actualOkRowsArr = ["Actual OK Quantity"];
+            const balanceRowsArr = ["Balance (Missed)"];
 
-                        if (isImage) {
-                            try {
-                                const col = imageInPageCount % 2;
-                                const drawX = xPos[col];
-                                const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
-                                const img = Buffer.from(base64Data, 'base64');
-                                const maxWidth = 250;
-                                const maxHeight = 280;
+            allCavitiesForSummary.forEach((c, i) => {
+                const v = visRejRowsArr[i + 1];
+                const h = hardRejRowsArr[i + 1];
+                const n = ndtRejRowsArr[i + 1];
+                const m = mcRejRowsArr[i + 1];
+                const calcRaw = productionCount - (v + h + n + m);
+                calcOkRowsArr.push(calcRaw);
 
-                                doc.font('Helvetica-Bold').fontSize(8).fillColor('black').text(`- ${item.file_name}`, drawX, currentAttY, { width: 250 });
+                const actRaw = getSummVal(mcInspections, c, 'Accepted Quantity');
+                actualOkRowsArr.push(actRaw);
+                balanceRowsArr.push(calcRaw - actRaw);
+            });
 
-                                doc.image(img, drawX, currentAttY + 15, { fit: [maxWidth, maxHeight], align: 'center' });
+            const remarks = mcShop?.remarks || "-";
+            const finalSummaryRows = [
+                [...prodRowsArr, remarks],
+                [...visRejRowsArr, ""],
+                [...hardRejRowsArr, ""],
+                [...ndtRejRowsArr, ""],
+                [...mcRejRowsArr, ""],
+                [...calcOkRowsArr, ""],
+                [...actualOkRowsArr, ""],
+                [...balanceRowsArr, ""]
+            ];
 
-                                const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
-                                doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
-                                    .text("Click here to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
-                                        link: viewUrl,
-                                        underline: true
-                                    });
+            const firstColW = 85;
+            const remarksW = 110;
+            const remainingW = 535 - firstColW - remarksW;
+            const cavColW = remainingW / allCavitiesForSummary.length;
+            const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), remarksW];
 
-                                imageInPageCount++;
+            p2y = drawTable(doc, { headers: summaryHeaders, rows: finalSummaryRows }, col1X, p2y, summaryColWidths) + 15;
+        }
 
-                                if (imageInPageCount % 2 === 0) {
-                                    currentAttY += maxHeight + 60;
-                                }
-                            } catch (err) {
-                                doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image: ${item.file_name}]`, 45, currentAttY);
-                                currentAttY += 20;
-                            }
-                        } else if (isPdf) {
-                            if (imageInPageCount % 2 !== 0) {
-                                currentAttY += 340;
-                                imageInPageCount = 0;
-                            }
+        // ---- ATTACHMENTS (Per Trial) ----
+        const attachments = data.documents || [];
+        if (attachments.length > 0) {
+            const groupedDocs = attachments.reduce((acc, d) => {
+                const cat = d.document_type || 'GENERAL';
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(d);
+                return acc;
+            }, {});
 
-                            if (currentAttY > 750) {
-                                doc.addPage();
-                                currentAttY = 55;
-                            }
+            for (const [category, docs] of Object.entries(groupedDocs)) {
+                doc.addPage();
+                doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                    .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Trial: ${trialCard?.trial_no})`, 30, 25, { align: 'center', width: 535 });
+                doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
 
-                            doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
-                            currentAttY += 15;
-                            doc.font('Helvetica').fontSize(8).fillColor('#666')
-                                .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
-                            currentAttY += 12;
+                let currentAttY = 55;
+                let imageInPageCount = 0;
+                const colWidth = 260;
+                const xPos = [45, 305];
+
+                for (const item of docs) {
+                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
+                    const isPdf = /\.pdf$/i.test(item.file_name);
+
+                    if (currentAttY > 750 || (isImage && imageInPageCount >= 4)) {
+                        doc.addPage();
+                        currentAttY = 40;
+                        imageInPageCount = 0;
+                        doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+                            .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Cont.)`, 30, 25, { align: 'center', width: 535 });
+                        doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+                        currentAttY = 55;
+                    }
+
+                    if (isImage) {
+                        try {
+                            const col = imageInPageCount % 2;
+                            const drawX = xPos[col];
+                            const base64Data = item.file_base64.replace(/^data:image\/\w+;base64,/, "");
+                            const img = Buffer.from(base64Data, 'base64');
+                            const maxWidth = 250;
+                            const maxHeight = 280;
+
+                            doc.font('Helvetica-Bold').fontSize(8).fillColor('black').text(`- ${item.file_name}`, drawX, currentAttY, { width: 250 });
+
+                            doc.image(img, drawX, currentAttY + 15, { fit: [maxWidth, maxHeight], align: 'center' });
 
                             const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
-                            doc.fillColor('#2980b9')
-                                .text("Click here to view/download document", 45, currentAttY, {
+                            doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
+                                .text("Click here to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
                                     link: viewUrl,
                                     underline: true
                                 });
 
-                            doc.fillColor('black');
-                            currentAttY += 30;
-                        } else {
-                            if (imageInPageCount % 2 !== 0) {
-                                currentAttY += 340;
-                                imageInPageCount = 0;
+                            imageInPageCount++;
+
+                            if (imageInPageCount % 2 === 0) {
+                                currentAttY += maxHeight + 60;
                             }
-                            doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
-                            currentAttY += 15;
-                            doc.font('Helvetica-Oblique').fontSize(8).fillColor('#666').text("Format not supported for embedding.", 45, currentAttY);
-                            currentAttY += 25;
+                        } catch (err) {
+                            doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image: ${item.file_name}]`, 45, currentAttY);
+                            currentAttY += 20;
                         }
+                    } else if (isPdf) {
+                        if (imageInPageCount % 2 !== 0) {
+                            currentAttY += 340;
+                            imageInPageCount = 0;
+                        }
+
+                        if (currentAttY > 750) {
+                            doc.addPage();
+                            currentAttY = 55;
+                        }
+
+                        doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                        currentAttY += 15;
+                        doc.font('Helvetica').fontSize(8).fillColor('#666')
+                            .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
+                        currentAttY += 12;
+
+                        const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                        doc.fillColor('#2980b9')
+                            .text("Click here to view/download document", 45, currentAttY, {
+                                link: viewUrl,
+                                underline: true
+                            });
+
+                        doc.fillColor('black');
+                        currentAttY += 30;
+                    } else {
+                        if (imageInPageCount % 2 !== 0) {
+                            currentAttY += 340;
+                            imageInPageCount = 0;
+                        }
+                        doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                        currentAttY += 15;
+                        doc.font('Helvetica-Oblique').fontSize(8).fillColor('#666').text("Format not supported for embedding.", 45, currentAttY);
+                        currentAttY += 25;
                     }
                 }
             }

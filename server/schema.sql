@@ -281,7 +281,7 @@ CREATE TABLE tooling_pattern_data (
     id INT NOT NULL IDENTITY(1,1),
     master_card_id INT NOT NULL,
     number_of_cavity VARCHAR(50),  
-    cavity_identification VARCHAR(50),
+    cavity_identification NVARCHAR(MAX),
     pattern_material VARCHAR(50),
     core_weight VARCHAR(50),
     core_mask_thickness VARCHAR(50),

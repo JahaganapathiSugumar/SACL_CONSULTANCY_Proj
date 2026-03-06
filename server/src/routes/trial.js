@@ -16,6 +16,7 @@ router.get('/id', verifyToken, asyncErrorHandler(trialController.generateTrialNo
 router.get('/trial-reports', verifyToken, asyncErrorHandler(trialController.getTrialReports));
 router.get('/recent-trial-reports', verifyToken, asyncErrorHandler(trialController.getRecentTrialReports));
 router.get('/progressing', verifyToken, asyncErrorHandler(trialController.getProgressingTrials));
+router.get('/cavity-numbers', verifyToken, asyncErrorHandler(trialController.getCavityNumbers));
 router.get('/consolidated-reports', verifyToken, asyncErrorHandler(trialController.getConsolidatedReports));
 router.put('/update', verifyToken, authorizeDepartments(1, 2), authorizeRoles('Admin', 'HOD'), validate(updateTrialCardSchema), asyncErrorHandler(trialController.updateTrial));
 

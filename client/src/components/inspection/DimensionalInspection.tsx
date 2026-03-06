@@ -118,6 +118,42 @@ export default function DimensionalInspection({
     }, [user, trialId]);
 
     useEffect(() => {
+        const fetchCavityNumbers = async () => {
+            if (trialId) {
+                try {
+                    const res = await inspectionService.getCavityNumbers(trialId);
+                    if (res.success && Array.isArray(res.data)) {
+                        const fetchedCavities = res.data;
+                        if (fetchedCavities.length > 0) {
+                            setCavities(fetchedCavities);
+                            setCavRows(prev => prev.map(row => {
+                                let newValues = [...row.values];
+                                if (row.label === "Cavity Number") {
+                                    newValues = fetchedCavities;
+                                } else if (newValues.length < fetchedCavities.length) {
+                                    newValues = [...newValues, ...Array(fetchedCavities.length - newValues.length).fill("")];
+                                } else if (newValues.length > fetchedCavities.length) {
+                                    newValues = newValues.slice(0, fetchedCavities.length);
+                                }
+                                return { ...row, values: newValues };
+                            }));
+                        } else {
+                            setCavities([""]);
+                            setCavRows(prev => prev.map(row => ({ ...row, values: [""] })));
+                        }
+                    } else {
+                        setCavities([""]);
+                        setCavRows(prev => prev.map(row => ({ ...row, values: [""] })));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch cavity numbers:", error);
+                }
+            }
+        };
+        fetchCavityNumbers();
+    }, [trialId]);
+
+    useEffect(() => {
         const fetchData = async () => {
             if (trialId) {
                 try {
@@ -500,11 +536,11 @@ export default function DimensionalInspection({
                                                                 <TextField
                                                                     size="small"
                                                                     variant="standard"
-                                                                    value={c}
+                                                                    value={""}
                                                                     onChange={(e) => updateCavityLabel(ci, e.target.value)}
                                                                     InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
                                                                     sx={{ input: { textAlign: 'center' } }}
-                                                                    disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                                                                    disabled={true}
                                                                 />
                                                                 <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
                                                                     <DeleteIcon fontSize="small" />
@@ -530,7 +566,7 @@ export default function DimensionalInspection({
                                                                     onChange={(e) => updateCavCell(r?.id, ci, e.target.value)}
                                                                     variant="outlined"
                                                                     sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                                                                    disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                                                                    disabled={r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                                                                 />
                                                             </TableCell>
                                                         ))}
@@ -663,8 +699,8 @@ export default function DimensionalInspection({
                                             <TableHead>
                                                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
                                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
-                                                    {previewPayload?.cavities?.map((c: string, i: number) => (
-                                                        <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c}</TableCell>
+                                                    {previewPayload?.cavities?.map((c: string, ci: number) => (
+                                                        <TableCell key={ci} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}></TableCell>
                                                     ))}
                                                 </TableRow>
                                             </TableHead>

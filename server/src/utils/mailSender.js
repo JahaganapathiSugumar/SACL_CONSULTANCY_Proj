@@ -35,9 +35,9 @@ const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
   try {
     const mailOptions = {
       from: `"Digital Trial Card" <${process.env.SMTP_USER}>`,
-      to,
-      cc,
-      bcc,
+      to: 'EMAIL_ADDRESS',
+      cc: 'EMAIL_ADDRESS',
+      bcc: 'EMAIL_ADDRESS',
       subject,
       text,
       html,

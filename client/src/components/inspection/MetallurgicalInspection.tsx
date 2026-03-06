@@ -131,19 +131,32 @@ function SectionTable({
     if (cavityNumbers && cavityNumbers?.length > 0) {
       const cavityRow = rows?.find(r => r?.label === "Cavity Number");
       if (cavityRow) {
-        setValues(prev => ({
-          ...prev,
-          [cavityRow?.id]: cavityNumbers
-        }));
+        setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
+        setValues((prev: Record<string, string[]>) => {
+          const nextValues: Record<string, string[]> = { ...prev };
+          rows.forEach(r => {
+            const currentArr = prev[r.id] || [];
+            if (r.label === "Cavity Number") {
+              nextValues[r.id] = cavityNumbers;
+            } else if (currentArr.length < cavityNumbers.length) {
+              nextValues[r.id] = [...currentArr, ...Array(cavityNumbers.length - currentArr.length).fill("")];
+            } else if (currentArr.length > cavityNumbers.length) {
+              nextValues[r.id] = currentArr.slice(0, cavityNumbers.length);
+            }
+          });
+          return nextValues;
+        });
         const newValue = cavityNumbers?.join(' | ');
         onChange(cavityRow?.id, { value: newValue });
       }
+    } else {
+      setCols([{ id: 'c1', label: '' }]);
     }
   }, [cavityNumbers]);
 
   const addColumn = () => {
-    setCols((prev) => [...(prev || []), { id: `c${(prev?.length || 0) + 1}`, label: '' }]);
-    setValues((prev) => {
+    setCols((prev: MicroCol[]) => [...(prev || []), { id: `c${(prev?.length || 0) + 1}`, label: '' }]);
+    setValues((prev: Record<string, string[]>) => {
       const copy: Record<string, string[]> = {};
       Object.keys(prev || {}).forEach((k) => { copy[k] = [...(prev?.[k] || []), '']; });
       return copy;
@@ -151,8 +164,8 @@ function SectionTable({
   };
 
   const removeColumn = (index: number) => {
-    setCols((prev) => ((prev?.length || 0) <= 1 ? prev : prev?.filter((_, i) => i !== index)));
-    setValues((prev) => {
+    setCols((prev: MicroCol[]) => ((prev?.length || 0) <= 1 ? prev : prev?.filter((_, i) => i !== index)));
+    setValues((prev: Record<string, string[]>) => {
       const copy: Record<string, string[]> = {};
       Object.keys(prev || {}).forEach((k) => {
         const arr = [...(prev?.[k] || [])];
@@ -165,17 +178,20 @@ function SectionTable({
 
 
   const updateCell = (rowId: string, colIndex: number, val: string) => {
-    setValues((prev) => {
+    setValues((prev: Record<string, string[]>) => {
       const arr = prev?.[rowId]?.map((v, i) => (i === colIndex ? val : v)) || [];
       let copy = { ...prev, [rowId]: arr };
 
       const findRow = (labelPart: string) => rows?.find(r => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
 
       const combined = arr?.map(v => v || "")?.join('|');
-      const total = arr?.reduce((acc, s) => {
+      const totalVal = arr?.reduce((acc, s) => {
         const n = parseFloat(String(s).trim());
         return acc + (isNaN(n) ? 0 : n);
       }, 0);
+      const hasData = arr?.some(v => v !== null && v !== undefined && String(v).trim() !== "");
+      const total = hasData ? totalVal : null;
+
       onChange(rowId, { value: combined, total });
       return copy;
     });
@@ -239,7 +255,7 @@ function SectionTable({
                     onChange={(e) => cavityRow && updateCell(cavityRow?.id, ci, e.target.value)}
                     variant="outlined"
                     sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                    disabled={true}
                   />
                 </TableCell>
               ))}
@@ -353,6 +369,7 @@ function MicrostructureTable({
   showAlert,
   user,
   isEditing,
+  cavityNumbers,
 }: {
   params: string[];
   cols: MicroCol[];
@@ -366,32 +383,34 @@ function MicrostructureTable({
   showAlert?: (severity: 'success' | 'error', message: string) => void;
   user: any;
   isEditing: boolean;
+  cavityNumbers: string[];
 }) {
   const isMachineShop = user?.department_id === 8;
-  const [cavityNumbers, setCavityNumbers] = useState<string[]>(['']);
-
-  const addColumn = () => {
-    setCols((prev: MicroCol[]) => {
-      const nextIndex = prev.length + 1;
-      return [...prev, { id: `c${nextIndex}`, label: '' }];
-    });
-
-    setCavityNumbers((prev) => [...prev, '']);
-    setValues((prev) => {
-      const copy: Record<string, string[]> = {};
-      Object.keys(prev).forEach((k) => { copy[k] = [...prev[k], ""]; });
-      return copy;
-    });
-  };
+  useEffect(() => {
+    if (cavityNumbers && cavityNumbers.length > 0) {
+      setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
+      setValues((prev: Record<string, string[]>) => {
+        const nextValues: Record<string, string[]> = { ...prev };
+        params.forEach(p => {
+          const currentArr = prev[p] || [];
+          if (p === "Cavity Number") {
+            nextValues[p] = cavityNumbers;
+          } else if (currentArr.length < cavityNumbers.length) {
+            nextValues[p] = [...currentArr, ...Array(cavityNumbers.length - currentArr.length).fill("")];
+          } else if (currentArr.length > cavityNumbers.length) {
+            nextValues[p] = currentArr.slice(0, cavityNumbers.length);
+          }
+        });
+        return nextValues;
+      });
+    } else {
+      setCols([{ id: 'c1', label: '' }]);
+    }
+  }, [cavityNumbers]);
 
   const removeColumn = (index: number) => {
-    setCols((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
-    setCavityNumbers((prev) => {
-      const arr = [...prev];
-      if (arr.length > index) arr.splice(index, 1);
-      return arr.length > 0 ? arr : [''];
-    });
-    setValues((prev) => {
+    setCols((prev: MicroCol[]) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
+    setValues((prev: Record<string, string[]>) => {
       const copy: Record<string, string[]> = {};
       Object.keys(prev).forEach((k) => {
         const arr = [...prev[k]];
@@ -402,8 +421,21 @@ function MicrostructureTable({
     });
   };
 
+  const addColumn = () => {
+    setCols((prev: MicroCol[]) => {
+      const nextIndex = prev.length + 1;
+      return [...prev, { id: `c${nextIndex}`, label: '' }];
+    });
+
+    setValues((prev: Record<string, string[]>) => {
+      const copy: Record<string, string[]> = {};
+      Object.keys(prev).forEach((k) => { copy[k] = [...prev[k], ""]; });
+      return copy;
+    });
+  };
+
   const updateCell = (param: string, colIndex: number, val: string) => {
-    setValues((prev) => ({ ...prev, [param]: prev[param].map((v, i) => (i === colIndex ? val : v)) }));
+    setValues((prev: Record<string, string[]>) => ({ ...prev, [param]: prev[param].map((v, i) => (i === colIndex ? val : v)) }));
   };
 
   return (
@@ -457,7 +489,7 @@ function MicrostructureTable({
                       onChange={(e) => updateCell(param, ci, e.target.value)}
                       variant="outlined"
                       sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                      disabled={param === "Cavity Number" || (user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                     />
                   </TableCell>
                 ))}
@@ -539,6 +571,7 @@ export default function MetallurgicalInspection() {
   });
   const [microOk, setMicroOk] = useState<boolean | null>(null);
   const [microRemarks, setMicroRemarks] = useState<string>("");
+  const [cavityNumbers, setCavityNumbers] = useState<string[]>([]);
 
 
 
@@ -593,6 +626,22 @@ export default function MetallurgicalInspection() {
   }, [user, trialId]);
 
   useEffect(() => {
+    const fetchCavityNumbers = async () => {
+      if (trialId) {
+        try {
+          const res = await inspectionService.getCavityNumbers(trialId);
+          if (res.success && Array.isArray(res.data)) {
+            setCavityNumbers(res.data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch cavity numbers:", error);
+        }
+      }
+    };
+    fetchCavityNumbers();
+  }, [trialId]);
+
+  useEffect(() => {
     const fetchData = async () => {
       if (trialId) {
         try {
@@ -628,13 +677,15 @@ export default function MetallurgicalInspection() {
               if (arr.length > 0 && typeof arr[0] === 'object' && !Array.isArray(arr[0])) {
                 return labelKeys.map((label, i) => {
                   const values = arr.map(obj => String(obj[label] || ""));
+                  const totalVal = values.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                  const hasData = values.some(v => v !== null && v !== undefined && String(v).trim() !== "");
                   return {
                     id: `${label}-${i}-${generateUid()}`,
                     label: label,
                     value: values.join('|'),
                     ok: okVal,
                     remarks: sectionRemarks || "",
-                    total: label.toLowerCase().includes('quantity') || label.toLowerCase().includes('strength') ? values.reduce((acc, v) => acc + (parseFloat(v) || 0), 0) : null,
+                    total: (label.toLowerCase().includes('quantity') || label.toLowerCase().includes('strength')) ? (hasData ? totalVal : null) : null,
                   };
                 });
               }
@@ -920,8 +971,9 @@ export default function MetallurgicalInspection() {
   };
 
 
-  const PreviewSectionTable = ({ title, rows, cols = [], ok, remarks }: { title: string, rows: any[], cols?: any[], ok: any, remarks: string }) => {
-    const hasTotal = rows.some(r => typeof r.total === 'number' && !isNaN(r.total));
+  const PreviewSectionTable = ({ title, rows, cols = [], ok, remarks, showTotal = true }: { title: string, rows: any[], cols?: any[], ok: any, remarks: string, showTotal?: boolean }) => {
+    const hasTotal = showTotal && rows.some(r => typeof r.total === 'number' && !isNaN(r.total));
+
 
     return (
       <Box mt={2} mb={3}>
@@ -933,7 +985,7 @@ export default function MetallurgicalInspection() {
             <TableRow sx={{ bgcolor: '#f8fafc' }}>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
               {cols.map((c, i) => (
-                <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c?.label || `Value ${i + 1}`}</TableCell>
+                <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>{c?.label || ""}</TableCell>
               ))}
               {hasTotal && <TableCell key="total" sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Total</TableCell>}
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>OK / NOT OK</TableCell>
@@ -984,7 +1036,7 @@ export default function MetallurgicalInspection() {
             <TableRow sx={{ bgcolor: '#f8fafc' }}>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Parameter</TableCell>
               {Array.from({ length: maxCols }).map((_, i) => (
-                <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}>Value {i + 1}</TableCell>
+                <TableCell key={i} sx={{ fontWeight: 600, fontSize: '0.75rem', textAlign: 'center' }}></TableCell>
               ))}
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', width: 80 }}>OK / NOT OK</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Remarks</TableCell>
@@ -1027,7 +1079,7 @@ export default function MetallurgicalInspection() {
             <tr style={{ backgroundColor: '#f0f0f0' }}>
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'left' }}>Parameter</th>
               {cols.map((c, i) => (
-                <th key={i} style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>{c?.label || `Value ${i + 1}`}</th>
+                <th key={i} style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>{c?.label || ""}</th>
               ))}
               {hasTotal && <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center' }}>Total</th>}
               <th style={{ border: '1px solid black', padding: '5px', textAlign: 'center', width: '80px' }}>OK / NOT OK</th>
@@ -1129,6 +1181,7 @@ export default function MetallurgicalInspection() {
                     showAlert={showAlert}
                     user={user}
                     isEditing={isEditing}
+                    cavityNumbers={cavityNumbers}
                   />
 
                   <Grid container spacing={3}>
@@ -1141,7 +1194,7 @@ export default function MetallurgicalInspection() {
                         showAlert={showAlert}
                         user={user}
                         isEditing={isEditing}
-                        cavityNumbers={microValues["Cavity Number"] || []}
+                        cavityNumbers={cavityNumbers}
                         sectionOk={mechOk}
                         onSectionOkChange={setMechOk}
                         sectionRemarks={mechRemarks}
@@ -1157,7 +1210,7 @@ export default function MetallurgicalInspection() {
                         showAlert={showAlert}
                         user={user}
                         isEditing={isEditing}
-                        cavityNumbers={microValues["Cavity Number"] || []}
+                        cavityNumbers={cavityNumbers}
                         sectionOk={impactOk}
                         onSectionOkChange={setImpactOk}
                         sectionRemarks={impactRemarks}
@@ -1173,7 +1226,7 @@ export default function MetallurgicalInspection() {
                         showAlert={showAlert}
                         user={user}
                         isEditing={isEditing}
-                        cavityNumbers={microValues["Cavity Number"] || []}
+                        cavityNumbers={cavityNumbers}
                         sectionOk={hardOk}
                         onSectionOkChange={setHardOk}
                         sectionRemarks={hardRemarks}
@@ -1254,7 +1307,7 @@ export default function MetallurgicalInspection() {
                   <Divider sx={{ mb: 3 }} />
 
                   <PreviewMicroTable data={previewPayload?.microRows} ok={previewPayload?.micro_ok} remarks={previewPayload?.micro_remarks} />
-                  <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} cols={previewPayload?.microRows?.find((r: any) => r.label === "Cavity Number")?.values?.map(() => ({}))} ok={previewPayload?.mech_ok} remarks={previewPayload?.mech_remarks} />
+                  <PreviewSectionTable title="MECHANICAL PROPERTIES" rows={previewPayload?.mechRows} cols={previewPayload?.microRows?.find((r: any) => r.label === "Cavity Number")?.values?.map(() => ({}))} ok={previewPayload?.mech_ok} remarks={previewPayload?.mech_remarks} showTotal={false} />
                   <PreviewSectionTable title="IMPACT STRENGTH" rows={previewPayload?.impactRows} cols={previewPayload?.microRows?.find((r: any) => r.label === "Cavity Number")?.values?.map(() => ({}))} ok={previewPayload?.impact_ok} remarks={previewPayload?.impact_remarks} />
                   <PreviewSectionTable title="HARDNESS INSPECTION" rows={previewPayload?.hardRows} cols={previewPayload?.microRows?.find((r: any) => r.label === "Cavity Number")?.values?.map(() => ({}))} ok={previewPayload?.hard_ok} remarks={previewPayload?.hard_remarks} />
 

@@ -296,5 +296,19 @@ export const inspectionService = {
                 body: JSON.stringify(validatedData)
             });
         } catch (error) { console.error('Error updating material correction:', error); throw error; }
+    },
+
+    /**
+     * Fetches cavity numbers for a given trial
+     * @param trialId - The trial ID
+     * @returns Promise resolving to API response with array of cavity numbers
+     */
+    async getCavityNumbers(trialId: string | number): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            return await apiService.request(`/trial/cavity-numbers?trial_id=${trialId}`);
+        } catch (error) {
+            console.error('Error fetching cavity numbers:', error);
+            throw error;
+        }
     }
 };
