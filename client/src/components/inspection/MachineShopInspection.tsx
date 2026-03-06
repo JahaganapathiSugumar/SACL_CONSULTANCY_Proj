@@ -229,7 +229,7 @@ export default function McShopInspection({
       if (rIndex === -1) return prev;
 
       const newValues = updatedRows[rIndex]?.values?.map((v, i) => (i === colIndex ? value : v));
-      const isCavityOrReason = updatedRows[rIndex]?.label?.toLowerCase()?.includes("cavity details") || updatedRows[rIndex]?.label?.toLowerCase()?.includes("reason");
+      const isCavityOrReason = updatedRows[rIndex]?.label?.toLowerCase()?.includes("cavity") || updatedRows[rIndex]?.label?.toLowerCase()?.includes("reason");
 
       if (isCavityOrReason) {
         updatedRows[rIndex] = { ...updatedRows[rIndex], values: newValues };
@@ -570,7 +570,7 @@ export default function McShopInspection({
                                 </TableCell>
                               ))}
                               <TableCell sx={{ textAlign: 'center', fontWeight: 700, bgcolor: '#f1f5f9' }}>
-                                {r?.label?.toLowerCase()?.includes("cavity details") || r?.label?.toLowerCase()?.includes("reason") ? "-" : (r?.total !== null && r?.total !== undefined ? r.total : "-")}
+                                {r?.label?.toLowerCase()?.includes("cavity") || r?.label?.toLowerCase()?.includes("reason") ? "-" : (r?.total !== null && r?.total !== undefined ? r.total : "-")}
                               </TableCell>
 
                               {ri === 0 && (
@@ -708,7 +708,7 @@ export default function McShopInspection({
                                   </TableCell>
                                 ))}
                                 <TableCell sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                                  {r?.label?.toLowerCase()?.includes("cavity details") ? "-" : (r?.total !== null && r?.total !== undefined ? r.total : "-")}
+                                  {r?.label?.toLowerCase()?.includes("cavity") ? "-" : (r?.total !== null && r?.total !== undefined ? r.total : "-")}
                                 </TableCell>
                               </>
                             )}

@@ -1259,7 +1259,7 @@ export default function VisualInspection({
                                                             <TableRow>
                                                                 <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
                                                                 <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>
-                                                                    {previewPayload?.visual_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    {previewPayload?.visual_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.visual_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
                                                                 </TableCell>
                                                             </TableRow>
                                                         </TableBody>
@@ -1299,7 +1299,7 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.hard_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    <TableCell colSpan={previewPayload?.cols?.length || 0} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.hard_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.hard_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 {previewPayload?.hard_remarks && (
@@ -1345,7 +1345,7 @@ export default function VisualInspection({
                                                                 })}
                                                                 <TableRow>
                                                                     <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Status</TableCell>
-                                                                    <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.ndt_ok ? <Chip label="OK" color="success" size="small" /> : <Chip label="NOT OK" color="error" size="small" />}
+                                                                    <TableCell colSpan={(previewPayload?.cols?.length || 0) + 1} sx={{ textAlign: 'center' }}>                                                                        {previewPayload?.ndt_ok === true ? <Chip label="OK" color="success" size="small" /> : previewPayload?.ndt_ok === false ? <Chip label="NOT OK" color="error" size="small" /> : "-"}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 {previewPayload?.ndt_remarks && (
