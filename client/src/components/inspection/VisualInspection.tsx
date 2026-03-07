@@ -296,7 +296,7 @@ function SectionTable({
                                 <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>Total</TableCell>
                             )}
                             <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
-                            <TableCell sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+                            <TableCell sx={{ minWidth: 300, maxWidth: 300, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -323,12 +323,12 @@ function SectionTable({
                                     <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing} />
                                 </RadioGroup>
                             </TableCell>
-                            <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none' }}>
+                            <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none', minWidth: 300, maxWidth: 300 }}>
                                 <TextField
                                     size="small"
                                     fullWidth
                                     multiline
-                                    rows={3}
+                                    rows={8}
                                     value={remarks || ""}
                                     onChange={(e) => updateSectionMeta({ remarks: e.target.value })}
                                     placeholder="Enter remarks..."
@@ -1299,7 +1299,7 @@ export default function VisualInspection({
                                                                                 size="small"
                                                                                 fullWidth
                                                                                 multiline
-                                                                                rows={5}
+                                                                                rows={8}
                                                                                 placeholder="Enter remarks..."
                                                                                 value={remarks}
                                                                                 onChange={(e) => setRemarks(e.target.value)}
