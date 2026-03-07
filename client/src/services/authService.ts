@@ -22,6 +22,7 @@ export const authService = {
     if (!refreshToken) throw new Error('No refresh token available');
     const res = await fetch(API_BASE + '/login/refresh-token', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
@@ -37,6 +38,7 @@ export const authService = {
   async resetPasswordWithOtp(username: string, otp: string, newPassword: string) {
     const res = await fetch(API_BASE + '/forgot-password/reset-password', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, otp, newPassword })
     });
@@ -50,6 +52,7 @@ export const authService = {
   async forgotPasswordRequest(username: string, email: string) {
     const res = await fetch(API_BASE + '/forgot-password/request-reset', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email })
     });

@@ -40,6 +40,7 @@ class ApiService {
           try {
             const refreshRes = await fetch(`${API_BASE}/login/refresh-token`, {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken })
             });
