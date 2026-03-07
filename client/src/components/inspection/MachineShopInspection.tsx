@@ -174,6 +174,22 @@ export default function McShopInspection({
       if (trialId) {
         try {
           const response = await inspectionService.getMachineShopInspection(trialId);
+
+          let ndtAcceptedValues: string[] = [];
+          try {
+            const visualRes = await inspectionService.getVisualInspection(trialId);
+            if (visualRes.success && visualRes.data?.[0]) {
+              const visualData = visualRes.data[0];
+              const ndtList = safeParse<any[]>(visualData.ndt_inspection, []);
+              const acceptedRow = ndtList.find(r => r.label && r.label.toLowerCase().includes('accepted'));
+              if (acceptedRow && acceptedRow.value) {
+                ndtAcceptedValues = acceptedRow.value.split('|');
+              }
+            }
+          } catch (e) {
+            console.error("Error fetching NDT values for pre-fill:", e);
+          }
+
           if (response?.success && response?.data && response?.data?.length > 0) {
             const data = response.data[0];
             setDate(data?.inspection_date ? new Date(data.inspection_date).toISOString().slice(0, 10) : "");
@@ -231,6 +247,15 @@ export default function McShopInspection({
 
             setRemarks(data?.remarks || "");
             setDataExists(true);
+          } else {
+            if (ndtAcceptedValues.length > 0) {
+              setRows(prevRows => prevRows.map(row => {
+                if (row.label === "Inspected Quantity") {
+                  return { ...row, values: ndtAcceptedValues.map(v => v || "") };
+                }
+                return row;
+              }));
+            }
           }
         } catch (error) {
           console.error("Failed to fetch machine shop data:", error);

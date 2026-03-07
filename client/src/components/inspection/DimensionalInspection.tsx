@@ -586,20 +586,22 @@ export default function DimensionalInspection({
                                         Add Column
                                     </Button>
 
-                                    <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                                            Attach PDF / Image Files
-                                        </Typography>
-                                        <FileUploadSection
-                                            files={attachedFiles}
-                                            onFilesChange={handleAttachFiles}
-                                            onFileRemove={removeAttachedFile}
-                                            showAlert={showAlert}
-                                            label="Attach PDF"
-                                            disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
-                                        />
-                                        <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
-                                    </Box>
+                                    {user?.department_id !== 8 && (
+                                        <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                                Attach PDF / Image Files
+                                            </Typography>
+                                            <FileUploadSection
+                                                files={attachedFiles}
+                                                onFilesChange={handleAttachFiles}
+                                                onFileRemove={removeAttachedFile}
+                                                showAlert={showAlert}
+                                                label="Attach PDF"
+                                                disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                            />
+                                            <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
+                                        </Box>
+                                    )}
                                 </Paper>
 
                                 <Paper sx={{ p: 3, mb: 3 }}>

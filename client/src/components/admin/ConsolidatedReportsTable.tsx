@@ -119,22 +119,20 @@ const ConsolidatedReportsTable: React.FC = () => {
                                 <TableCell className="premium-table-cell-bold">{report.pattern_code}</TableCell>
                                 <TableCell className="premium-table-cell">{report.part_name}</TableCell>
                                 <TableCell className="premium-table-cell" align="right">
-                                    <Tooltip title="View History">
-                                        <IconButton
-                                            onClick={() => handleViewReport(report)}
-                                            color="primary"
-                                            size="small"
-                                            sx={{
-                                                bgcolor: 'rgba(230, 126, 34, 0.1)',
-                                                color: '#E67E22',
-                                                '&:hover': {
-                                                    bgcolor: 'rgba(230, 126, 34, 0.2)',
-                                                }
-                                            }}
-                                        >
-                                            <VisibilityIcon />
-                                        </IconButton>
-                                    </Tooltip>
+                                    <Button
+                                        onClick={() => handleViewReport(report)}
+                                        variant="contained"
+                                        size="small"
+                                        sx={{
+                                            textTransform: 'none',
+                                            bgcolor: '#E67E22',
+                                            '&:hover': {
+                                                bgcolor: '#D35400',
+                                            }
+                                        }}
+                                    >
+                                        View report
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))

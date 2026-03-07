@@ -369,25 +369,27 @@ export default function MaterialCorrection() {
                                         </Paper>
                                     </Grid>
 
-                                    <Grid size={{ xs: 12 }}>
-                                        <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
-                                            <SectionHeader
-                                                icon={<UploadFileIcon />}
-                                                title="Attach PDF / Image Files"
-                                                color={COLORS.accentBlue}
-                                            />
+                                    {user?.department_id !== 8 && user?.department_id !== 6 && user?.department_id !== 7 && (
+                                        <Grid size={{ xs: 12 }}>
+                                            <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
+                                                <SectionHeader
+                                                    icon={<UploadFileIcon />}
+                                                    title="Attach PDF / Image Files"
+                                                    color={COLORS.accentBlue}
+                                                />
 
-                                            <FileUploadSection
-                                                files={attachedFiles}
-                                                onFilesChange={handleAttachFiles}
-                                                onFileRemove={removeAttachedFile}
-                                                label="Upload Files"
-                                                showAlert={showAlert}
-                                                disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
-                                            />
-                                            <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
-                                        </Paper>
-                                    </Grid>
+                                                <FileUploadSection
+                                                    files={attachedFiles}
+                                                    onFilesChange={handleAttachFiles}
+                                                    onFileRemove={removeAttachedFile}
+                                                    label="Upload Files"
+                                                    showAlert={showAlert}
+                                                    disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                />
+                                                <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
+                                            </Paper>
+                                        </Grid>
+                                    )}
 
                                     <Grid size={{ xs: 12 }}>
                                         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>

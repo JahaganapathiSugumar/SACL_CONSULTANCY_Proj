@@ -259,7 +259,7 @@ function SectionTable({
     };
 
     const cavityRow = rows.find(r => r.label === "Cavity Number");
-    const dataRows = rows.filter(r => r && r.label && r.label !== "Cavity Number" && !r.label.toLowerCase().includes('rejection percentage'));
+    const dataRows = rows.filter(r => r && r.label && r.label !== "Cavity Number");
 
     return (
         <Box mb={4}>
@@ -347,7 +347,22 @@ function SectionTable({
                                 const n = parseFloat(String(s).trim());
                                 return acc + (isNaN(n) ? 0 : n);
                             }, 0);
-                            const totalToShow = isNonNumericRow ? null : (rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null));
+
+                            let totalToShow: any = isNonNumericRow ? null : (rowVals.some(v => v && !isNaN(parseFloat(String(v)))) ? displayTotal : (r.total ?? null));
+
+                            if (labelLower.includes("percentage")) {
+                                const inspectedRow = rows?.find(row => row?.label?.toLowerCase()?.includes('inspected'));
+                                const rejectedRow = rows?.find(row => row?.label?.toLowerCase()?.includes('rejected'));
+                                if (inspectedRow && rejectedRow) {
+                                    const sumInspected = (values[inspectedRow.id] || []).reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                                    const sumRejected = (values[rejectedRow.id] || []).reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                                    if (sumInspected > 0) {
+                                        totalToShow = ((sumRejected / sumInspected) * 100).toFixed(2) + "%";
+                                    } else {
+                                        totalToShow = "0.00%";
+                                    }
+                                }
+                            }
                             const isRejectedQty = r.label.toLowerCase().includes('rejected') && !r.label.toLowerCase().includes('reason');
                             const isAcceptedQty = r.label.toLowerCase().includes('accepted');
 
@@ -362,7 +377,18 @@ function SectionTable({
                                                 value={values[r.id]?.[ci] ?? ""}
                                                 onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                                 variant="outlined"
-                                                sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
+                                                sx={{
+                                                    "& .MuiInputBase-input": {
+                                                        textAlign: 'center',
+                                                        fontFamily: 'Roboto Mono',
+                                                        bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
+                                                            isRejectedQty ? '#f3f4f6' : 'transparent'
+                                                    },
+                                                    "& .MuiInputBase-root": {
+                                                        bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
+                                                            isRejectedQty ? '#f3f4f6' : 'white'
+                                                    }
+                                                }}
                                                 disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || isRejectedQty || r.label.toLowerCase().includes('percentage')}
                                             />
                                         </TableCell>
@@ -419,7 +445,19 @@ export default function VisualInspection({
     };
 
     const handleHardnessChange = (id: string, patch: Partial<NdtRow>) => {
-        setHardRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+        setHardRows(prev => {
+            const updated = prev.map(r => r.id === id ? { ...r, ...patch } : r);
+            const targetRow = updated.find(r => r.id === id);
+            if (targetRow?.label?.toLowerCase()?.includes("accepted quantity") && patch.value !== undefined) {
+                setNdtRows(nPrev => nPrev.map(nr => {
+                    if (nr.label.toLowerCase() === "inspected quantity") {
+                        return { ...nr, value: patch.value };
+                    }
+                    return nr;
+                }));
+            }
+            return updated;
+        });
     };
 
     const handleNdtSectionChange = (patch: Partial<NdtRow>) => {
@@ -651,6 +689,18 @@ export default function VisualInspection({
 
     const updateCell = (rowId: string, colIndex: number, value: string) => {
         setRows(prev => {
+            const targetRow = prev.find(r => r.id === rowId);
+            if (targetRow?.label?.toLowerCase()?.includes("accepted quantity")) {
+                setHardRows(hPrev => hPrev.map(hr => {
+                    if (hr.label.toLowerCase() === "inspected quantity") {
+                        const vals = (hr.value || "").split('|');
+                        vals[colIndex] = value;
+                        return { ...hr, value: vals.join('|') };
+                    }
+                    return hr;
+                }));
+            }
+
             let updated = prev?.map(r => {
                 if (r.id !== rowId) return r;
                 const newValues = r?.values?.map((v, i) => (i === colIndex ? value : v));
@@ -793,10 +843,32 @@ export default function VisualInspection({
             remarks: remarks || null,
             attachedFiles: attachedFiles?.map(f => f?.name),
             additionalRemarks: additionalRemarks,
-            ndt_rows: ndtRows?.map(r => ({ ...r })),
+            ndt_rows: ndtRows?.map(r => {
+                if (r.label.toLowerCase().includes("rejection percentage")) {
+                    const inspRow = ndtRows.find(row => row.label.toLowerCase().includes("inspected"));
+                    const rejRow = ndtRows.find(row => row.label.toLowerCase().includes("rejected"));
+                    if (inspRow && rejRow) {
+                        const sumInsp = (inspRow.value || "").split('|').reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                        const sumRej = (rejRow.value || "").split('|').reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                        return { ...r, total: sumInsp > 0 ? `${((sumRej / sumInsp) * 100).toFixed(2)}%` : "0.00%" };
+                    }
+                }
+                return { ...r };
+            }),
             ndt_ok: getOkStatus(ndtRows || []),
             ndt_remarks: ndtRows?.find(r => r?.remarks)?.remarks || "",
-            hard_rows: hardRows?.map(r => ({ ...r })),
+            hard_rows: hardRows?.map(r => {
+                if (r.label.toLowerCase().includes("rejection percentage")) {
+                    const inspRow = hardRows.find(row => row.label.toLowerCase().includes("inspected"));
+                    const rejRow = hardRows.find(row => row.label.toLowerCase().includes("rejected"));
+                    if (inspRow && rejRow) {
+                        const sumInsp = (inspRow.value || "").split('|').reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                        const sumRej = (rejRow.value || "").split('|').reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                        return { ...r, total: sumInsp > 0 ? `${((sumRej / sumInsp) * 100).toFixed(2)}%` : "0.00%" };
+                    }
+                }
+                return { ...r };
+            }),
             hard_ok: getOkStatus(hardRows || []),
             hard_remarks: hardRows?.find(r => r?.remarks)?.remarks || ""
         };
@@ -1256,20 +1328,22 @@ export default function VisualInspection({
                                 </Paper>
 
                                 <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
-                                    <Box sx={{ p: 1, bgcolor: "#fff" }}>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                                            Attach PDF / Image Files
-                                        </Typography>
-                                        <FileUploadSection
-                                            files={attachedFiles}
-                                            onFilesChange={handleAttachFiles}
-                                            onFileRemove={removeAttachedFile}
-                                            showAlert={showAlert}
-                                            label="Attach PDF"
-                                            disabled={user?.role === 'HOD' || user?.role === 'Admin'}
-                                        />
-                                        <DocumentViewer trialId={trialId} category="VISUAL_INSPECTION" />
-                                    </Box>
+                                    {user?.department_id !== 8 && (
+                                        <Box sx={{ p: 1, bgcolor: "#fff" }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                                Attach PDF / Image Files
+                                            </Typography>
+                                            <FileUploadSection
+                                                files={attachedFiles}
+                                                onFilesChange={handleAttachFiles}
+                                                onFileRemove={removeAttachedFile}
+                                                showAlert={showAlert}
+                                                label="Attach PDF"
+                                                disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                                            />
+                                            <DocumentViewer trialId={trialId} category="VISUAL_INSPECTION" />
+                                        </Box>
+                                    )}
 
 
                                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 1 }}>

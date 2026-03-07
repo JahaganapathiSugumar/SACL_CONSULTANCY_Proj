@@ -1118,20 +1118,22 @@ function FoundrySampleCard() {
                         disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                       />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
-                        Tooling Files
-                      </Typography>
-                      <FileUploadSection
-                        files={toolingFiles}
-                        onFilesChange={handleToolingFilesChange}
-                        onFileRemove={removeToolingFile}
-                        showAlert={showAlert}
-                        label="Attach Tooling PDF"
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
-                      />
-                      <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
-                    </Grid>
+                    {user?.department_id !== 8 && (
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
+                          Tooling Files
+                        </Typography>
+                        <FileUploadSection
+                          files={toolingFiles}
+                          onFilesChange={handleToolingFilesChange}
+                          onFileRemove={removeToolingFile}
+                          showAlert={showAlert}
+                          label="Attach Tooling PDF"
+                          disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                        />
+                        <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
+                      </Grid>
+                    )}
                   </Grid>
                 </Paper>
 
