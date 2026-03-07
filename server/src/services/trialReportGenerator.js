@@ -675,7 +675,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                     currentAttY = 55;
                 }
 
-                if (isImage) {
+                if (isImage && !item.is_confidential) {
                     try {
                         const col = imageInPageCount % 2;
                         const drawX = xPos[col];
@@ -704,7 +704,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         doc.font('Helvetica-Oblique').fontSize(8).fillColor('red').text(`[Error rendering image: ${item.file_name}]`, 45, currentAttY);
                         currentAttY += 20;
                     }
-                } else if (isPdf) {
+                } else if (isPdf || item.is_confidential) {
                     if (imageInPageCount % 2 !== 0) {
                         currentAttY += 340;
                         imageInPageCount = 0;
@@ -715,15 +715,21 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         currentAttY = 55;
                     }
 
-                    doc.font('Helvetica-Bold').fontSize(9).fillColor('black').text(`- ${item.file_name}`, 40, currentAttY);
+                    const displayLabel = item.is_confidential ? `- ${item.file_name} (CONFIDENTIAL)` : `- ${item.file_name}`;
+                    doc.font('Helvetica-Bold').fontSize(9).fillColor(item.is_confidential ? 'red' : 'black').text(displayLabel, 40, currentAttY);
                     currentAttY += 15;
+
+                    const infoText = item.is_confidential
+                        ? "Confidential Document (Access restricted to Admins alone; Contents not embedded in report)."
+                        : "PDF Document (Contents not embedded in main report).";
+
                     doc.font('Helvetica').fontSize(8).fillColor('#666')
-                        .text("PDF Document (Contents not embedded in main report).", 45, currentAttY);
+                        .text(infoText, 45, currentAttY);
                     currentAttY += 12;
 
                     const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
                     doc.fillColor('#2980b9')
-                        .text("Click here to view/download document", 45, currentAttY, {
+                        .text(item.is_confidential ? "Click here to view (Admin only)" : "Click here to view/download document", 45, currentAttY, {
                             link: viewUrl,
                             underline: true
                         });

@@ -58,6 +58,8 @@ import { LoadingState, EmptyState, FileUploadSection, PreviewModal, DocumentView
 import GearSpinner from '../common/GearSpinner';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
+import LockIcon from '@mui/icons-material/Lock';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import { safeParse } from "../../utils/jsonUtils";
@@ -441,7 +443,8 @@ function FoundrySampleCard() {
       chemical_composition: chemState,
       tensile: tensileState,
       micro_structure: microState,
-      hardness: hardnessState
+      hardness: hardnessState,
+      confidentialFiles: confidentialFiles
     };
 
     return {
@@ -910,6 +913,32 @@ function FoundrySampleCard() {
                     </Box>
                   )}
                 </Paper>
+
+                {previewPayload?.confidentialFiles?.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, color: 'error.main', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LockIcon sx={{ fontSize: 18 }} /> CONFIDENTIAL DOCUMENTS
+                    </Typography>
+                    <Paper elevation={0} sx={{ p: 2, border: `1px dashed ${COLORS.border}`, bgcolor: '#fff5f5' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {previewPayload.confidentialFiles.map((file: any, idx: number) => (
+                          <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <PictureAsPdfIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {file.name || file.fileName}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                              (Confidential - Admin Only)
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary', fontStyle: 'italic' }}>
+                        Note: These files will only be accessible to users with Admin privileges.
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
 
                 <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.primary }}>Moulding</Typography>
                 <Table size="small" sx={{ bgcolor: "white", border: `1px solid ${COLORS.border}`, borderRadius: 1, mb: 3 }}>
