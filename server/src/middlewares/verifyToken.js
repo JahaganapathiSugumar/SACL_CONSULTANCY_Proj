@@ -6,7 +6,7 @@ import CustomError from '../utils/customError.js';
 import Client from '../config/connection.js';
 
 const verifyToken = asyncErrorHandler(async (req, res, next) => {
-    let token = req.get('Authorization') || req.get('authorization');
+    let token = req.get('Authorization') || req.get('authorization') || req.cookies?.token;
     if (!token) {
         throw new CustomError('Token not found', 401);
     }

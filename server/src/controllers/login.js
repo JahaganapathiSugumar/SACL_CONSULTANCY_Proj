@@ -50,6 +50,13 @@ export const login = async (req, res, next) => {
         const token = generateToken(user.user_id, user.username, user.department_id, user.role);
         const refreshToken = generateRefreshToken(user.user_id, user.username);
 
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
         const needsEmailVerification = user.email_verified === false || user.email_verified === 0;
         const needsPasswordChange = user.needs_password_change === true || user.needs_password_change === 1;
 

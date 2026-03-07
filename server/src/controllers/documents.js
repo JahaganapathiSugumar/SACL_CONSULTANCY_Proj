@@ -58,7 +58,7 @@ export const viewDocument = async (req, res, next) => {
     const { id } = req.params;
 
     const [rows] = await Client.query(
-        `SELECT file_base64, file_name FROM documents WHERE document_id = @id`,
+        `SELECT file_base64, file_name, is_confidential FROM documents WHERE document_id = @id`,
         { id }
     );
 
@@ -67,6 +67,13 @@ export const viewDocument = async (req, res, next) => {
     }
 
     const doc = rows[0];
+
+    if (doc.is_confidential === 1 && req.user.role !== 'Admin') {
+        return res.status(403).json({
+            success: false,
+            message: "Access denied. Confidential document restricted to Admin only."
+        });
+    }
     const base64Data = doc.file_base64.replace(/^data:.*?;base64,/, "");
     const buffer = Buffer.from(base64Data, 'base64');
 

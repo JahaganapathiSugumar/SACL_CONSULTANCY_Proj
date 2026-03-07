@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import Client from './config/connection.js';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
@@ -48,6 +49,7 @@ logDirs.forEach(dir => {
 
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
+app.use(cookieParser());
 
 app.use(cors({
   origin: ['http://localhost:9011', 'https://sacl-consultancy-proj.onrender.com', 'https://digitaltrialcard-sakthiauto.vercel.app'],
