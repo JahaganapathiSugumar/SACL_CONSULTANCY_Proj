@@ -175,16 +175,17 @@ export default function McShopInspection({
         try {
           const response = await inspectionService.getMachineShopInspection(trialId);
 
-          let ndtAcceptedValues: string[] = [];
+          const acceptedMap: Record<string, string> = {};
           try {
             const visualRes = await inspectionService.getVisualInspection(trialId);
             if (visualRes.success && visualRes.data?.[0]) {
               const visualData = visualRes.data[0];
               const ndtList = safeParse<any[]>(visualData.ndt_inspection, []);
-              const acceptedRow = ndtList.find(r => r.label && r.label.toLowerCase().includes('accepted'));
-              if (acceptedRow && acceptedRow.value) {
-                ndtAcceptedValues = acceptedRow.value.split('|');
-              }
+              ndtList.forEach(item => {
+                const cav = String(item?.['Cavity Number'] || '').trim();
+                const acc = String(item?.['Accepted Quantity'] || '').trim();
+                if (cav) acceptedMap[cav] = acc;
+              });
             }
           } catch (e) {
             console.error("Error fetching NDT values for pre-fill:", e);
@@ -248,10 +249,19 @@ export default function McShopInspection({
             setRemarks(data?.remarks || "");
             setDataExists(true);
           } else {
-            if (ndtAcceptedValues.length > 0) {
+            if (Object.keys(acceptedMap).length > 0) {
               setRows(prevRows => prevRows.map(row => {
                 if (row.label === "Inspected Quantity") {
-                  return { ...row, values: ndtAcceptedValues.map(v => v || "") };
+                  const cavityRow = prevRows.find(r => r.label === "Cavity Number");
+                  const currentCavities = cavityRow ? cavityRow.values : [];
+                  const newValues = currentCavities.map(cav => acceptedMap[String(cav).trim()] || "");
+
+                  const totalVal = newValues.reduce((acc, v) => {
+                    const n = parseFloat(String(v));
+                    return acc + (isNaN(n) ? 0 : n);
+                  }, 0);
+
+                  return { ...row, values: newValues, total: totalVal > 0 ? totalVal : null };
                 }
                 return row;
               }));
@@ -259,7 +269,6 @@ export default function McShopInspection({
           }
         } catch (error) {
           console.error("Failed to fetch machine shop data:", error);
-          showAlert('error', 'Failed to load existing data.');
         }
       }
     };
@@ -624,7 +633,7 @@ export default function McShopInspection({
                             </TableCell>
                           ))}
                           <TableCell sx={{ width: 120, bgcolor: '#f1f5f9', fontWeight: 700, textAlign: 'center' }}>Total</TableCell>
-                          <TableCell sx={{ width: 240, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+                          <TableCell sx={{ minWidth: 300, maxWidth: 300, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                         </TableRow>
                       </TableHead>
 
@@ -643,7 +652,16 @@ export default function McShopInspection({
                                     value={val ?? ""}
                                     onChange={(e) => updateCell(r?.id, ci, e.target.value)}
                                     variant="outlined"
-                                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, backgroundColor: 'white' } }}
+                                    sx={{
+                                      "& .MuiOutlinedInput-root": {
+                                        borderRadius: 2,
+                                        backgroundColor: 'white'
+                                      },
+                                      "& .MuiInputBase-input": {
+                                        fontFamily: 'Roboto Mono',
+                                        textAlign: 'center'
+                                      }
+                                    }}
                                     disabled={r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
@@ -653,7 +671,7 @@ export default function McShopInspection({
                               </TableCell>
 
                               {ri === 0 && (
-                                <TableCell rowSpan={rows?.length || 1} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2, minWidth: 240 }}>
+                                <TableCell rowSpan={rows?.length || 1} sx={{ verticalAlign: "top", bgcolor: '#fff7ed', padding: 2, minWidth: 300, maxWidth: 300 }}>
                                   <Box display="flex" flexDirection="column" height="100%" gap={2}>
                                     <TextField
                                       size="small"

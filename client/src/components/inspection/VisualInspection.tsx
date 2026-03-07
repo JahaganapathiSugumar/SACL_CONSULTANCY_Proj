@@ -1144,8 +1144,8 @@ export default function VisualInspection({
                                                     >
                                                         Total
                                                     </TableCell>
-                                                    <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
-                                                    <TableCell sx={{ width: 280, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+                                                    <TableCell sx={{ minWidth: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
+                                                    <TableCell sx={{ minWidth: 300, maxWidth: 300, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
                                                 </TableRow>
                                             </TableHead>
 
@@ -1242,7 +1242,8 @@ export default function VisualInspection({
                                                                         sx={{
                                                                             bgcolor: COLORS.successBg,
                                                                             verticalAlign: "middle",
-                                                                            textAlign: 'center'
+                                                                            textAlign: 'center',
+                                                                            minWidth: 140
                                                                         }}
                                                                     >
                                                                         <RadioGroup
@@ -1261,8 +1262,7 @@ export default function VisualInspection({
 
                                                                     <TableCell
                                                                         rowSpan={rows.length}
-                                                                        colSpan={2}
-                                                                        sx={{ bgcolor: '#fff7ed', verticalAlign: "top" }}
+                                                                        sx={{ bgcolor: '#fff7ed', verticalAlign: "top", minWidth: 300, maxWidth: 300 }}
                                                                     >
                                                                         <Box display="flex" flexDirection="column" height="100%" gap={1}>
                                                                             <TextField

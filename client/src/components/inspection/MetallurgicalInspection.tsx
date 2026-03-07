@@ -239,7 +239,7 @@ function SectionTable({
               )}
 
               <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
-              <TableCell sx={{ bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
+              <TableCell sx={{ minWidth: 300, maxWidth: 300, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks</TableCell>
             </TableRow>
           </TableHead>
 
@@ -269,7 +269,7 @@ function SectionTable({
                 </Box>
               </TableCell>
 
-              <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none' }}>
+              <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none', minWidth: 300, maxWidth: 300 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1 }}>
                   <TextField
                     size="small"
@@ -470,7 +470,7 @@ function MicrostructureTable({
                 </TableCell>
               ))}
               <TableCell sx={{ width: 140, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>OK / NOT OK</TableCell>
-              <TableCell sx={{ width: 240, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks & Files</TableCell>
+              <TableCell sx={{ minWidth: 300, maxWidth: 300, bgcolor: COLORS.orangeHeaderBg, color: COLORS.orangeHeaderText }}>Remarks & Files</TableCell>
             </TableRow>
           </TableHead>
 
@@ -508,7 +508,7 @@ function MicrostructureTable({
                       </RadioGroup>
                     </TableCell>
 
-                    <TableCell rowSpan={params.length} colSpan={6} sx={{ bgcolor: '#fff7ed', verticalAlign: "top" }}>
+                    <TableCell rowSpan={params.length} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", minWidth: 300, maxWidth: 300 }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1 }}>
                         <TextField
                           size="small"
