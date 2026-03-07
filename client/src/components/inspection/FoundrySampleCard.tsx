@@ -180,6 +180,12 @@ function FoundrySampleCard() {
 
   const removeToolingFile = (index: number) => setToolingFiles(prev => prev.filter((_, i) => i !== index));
 
+  const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
+  const handleConfidentialFilesChange = (newFiles: File[]) => {
+    setConfidentialFiles(prev => [...prev, ...newFiles]);
+  };
+  const removeConfidentialFile = (index: number) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index));
+
   const [remarks, setRemarks] = useState("");
 
   const [mouldCorrections, setMouldCorrections] = useState<any[]>([
@@ -400,6 +406,7 @@ function FoundrySampleCard() {
     setTrialType("");
     setToolingModification("");
     setToolingFiles([]);
+    setConfidentialFiles([]);
     setRemarks("");
     setMouldCorrections([{ id: 1, compressibility: "", squeezePressure: "", fillerSize: "" }]);
     setChemState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
@@ -473,7 +480,19 @@ function FoundrySampleCard() {
             currentTrialId,
             "TOOLING_MODIFICATION",
             user?.username || "Unknown",
-            "Tooling Modification files"
+            "Tooling Modification files",
+            false
+          );
+        }
+
+        if (confidentialFiles?.length > 0 && currentTrialId) {
+          await uploadFiles(
+            confidentialFiles,
+            currentTrialId,
+            "FOUNDRY_SAMPLE_CARD",
+            user?.username || "Unknown",
+            "FOUNDRY_SAMPLE_CARD",
+            true
           );
         }
         setDocsRefreshTrigger(prev => prev + 1);
@@ -1197,9 +1216,28 @@ function FoundrySampleCard() {
                     placeholder="Enter remarks..."
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    sx={{ bgcolor: "#fff" }}
+                    sx={{ bgcolor: "#fff", mb: 3 }}
                     disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                   />
+
+                  {user?.department_id !== 8 && (
+                    <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Confidential Files (Admin Only)
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                        Upload sensitive documents here. These will only be visible to Admins.
+                      </Typography>
+                      <FileUploadSection
+                        files={confidentialFiles}
+                        onFilesChange={handleConfidentialFilesChange}
+                        onFileRemove={removeConfidentialFile}
+                        showAlert={showAlert}
+                        label="Attach Confidential PDF"
+                      />
+                      <DocumentViewer trialId={trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
+                    </Box>
+                  )}
                 </Paper>
 
                 {user?.department_id !== 8 && (

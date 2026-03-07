@@ -64,6 +64,7 @@ export default function MaterialCorrection() {
 
     const [remarks, setRemarks] = useState("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
 
 
 
@@ -173,6 +174,7 @@ export default function MaterialCorrection() {
     const handleReset = () => {
         setRemarks("");
         setAttachedFiles([]);
+        setConfidentialFiles([]);
         setChemState({ c: "", si: "", mn: "", p: "", s: "", mg: "", cr: "", cu: "" });
         setProcessState({ pouringTemp: "", inoculantPerSec: "", inoculantType: "" });
         setDate(new Date().toISOString().slice(0, 10));
@@ -230,8 +232,20 @@ export default function MaterialCorrection() {
                     trialId,
                     "MATERIAL_CORRECTION",
                     user?.username || "system",
-                    "MATERIAL_CORRECTION"
+                    "MATERIAL_CORRECTION",
+                    false
                 ).catch(err => console.error("File upload error:", err));
+            }
+
+            if (confidentialFiles?.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "MATERIAL_CORRECTION",
+                    user?.username || "system",
+                    "MATERIAL_CORRECTION",
+                    true
+                ).catch(err => console.error("Confidential file upload error:", err));
             }
 
             setSubmitted(true);
@@ -386,6 +400,23 @@ export default function MaterialCorrection() {
                                                     showAlert={showAlert}
                                                     disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
                                                 />
+
+                                                <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        Confidential Files (Admin Only)
+                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                        Upload sensitive documents here. These will only be visible to Admins.
+                                                    </Typography>
+                                                    <FileUploadSection
+                                                        files={confidentialFiles}
+                                                        onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                        onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                                                        showAlert={showAlert}
+                                                        label="Attach Confidential PDF"
+                                                    />
+                                                </Box>
+
                                                 <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
                                             </Paper>
                                         </Grid>

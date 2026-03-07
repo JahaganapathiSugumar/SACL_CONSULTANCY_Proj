@@ -1,7 +1,7 @@
 import { apiService } from './commonService';
 
 export const documentService = {
-    async uploadDocument(trial_id: number | string, document_type: string, file_name: string, file_base64: string, uploaded_by: string, uploaded_at: string, remarks: string) {
+    async uploadDocument(trial_id: number | string, document_type: string, file_name: string, file_base64: string, uploaded_by: string, uploaded_at: string, remarks: string, is_confidential: boolean = false) {
         const body = {
             "trial_id": trial_id,
             "document_type": document_type,
@@ -9,7 +9,8 @@ export const documentService = {
             "file_base64": file_base64,
             "uploaded_by": uploaded_by,
             "uploaded_at": uploaded_at,
-            "remarks": remarks
+            "remarks": remarks,
+            "is_confidential": is_confidential
         };
         return apiService.request('/documents', {
             method: "POST",

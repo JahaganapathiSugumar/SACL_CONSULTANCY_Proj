@@ -49,7 +49,8 @@ export const uploadFiles = async (
     trialId: number | string,
     documentType: string,
     uploadedBy: string,
-    remarks: string = ''
+    remarks: string = '',
+    isConfidential: boolean = false
 ): Promise<UploadResult[]> => {
     const uploadResults: UploadResult[] = [];
 
@@ -64,7 +65,8 @@ export const uploadFiles = async (
                 base64String,
                 uploadedBy,
                 new Date().toISOString(),
-                remarks
+                remarks,
+                isConfidential
             );
 
             if (response.ok) {

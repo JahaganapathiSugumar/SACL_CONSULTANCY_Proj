@@ -2,10 +2,11 @@ import Client from '../config/connection.js';
 import logger from '../config/logger.js';
 
 export const uploadDocument = async (req, res, next) => {
-    const { trial_id, document_type, file_name, file_base64, remarks } = req.body;
+    const { trial_id, document_type, file_name, file_base64, remarks, is_confidential } = req.body;
     await Client.query(
-        `INSERT INTO documents (trial_id, document_type, file_name, file_base64, uploaded_by, remarks) VALUES (@trial_id, @document_type, @file_name, @file_base64, @uploaded_by, @remarks)`,
-        { trial_id, document_type, file_name, file_base64, uploaded_by: req.user.user_id, remarks }
+        `INSERT INTO documents (trial_id, document_type, file_name, file_base64, uploaded_by, remarks, is_confidential) 
+         VALUES (@trial_id, @document_type, @file_name, @file_base64, @uploaded_by, @remarks, @is_confidential)`,
+        { trial_id, document_type, file_name, file_base64, uploaded_by: req.user.user_id, remarks, is_confidential: is_confidential ? 1 : 0 }
     );
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -26,17 +27,30 @@ export const uploadDocument = async (req, res, next) => {
 
 export const getDocuments = async (req, res, next) => {
     const { trial_id } = req.query;
-    const [documents] = await Client.query(
-        `SELECT d.*, u.username as uploaded_by_username 
-         FROM documents d 
-         LEFT JOIN dtc_users u ON d.uploaded_by = u.user_id 
-         WHERE d.trial_id = @trial_id 
-         ORDER BY d.document_id`,
-        { trial_id }
-    );
+    let rows;
+    if (req.user.role === 'Admin') {
+        [rows] = await Client.query(
+            `SELECT d.*, u.username as uploaded_by_username 
+             FROM documents d 
+             LEFT JOIN dtc_users u ON d.uploaded_by = u.user_id 
+             WHERE d.trial_id = @trial_id 
+             ORDER BY d.document_id`,
+            { trial_id }
+        )
+    } else {
+        [rows] = await Client.query(
+            `SELECT d.*, u.username as uploaded_by_username 
+             FROM documents d 
+             LEFT JOIN dtc_users u ON d.uploaded_by = u.user_id 
+             WHERE d.trial_id = @trial_id 
+             AND (d.is_confidential = 0 OR d.is_confidential IS NULL)
+             ORDER BY d.document_id`,
+            { trial_id }
+        )
+    }
     res.status(200).json({
         success: true,
-        data: documents || []
+        data: rows || []
     });
 };
 

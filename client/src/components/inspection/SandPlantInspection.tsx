@@ -56,6 +56,7 @@ function SandTable() {
   });
 
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { alert, showAlert } = useAlert();
@@ -194,8 +195,20 @@ function SandTable() {
           trialId,
           "SAND_PROPERTIES",
           user?.username || "system",
-          "SAND_PROPERTIES"
+          "SAND_PROPERTIES",
+          false
         ).catch(err => console.error("File upload error:", err));
+      }
+
+      if (confidentialFiles?.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "SAND_PROPERTIES",
+          user?.username || "system",
+          "SAND_PROPERTIES",
+          true
+        ).catch(err => console.error("Confidential file upload error:", err));
       }
 
       setSubmitted(true);
@@ -234,8 +247,20 @@ function SandTable() {
           trialId,
           "SAND_PROPERTIES",
           user?.username || "system",
-          "SAND_PROPERTIES"
+          "SAND_PROPERTIES",
+          false
         ).catch(err => console.error("Draft file upload error", err));
+      }
+
+      if (confidentialFiles?.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "SAND_PROPERTIES",
+          user?.username || "system",
+          "SAND_PROPERTIES",
+          true
+        ).catch(err => console.error("Confidential draft file upload error", err));
       }
 
       setSubmitted(true);
@@ -400,6 +425,23 @@ function SandTable() {
                         label="Attach PDF"
                         disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                       />
+
+                      <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                          Confidential Files (Admin Only)
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                          Upload sensitive documents here. These will only be visible to Admins.
+                        </Typography>
+                        <FileUploadSection
+                          files={confidentialFiles}
+                          onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                          onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                          showAlert={showAlert}
+                          label="Attach Confidential PDF"
+                        />
+                      </Box>
+
                       <DocumentViewer trialId={trialId || ""} category="SAND_PROPERTIES" />
                     </Box>
 

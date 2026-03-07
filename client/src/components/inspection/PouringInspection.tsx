@@ -238,6 +238,7 @@ function PouringDetailsTable() {
     const [userName] = useState<string>(user?.username || "N/A");
     const [remarksText, setRemarksText] = useState<string>("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
 
     const [previewMode, setPreviewMode] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
@@ -403,8 +404,20 @@ function PouringDetailsTable() {
                     trialId,
                     "POURING_DETAILS",
                     user?.username || "system",
-                    "POURING_DETAILS"
+                    "POURING_DETAILS",
+                    false
                 ).catch(err => console.error("File upload error:", err));
+            }
+
+            if (confidentialFiles?.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "POURING_DETAILS",
+                    user?.username || "system",
+                    "POURING_DETAILS",
+                    true
+                ).catch(err => console.error("Confidential file upload error:", err));
             }
 
             setSubmitted(true);
@@ -673,6 +686,23 @@ function PouringDetailsTable() {
                                                 label="Upload Files"
                                                 disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                                             />
+
+                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    Confidential Files (Admin Only)
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                    Upload sensitive documents here. These will only be visible to Admins.
+                                                </Typography>
+                                                <FileUploadSection
+                                                    files={confidentialFiles}
+                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                                                    showAlert={showAlert}
+                                                    label="Attach Confidential PDF"
+                                                />
+                                            </Box>
+
                                             <DocumentViewer trialId={trialId || ""} category="POURING_DETAILS" />
                                         </Paper>
                                     </Grid>

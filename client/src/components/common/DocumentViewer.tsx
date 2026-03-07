@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, Paper, IconButton } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, ListItemIcon, Button, Paper, IconButton, Chip } from '@mui/material';
 import GearSpinner from './GearSpinner';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
@@ -25,6 +25,7 @@ interface Document {
     uploaded_by_username?: string;
     uploaded_at: string;
     remarks: string;
+    is_confidential?: boolean | number;
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, label = "Previously Attached Files", refreshTrigger = 0, documents: externalDocuments }) => {
@@ -131,7 +132,20 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
                             {getFileIcon(doc.file_name)}
                         </ListItemIcon>
                         <ListItemText
-                            primary={doc.file_name}
+                            primary={
+                                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    {doc.file_name}
+                                    {(doc.is_confidential === true || doc.is_confidential === 1) && (
+                                        <Chip
+                                            label="Confidential"
+                                            size="small"
+                                            color="error"
+                                            variant="outlined"
+                                            sx={{ height: 20, fontSize: '0.65rem' }}
+                                        />
+                                    )}
+                                </Box>
+                            }
                             secondary={`Uploaded by ${doc.uploaded_by_username || doc.uploaded_by} on ${new Date(doc.uploaded_at).toLocaleDateString()}`}
                             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
                             secondaryTypographyProps={{ variant: 'caption' }}

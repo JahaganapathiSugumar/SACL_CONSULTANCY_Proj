@@ -427,6 +427,7 @@ export default function VisualInspection({
     const [message, setMessage] = useState<string | null>(null);
     const { alert, showAlert } = useAlert();
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
     const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
     const [previewMode, setPreviewMode] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
@@ -1017,8 +1018,20 @@ export default function VisualInspection({
                     trialId,
                     "VISUAL_INSPECTION",
                     user?.username || "system",
-                    "VISUAL_INSPECTION"
+                    "VISUAL_INSPECTION",
+                    false
                 ).catch(err => console.error("File upload error:", err));
+            }
+
+            if (confidentialFiles.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "VISUAL_INSPECTION",
+                    user?.username || "system",
+                    "VISUAL_INSPECTION",
+                    true
+                ).catch(err => console.error("Confidential file upload error:", err));
             }
 
             setSubmitted(true);
@@ -1053,8 +1066,25 @@ export default function VisualInspection({
             }
 
             if (attachedFiles.length > 0) {
-                await uploadFiles(attachedFiles, trialId, "VISUAL_INSPECTION", user?.username || "system", "VISUAL_INSPECTION")
-                    .catch(err => console.error("Draft file upload error", err));
+                await uploadFiles(
+                    attachedFiles,
+                    trialId,
+                    "VISUAL_INSPECTION",
+                    user?.username || "system",
+                    "VISUAL_INSPECTION",
+                    false
+                ).catch(err => console.error("Draft file upload error", err));
+            }
+
+            if (confidentialFiles.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "VISUAL_INSPECTION",
+                    user?.username || "system",
+                    "VISUAL_INSPECTION",
+                    true
+                ).catch(err => console.error("Confidential draft file upload error", err));
             }
 
             setSubmitted(true);
@@ -1335,12 +1365,29 @@ export default function VisualInspection({
                                             </Typography>
                                             <FileUploadSection
                                                 files={attachedFiles}
-                                                onFilesChange={handleAttachFiles}
-                                                onFileRemove={removeAttachedFile}
+                                                onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                                                onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
                                                 label="Attach PDF"
                                                 disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                                             />
+
+                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    Confidential Files (Admin Only)
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                    Upload sensitive documents here. These will only be visible to Admins.
+                                                </Typography>
+                                                <FileUploadSection
+                                                    files={confidentialFiles}
+                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                                                    showAlert={showAlert}
+                                                    label="Attach Confidential PDF"
+                                                />
+                                            </Box>
+
                                             <DocumentViewer trialId={trialId} category="VISUAL_INSPECTION" />
                                         </Box>
                                     )}

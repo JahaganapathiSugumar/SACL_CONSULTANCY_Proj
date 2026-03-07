@@ -91,6 +91,7 @@ export default function McShopInspection({
 
   const [dimensionalRemarks, setDimensionalRemarks] = useState<string>("");
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
   const [additionalRemarks, setAdditionalRemarks] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -490,8 +491,20 @@ export default function McShopInspection({
           trialId,
           "MC_SHOP_INSPECTION",
           user?.username || "system",
-          "MC_SHOP_INSPECTION"
-        );
+          "MC_SHOP_INSPECTION",
+          false
+        ).catch(err => console.error("File upload error:", err));
+      }
+
+      if (confidentialFiles.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "MC_SHOP_INSPECTION",
+          user?.username || "system",
+          "MC_SHOP_INSPECTION",
+          true
+        ).catch(err => console.error("Confidential file upload error:", err));
       }
 
       setPreviewSubmitted(true);
@@ -531,8 +544,20 @@ export default function McShopInspection({
           trialId,
           "MC_SHOP_INSPECTION",
           user?.username || "system",
-          "MC_SHOP_INSPECTION"
-        ).catch(console.error);
+          "MC_SHOP_INSPECTION_DRAFT",
+          false
+        );
+      }
+
+      if (confidentialFiles.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "MC_SHOP_INSPECTION",
+          user?.username || "system",
+          "MC_SHOP_INSPECTION_CONFIDENTIAL_DRAFT",
+          true
+        );
       }
 
       setPreviewSubmitted(true);
@@ -715,12 +740,29 @@ export default function McShopInspection({
                     </Typography>
                     <FileUploadSection
                       files={attachedFiles}
-                      onFilesChange={handleAttachFiles}
-                      onFileRemove={removeAttachedFile}
+                      onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                      onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
                       disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                     />
+
+                    <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Confidential Files (Admin Only)
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                        Upload sensitive documents here. These will only be visible to Admins.
+                      </Typography>
+                      <FileUploadSection
+                        files={confidentialFiles}
+                        onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                        onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                        showAlert={showAlert}
+                        label="Attach Confidential PDF"
+                      />
+                    </Box>
+
                     <DocumentViewer trialId={trialId || ""} category="MC_SHOP_INSPECTION" />
                   </Box>
 

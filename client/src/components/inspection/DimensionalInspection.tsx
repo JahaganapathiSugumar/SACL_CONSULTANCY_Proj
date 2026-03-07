@@ -79,6 +79,7 @@ export default function DimensionalInspection({
     const { alert, showAlert } = useAlert();
     const [userIP, setUserIP] = useState<string>("Loading...");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
     const [remarks, setRemarks] = useState<string>("");
     const [previewMode, setPreviewMode] = useState(false);
     const [previewPayload, setPreviewPayload] = useState<any | null>(null);
@@ -349,8 +350,20 @@ export default function DimensionalInspection({
                     trialId,
                     "DIMENSIONAL_INSPECTION",
                     user?.username || "system",
-                    "DIMENSIONAL_INSPECTION"
+                    "DIMENSIONAL_INSPECTION",
+                    false
                 ).catch(err => console.error("File upload error:", err));
+            }
+
+            if (confidentialFiles.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "DIMENSIONAL_INSPECTION",
+                    user?.username || "system",
+                    "DIMENSIONAL_INSPECTION",
+                    true
+                ).catch(err => console.error("Confidential file upload error:", err));
             }
 
             setPreviewSubmitted(true);
@@ -389,8 +402,20 @@ export default function DimensionalInspection({
                     trialId,
                     "DIMENSIONAL_INSPECTION",
                     user?.username || "system",
-                    "DIMENSIONAL_INSPECTION"
+                    "DIMENSIONAL_INSPECTION",
+                    false
                 ).catch(err => console.error("Draft file upload error", err));
+            }
+
+            if (confidentialFiles.length > 0) {
+                await uploadFiles(
+                    confidentialFiles,
+                    trialId,
+                    "DIMENSIONAL_INSPECTION",
+                    user?.username || "system",
+                    "DIMENSIONAL_INSPECTION",
+                    true
+                ).catch(err => console.error("Confidential draft file upload error", err));
             }
 
             setPreviewSubmitted(true);
@@ -599,6 +624,23 @@ export default function DimensionalInspection({
                                                 label="Attach PDF"
                                                 disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
                                             />
+
+                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    Confidential Files (Admin Only)
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                    Upload sensitive documents here. These will only be visible to Admins.
+                                                </Typography>
+                                                <FileUploadSection
+                                                    files={confidentialFiles}
+                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                                                    showAlert={showAlert}
+                                                    label="Attach Confidential PDF"
+                                                />
+                                            </Box>
+
                                             <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
                                         </Box>
                                     )}

@@ -562,6 +562,7 @@ export default function MetallurgicalInspection() {
   const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [confidentialFiles, setConfidentialFiles] = useState<File[]>([]);
 
   const [microCols, setMicroCols] = useState<MicroCol[]>([{ id: 'c1', label: '' }]);
   const [microValues, setMicroValues] = useState<Record<string, string[]>>(() => {
@@ -907,8 +908,20 @@ export default function MetallurgicalInspection() {
           trialId,
           "METALLURGICAL_INSPECTION",
           user?.username || "system",
-          "METALLURGICAL_INSPECTION"
+          "METALLURGICAL_INSPECTION",
+          false
         ).catch(err => console.error("File upload error:", err));
+      }
+
+      if (confidentialFiles.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "METALLURGICAL_INSPECTION",
+          user?.username || "system",
+          "METALLURGICAL_INSPECTION",
+          true
+        ).catch(err => console.error("Confidential file upload error:", err));
       }
 
       setPreviewSubmitted(true);
@@ -947,8 +960,20 @@ export default function MetallurgicalInspection() {
           trialId,
           "METALLURGICAL_INSPECTION",
           user?.username || "system",
-          "METALLURGICAL_INSPECTION"
+          "METALLURGICAL_INSPECTION",
+          false
         ).catch(err => console.error("Draft file upload error", err));
+      }
+
+      if (confidentialFiles.length > 0) {
+        await uploadFiles(
+          confidentialFiles,
+          trialId,
+          "METALLURGICAL_INSPECTION",
+          user?.username || "system",
+          "METALLURGICAL_INSPECTION",
+          true
+        ).catch(err => console.error("Confidential draft file upload error", err));
       }
 
       setPreviewSubmitted(true);
@@ -1248,6 +1273,23 @@ export default function MetallurgicalInspection() {
                         label="Attach PDF"
                         disabled={user?.role === 'HOD' || user?.role === 'Admin'}
                       />
+
+                      <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                          Confidential Files (Admin Only)
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                          Upload sensitive documents here. These will only be visible to Admins.
+                        </Typography>
+                        <FileUploadSection
+                          files={confidentialFiles}
+                          onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                          onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
+                          showAlert={showAlert}
+                          label="Attach Confidential PDF"
+                        />
+                      </Box>
+
                       <DocumentViewer trialId={trialId || ""} category="METALLURGICAL_INSPECTION" />
                     </Box>
                   )}
