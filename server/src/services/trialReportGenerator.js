@@ -269,7 +269,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     // --- PAGE 1: PROCESS DATA ---
 
-    // 1. Trial Card Details
+    // Trial Card Details
     let yNext = y;
     const trialHeaders = ["Part Name", "Pattern", "Trial No", "Date", "Moulds (P/A)", "Machine", "Reason", "Remarks"];
     const trialDataRow = [
@@ -286,8 +286,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     const trialWidths = [100, 60, 40, 55, 60, 50, 80, 90];
     yNext = drawTable(doc, { headers: trialHeaders, rows: [trialDataRow] }, col1X, yNext, trialWidths) + 12;
 
-    // 3. Melting (Below)
-    yNext = drawSectionTitle(doc, "2. MELTING", col1X, yNext);
+    // Melting (Below)
+    yNext = drawSectionTitle(doc, "MELTING", col1X, yNext);
     const pInoc = safeParse(pouring.inoculation, {});
     const actualChem = safeParse(pouring?.composition, {});
     const chemItems = [];
@@ -320,8 +320,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     let ySand = yNext;
     let yMould = yNext;
 
-    // 4. Sand Properties (Left)
-    ySand = drawSectionTitle(doc, "3. SAND PROPERTIES", col1X, ySand);
+    // Sand Properties (Left)
+    ySand = drawSectionTitle(doc, "SAND PROPERTIES", col1X, ySand);
     const sandRows = [
         { label: "Date", value: sand?.date ? new Date(sand.date).toISOString().slice(0, 10) : '-' },
         { label: "T. Clay / A. Clay %", value: `${sand?.t_clay || '-'} / ${sand?.a_clay || '-'}` },
@@ -333,8 +333,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     ];
     ySand = drawVerticalTable(doc, sandRows, col1X, ySand, colWidth) + 10;
 
-    // 5. Moulding (Right)
-    yMould = drawSectionTitle(doc, "4. MOULDING", col2X, yMould);
+    // Moulding (Right)
+    yMould = drawSectionTitle(doc, "MOULDING", col2X, yMould);
     const mouldRows = [
         { label: "Date", value: moulding?.date ? new Date(moulding.date).toISOString().slice(0, 10) : '-' },
         { label: "Mould Thickness", value: moulding?.mould_thickness },
@@ -351,8 +351,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // --- METALLURGICAL INSPECTION ---
     let p2y = yNext + 15;
 
-    // 6. Metallurgical Inspection
-    p2y = drawSectionTitle(doc, "5. METALLURGICAL INSPECTION", col1X, p2y);
+    // Metallurgical Inspection
+    p2y = drawSectionTitle(doc, "METALLURGICAL INSPECTION", col1X, p2y);
 
     // Mech & Hardness Side-by-Side
     const mechRows = safeParse(meta.mech_properties, []);
@@ -475,7 +475,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     let dimY = p2NextY;
 
     // Visual (Left)
-    visitY = drawSectionTitle(doc, "6. VISUAL INSPECTION", col1X, visitY);
+    visitY = drawSectionTitle(doc, "VISUAL INSPECTION", col1X, visitY);
 
     const visualRes = visual?.visual_ok === null || visual?.visual_ok === undefined ? "-" : (visual?.visual_ok ? "OK" : "NOT OK");
     doc.font('Helvetica-Bold').fontSize(7).text(`Result: ${visualRes}`, col1X, visitY);
@@ -491,7 +491,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     }
 
     // Dimensional (Right)
-    dimY = drawSectionTitle(doc, "7. DIMENSIONAL INSPECTION", col2X, dimY);
+    dimY = drawSectionTitle(doc, "DIMENSIONAL INSPECTION", col2X, dimY);
     const dimSubRows = [
         { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
         { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
@@ -558,10 +558,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     p2NextY = p2NextY + 10;
 
-    // 8. Machine Shop (Full Width or Left)
+    // Machine Shop (Full Width or Left)
     const mcInspections = safeParse(mcShop?.inspections, []);
     if (Object.keys(mcShop).length > 0) {
-        p2NextY = drawSectionTitle(doc, "8. MACHINE SHOP INSPECTION", col1X, p2NextY);
+        p2NextY = drawSectionTitle(doc, "MACHINE SHOP INSPECTION", col1X, p2NextY);
         p2NextY = drawVerticalTable(doc, [
             { label: "Date", value: mcShop?.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
             { label: "Remarks", value: mcShop?.remarks }
@@ -575,7 +575,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         }
     }
 
-    // 9. TRIAL SUMMARY REPORT
+    // TRIAL SUMMARY REPORT
     const allCavitiesForSummary = visInspections.map(r => r['Cavity Number']).filter(Boolean);
     if (allCavitiesForSummary.length > 0) {
         if (p2NextY > 650) {
@@ -585,7 +585,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             doc.moveTo(30, 35).lineTo(565, 35).stroke();
         }
 
-        p2NextY = drawSectionTitle(doc, "9. TRIAL SUMMARY REPORT", col1X, p2NextY);
+        p2NextY = drawSectionTitle(doc, "TRIAL SUMMARY REPORT", col1X, p2NextY);
 
         const productionCount = trialCard?.actual_moulds || 0;
         const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Remarks"];
