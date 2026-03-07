@@ -49,10 +49,10 @@ export const login = async (req, res, next) => {
 
         const token = generateToken(user.user_id, user.username, user.department_id, user.role);
         const refreshToken = generateRefreshToken(user.user_id, user.username);
-        const isSecure = req.secure || process.env.NODE_ENV === 'production';
+
         res.cookie('token', token, {
             httpOnly: true,
-            secure: isSecure,
+            secure: false,
             sameSite: 'lax',
             path: '/',
             maxAge: 24 * 60 * 60 * 1000
@@ -108,10 +108,9 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
-    const isSecure = req.secure || process.env.NODE_ENV === 'production';
     res.clearCookie('token', {
         httpOnly: true,
-        secure: isSecure,
+        secure: false,
         sameSite: 'lax',
         path: '/'
     });
