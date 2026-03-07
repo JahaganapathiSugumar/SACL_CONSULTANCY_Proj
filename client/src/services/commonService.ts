@@ -16,6 +16,7 @@ class ApiService {
     }
 
     const config: RequestInit = {
+      credentials: 'include',
       headers: {
         ...defaultHeaders,
         ...options.headers as Record<string, string>,

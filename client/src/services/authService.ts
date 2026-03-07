@@ -60,9 +60,15 @@ export const authService = {
     return res.json();
   },
 
-  logout() {
+  async logout() {
+    try {
+      await apiService.request('/login/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Error during logout:', err);
+    }
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
   },
 
   getStoredUser() {

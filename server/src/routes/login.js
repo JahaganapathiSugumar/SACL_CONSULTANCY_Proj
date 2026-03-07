@@ -8,5 +8,6 @@ const router = express.Router();
 
 router.post('/', validate(loginSchema), asyncErrorHandler(loginController.login));
 router.post('/refresh-token', asyncErrorHandler(loginController.refreshToken));
+router.post('/logout', asyncErrorHandler(loginController.logout));
 
 export default router;
