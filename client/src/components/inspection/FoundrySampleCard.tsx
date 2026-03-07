@@ -1263,8 +1263,9 @@ function FoundrySampleCard() {
                         onFileRemove={removeConfidentialFile}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
+                        disabled={user?.role === 'Admin' || user?.role === 'HOD'}
                       />
-                      <DocumentViewer trialId={trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
+                      <DocumentViewer trialId={trialId || trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
                     </Box>
                   )}
                 </Paper>

@@ -700,6 +700,7 @@ function PouringDetailsTable() {
                                                     onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                     showAlert={showAlert}
                                                     label="Attach Confidential PDF"
+                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD'}
                                                 />
                                             </Box>
 
