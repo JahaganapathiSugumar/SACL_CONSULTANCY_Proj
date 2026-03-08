@@ -588,29 +588,43 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         p2NextY = drawSectionTitle(doc, "TRIAL SUMMARY REPORT", col1X, p2NextY);
 
         const productionCount = trialCard?.actual_moulds || 0;
-        const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Remarks"];
+        const totalProduction = productionCount * allCavitiesForSummary.length;
 
         const getSummVal = (array, cav, key) => {
-            const row = array.find(r => r['Cavity Number'] === cav);
+            const row = Object.values(array).find(r => r['Cavity Number'] === cav);
             const val = parseFloat(row?.[key] || 0);
             return isNaN(val) ? 0 : val;
         };
 
+        const getRejPct = (rejArr) => {
+            if (totalProduction === 0) return "0.00%";
+            const totalRej = rejArr.reduce((acc, val) => acc + (typeof val === 'number' ? val : 0), 0);
+            return ((totalRej / totalProduction) * 100).toFixed(2) + "%";
+        };
+
         const prodRowsArr = ["Production", ...allCavitiesForSummary.map(() => productionCount)];
-        const visRejRowsArr = ["Visual Inspection Rejection", ...allCavitiesForSummary.map(c => getSummVal(visInspections, c, 'Rejected Quantity'))];
-        const hardRejRowsArr = ["Hardness Inspection Rejection", ...allCavitiesForSummary.map(c => getSummVal(hardRowsForSection, c, 'Rejected Quantity'))];
-        const ndtRejRowsArr = ["NDT X-Ray Rejection", ...allCavitiesForSummary.map(c => getSummVal(ndtRowsForSection, c, 'Rejected Quantity'))];
-        const mcRejRowsArr = ["M/C Rejection", ...allCavitiesForSummary.map(c => getSummVal(mcInspections, c, 'Rejected Quantity'))];
+
+        const visRejVals = allCavitiesForSummary.map(c => getSummVal(visInspections, c, 'Rejected Quantity'));
+        const visRejRowsArr = ["Visual Inspection Rejection", ...visRejVals];
+
+        const hardRejVals = allCavitiesForSummary.map(c => getSummVal(hardRowsForSection, c, 'Rejected Quantity'));
+        const hardRejRowsArr = ["Hardness Inspection Rejection", ...hardRejVals];
+
+        const ndtRejVals = allCavitiesForSummary.map(c => getSummVal(ndtRowsForSection, c, 'Rejected Quantity'));
+        const ndtRejRowsArr = ["NDT X-Ray Rejection", ...ndtRejVals];
+
+        const mcRejVals = allCavitiesForSummary.map(c => getSummVal(mcInspections, c, 'Rejected Quantity'));
+        const mcRejRowsArr = ["M/C Rejection", ...mcRejVals];
 
         const calcOkRowsArr = ["Calculated OK Quantity"];
         const actualOkRowsArr = ["Actual OK Quantity"];
         const balanceRowsArr = ["Balance (Missed)"];
 
         allCavitiesForSummary.forEach((c, i) => {
-            const v = visRejRowsArr[i + 1];
-            const h = hardRejRowsArr[i + 1];
-            const n = ndtRejRowsArr[i + 1];
-            const m = mcRejRowsArr[i + 1];
+            const v = visRejVals[i];
+            const h = hardRejVals[i];
+            const n = ndtRejVals[i];
+            const m = mcRejVals[i];
             const calcRaw = productionCount - (v + h + n + m);
             calcOkRowsArr.push(calcRaw);
 
@@ -619,23 +633,25 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             balanceRowsArr.push(calcRaw - actRaw);
         });
 
-        const remarks = mcShop?.remarks || "-";
+        const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Rejection %", "Remarks"];
+
         const finalSummaryRows = [
-            [...prodRowsArr, ""],
-            [...visRejRowsArr, visual?.remarks || "-"],
-            [...hardRejRowsArr, visual?.hardness_remarks || "-"],
-            [...ndtRejRowsArr, visual?.ndt_inspection_remarks || "-"],
-            [...mcRejRowsArr, mcShop?.remarks || "-"],
-            [...calcOkRowsArr, ""],
-            [...actualOkRowsArr, ""],
-            [...balanceRowsArr, ""]
+            [...prodRowsArr, "-", ""],
+            [...visRejRowsArr, getRejPct(visRejVals), visual?.remarks || "-"],
+            [...hardRejRowsArr, getRejPct(hardRejVals), visual?.hardness_remarks || "-"],
+            [...ndtRejRowsArr, getRejPct(ndtRejVals), visual?.ndt_inspection_remarks || "-"],
+            [...mcRejRowsArr, getRejPct(mcRejVals), mcShop?.remarks || "-"],
+            [...calcOkRowsArr, "-", ""],
+            [...actualOkRowsArr, "-", ""],
+            [...balanceRowsArr, "-", ""]
         ];
 
         const firstColW = 85;
-        const remarksW = 110;
-        const remainingW = 535 - firstColW - remarksW;
+        const rejPctW = 50;
+        const remarksW = 100;
+        const remainingW = 535 - firstColW - rejPctW - remarksW;
         const cavColW = remainingW / allCavitiesForSummary.length;
-        const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), remarksW];
+        const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), rejPctW, remarksW];
 
         p2NextY = drawTable(doc, { headers: summaryHeaders, rows: finalSummaryRows }, col1X, p2NextY, summaryColWidths) + 15;
     }
