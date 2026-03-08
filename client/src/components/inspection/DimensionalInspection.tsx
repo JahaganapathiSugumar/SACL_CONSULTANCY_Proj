@@ -611,40 +611,38 @@ export default function DimensionalInspection({
                                         Add Column
                                     </Button>
 
-                                    {user?.department_id !== 8 && (
-                                        <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                                                Attach PDF / Image Files
+                                    <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                            Attach PDF / Image Files
+                                        </Typography>
+                                        <FileUploadSection
+                                            files={attachedFiles}
+                                            onFilesChange={handleAttachFiles}
+                                            onFileRemove={removeAttachedFile}
+                                            showAlert={showAlert}
+                                            label="Attach PDF"
+                                            disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                        />
+
+                                        <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                Confidential Files (Admin Only)
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                Upload sensitive documents here. These will only be visible to Admins.
                                             </Typography>
                                             <FileUploadSection
-                                                files={attachedFiles}
-                                                onFilesChange={handleAttachFiles}
-                                                onFileRemove={removeAttachedFile}
+                                                files={confidentialFiles}
+                                                onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
-                                                label="Attach PDF"
-                                                disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                                label="Attach Confidential PDF"
+                                                disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
                                             />
-
-                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    Confidential Files (Admin Only)
-                                                </Typography>
-                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-                                                    Upload sensitive documents here. These will only be visible to Admins.
-                                                </Typography>
-                                                <FileUploadSection
-                                                    files={confidentialFiles}
-                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
-                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
-                                                    showAlert={showAlert}
-                                                    label="Attach Confidential PDF"
-                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD'}
-                                                />
-                                            </Box>
-
-                                            <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
                                         </Box>
-                                    )}
+
+                                        <DocumentViewer trialId={trialId || ""} category="DIMENSIONAL_INSPECTION" />
+                                    </Box>
                                 </Paper>
 
                                 <Paper sx={{ p: 3, mb: 3 }}>
@@ -667,40 +665,39 @@ export default function DimensionalInspection({
                                 </Paper>
 
 
-                                {user?.department_id !== 8 && (
-                                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
-                                        <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                                            <ActionButtons
-                                                {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                                                onSave={handleSaveAndContinue}
-                                                showSubmit={false}
-                                                saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                                                saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                                            >
-                                                {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                                                    <Button
-                                                        variant="outlined"
-                                                        startIcon={<SaveIcon />}
-                                                        onClick={handleSaveDraft}
-                                                        disabled={saving}
-                                                        sx={{ mr: 2 }}
-                                                    >
-                                                        Save as Draft
-                                                    </Button>
-                                                )}
-                                                {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                                                    <Button
-                                                        variant="outlined"
-                                                        onClick={() => setIsEditing(!isEditing)}
-                                                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                                    >
-                                                        {isEditing ? "Cancel Edit" : "Edit Details"}
-                                                    </Button>
-                                                )}
-                                            </ActionButtons>
-                                        </Box>
+                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
+                                    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
+                                        <ActionButtons
+                                            {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                                            onSave={handleSaveAndContinue}
+                                            showSubmit={false}
+                                            saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                            saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                                        >
+                                            {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<SaveIcon />}
+                                                    onClick={handleSaveDraft}
+                                                    disabled={saving || user?.department_id === 8}
+                                                    sx={{ mr: 2 }}
+                                                >
+                                                    Save as Draft
+                                                </Button>
+                                            )}
+                                            {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => setIsEditing(!isEditing)}
+                                                    sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                    disabled={user?.department_id === 8}
+                                                >
+                                                    {isEditing ? "Cancel Edit" : "Edit Details"}
+                                                </Button>
+                                            )}
+                                        </ActionButtons>
                                     </Box>
-                                )}
+                                </Box>
                             </>
                         )}
 

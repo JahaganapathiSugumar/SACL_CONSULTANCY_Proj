@@ -383,45 +383,43 @@ export default function MaterialCorrection() {
                                         </Paper>
                                     </Grid>
 
-                                    {user?.department_id !== 8 && user?.department_id !== 6 && user?.department_id !== 7 && (
-                                        <Grid size={{ xs: 12 }}>
-                                            <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
-                                                <SectionHeader
-                                                    icon={<UploadFileIcon />}
-                                                    title="Attach PDF / Image Files"
-                                                    color={COLORS.accentBlue}
-                                                />
+                                    <Grid size={{ xs: 12 }}>
+                                        <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
+                                            <SectionHeader
+                                                icon={<UploadFileIcon />}
+                                                title="Attach PDF / Image Files"
+                                                color={COLORS.accentBlue}
+                                            />
 
+                                            <FileUploadSection
+                                                files={attachedFiles}
+                                                onFilesChange={handleAttachFiles}
+                                                onFileRemove={removeAttachedFile}
+                                                label="Upload Files"
+                                                showAlert={showAlert}
+                                                disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                            />
+
+                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    Confidential Files (Admin Only)
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                    Upload sensitive documents here. These will only be visible to Admins.
+                                                </Typography>
                                                 <FileUploadSection
-                                                    files={attachedFiles}
-                                                    onFilesChange={handleAttachFiles}
-                                                    onFileRemove={removeAttachedFile}
-                                                    label="Upload Files"
+                                                    files={confidentialFiles}
+                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                     showAlert={showAlert}
-                                                    disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                    label="Attach Confidential PDF"
+                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
                                                 />
+                                            </Box>
 
-                                                <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        Confidential Files (Admin Only)
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-                                                        Upload sensitive documents here. These will only be visible to Admins.
-                                                    </Typography>
-                                                    <FileUploadSection
-                                                        files={confidentialFiles}
-                                                        onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
-                                                        onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
-                                                        showAlert={showAlert}
-                                                        label="Attach Confidential PDF"
-                                                        disabled={user?.role === 'Admin' || user?.role === 'HOD'}
-                                                    />
-                                                </Box>
-
-                                                <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
-                                            </Paper>
-                                        </Grid>
-                                    )}
+                                            <DocumentViewer trialId={trialId || ""} category="MATERIAL_CORRECTION" />
+                                        </Paper>
+                                    </Grid>
 
                                     <Grid size={{ xs: 12 }}>
                                         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
@@ -448,26 +446,25 @@ export default function MaterialCorrection() {
                                     <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 4 }}>
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2}>
                                             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                                                {user?.department_id !== 8 && user?.department_id !== 6 && user?.department_id !== 7 && (
-                                                    <ActionButtons
-                                                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                                                        onSave={handleSaveAndContinue}
-                                                        showSubmit={false}
-                                                        saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                                                        saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
-                                                    >
+                                                <ActionButtons
+                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                                                    onSave={handleSaveAndContinue}
+                                                    showSubmit={false}
+                                                    saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
+                                                    saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                                                >
 
-                                                        {(user?.role === 'HOD' || user?.role === 'Admin') && (
-                                                            <Button
-                                                                variant="outlined"
-                                                                onClick={() => setIsEditing(!isEditing)}
-                                                                sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                                            >
-                                                                {isEditing ? "Cancel Edit" : "Edit Details"}
-                                                            </Button>
-                                                        )}
-                                                    </ActionButtons>
-                                                )}
+                                                    {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={() => setIsEditing(!isEditing)}
+                                                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                            disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                        >
+                                                            {isEditing ? "Cancel Edit" : "Edit Details"}
+                                                        </Button>
+                                                    )}
+                                                </ActionButtons>
                                             </Box>
                                         </Box>
                                     </Grid>

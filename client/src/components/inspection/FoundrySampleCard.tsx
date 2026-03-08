@@ -1166,22 +1166,20 @@ function FoundrySampleCard() {
                         disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                       />
                     </Grid>
-                    {user?.department_id !== 8 && (
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
-                          Tooling Files
-                        </Typography>
-                        <FileUploadSection
-                          files={toolingFiles}
-                          onFilesChange={handleToolingFilesChange}
-                          onFileRemove={removeToolingFile}
-                          showAlert={showAlert}
-                          label="Attach Tooling PDF"
-                          disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
-                        />
-                        <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
-                      </Grid>
-                    )}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.textSecondary, display: 'block', mb: 1 }}>
+                        Tooling Files
+                      </Typography>
+                      <FileUploadSection
+                        files={toolingFiles}
+                        onFilesChange={handleToolingFilesChange}
+                        onFileRemove={removeToolingFile}
+                        showAlert={showAlert}
+                        label="Attach Tooling PDF"
+                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                      />
+                      <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
+                    </Grid>
                   </Grid>
                 </Paper>
 
@@ -1249,49 +1247,46 @@ function FoundrySampleCard() {
                     disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                   />
 
-                  {user?.department_id !== 8 && (
-                    <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
-                        Confidential Files (Admin Only)
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-                        Upload sensitive documents here. These will only be visible to Admins.
-                      </Typography>
-                      <FileUploadSection
-                        files={confidentialFiles}
-                        onFilesChange={handleConfidentialFilesChange}
-                        onFileRemove={removeConfidentialFile}
-                        showAlert={showAlert}
-                        label="Attach Confidential PDF"
-                        disabled={user?.role === 'Admin' || user?.role === 'HOD'}
-                      />
-                      <DocumentViewer trialId={trialId || trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
-                    </Box>
-                  )}
+                  <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                      Confidential Files (Admin Only)
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                      Upload sensitive documents here. These will only be visible to Admins.
+                    </Typography>
+                    <FileUploadSection
+                      files={confidentialFiles}
+                      onFilesChange={handleConfidentialFilesChange}
+                      onFileRemove={removeConfidentialFile}
+                      showAlert={showAlert}
+                      label="Attach Confidential PDF"
+                      disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
+                    />
+                    <DocumentViewer trialId={trialId || trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
+                  </Box>
                 </Paper>
 
-                {user?.department_id !== 8 && (
-                  <Box sx={{ mt: 2, mb: 4 }}>
-                    <ActionButtons
-                      {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                      onSave={handleSaveAndContinue}
-                      showSubmit={false}
-                      saveLabel={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
-                      saveIcon={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
-                      loading={isSubmitting}
-                    >
-                      {((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) && (
-                        <Button
-                          variant="outlined"
-                          onClick={() => setIsEditing(!isEditing)}
-                          sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                        >
-                          {isEditing ? "Cancel Edit" : "Edit Details"}
-                        </Button>
-                      )}
-                    </ActionButtons>
-                  </Box>
-                )}
+                <Box sx={{ mt: 2, mb: 4 }}>
+                  <ActionButtons
+                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                    onSave={handleSaveAndContinue}
+                    showSubmit={false}
+                    saveLabel={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
+                    saveIcon={((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
+                    loading={isSubmitting}
+                  >
+                    {((user?.role === 'HOD' || user?.role === 'Admin') && trialIdFromUrl) && (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setIsEditing(!isEditing)}
+                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                        disabled={user?.department_id === 8}
+                      >
+                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                      </Button>
+                    )}
+                  </ActionButtons>
+                </Box>
 
               </React.Fragment>
             )}

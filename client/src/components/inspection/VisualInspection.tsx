@@ -1358,40 +1358,38 @@ export default function VisualInspection({
                                 </Paper>
 
                                 <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
-                                    {user?.department_id !== 8 && (
-                                        <Box sx={{ p: 1, bgcolor: "#fff" }}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                                                Attach PDF / Image Files
+                                    <Box sx={{ p: 1, bgcolor: "#fff" }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                                            Attach PDF / Image Files
+                                        </Typography>
+                                        <FileUploadSection
+                                            files={attachedFiles}
+                                            onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+                                            onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                            showAlert={showAlert}
+                                            label="Attach PDF"
+                                            disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                        />
+
+                                        <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                Confidential Files (Admin Only)
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                                                Upload sensitive documents here. These will only be visible to Admins.
                                             </Typography>
                                             <FileUploadSection
-                                                files={attachedFiles}
-                                                onFilesChange={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
-                                                onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                                files={confidentialFiles}
+                                                onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                                                onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
-                                                label="Attach PDF"
-                                                disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                                                label="Attach Confidential PDF"
+                                                disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
                                             />
-
-                                            <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    Confidential Files (Admin Only)
-                                                </Typography>
-                                                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-                                                    Upload sensitive documents here. These will only be visible to Admins.
-                                                </Typography>
-                                                <FileUploadSection
-                                                    files={confidentialFiles}
-                                                    onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
-                                                    onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
-                                                    showAlert={showAlert}
-                                                    label="Attach Confidential PDF"
-                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD'}
-                                                />
-                                            </Box>
-
-                                            <DocumentViewer trialId={trialId} category="VISUAL_INSPECTION" />
                                         </Box>
-                                    )}
+
+                                        <DocumentViewer trialId={trialId} category="VISUAL_INSPECTION" />
+                                    </Box>
 
 
                                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 1 }}>
@@ -1409,7 +1407,7 @@ export default function VisualInspection({
                                                             variant="outlined"
                                                             startIcon={<SaveIcon />}
                                                             onClick={handleSaveDraft}
-                                                            disabled={saving}
+                                                            disabled={saving || user?.department_id === 8}
                                                             sx={{ mr: 2 }}
                                                         >
                                                             Save as Draft
@@ -1420,6 +1418,7 @@ export default function VisualInspection({
                                                             variant="outlined"
                                                             onClick={() => setIsEditing(!isEditing)}
                                                             sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                            disabled={user?.department_id === 8}
                                                         >
                                                             {isEditing ? "Cancel Edit" : "Edit Details"}
                                                         </Button>

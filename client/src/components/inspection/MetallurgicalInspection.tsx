@@ -1260,40 +1260,38 @@ export default function MetallurgicalInspection() {
                     </Grid>
                   </Grid>
 
-                  {user?.department_id !== 8 && (
-                    <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
-                        Attach PDF / Image Files
+                  <Box sx={{ mt: 3, p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
+                      Attach PDF / Image Files
+                    </Typography>
+                    <FileUploadSection
+                      files={attachedFiles}
+                      onFilesChange={handleAttachFiles}
+                      onFileRemove={removeAttachedFile}
+                      showAlert={showAlert}
+                      label="Attach PDF"
+                      disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                    />
+
+                    <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
+                        Confidential Files (Admin Only)
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                        Upload sensitive documents here. These will only be visible to Admins.
                       </Typography>
                       <FileUploadSection
-                        files={attachedFiles}
-                        onFilesChange={handleAttachFiles}
-                        onFileRemove={removeAttachedFile}
+                        files={confidentialFiles}
+                        onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
+                        onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
-                        label="Attach PDF"
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                        label="Attach Confidential PDF"
+                        disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
                       />
-
-                      <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'error.main', textTransform: "uppercase", display: 'flex', alignItems: 'center', gap: 1 }}>
-                          Confidential Files (Admin Only)
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-                          Upload sensitive documents here. These will only be visible to Admins.
-                        </Typography>
-                        <FileUploadSection
-                          files={confidentialFiles}
-                          onFilesChange={(newFiles) => setConfidentialFiles(prev => [...prev, ...newFiles])}
-                          onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
-                          showAlert={showAlert}
-                          label="Attach Confidential PDF"
-                          disabled={user?.role === 'Admin' || user?.role === 'HOD'}
-                        />
-                      </Box>
-
-                      <DocumentViewer trialId={trialId || ""} category="METALLURGICAL_INSPECTION" />
                     </Box>
-                  )}
+
+                    <DocumentViewer trialId={trialId || ""} category="METALLURGICAL_INSPECTION" />
+                  </Box>
 
 
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
@@ -1311,7 +1309,7 @@ export default function MetallurgicalInspection() {
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={sending}
+                              disabled={sending || user?.department_id === 8}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
@@ -1322,6 +1320,7 @@ export default function MetallurgicalInspection() {
                               variant="outlined"
                               onClick={() => setIsEditing(!isEditing)}
                               sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                              disabled={user?.department_id === 8}
                             >
                               {isEditing ? "Cancel Edit" : "Edit Details"}
                             </Button>
