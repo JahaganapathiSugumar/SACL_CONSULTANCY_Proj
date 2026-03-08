@@ -72,7 +72,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     if (next_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'User' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             next_department_user_result = await trx.query(
@@ -234,7 +234,7 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     if (current_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'HOD' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             current_department_hod_result = await trx.query(
@@ -422,7 +422,7 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
     if (next_department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             next_department_user_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 9 AND role = 'User' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'User' AND is_active = 1`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             next_department_user_result = await trx.query(

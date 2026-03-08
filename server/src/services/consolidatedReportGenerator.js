@@ -592,7 +592,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             }
         }
 
-        // 9. TRIAL SUMMARY REPORT
+        // 9. PRODUCTION & REJECTION DETAILS
         const allCavitiesForSummary = visInspections.map(r => r['Cavity Number']).filter(Boolean);
         if (allCavitiesForSummary.length > 0) {
             if (p2y > 650) {
@@ -602,7 +602,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
                 doc.moveTo(30, 35).lineTo(565, 35).stroke();
             }
 
-            p2y = drawSectionTitle(doc, "TRIAL SUMMARY REPORT", col1X, p2y);
+            p2y = drawSectionTitle(doc, "PRODUCTION & REJECTION DETAILS", col1X, p2y);
 
             const productionCount = trialCard?.actual_moulds || 0;
             const totalProduction = productionCount * allCavitiesForSummary.length;

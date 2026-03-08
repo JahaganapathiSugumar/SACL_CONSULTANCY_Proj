@@ -78,6 +78,7 @@ export default function McShopInspection({
 
   const makeInitialRows = (cavLabels: string[]): Row[] => [
     { id: `cavity-${generateUid()}`, label: "Cavity Number", values: cavLabels?.map(() => "") },
+    { id: `fdy-ok-${generateUid()}`, label: "FDY OK Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `received-${generateUid()}`, label: "Received Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `insp-${generateUid()}`, label: "Inspected Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `accp-${generateUid()}`, label: "Accepted Quantity", values: cavLabels?.map(() => ""), total: null },
@@ -224,6 +225,7 @@ export default function McShopInspection({
                 };
 
                 updateRowVals('cavity number', 'Cavity Number');
+                updateRowVals('fdy ok quantity', 'FDY OK Quantity');
                 updateRowVals('received quantity', 'Received Quantity');
                 updateRowVals('inspected quantity', 'Inspected Quantity');
                 updateRowVals('accepted quantity', 'Accepted Quantity');
@@ -252,7 +254,7 @@ export default function McShopInspection({
           } else {
             if (Object.keys(acceptedMap).length > 0) {
               setRows(prevRows => prevRows.map(row => {
-                if (row.label === "Inspected Quantity") {
+                if (row.label === "FDY OK Quantity" || row.label === "Inspected Quantity") {
                   const cavityRow = prevRows.find(r => r.label === "Cavity Number");
                   const currentCavities = cavityRow ? cavityRow.values : [];
                   const newValues = currentCavities.map(cav => acceptedMap[String(cav).trim()] || "");
@@ -435,6 +437,7 @@ export default function McShopInspection({
     const inspections: any[] = cavities?.map((cav, idx) => {
       const inspected = inspectedRow?.values?.[idx] ?? null;
       const rejected = rejectedRow?.values?.[idx] ?? null;
+      const fdyOk = findRowByLabel("fdy ok quantity")?.values?.[idx] ?? "";
       const rejectionPercentage = (() => {
         const ins = parseFloat(String(inspected ?? '0'));
         const rej = parseFloat(String(rejected ?? '0'));
@@ -444,6 +447,7 @@ export default function McShopInspection({
 
       return {
         'Cavity Number': String(cav || (rows?.[0]?.values?.[idx] ?? '')),
+        'FDY OK Quantity': String(fdyOk),
         'Received Quantity': String(receivedRow?.values?.[idx] ?? ""),
         'Inspected Quantity': String(inspected ?? ""),
         'Accepted Quantity': String(acceptedRow?.values?.[idx] ?? ""),
@@ -687,7 +691,7 @@ export default function McShopInspection({
                                         textAlign: 'center'
                                       }
                                     }}
-                                    disabled={r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
+                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
                               ))}
