@@ -27,7 +27,7 @@ class ApiService {
     try {
       let response = await fetch(`${API_BASE}${endpoint}`, config);
 
-      if (response.status === 401) {
+      if (response.status === 401 && endpoint !== '/login') {
         const handleSessionExpiry = () => {
           localStorage.removeItem('authToken');
           localStorage.removeItem('refreshToken');
