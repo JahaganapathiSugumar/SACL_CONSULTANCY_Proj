@@ -671,8 +671,8 @@ export default function DimensionalInspection({
                                             {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                                             onSave={handleSaveAndContinue}
                                             showSubmit={false}
-                                            saveLabel={user?.role === 'HOD' || user?.role === 'Admin' ? 'Approve' : 'Save & Continue'}
-                                            saveIcon={user?.role === 'HOD' || user?.role === 'Admin' ? <CheckCircleIcon /> : <SaveIcon />}
+                                            saveLabel={((user?.role === 'HOD' && user?.department_id === 10) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
+                                            saveIcon={((user?.role === 'HOD' && user?.department_id === 10) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
                                         >
                                             {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                                                 <Button
@@ -685,7 +685,7 @@ export default function DimensionalInspection({
                                                     Save as Draft
                                                 </Button>
                                             )}
-                                            {(user?.role === 'HOD' || user?.role === 'Admin') && (
+                                            {((user?.role === 'HOD' && user?.department_id === 10) || user?.role === 'Admin') && (
                                                 <Button
                                                     variant="outlined"
                                                     onClick={() => setIsEditing(!isEditing)}
