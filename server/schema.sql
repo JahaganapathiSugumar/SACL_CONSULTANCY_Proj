@@ -230,6 +230,7 @@ CREATE TABLE documents (
     uploaded_by BIGINT,
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
+    is_confidential BIT DEFAULT 0,
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES dtc_users(user_id)
 );
