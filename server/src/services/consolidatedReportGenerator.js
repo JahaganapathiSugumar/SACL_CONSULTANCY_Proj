@@ -504,7 +504,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         const visInspections = safeParse(visual?.inspections, []);
         if (visInspections.length > 0) {
-            visitY = drawTable(doc, { headers: ['Cav', 'Insp', 'Rej', 'Reason'], rows: visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], (r['Reason for rejection'] || "").substring(0, 15)]) }, col1X, visitY, [25, 25, 25, 185]) + 8;
+            visitY = drawTable(doc, { headers: ['Cav', 'Insp', 'Rej', 'Rej %', 'Reason'], rows: visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], (r['Rejection Percentage'] || "0.00"), (r['Reason for rejection'] || "").substring(0, 15)]) }, col1X, visitY, [25, 25, 25, 25, 185]) + 8;
         }
 
         if (visual?.remarks) {

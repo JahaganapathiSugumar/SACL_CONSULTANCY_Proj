@@ -254,7 +254,7 @@ export default function McShopInspection({
           } else {
             if (Object.keys(acceptedMap).length > 0) {
               setRows(prevRows => prevRows.map(row => {
-                if (row.label === "FDY OK Quantity" || row.label === "Inspected Quantity") {
+                if (row.label === "FDY OK Quantity") {
                   const cavityRow = prevRows.find(r => r.label === "Cavity Number");
                   const currentCavities = cavityRow ? cavityRow.values : [];
                   const newValues = currentCavities.map(cav => acceptedMap[String(cav).trim()] || "");
