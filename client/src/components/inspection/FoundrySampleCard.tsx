@@ -597,10 +597,11 @@ function FoundrySampleCard() {
                           <TextField
                             fullWidth
                             value={trialNo}
+                            onChange={(e) => user?.role === 'Admin' && setTrialNo(e.target.value)}
                             placeholder={"Generating..."}
                             InputProps={{
-                              readOnly: true,
-                              sx: { bgcolor: "#f1f5f9" },
+                              readOnly: user?.role !== 'Admin',
+                              sx: { bgcolor: user?.role === 'Admin' ? "#fff" : "#f1f5f9" },
                               endAdornment: user?.role !== 'HOD' && user?.role !== 'Admin' ? (
                                 <InputAdornment position="end">
                                   <IconButton onClick={() => fetchTrialNo()} disabled={!selectedPart || trialLoading} size="small">
