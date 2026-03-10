@@ -655,8 +655,8 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             const finalSummaryRows = [
                 [...prodRowsArr, "-", ""],
                 [...visRejRowsArr, getRejPct(visRejVals), visual?.remarks || "-"],
-                [...hardRejRowsArr, visual?.hardness_remarks || "-"],
-                [...ndtRejRowsArr, visual?.ndt_inspection_remarks || "-"],
+                [...hardRejRowsArr, getRejPct(hardRejVals), visual?.hardness_remarks || "-"],
+                [...ndtRejRowsArr, getRejPct(ndtRejVals), visual?.ndt_inspection_remarks || "-"],
                 [...mcRejRowsArr, getRejPct(mcRejVals), mcShop?.remarks || "-"],
                 [...calcOkRowsArr, "-", ""],
                 [...actualOkRowsArr, "-", ""],

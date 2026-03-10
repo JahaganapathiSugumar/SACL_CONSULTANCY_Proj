@@ -154,29 +154,6 @@ function SectionTable({
     }
   }, [cavityNumbers]);
 
-  const addColumn = () => {
-    setCols((prev: MicroCol[]) => [...(prev || []), { id: `c${(prev?.length || 0) + 1}`, label: '' }]);
-    setValues((prev: Record<string, string[]>) => {
-      const copy: Record<string, string[]> = {};
-      Object.keys(prev || {}).forEach((k) => { copy[k] = [...(prev?.[k] || []), '']; });
-      return copy;
-    });
-  };
-
-  const removeColumn = (index: number) => {
-    setCols((prev: MicroCol[]) => ((prev?.length || 0) <= 1 ? prev : prev?.filter((_, i) => i !== index)));
-    setValues((prev: Record<string, string[]>) => {
-      const copy: Record<string, string[]> = {};
-      Object.keys(prev || {}).forEach((k) => {
-        const arr = [...(prev?.[k] || [])];
-        if (arr?.length > index) arr.splice(index, 1);
-        copy[k] = arr;
-      });
-      return copy;
-    });
-  };
-
-
   const updateCell = (rowId: string, colIndex: number, val: string) => {
     setValues((prev: Record<string, string[]>) => {
       const arr = prev?.[rowId]?.map((v, i) => (i === colIndex ? val : v)) || [];
@@ -225,9 +202,6 @@ function SectionTable({
                       sx={{ input: { textAlign: 'center' } }}
                       disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                     />
-                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
                   </Box>
                 </TableCell>
               ))}
@@ -343,15 +317,6 @@ function SectionTable({
         </Table>
       </Box>
 
-      <Button
-        size="small"
-        onClick={addColumn}
-        startIcon={<AddCircleIcon />}
-        sx={{ mt: 1, color: COLORS.secondary }}
-        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}
-      >
-        Add Column
-      </Button>
     </Box >
   );
 }
@@ -463,9 +428,6 @@ function MicrostructureTable({
                       sx={{ input: { textAlign: 'center' } }}
                       disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}
                     />
-                    <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
                   </Box>
                 </TableCell>
               ))}
@@ -533,7 +495,6 @@ function MicrostructureTable({
           </TableBody>
         </Table>
       </Box>
-      <Button size="small" onClick={addColumn} startIcon={<AddCircleIcon />} sx={{ mt: 1, color: COLORS.secondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}>Add Column</Button>
     </Box >
   );
 }
@@ -1270,7 +1231,7 @@ export default function MetallurgicalInspection() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                      disabled={(user?.department_id === 8) && !isEditing}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1286,7 +1247,7 @@ export default function MetallurgicalInspection() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
+                        disabled={(user?.department_id === 8) && !isEditing}
                       />
                     </Box>
 

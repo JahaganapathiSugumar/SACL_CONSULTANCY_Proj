@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AddUserModal from '../components/admin/AddUserModal';
 import AddMasterModal from '../components/admin/AddMasterModal';
 import UserManagement from '../components/admin/UserManagement';
@@ -32,7 +32,13 @@ import ProgressingTrialsGrid from '../components/dashboard/ProgressingTrialsGrid
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<string>('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const currentView = searchParams.get('view') || 'dashboard';
+
+  const setCurrentView = (view: string) => {
+    setSearchParams({ view });
+  };
 
   // Modal states
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);

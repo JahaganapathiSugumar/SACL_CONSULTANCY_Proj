@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -241,24 +241,12 @@ export default function DimensionalInspection({
         return yieldValue.toFixed(2);
     };
 
-    const addCavity = () => {
-        const next = "";
-        setCavities((c) => [...(c || []), next]);
-        setCavRows((rows) => rows?.map((r) => ({ ...r, values: [...(r?.values || []), ""] })));
-    };
-
     const handleAttachFiles = (newFiles: File[]) => {
         setAttachedFiles(prev => [...prev, ...newFiles]);
     };
 
     const removeAttachedFile = (index: number) => {
         setAttachedFiles(prev => prev.filter((_: File, i: number) => i !== index));
-    };
-
-    const removeCavity = (index: number) => {
-        if ((cavities?.length || 0) <= 1) return;
-        setCavities((c) => c?.filter((_: string, i: number) => i !== index));
-        setCavRows((rows) => rows?.map((r) => ({ ...r, values: r?.values?.filter((_: string, i: number) => i !== index) })));
     };
 
     const updateCavityLabel = (index: number, label: string) => {
@@ -492,6 +480,8 @@ export default function DimensionalInspection({
                                             <TextField
                                                 size="small"
                                                 fullWidth
+                                                type="number"
+                                                inputProps={{ step: "0.01" }}
                                                 value={weightTarget}
                                                 onChange={(e) => {
                                                     setWeightTarget(e.target.value);
@@ -505,6 +495,8 @@ export default function DimensionalInspection({
                                             <TextField
                                                 size="small"
                                                 fullWidth
+                                                type="number"
+                                                inputProps={{ step: "0.01" }}
                                                 value={bunchWeight}
                                                 onChange={(e) => {
                                                     setBunchWeight(e.target.value);
@@ -567,9 +559,6 @@ export default function DimensionalInspection({
                                                                     sx={{ input: { textAlign: 'center' } }}
                                                                     disabled={true}
                                                                 />
-                                                                <IconButton size="small" onClick={() => removeCavity(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
-                                                                    <DeleteIcon fontSize="small" />
-                                                                </IconButton>
                                                             </Box>
                                                         </TableCell>
                                                     ))}
@@ -587,6 +576,8 @@ export default function DimensionalInspection({
                                                                 <TextField
                                                                     size="small"
                                                                     fullWidth
+                                                                    type={r.label.toLowerCase().includes("weight") ? "number" : "text"}
+                                                                    inputProps={r.label.toLowerCase().includes("weight") ? { step: "0.01" } : {}}
                                                                     value={val}
                                                                     onChange={(e) => updateCavCell(r?.id, ci, e.target.value)}
                                                                     variant="outlined"
@@ -601,15 +592,6 @@ export default function DimensionalInspection({
                                         </Table>
                                     </Box>
 
-                                    <Button
-                                        size="small"
-                                        onClick={addCavity}
-                                        startIcon={<AddCircleIcon />}
-                                        sx={{ mt: 1, color: COLORS.secondary }}
-                                        disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
-                                    >
-                                        Add Column
-                                    </Button>
 
                                     <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}`, mt: 3 }}>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
@@ -621,7 +603,7 @@ export default function DimensionalInspection({
                                             onFileRemove={removeAttachedFile}
                                             showAlert={showAlert}
                                             label="Attach PDF"
-                                            disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                            disabled={(user?.department_id === 8) && !isEditing}
                                         />
 
                                         <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -637,7 +619,7 @@ export default function DimensionalInspection({
                                                 onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
                                                 label="Attach Confidential PDF"
-                                                disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
+                                                disabled={((user?.department_id === 8) && !isEditing)}
                                             />
                                         </Box>
 

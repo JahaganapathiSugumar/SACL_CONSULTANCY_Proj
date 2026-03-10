@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -420,7 +420,7 @@ function MouldingTable() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                       disabled={!isEditing}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -436,7 +436,7 @@ function MouldingTable() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.role === 'Admin' || user?.role === 'HOD'}
+                         disabled={!isEditing}
                       />
                     </Box>
 

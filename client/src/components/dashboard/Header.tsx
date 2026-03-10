@@ -234,18 +234,32 @@ const Header: React.FC<HeaderProps> = ({
 
                         {/* Profile Dropdown */}
                         {showProfileDropdown && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '120%',
-                                right: '0',
-                                backgroundColor: 'white',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '4px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                minWidth: '220px',
-                                maxWidth: 'calc(100vw - 20px)',
-                                zIndex: 1300,
-                            }}>
+                            <>
+                                {/* Backdrop to close dropdown on click outside */}
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        zIndex: 1250,
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    onClick={() => setShowProfileDropdown(false)}
+                                />
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '120%',
+                                    right: '0',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: '4px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    minWidth: '220px',
+                                    maxWidth: 'calc(100vw - 20px)',
+                                    zIndex: 1300,
+                                }}>
                                 <div style={{ height: '4px', backgroundColor: '#E67E22', width: '100%', borderTopLeftRadius: '4px', borderTopRightRadius: '4px' }}></div>
                                 <div style={{
                                     padding: '16px',
@@ -304,7 +318,8 @@ const Header: React.FC<HeaderProps> = ({
                                     <LogoutIcon sx={{ fontSize: '18px', color: '#d32f2f' }} /> Logout
                                 </div>
                             </div>
-                        )}
+                        </>
+                    )}
                     </div>
                 </div>
             </header >

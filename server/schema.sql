@@ -106,7 +106,7 @@ CREATE TABLE pouring_details (
     heat_code NVARCHAR(MAX),
     composition NVARCHAR(MAX),
     no_of_mould_poured INT,
-    pouring_temp_c DECIMAL(6,2) CHECK (pouring_temp_c > 0),
+    pouring_temp_c NVARCHAR(50),
     pouring_time_sec INT CHECK (pouring_time_sec > 0),
     inoculation NVARCHAR(MAX),
     other_remarks NVARCHAR(MAX),
@@ -182,10 +182,10 @@ GO
 CREATE TABLE dimensional_inspection (
     trial_id INT PRIMARY KEY,
     inspection_date DATE,
-    casting_weight INT CHECK (casting_weight > 0),
-    bunch_weight INT CHECK (bunch_weight > 0),
+    casting_weight DECIMAL(10,2) CHECK (casting_weight > 0),
+    bunch_weight DECIMAL(10,2) CHECK (bunch_weight > 0),
     no_of_cavities INT CHECK (no_of_cavities > 0),
-    yields INT CHECK (yields >= 0),
+    yields DECIMAL(10,2) CHECK (yields >= 0),
     inspections NVARCHAR(MAX),
     remarks NVARCHAR(MAX),
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE

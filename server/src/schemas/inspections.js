@@ -26,7 +26,7 @@ export const pouringDetailsSchema = z.object({
     heat_code: z.string().optional().nullable(),
     composition: jsonValueSchema.optional().nullable(),
     no_of_mould_poured: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
-    pouring_temp_c: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
+    pouring_temp_c: z.string().optional().nullable(),
     pouring_time_sec: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive().nullable().optional()),
     inoculation: jsonValueSchema.optional().nullable(),
     other_remarks: jsonValueSchema.optional().nullable(),

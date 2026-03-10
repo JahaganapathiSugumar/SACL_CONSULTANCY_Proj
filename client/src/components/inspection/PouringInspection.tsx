@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -361,7 +361,7 @@ function PouringDetailsTable() {
                 Cu: source?.chemical_composition?.cu, Cr: source?.chemical_composition?.cr
             },
             no_of_mould_poured: parseInt(String(source?.noOfMouldPoured)) || null,
-            pouring_temp_c: parseFloat(String(source?.pouringTemp)) || null,
+            pouring_temp_c: source?.pouringTemp || null,
             pouring_time_sec: parseInt(String(source?.pouringTime)) || null,
             inoculation: {
                 text: source?.inoculation?.text,
@@ -684,7 +684,7 @@ function PouringDetailsTable() {
                                                 onFileRemove={removeAttachedFile}
                                                 showAlert={showAlert}
                                                 label="Upload Files"
-                                                disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                                                disabled={!isEditing}
                                             />
 
                                             <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -700,7 +700,7 @@ function PouringDetailsTable() {
                                                     onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                     showAlert={showAlert}
                                                     label="Attach Confidential PDF"
-                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD'}
+                                                    disabled={!isEditing}
                                                 />
                                             </Box>
 

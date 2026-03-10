@@ -9,8 +9,8 @@ const validateTrial = asyncErrorHandler(async (req, res, next) => {
             `SELECT status FROM trial_cards WHERE trial_id = @trial_id AND deleted_at IS NULL`,
             { trial_id }
         );
-        if (!trial || trial.length === 0 || trial[0].status == "CLOSED") {
-            throw new CustomError("Trial not found or closed", 404);
+        if (!trial || trial.length === 0) {
+            throw new CustomError("Trial not found", 404);
         }
         return next();
     }

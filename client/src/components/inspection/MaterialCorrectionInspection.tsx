@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Box,
@@ -397,7 +397,7 @@ export default function MaterialCorrection() {
                                                 onFileRemove={removeAttachedFile}
                                                 label="Upload Files"
                                                 showAlert={showAlert}
-                                                disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                disabled={(user?.department_id === 8) && !isEditing}
                                             />
 
                                             <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -413,7 +413,7 @@ export default function MaterialCorrection() {
                                                     onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                     showAlert={showAlert}
                                                     label="Attach Confidential PDF"
-                                                    disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                    disabled={(user?.department_id === 8) && !isEditing}
                                                 />
                                             </Box>
 

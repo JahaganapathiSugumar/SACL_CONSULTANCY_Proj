@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
     Box,
     Paper,
@@ -256,14 +256,13 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         showBackButton={true}
                     />
                 )}
-                <Box sx={{ flexGrow: 1, overflow: 'auto', p: embedded ? 0 : 3 }}>
+                <Box sx={{ p: embedded ? 0 : 3, pb: 1, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                     <Box sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                        gap: 2,
-                        mb: 2.5
+                        gap: 2
                     }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             {!embedded && <BackButton label="Back" variant="button" />}
@@ -331,6 +330,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             )}
                         </Box>
                     </Box>
+                </Box>
+                <Box sx={{ flexGrow: 1, overflow: 'auto', p: embedded ? 0 : 3, pt: 1 }}>
 
                     <Box sx={{ position: 'relative', minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto' }}>
                         {loading ? (

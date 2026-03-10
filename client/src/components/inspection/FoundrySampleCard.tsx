@@ -1177,7 +1177,7 @@ function FoundrySampleCard() {
                         onFileRemove={removeToolingFile}
                         showAlert={showAlert}
                         label="Attach Tooling PDF"
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                        disabled={(user?.department_id === 8) && !isEditing}
                       />
                       <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
                     </Grid>
@@ -1261,7 +1261,7 @@ function FoundrySampleCard() {
                       onFileRemove={removeConfidentialFile}
                       showAlert={showAlert}
                       label="Attach Confidential PDF"
-                      disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
+                      disabled={(user?.department_id === 8) && !isEditing}
                     />
                     <DocumentViewer trialId={trialId || trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
                   </Box>

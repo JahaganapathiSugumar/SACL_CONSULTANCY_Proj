@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 
 import { useAuth } from "../../context/AuthContext";
@@ -279,27 +279,12 @@ export default function McShopInspection({
   }, [user, trialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  const addColumn = () => {
-    const nextCavity = cachedCavityNumbers.find(c => !cavities.includes(c)) || "";
-    setCavities((c) => [...(c || []), nextCavity]);
-    setRows((r) => r?.map((row) => ({
-      ...row,
-      values: [...(row?.values || []), row.label === "Cavity Number" ? nextCavity : ""]
-    })));
-  };
-
   const handleAttachFiles = (newFiles: File[]) => {
     setAttachedFiles(prev => [...prev, ...newFiles]);
   };
 
   const removeAttachedFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const removeColumn = (index: number) => {
-    if ((cavities?.length || 0) <= 1) return;
-    setCavities((c) => c?.filter((_, i) => i !== index));
-    setRows((r) => r?.map((row) => ({ ...row, values: row?.values?.filter((_, i) => i !== index) })));
   };
 
   const updateCavityLabel = (index: number, label: string) => {
@@ -336,54 +321,82 @@ export default function McShopInspection({
       const acceptedRow = findInUpdated("accepted quantity");
       const rejectedRow = findInUpdated("rejected quantity");
       const percentageRow = findInUpdated("rejection percentage");
+      const receivedRow = findInUpdated("received quantity");
 
-      if (inspectedRow && acceptedRow && rejectedRow) {
+      if (inspectedRow && receivedRow) {
         const inspectedNum = parseFloat(String(inspectedRow?.values?.[colIndex] || '').trim());
-        const acceptedNum = parseFloat(String(acceptedRow?.values?.[colIndex] || '').trim());
+        const receivedNum = parseFloat(String(receivedRow?.values?.[colIndex] || '').trim());
 
-        if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
-          if (acceptedNum > inspectedNum) {
-            showAlert('error', `Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
-            const newRejectedValues = [...(rejectedRow?.values || [])];
-            newRejectedValues[colIndex] = "Invalid";
-            updated = updated?.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues } : r);
-          } else {
-            const calculatedRejected = inspectedNum - acceptedNum;
-            const newRejectedValues = [...(rejectedRow?.values || [])];
-            newRejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
-            const rejTotal = newRejectedValues?.reduce((s, v) => {
-              const n = parseFloat(String(v));
-              return s + (isNaN(n) ? 0 : n);
-            }, 0);
-            const hasRejData = newRejectedValues?.some(v => v !== null && v !== undefined && String(v).trim() !== "");
-            updated = updated?.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues, total: hasRejData ? rejTotal : null } : r);
-          }
+        if (!isNaN(inspectedNum) && !isNaN(receivedNum) && inspectedNum > receivedNum) {
+          showAlert('error', `Column ${colIndex + 1}: Inspected quantity (${inspectedNum}) cannot be greater than Received quantity (${receivedNum})`);
+          const newInspectedValues = [...(inspectedRow.values || [])];
+          newInspectedValues[colIndex] = ''; 
+          updated = updated?.map(r => r.id === inspectedRow.id ? { ...r, values: newInspectedValues } : r);
         }
       }
 
-      const updatedRejectedRow = findInUpdated("rejected quantity");
+      const curInspectedRow = updated.find(r => r?.label?.toLowerCase()?.includes("inspected quantity"));
+      const curRejectedRow = updated.find(r => r?.label?.toLowerCase()?.includes("rejected quantity"));
+      const curAcceptedRow = updated.find(r => r?.label?.toLowerCase()?.includes("accepted quantity"));
+      const curPercentageRow = updated.find(r => r?.label?.toLowerCase()?.includes("rejection percentage"));
 
-      if (inspectedRow && updatedRejectedRow && percentageRow) {
-        const inspectedNum = parseFloat(String(inspectedRow?.values?.[colIndex] || '').trim());
-        const rejectedNum = parseFloat(String(updatedRejectedRow?.values?.[colIndex] || '').trim());
-        const newPercentageValues = [...(percentageRow?.values || [])];
+      if (curInspectedRow && curRejectedRow && curAcceptedRow) {
+        const insNum = parseFloat(String(curInspectedRow.values[colIndex] || '').trim());
+        const rejNum = parseFloat(String(curRejectedRow.values[colIndex] || '').trim());
 
-        if (!isNaN(inspectedNum) && inspectedNum > 0 && !isNaN(rejectedNum)) {
-          const percentage = (rejectedNum / inspectedNum) * 100;
-          newPercentageValues[colIndex] = percentage.toFixed(2);
+        const newAcceptedValues = [...curAcceptedRow.values];
+        
+        if (!isNaN(insNum) && !isNaN(rejNum)) {
+          if (rejNum > insNum) {
+            showAlert('error', `Column ${colIndex + 1}: Rejected quantity (${rejNum}) cannot be greater than Inspected quantity (${insNum})`);
+            newAcceptedValues[colIndex] = "Invalid";
+          } else {
+            const accepted = insNum - rejNum;
+            newAcceptedValues[colIndex] = accepted >= 0 ? accepted.toString() : '';
+          }
         } else {
-          newPercentageValues[colIndex] = '';
+          newAcceptedValues[colIndex] = '';
         }
 
-        const totalInspected = inspectedRow?.values?.reduce((acc, val) => acc + (parseFloat(String(val)) || 0), 0);
-        const totalRejected = updated?.find(r => r?.label?.toLowerCase()?.includes("rejected quantity"))?.values?.reduce((acc, val) => acc + (parseFloat(String(val)) || 0), 0) || 0;
+        updated = updated.map(r => r.id === curAcceptedRow.id ? { ...r, values: newAcceptedValues } : r);
+      }
 
-        let totalPercentage = null;
-        if (totalInspected > 0) {
-          totalPercentage = (totalRejected / totalInspected) * 100;
+      updated = updated.map(r => {
+        const labelLower = r?.label?.toLowerCase() || "";
+        if (labelLower.includes("cavity") || labelLower.includes("reason") || labelLower.includes("percentage")) {
+          return { ...r, total: null };
+        }
+        const total = r?.values?.reduce((sum, val) => {
+          const n = parseFloat(String(val).trim());
+          return sum + (isNaN(n) ? 0 : n);
+        }, 0);
+        const hasData = r?.values?.some(v => v !== null && v !== undefined && String(v).trim() !== "");
+        return { ...r, total: hasData ? total : null };
+      });
+
+      const finalInsRow = updated.find(r => r?.label?.toLowerCase()?.includes("inspected quantity"));
+      const finalRejRow = updated.find(r => r?.label?.toLowerCase()?.includes("rejected quantity"));
+      const finalPercRow = updated.find(r => r?.label?.toLowerCase()?.includes("rejection percentage"));
+
+      if (finalInsRow && finalRejRow && finalPercRow) {
+        const newPercVals = [...finalPercRow.values];
+        const ins = parseFloat(String(finalInsRow.values[colIndex] || '').trim());
+        const rej = parseFloat(String(finalRejRow.values[colIndex] || '').trim());
+
+        if (!isNaN(ins) && ins > 0 && !isNaN(rej)) {
+          newPercVals[colIndex] = ((rej / ins) * 100).toFixed(2);
+        } else {
+          newPercVals[colIndex] = '';
         }
 
-        updated = updated?.map(r => r.id === percentageRow.id ? { ...r, values: newPercentageValues, total: totalPercentage !== null ? parseFloat(totalPercentage.toFixed(2)) : null } : r);
+        const totalIns = Number(finalInsRow.total) || 0;
+        const totalRej = Number(finalRejRow.total) || 0;
+        let totalPerc = null;
+        if (totalIns > 0) {
+          totalPerc = parseFloat(((totalRej / totalIns) * 100).toFixed(2));
+        }
+
+        updated = updated.map(r => r.id === finalPercRow.id ? { ...r, values: newPercVals, total: totalPerc } : r);
       }
 
       return updated;
@@ -655,9 +668,6 @@ export default function McShopInspection({
                                   sx={{ input: { textAlign: 'center' } }}
                                   disabled={true}
                                 />
-                                <IconButton size="small" onClick={() => removeColumn(i)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing} >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
                               </Box>
                             </TableCell>
                           ))}
@@ -691,7 +701,7 @@ export default function McShopInspection({
                                         textAlign: 'center'
                                       }
                                     }}
-                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("rejected quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
+                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
                               ))}
@@ -728,15 +738,6 @@ export default function McShopInspection({
                   </Box>
                   {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}> Swipe to view more </Typography>}
 
-                  <Button
-                    size="small"
-                    onClick={addColumn}
-                    startIcon={<AddCircleIcon />}
-                    sx={{ mt: 1, color: COLORS.secondary }}
-                    disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
-                  >
-                    Add Column
-                  </Button>
 
                   <Box sx={{ p: 3, bgcolor: "#fff", borderTop: `1px solid ${COLORS.border}` }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: "uppercase" }}>
@@ -748,7 +749,7 @@ export default function McShopInspection({
                       onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                      disabled={(user?.department_id === 8) && !isEditing}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -764,7 +765,7 @@ export default function McShopInspection({
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.role === 'Admin' || user?.role === 'HOD'}
+                        disabled={(user?.department_id === 8) && !isEditing}
                       />
                     </Box>
 

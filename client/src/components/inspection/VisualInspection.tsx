@@ -154,28 +154,6 @@ function SectionTable({
         });
     }, [rows, cols.length]);
 
-    const addColumn = () => {
-        setCols((prev) => [...prev, { id: `c${prev.length + 1}`, label: '' }]);
-        setValues((prev) => {
-            const copy: Record<string, string[]> = {};
-            Object.keys(prev).forEach((k) => { copy[k] = [...prev[k], '']; });
-            return copy;
-        });
-    };
-
-    const removeColumn = (index: number) => {
-        setCols((prev) => ((prev?.length || 0) <= 1 ? prev : prev.filter((_, i) => i !== index)));
-        setValues((prev) => {
-            const copy: Record<string, string[]> = {};
-            Object.keys(prev || {}).forEach((k) => {
-                const arr = [...(prev[k] || [])];
-                if (arr.length > index) arr.splice(index, 1);
-                copy[k] = arr;
-            });
-            return copy;
-        });
-    };
-
     const updateCell = (rowId: string, colIndex: number, val: string) => {
         setValues((prev) => {
             const arr = prev[rowId].map((v, i) => (i === colIndex ? val : v));
@@ -286,9 +264,6 @@ function SectionTable({
                                             sx={{ input: { textAlign: 'center' } }}
                                             disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
                                         />
-                                        <IconButton size="small" onClick={() => removeColumn(ci)} sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
                                     </Box>
                                 </TableCell>
                             ))}
@@ -400,13 +375,12 @@ function SectionTable({
                     </TableBody>
                 </Table>
             </Box>
-            <Button size="small" onClick={addColumn} startIcon={<AddCircleIcon />} sx={{ mt: 1, color: COLORS.secondary }} disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}>Add Column</Button>
         </Box>
     );
 }
 
 export default function VisualInspection({
-    initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"],
+    initialRows = ["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"],
     initialCols = [""],
     onSave = async (payload: any) => {
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
@@ -438,8 +412,8 @@ export default function VisualInspection({
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
     const [dataExists, setDataExists] = useState(false);
-    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
-    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -614,10 +588,11 @@ export default function VisualInspection({
                             }));
                         };
 
-                        const ndtRowsData = restoreSection(data?.ndt_inspection, ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"], data?.ndt_inspection_ok, data?.ndt_inspection_remarks);
+                        const labelsWithReceived = ["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"];
+                        const ndtRowsData = restoreSection(data?.ndt_inspection, labelsWithReceived, data?.ndt_inspection_ok, data?.ndt_inspection_remarks);
                         if (ndtRowsData?.length > 0) setNdtRows(ndtRowsData as NdtRow[]);
 
-                        const hardRowsData = restoreSection(data?.hardness, ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"], data?.hardness_ok, data?.hardness_remarks);
+                        const hardRowsData = restoreSection(data?.hardness, labelsWithReceived, data?.hardness_ok, data?.hardness_remarks);
                         if (hardRowsData?.length > 0) setHardRows(hardRowsData as NdtRow[]);
 
                         setDataExists(true);
@@ -659,33 +634,12 @@ export default function VisualInspection({
         fetchIP();
     }, []);
 
-    const addColumn = () => {
-        setCols((c) => [...(c || []), ""]);
-        setRows((r) =>
-            r?.map((row) => ({
-                ...row,
-                values: [...(row?.values || []), ""],
-            }))
-        );
-    };
-
     const handleAttachFiles = (newFiles: File[]) => {
         setAttachedFiles(prev => [...prev, ...newFiles]);
     };
 
     const removeAttachedFile = (index: number) => {
         setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const removeColumn = (index: number) => {
-        if ((cols?.length || 0) <= 1) return;
-        setCols((c) => c?.filter((_, i) => i !== index));
-        setRows((r) =>
-            r?.map((row) => ({
-                ...row,
-                values: row?.values?.filter((_, i) => i !== index),
-            }))
-        );
     };
 
     const updateCell = (rowId: string, colIndex: number, value: string) => {
@@ -880,6 +834,7 @@ export default function VisualInspection({
 
         const findRow = (labelPart: string) => (source?.rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const cavityRow = findRow('cavity number');
+        const receivedRow = findRow('received quantity');
         const inspectedRow = findRow('inspected quantity');
         const acceptedRow = findRow('accepted quantity');
         const rejectedRow = findRow('rejected quantity');
@@ -898,6 +853,7 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(cavityRow?.values?.[idx] ?? col ?? ""),
+                'Received Quantity': String(receivedRow?.values?.[idx] ?? ""),
                 'Inspected Quantity': String(inspected ?? ""),
                 'Accepted Quantity': String(accepted ?? ""),
                 'Rejected Quantity': String(rejected ?? ""),
@@ -908,6 +864,7 @@ export default function VisualInspection({
 
         const getNdtRow = (labelPart: string) => (source?.ndt_rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const ndtCavityRow = getNdtRow('cavity number');
+        const ndtReceivedRow = getNdtRow('received quantity');
         const ndtInspectedRow = getNdtRow('inspected quantity');
         const ndtAcceptedRow = getNdtRow('accepted quantity');
         const ndtRejectedRow = getNdtRow('rejected quantity');
@@ -927,6 +884,7 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(ndtCavityRow?.value?.split('|')[idx] || ""),
+                'Received Quantity': String(ndtReceivedRow?.value?.split('|')[idx] || ""),
                 'Inspected Quantity': String(inspected),
                 'Accepted Quantity': String(accepted),
                 'Rejected Quantity': String(rejected),
@@ -937,6 +895,7 @@ export default function VisualInspection({
 
         const getHardRow = (labelPart: string) => (source?.hard_rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const hardCavityRow = getHardRow('cavity number');
+        const hardReceivedRow = getHardRow('received quantity');
         const hardInspectedRow = getHardRow('inspected quantity');
         const hardAcceptedRow = getHardRow('accepted quantity');
         const hardRejectedRow = getHardRow('rejected quantity');
@@ -956,6 +915,7 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(hardCavityRow?.value?.split('|')[idx] || ""),
+                'Received Quantity': String(hardReceivedRow?.value?.split('|')[idx] || ""),
                 'Inspected Quantity': String(inspected),
                 'Accepted Quantity': String(accepted),
                 'Rejected Quantity': String(rejected),
@@ -1158,14 +1118,6 @@ export default function VisualInspection({
                                                                     sx={{ input: { textAlign: 'center' } }}
                                                                     disabled={true}
                                                                 />
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={() => removeColumn(ci)}
-                                                                    sx={{ color: COLORS.blueHeaderText, opacity: 0.6 }}
-                                                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                                                >
-                                                                    <DeleteIcon fontSize="small" />
-                                                                </IconButton>
                                                             </Box>
                                                         </TableCell>
                                                     ))}
@@ -1320,15 +1272,6 @@ export default function VisualInspection({
                                     </Box>
                                     {isMobile && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'center', mt: 1 }}> Swipe to view more </Typography>}
 
-                                    <Button
-                                        size="small"
-                                        onClick={addColumn}
-                                        startIcon={<AddCircleIcon />}
-                                        sx={{ mt: 1, color: COLORS.secondary }}
-                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                    >
-                                        Add Column
-                                    </Button>
                                 </Paper>
 
                                 <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
@@ -1368,7 +1311,7 @@ export default function VisualInspection({
                                             onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                                             showAlert={showAlert}
                                             label="Attach PDF"
-                                            disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8}
+                                            disabled={!isEditing}
                                         />
 
                                         <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1384,7 +1327,7 @@ export default function VisualInspection({
                                                 onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
                                                 label="Attach Confidential PDF"
-                                                disabled={user?.role === 'Admin' || user?.role === 'HOD' || user?.department_id === 8}
+                                                disabled={!isEditing}
                                             />
                                         </Box>
 
