@@ -43,9 +43,9 @@ export const getDocuments = async (req, res, next) => {
              FROM documents d 
              LEFT JOIN dtc_users u ON d.uploaded_by = u.user_id 
              WHERE d.trial_id = @trial_id 
-             AND (d.is_confidential = 0 OR d.is_confidential IS NULL)
+             AND (d.is_confidential = 0 OR d.is_confidential IS NULL OR u.department_id = @user_dept_id)
              ORDER BY d.document_id`,
-            { trial_id }
+            { trial_id, user_dept_id: req.user.department_id }
         )
     }
     res.status(200).json({
