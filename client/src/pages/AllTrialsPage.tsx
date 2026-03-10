@@ -500,7 +500,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                                                 variant="outlined"
                                                                                                 sx={{ textTransform: 'capitalize' }}
                                                                                             />
-                                                                                            {user?.role === 'Admin' && (
+                                                                                            {user?.role === 'Admin' && progress.department_id !== 2 && progress.department_id !== 3 && (
                                                                                                 <Tooltip title="Toggle Status">
                                                                                                     <IconButton
                                                                                                         size="small"
