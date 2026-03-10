@@ -380,7 +380,7 @@ function SectionTable({
 }
 
 export default function VisualInspection({
-    initialRows = ["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"],
+    initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"],
     initialCols = [""],
     onSave = async (payload: any) => {
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
@@ -412,8 +412,8 @@ export default function VisualInspection({
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
     const [dataExists, setDataExists] = useState(false);
-    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
-    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -588,11 +588,11 @@ export default function VisualInspection({
                             }));
                         };
 
-                        const labelsWithReceived = ["Cavity Number", "Received Quantity", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"];
-                        const ndtRowsData = restoreSection(data?.ndt_inspection, labelsWithReceived, data?.ndt_inspection_ok, data?.ndt_inspection_remarks);
+                        const labels = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"];
+                        const ndtRowsData = restoreSection(data?.ndt_inspection, labels, data?.ndt_inspection_ok, data?.ndt_inspection_remarks);
                         if (ndtRowsData?.length > 0) setNdtRows(ndtRowsData as NdtRow[]);
 
-                        const hardRowsData = restoreSection(data?.hardness, labelsWithReceived, data?.hardness_ok, data?.hardness_remarks);
+                        const hardRowsData = restoreSection(data?.hardness, labels, data?.hardness_ok, data?.hardness_remarks);
                         if (hardRowsData?.length > 0) setHardRows(hardRowsData as NdtRow[]);
 
                         setDataExists(true);
@@ -834,7 +834,6 @@ export default function VisualInspection({
 
         const findRow = (labelPart: string) => (source?.rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const cavityRow = findRow('cavity number');
-        const receivedRow = findRow('received quantity');
         const inspectedRow = findRow('inspected quantity');
         const acceptedRow = findRow('accepted quantity');
         const rejectedRow = findRow('rejected quantity');
@@ -853,7 +852,6 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(cavityRow?.values?.[idx] ?? col ?? ""),
-                'Received Quantity': String(receivedRow?.values?.[idx] ?? ""),
                 'Inspected Quantity': String(inspected ?? ""),
                 'Accepted Quantity': String(accepted ?? ""),
                 'Rejected Quantity': String(rejected ?? ""),
@@ -864,7 +862,6 @@ export default function VisualInspection({
 
         const getNdtRow = (labelPart: string) => (source?.ndt_rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const ndtCavityRow = getNdtRow('cavity number');
-        const ndtReceivedRow = getNdtRow('received quantity');
         const ndtInspectedRow = getNdtRow('inspected quantity');
         const ndtAcceptedRow = getNdtRow('accepted quantity');
         const ndtRejectedRow = getNdtRow('rejected quantity');
@@ -884,7 +881,6 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(ndtCavityRow?.value?.split('|')[idx] || ""),
-                'Received Quantity': String(ndtReceivedRow?.value?.split('|')[idx] || ""),
                 'Inspected Quantity': String(inspected),
                 'Accepted Quantity': String(accepted),
                 'Rejected Quantity': String(rejected),
@@ -895,7 +891,6 @@ export default function VisualInspection({
 
         const getHardRow = (labelPart: string) => (source?.hard_rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const hardCavityRow = getHardRow('cavity number');
-        const hardReceivedRow = getHardRow('received quantity');
         const hardInspectedRow = getHardRow('inspected quantity');
         const hardAcceptedRow = getHardRow('accepted quantity');
         const hardRejectedRow = getHardRow('rejected quantity');
@@ -915,7 +910,6 @@ export default function VisualInspection({
 
             return {
                 'Cavity Number': String(hardCavityRow?.value?.split('|')[idx] || ""),
-                'Received Quantity': String(hardReceivedRow?.value?.split('|')[idx] || ""),
                 'Inspected Quantity': String(inspected),
                 'Accepted Quantity': String(accepted),
                 'Rejected Quantity': String(rejected),
