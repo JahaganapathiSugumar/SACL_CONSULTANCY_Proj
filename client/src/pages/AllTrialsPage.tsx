@@ -26,6 +26,7 @@ import {
     DialogContentText,
     DialogTitle,
     TableContainer,
+    TablePagination,
 } from '@mui/material';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
@@ -70,6 +71,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [fetchingReport, setFetchingReport] = useState<number | string | null>(null);
     const departmentInfo = getDepartmentInfo(user);
 
 
@@ -207,22 +211,43 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
 
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    const handleViewReport = (trial: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        const document = {
-            document_id: Date.now(),
-            file_name: trial.file_name || `Report_${trial.trial_id}.pdf`,
-            document_type: trial.document_type || 'TRIAL_REPORT',
-            file_base64: trial.file_base64,
-            uploaded_by: 'System',
-            uploaded_at: new Date().toISOString(),
-            remarks: 'Auto-generated Report'
-        };
-        setViewReport({
-            trialId: trial.trial_id,
-            trialNo: trial.trial_no,
-            partName: trial.part_name,
-            documents: [document]
-        });
+    const handleViewReport = async (trial: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            setFetchingReport(trial.trial_id);
+            
+            let reportData = trial;
+            if (!trial.file_base64) {
+                const response = await trialService.getTrialReportFile(trial.trial_id);
+                if (response && response.file_base64) {
+                    reportData = { ...trial, ...response };
+                } else {
+                    Swal.fire('Error', 'Report file content not found.', 'error');
+                    return;
+                }
+            }
+
+            const document = {
+                document_id: Date.now(),
+                file_name: reportData.file_name || `Report_${reportData.trial_id}.pdf`,
+                document_type: reportData.document_type || 'TRIAL_REPORT',
+                file_base64: reportData.file_base64,
+                uploaded_by: 'System',
+                uploaded_at: new Date().toISOString(),
+                remarks: 'Auto-generated Report'
+            };
+            
+            setViewReport({
+                trialId: reportData.trial_id,
+                trialNo: reportData.trial_no,
+                partName: reportData.part_name,
+                documents: [document]
+            });
+        } catch (error) {
+            console.error("Error fetching report base64:", error);
+            Swal.fire('Error', 'Failed to load report file.', 'error');
+        } finally {
+            setFetchingReport(null);
+        }
     };
 
     const handleExpandRow = async (trialId: number | string) => {
@@ -391,7 +416,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             </TableHead>
                             <TableBody>
                                 {filteredTrials.length > 0 ? (
-                                    filteredTrials.map((trial) => (
+                                    filteredTrials.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((trial) => (
                                         <React.Fragment key={trial.trial_id}>
                                             <TableRow
                                                 hover
@@ -443,11 +468,12 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                 </TableCell>
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                                                        {trial.status === 'CLOSED' && trial.file_base64 ? (
+                                                        {(trial.status === 'CLOSED' || trial.file_base64) ? (
                                                             <Button
                                                                 variant="outlined"
                                                                 size="small"
-                                                                startIcon={<DescriptionIcon />}
+                                                                disabled={fetchingReport === trial.trial_id}
+                                                                startIcon={fetchingReport === trial.trial_id ? <LoadingState size={16} /> : <DescriptionIcon />}
                                                                 onClick={() => handleViewReport(trial)}
                                                                 sx={{
                                                                     borderRadius: 1,
@@ -456,7 +482,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                     padding: { xs: '2px 8px', sm: '4px 12px' }
                                                                 }}
                                                             >
-                                                                Report
+                                                                {fetchingReport === trial.trial_id ? 'Loading...' : 'Report'}
                                                             </Button>
                                                         ) : "N/A"}
                                                         {trial.file_base64 && user?.role === 'Admin' && (
@@ -602,6 +628,24 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[10, 25, 50, 100]}
+                        component="div"
+                        count={filteredTrials.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={(_, newPage) => setPage(newPage)}
+                        onRowsPerPageChange={(event) => {
+                            setRowsPerPage(parseInt(event.target.value, 10));
+                            setPage(0);
+                        }}
+                        sx={{
+                            borderTop: '1px solid #e2e8f0',
+                            bgcolor: '#f8fafc',
+                            borderBottomLeftRadius: '12px',
+                            borderBottomRightRadius: '12px'
+                        }}
+                    />
                 </Box>
 
                     <Box sx={{ mt: 3, textAlign: 'right' }}>

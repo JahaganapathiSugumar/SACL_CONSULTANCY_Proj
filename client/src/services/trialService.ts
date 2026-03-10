@@ -1,4 +1,4 @@
-﻿import { apiService } from './commonService';
+import { apiService } from './commonService';
 import { trialCardSchema } from '../schemas/trialCard';
 import { validate } from '../utils';
 
@@ -173,6 +173,21 @@ export const trialService = {
             });
         } catch (error) {
             console.error('Failed to delete trial report:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Fetches base64 file data for a specific trial report
+     * @param trialId - Trial ID to fetch report for
+     * @returns Promise resolving to report data with base64
+     */
+    async getTrialReportFile(trialId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const data = await apiService.request(`/trial/report-file/${trialId}`);
+            return data.data || data;
+        } catch (error) {
+            console.error('Failed to fetch trial report file:', error);
             throw error;
         }
     },
