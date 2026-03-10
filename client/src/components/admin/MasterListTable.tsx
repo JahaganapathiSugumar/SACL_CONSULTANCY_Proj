@@ -4,6 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SearchIcon from '@mui/icons-material/Search';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
     Table,
     TableBody,
@@ -27,9 +28,10 @@ import Swal from 'sweetalert2';
 
 interface MasterListTableProps {
     onEdit: (data: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+    onDuplicate: (data: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
-const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
+const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }) => {
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -298,6 +300,17 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit }) => {
                                                 }}
                                             >
                                                 <EditIcon fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => onDuplicate(row)}
+                                                sx={{
+                                                    color: '#9b59b6',
+                                                    '&:hover': { bgcolor: '#f5eef8' }
+                                                }}
+                                                title="Duplicate"
+                                            >
+                                                <ContentCopyIcon fontSize="small" />
                                             </IconButton>
                                         </Box>
                                     </TableCell>

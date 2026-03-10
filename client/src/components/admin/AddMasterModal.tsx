@@ -297,7 +297,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
 
             Swal.fire({
                 title: 'Success',
-                text: initialData ? 'Master list updated successfully!' : 'Successfully added to master list!',
+                text: initialData?.id ? 'Master list updated successfully!' : 'Successfully added to master list!',
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false
@@ -417,7 +417,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         >
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
                 <Typography component="div" variant="h6" fontWeight={700}>
-                    {initialData ? "Update Master List" : "Add to Master List"}
+                    {initialData?.id ? "Update Master List" : "Add to Master List"}
                 </Typography>
                 <IconButton
                     onClick={onClose}
@@ -777,7 +777,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 <ActionButtons
                     onSubmit={handleSubmit}
                     loading={loading}
-                    submitLabel={initialData ? "Update Master List" : "Add to Master List"}
+                    submitLabel={initialData?.id ? "Update Master List" : "Add to Master List"}
                     showReset={false}
                     showSave={false}
                 />

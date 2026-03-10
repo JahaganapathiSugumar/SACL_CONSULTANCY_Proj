@@ -259,6 +259,11 @@ const Dashboard: React.FC = () => {
                       setEditingMasterItem(item);
                       setIsAddMasterModalOpen(true);
                     }}
+                    onDuplicate={(item) => {
+                      const { id, ...duplicateData } = item; // eslint-disable-line @typescript-eslint/no-unused-vars
+                      setEditingMasterItem(duplicateData);
+                      setIsAddMasterModalOpen(true);
+                    }}
                   />
                 </Box>
               </>
