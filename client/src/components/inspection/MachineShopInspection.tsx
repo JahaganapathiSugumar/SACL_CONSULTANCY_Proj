@@ -330,7 +330,7 @@ export default function McShopInspection({
         if (!isNaN(inspectedNum) && !isNaN(receivedNum) && inspectedNum > receivedNum) {
           showAlert('error', `Column ${colIndex + 1}: Inspected quantity (${inspectedNum}) cannot be greater than Received quantity (${receivedNum})`);
           const newInspectedValues = [...(inspectedRow.values || [])];
-          newInspectedValues[colIndex] = ''; 
+          newInspectedValues[colIndex] = '';
           updated = updated?.map(r => r.id === inspectedRow.id ? { ...r, values: newInspectedValues } : r);
         }
       }
@@ -749,7 +749,7 @@ export default function McShopInspection({
                       onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.department_id === 8}
+                      disabled={false}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -765,7 +765,7 @@ export default function McShopInspection({
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.department_id === 8}
+                        disabled={false}
                       />
                     </Box>
 

@@ -211,7 +211,7 @@ export default function DimensionalInspection({
             const totalCastingWeight = castingWeight * numCavity;
             if (totalCastingWeight > bunch) {
                 setIsYieldInvalid(true);
-                showAlert('warning', 'Yield exceeds 100%! Total casting weight (casting weight Ã— no. of cavities) cannot exceed bunch weight. Please adjust the values.');
+                showAlert('warning', 'Yield exceeds 100%! Total casting weight (casting weight × no. of cavities) cannot exceed bunch weight. Please adjust the values.');
             } else {
                 setIsYieldInvalid(false);
             }

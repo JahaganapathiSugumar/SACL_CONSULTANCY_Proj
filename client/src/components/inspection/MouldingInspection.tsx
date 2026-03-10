@@ -420,7 +420,7 @@ function MouldingTable() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                       disabled={false}
+                       disabled={user?.department_id === 6}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -436,7 +436,7 @@ function MouldingTable() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                         disabled={false}
+                         disabled={user?.department_id === 6}
                       />
                     </Box>
 
