@@ -223,7 +223,7 @@ function MouldingTable() {
         title: 'Success',
         text: `Moulding Correction ${dataExists ? 'updated' : 'created'} successfully.`
       });
-      navigate('/dashboard');
+      navigate(-1);
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
@@ -274,7 +274,7 @@ function MouldingTable() {
         title: 'Saved as Draft',
         text: 'Progress saved and moved to next department.'
       });
-      navigate('/dashboard');
+      navigate(-1);
     } catch (error: any) {
       Swal.fire({
         icon: 'error',

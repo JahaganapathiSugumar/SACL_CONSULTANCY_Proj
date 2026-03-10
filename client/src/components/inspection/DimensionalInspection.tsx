@@ -361,7 +361,7 @@ export default function DimensionalInspection({
                 title: 'Success',
                 text: `Dimensional Inspection ${dataExists ? 'updated' : 'created'} successfully.`
             });
-            navigate('/dashboard');
+            navigate(-1);
         } catch (err: any) {
             Swal.fire({
                 icon: 'error',
@@ -412,7 +412,7 @@ export default function DimensionalInspection({
                 title: 'Saved as Draft',
                 text: 'Progress saved and moved to next department.'
             });
-            navigate('/dashboard');
+            navigate(-1);
 
         } catch (error: any) {
             Swal.fire({

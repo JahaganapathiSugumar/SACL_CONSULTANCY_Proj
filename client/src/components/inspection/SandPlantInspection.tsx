@@ -218,7 +218,7 @@ function SandTable() {
         title: 'Success',
         text: `Sand Properties ${dataExists ? 'updated' : 'created'} successfully.`
       });
-      navigate('/dashboard');
+      navigate(-1);
     } catch (err: any) {
       Swal.fire({
         icon: 'error',
@@ -269,7 +269,7 @@ function SandTable() {
         title: 'Saved as Draft',
         text: 'Progress saved and moved to next department.'
       });
-      navigate('/dashboard');
+      navigate(-1);
     } catch (error: any) {
       Swal.fire({
         icon: 'error',

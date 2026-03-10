@@ -430,7 +430,7 @@ function PouringDetailsTable() {
                     ? 'Progress saved and moved to next department.'
                     : `Pouring Details ${dataExists ? 'updated' : 'created'} successfully.`
             });
-            navigate('/dashboard');
+            navigate(-1);
         } catch (error: any) {
             Swal.fire({
                 icon: 'error',

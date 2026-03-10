@@ -255,7 +255,7 @@ export default function MaterialCorrection() {
                 title: 'Success',
                 text: `Material Correction created successfully.`
             });
-            navigate('/dashboard');
+            navigate(-1);
         } catch (error: any) {
             Swal.fire({
                 icon: 'error',

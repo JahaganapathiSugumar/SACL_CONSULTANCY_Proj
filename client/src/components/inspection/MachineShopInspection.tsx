@@ -531,7 +531,7 @@ export default function McShopInspection({
         title: 'Success',
         text: `Machine Shop Inspection ${dataExists ? 'updated' : 'created'} successfully.`
       });
-      navigate('/dashboard');
+      navigate(-1);
     } catch (err: any) {
       console.error("Error saving machine shop inspection:", err);
       Swal.fire({
@@ -583,7 +583,7 @@ export default function McShopInspection({
         title: 'Saved as Draft',
         text: 'Progress saved and moved to next department.'
       });
-      navigate('/dashboard');
+      navigate(-1);
 
     } catch (error: any) {
       Swal.fire({
