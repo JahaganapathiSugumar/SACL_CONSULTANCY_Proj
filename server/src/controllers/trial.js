@@ -79,17 +79,29 @@ export const getTrialById = async (req, res, next) => {
 };
 
 export const getTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query("SELECT t.document_id, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
     res.status(200).json({ success: true, data: rows });
 };
 
 export const getConsolidatedReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT c.document_id, c.file_base64, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
+    const [rows] = await Client.query("SELECT c.document_id, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
     res.status(200).json({ success: true, data: rows });
 };
 
+export const getConsolidatedReportFile = async (req, res, next) => {
+    const { pattern_code } = req.params;
+    if (!pattern_code) {
+        return res.status(400).json({ success: false, message: 'Pattern code is required' });
+    }
+    const [rows] = await Client.query("SELECT file_base64, file_name FROM consolidated_reports WHERE pattern_code = @pattern_code", { pattern_code });
+    if (rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Consolidated report file not found' });
+    }
+    res.status(200).json({ success: true, data: rows[0] });
+};
+
 export const getRecentTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_base64, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
+    const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -241,8 +253,20 @@ export const deleteTrialReports = async (req, res, next) => {
 };
 
 export const getDeletedTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_base64, t.file_name, t.deleted_at, t.deleted_by, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NOT NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query("SELECT t.document_id, t.file_name, t.deleted_at, t.deleted_by, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NOT NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
     res.status(200).json({ success: true, data: rows });
+};
+
+export const getTrialReportFile = async (req, res, next) => {
+    const { trial_id } = req.params;
+    if (!trial_id) {
+        return res.status(400).json({ success: false, message: 'Trial ID is required' });
+    }
+    const [rows] = await Client.query("SELECT file_base64, file_name, document_type FROM trial_reports WHERE trial_id = @trial_id AND deleted_at IS NULL", { trial_id });
+    if (rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Report file not found' });
+    }
+    res.status(200).json({ success: true, data: rows[0] });
 };
 
 export const deleteTrialCard = async (req, res, next) => {

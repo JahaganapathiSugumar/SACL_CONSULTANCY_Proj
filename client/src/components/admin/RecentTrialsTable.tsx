@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -37,6 +37,7 @@ const RecentTrialsTable: React.FC = () => {
   const [trials, setTrials] = useState<Trial[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [fetchingReport, setFetchingReport] = useState<number | string | null>(null);
 
   useEffect(() => {
     const fetchTrials = async () => {
@@ -54,22 +55,42 @@ const RecentTrialsTable: React.FC = () => {
     fetchTrials();
   }, []);
 
-  const handleViewReport = (trial: Trial) => {
-    const document = {
-      document_id: Date.now(),
-      file_name: trial.file_name || `Report_${trial.trial_id}.pdf`,
-      document_type: trial.document_type || 'TRIAL_REPORT',
-      file_base64: trial.file_base64,
-      uploaded_by: 'System',
-      uploaded_at: new Date().toISOString(),
-      remarks: 'Auto-generated Report'
-    };
-    setViewReport({
-      trialId: trial.trial_id,
-      trialNo: trial.trial_no,
-      partName: trial.part_name,
-      documents: [document]
-    });
+  const handleViewReport = async (trial: Trial) => {
+    try {
+      setFetchingReport(trial.trial_id);
+      
+      let reportData = trial;
+      if (!trial.file_base64) {
+        const response = await trialService.getTrialReportFile(trial.trial_id);
+        if (response && response.file_base64) {
+          reportData = { ...trial, ...response };
+        } else {
+          alert('Report file content not found.');
+          return;
+        }
+      }
+
+      const document = {
+        document_id: Date.now(),
+        file_name: reportData.file_name || `Report_${reportData.trial_id}.pdf`,
+        document_type: reportData.document_type || 'TRIAL_REPORT',
+        file_base64: reportData.file_base64,
+        uploaded_by: 'System',
+        uploaded_at: new Date().toISOString(),
+        remarks: 'Auto-generated Report'
+      };
+      setViewReport({
+        trialId: reportData.trial_id,
+        trialNo: reportData.trial_no,
+        partName: reportData.part_name,
+        documents: [document]
+      });
+    } catch (error) {
+      console.error('Error fetching recent trial report base64:', error);
+      alert('Failed to load report file.');
+    } finally {
+      setFetchingReport(null);
+    }
   };
 
   return (
@@ -145,6 +166,7 @@ const RecentTrialsTable: React.FC = () => {
                         <Button
                           variant="outlined"
                           size="small"
+                          disabled={fetchingReport === trial.trial_id}
                           onClick={() => handleViewReport(trial)}
                           sx={{
                             borderRadius: 1,
@@ -160,7 +182,7 @@ const RecentTrialsTable: React.FC = () => {
                             }
                           }}
                         >
-                          View
+                          {fetchingReport === trial.trial_id ? 'Loading...' : 'View'}
                         </Button>
                       ) : (
                         <Typography variant="caption" color="text.secondary">N/A</Typography>

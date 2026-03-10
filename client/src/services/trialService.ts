@@ -207,6 +207,21 @@ export const trialService = {
     },
 
     /**
+     * Fetches base64 file data for a consolidated report
+     * @param patternCode - Pattern code to fetch report for
+     * @returns Promise resolving to report data with base64
+     */
+    async getConsolidatedReportFile(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const data = await apiService.request(`/trial/consolidated-report-file/${encodeURIComponent(patternCode)}`);
+            return data.data || data;
+        } catch (error) {
+            console.error('Failed to fetch consolidated report file:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Fetches all soft-deleted trial reports
      * @returns Promise resolving to array of deleted trial reports
      */

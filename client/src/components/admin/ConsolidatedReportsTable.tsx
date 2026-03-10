@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -34,6 +34,7 @@ const ConsolidatedReportsTable: React.FC = () => {
     const [reports, setReports] = useState<ConsolidatedReport[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [fetchingReport, setFetchingReport] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchReports = async () => {
@@ -51,21 +52,41 @@ const ConsolidatedReportsTable: React.FC = () => {
         fetchReports();
     }, []);
 
-    const handleViewReport = (report: ConsolidatedReport) => {
-        const document = {
-            document_id: report.document_id,
-            file_name: report.file_name,
-            document_type: 'CONSOLIDATED_REPORT',
-            file_base64: report.file_base64,
-            uploaded_by: 'System',
-            uploaded_at: new Date().toISOString(),
-            remarks: 'Consolidated Trial History'
-        };
-        setViewReport({
-            patternCode: report.pattern_code,
-            partName: report.part_name,
-            documents: [document]
-        });
+    const handleViewReport = async (report: ConsolidatedReport) => {
+        try {
+            setFetchingReport(report.pattern_code);
+            
+            let reportData = report;
+            if (!report.file_base64) {
+                const response = await trialService.getConsolidatedReportFile(report.pattern_code);
+                if (response && response.file_base64) {
+                    reportData = { ...report, ...response };
+                } else {
+                    alert('Report file content not found.');
+                    return;
+                }
+            }
+
+            const document = {
+                document_id: reportData.document_id,
+                file_name: reportData.file_name,
+                document_type: 'CONSOLIDATED_REPORT',
+                file_base64: reportData.file_base64,
+                uploaded_by: 'System',
+                uploaded_at: new Date().toISOString(),
+                remarks: 'Consolidated Trial History'
+            };
+            setViewReport({
+                patternCode: reportData.pattern_code,
+                partName: reportData.part_name,
+                documents: [document]
+            });
+        } catch (error) {
+            console.error('Error fetching consolidated report base64:', error);
+            alert('Failed to load report file.');
+        } finally {
+            setFetchingReport(null);
+        }
     };
 
     return (
@@ -123,6 +144,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                                         onClick={() => handleViewReport(report)}
                                         variant="contained"
                                         size="small"
+                                        disabled={fetchingReport === report.pattern_code}
                                         sx={{
                                             textTransform: 'none',
                                             bgcolor: '#E67E22',
@@ -131,7 +153,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                                             }
                                         }}
                                     >
-                                        View report
+                                        {fetchingReport === report.pattern_code ? 'Loading...' : 'View report'}
                                     </Button>
                                 </TableCell>
                             </TableRow>
