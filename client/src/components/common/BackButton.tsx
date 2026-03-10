@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -23,6 +23,8 @@ const BackButton: React.FC<BackButtonProps> = ({
   const handleClick = () => {
     if (onClick) {
       onClick();
+    } else if (navigateTo === '/dashboard') {
+      navigate(-1);
     } else {
       navigate(navigateTo);
     }

@@ -122,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({
                 <Box className="header-left">
                     {showBackButton && (
                         <IconButton
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate(-1)}
                             sx={{ color: 'white', mr: 1 }}
                             size="small"
                         >
