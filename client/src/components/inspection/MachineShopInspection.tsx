@@ -81,8 +81,8 @@ export default function McShopInspection({
     { id: `fdy-ok-${generateUid()}`, label: "FDY OK Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `received-${generateUid()}`, label: "Received Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `insp-${generateUid()}`, label: "Inspected Quantity", values: cavLabels?.map(() => ""), total: null },
-    { id: `accp-${generateUid()}`, label: "Accepted Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `rej-${generateUid()}`, label: "Rejected Quantity", values: cavLabels?.map(() => ""), total: null },
+    { id: `accp-${generateUid()}`, label: "Accepted Quantity", values: cavLabels?.map(() => ""), total: null },
     { id: `rej-perc-${generateUid()}`, label: "Rejection Percentage", values: cavLabels?.map(() => ""), total: null },
     { id: `reason-${generateUid()}`, label: "Reason for rejection", values: cavLabels?.map(() => "") },
   ];

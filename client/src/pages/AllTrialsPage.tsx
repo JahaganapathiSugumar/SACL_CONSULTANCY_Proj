@@ -331,9 +331,21 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         </Box>
                     </Box>
                 </Box>
-                <Box sx={{ flexGrow: 1, overflow: 'auto', p: embedded ? 0 : 3, pt: 1 }}>
+                <Box sx={{ flexGrow: 1, overflow: 'hidden', p: embedded ? 0 : 3, pt: 1, display: 'flex', flexDirection: 'column' }}>
 
-                    <Box sx={{ position: 'relative', minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto' }}>
+                    <TableContainer 
+                        className="premium-table-container" 
+                        sx={{ 
+                            flexGrow: 1,
+                            maxHeight: 'calc(100vh - 250px)', 
+                            overflow: 'auto', 
+                            position: 'relative', 
+                            minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto',
+                            bgcolor: 'white',
+                            borderRadius: '12px',
+                            border: '1px solid #e2e8f0'
+                        }}
+                    >
                         {loading ? (
                             <Box sx={{
                                 display: 'flex',
@@ -589,11 +601,11 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 )}
                             </TableBody>
                         </Table>
-                    </Box>
+                    </TableContainer>
+                </Box>
 
                     <Box sx={{ mt: 3, textAlign: 'right' }}>
                     </Box>
-                </Box>
             </Box>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
