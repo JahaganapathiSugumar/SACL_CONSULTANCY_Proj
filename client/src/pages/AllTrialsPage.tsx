@@ -363,7 +363,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         className="premium-table-container" 
                         sx={{ 
                             flexGrow: 1,
-                            maxHeight: 'calc(100vh - 250px)', 
+                            maxHeight: '650px', 
                             overflow: 'auto', 
                             position: 'relative', 
                             minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto',
