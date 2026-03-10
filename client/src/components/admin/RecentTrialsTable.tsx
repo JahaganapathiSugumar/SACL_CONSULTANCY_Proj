@@ -97,7 +97,7 @@ const RecentTrialsTable: React.FC = () => {
 
   return (
     <>
-      <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 400px)', overflow: 'auto', position: 'relative', minHeight: loading || trials.length === 0 ? '300px' : 'auto' }}>
+      <TableContainer className="premium-table-container" sx={{ maxHeight: '400px', overflow: 'auto', position: 'relative', minHeight: loading || trials.length === 0 ? '300px' : 'auto' }}>
         {loading ? (
           <Box sx={{
             display: 'flex',
