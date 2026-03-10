@@ -14,6 +14,7 @@ import {
   DialogActions,
   Box,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import LoadingState from '../common/LoadingState';
 import { trialService } from '../../services/trialService';
@@ -21,6 +22,7 @@ import DocumentViewer from '../common/DocumentViewer';
 
 interface Trial {
   trial_id: number | string;
+  document_id?: number;
   trial_no: string;
   part_name: string;
   pattern_code: string;
@@ -162,11 +164,12 @@ const RecentTrialsTable: React.FC = () => {
                   </TableCell>
                   <TableCell className="premium-table-cell" align="center">
                     {
-                      trial.status === 'CLOSED' && trial.file_base64 ? (
+                      (trial.status === 'CLOSED' || trial.document_id) ? (
                         <Button
                           variant="outlined"
                           size="small"
                           disabled={fetchingReport === trial.trial_id}
+                          startIcon={fetchingReport === trial.trial_id ? <CircularProgress size={14} /> : null}
                           onClick={() => handleViewReport(trial)}
                           sx={{
                             borderRadius: 1,

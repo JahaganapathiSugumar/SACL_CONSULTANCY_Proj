@@ -27,6 +27,7 @@ import {
     DialogTitle,
     TableContainer,
     TablePagination,
+    CircularProgress,
 } from '@mui/material';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
@@ -468,12 +469,12 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                 </TableCell>
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                                                        {(trial.status === 'CLOSED' || trial.file_base64) ? (
+                                                        {(trial.status === 'CLOSED' || trial.document_id) ? (
                                                             <Button
                                                                 variant="outlined"
                                                                 size="small"
                                                                 disabled={fetchingReport === trial.trial_id}
-                                                                startIcon={fetchingReport === trial.trial_id ? <LoadingState size={16} /> : <DescriptionIcon />}
+                                                                startIcon={fetchingReport === trial.trial_id ? <CircularProgress size={16} /> : <DescriptionIcon />}
                                                                 onClick={() => handleViewReport(trial)}
                                                                 sx={{
                                                                     borderRadius: 1,
