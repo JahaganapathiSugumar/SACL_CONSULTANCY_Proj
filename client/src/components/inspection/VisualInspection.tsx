@@ -1311,7 +1311,7 @@ export default function VisualInspection({
                                             onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                                             showAlert={showAlert}
                                             label="Attach PDF"
-                                            disabled={!isEditing}
+                                            disabled={false}
                                         />
 
                                         <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1327,7 +1327,7 @@ export default function VisualInspection({
                                                 onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
                                                 label="Attach Confidential PDF"
-                                                disabled={!isEditing}
+                                                disabled={false}
                                             />
                                         </Box>
 

@@ -1231,7 +1231,7 @@ export default function MetallurgicalInspection() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={(user?.department_id === 8) && !isEditing}
+                      disabled={user?.department_id === 8}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1247,7 +1247,7 @@ export default function MetallurgicalInspection() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={(user?.department_id === 8) && !isEditing}
+                        disabled={user?.department_id === 8}
                       />
                     </Box>
 
