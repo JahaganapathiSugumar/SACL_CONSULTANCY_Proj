@@ -699,7 +699,8 @@ export default function McShopInspection({
                                       "& .MuiInputBase-input": {
                                         fontFamily: 'Roboto Mono',
                                         textAlign: 'center',
-                                        backgroundColor: r?.label?.toLowerCase()?.includes("accepted quantity") ? '#f3f4f6' : 'white'
+                                        backgroundColor: val === 'Invalid' ? '#fee2e2' :
+                                          r?.label?.toLowerCase()?.includes("accepted quantity") ? '#f3f4f6' : 'white'
                                       }
                                     }}
                                     disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}

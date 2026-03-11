@@ -357,11 +357,13 @@ function SectionTable({
                                                         textAlign: 'center',
                                                         fontFamily: 'Roboto Mono',
                                                         bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
-                                                            isAcceptedQty ? '#f3f4f6' : 'transparent'
+                                                            values[r.id]?.[ci] === 'Invalid' ? '#fee2e2' :
+                                                                isAcceptedQty ? '#f3f4f6' : 'transparent'
                                                     },
                                                     "& .MuiInputBase-root": {
                                                         bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
-                                                            isAcceptedQty ? '#f3f4f6' : 'white'
+                                                            values[r.id]?.[ci] === 'Invalid' ? '#fee2e2' :
+                                                                isAcceptedQty ? '#f3f4f6' : 'white'
                                                     }
                                                 }}
                                                 disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || isAcceptedQty || r.label.toLowerCase().includes('percentage')}
@@ -1141,17 +1143,10 @@ export default function VisualInspection({
                                                             </TableCell>
 
                                                             {cols?.map((_, ci) => {
-                                                                const inspectedValue = inspectedRow ? (inspectedRow?.values?.[ci] ?? "") : "";
-                                                                const inspectedNum = parseFloat(String(inspectedValue).trim());
-                                                                const acceptedNum = isAcceptedQty ? parseFloat(String(r?.values?.[ci] ?? '').trim()) : NaN;
-                                                                const isInvalid = !isNaN(inspectedNum) && !isNaN(acceptedNum) && acceptedNum > inspectedNum;
-                                                                const rejectedValue = isRejectedQty ? (r?.values?.[ci] ?? "") : "";
-                                                                const isRejectedInvalid = rejectedValue === 'Invalid';
-
                                                                 const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r?.values?.[ci] ?? "");
+                                                                const isInvalidValue = displayValue === 'Invalid';
                                                                 const isFieldDisabled = r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
-                                                                    (isAcceptedQty && !inspectedValue) ||
-                                                                    isRejectedQty ||
+                                                                    isAcceptedQty ||
                                                                     isRejectionPercentage;
 
                                                                 return (
@@ -1170,17 +1165,16 @@ export default function VisualInspection({
                                                                                     textAlign: 'center',
                                                                                     fontFamily: 'Roboto Mono',
                                                                                     bgcolor: isRejectionPercentage ? '#fffbeb' :
-                                                                                        isRejectedQty ? '#f3f4f6' :
-                                                                                            (isInvalid || isRejectedInvalid) ? '#fee2e2' :
-                                                                                                'transparent',
+                                                                                        isInvalidValue ? '#fee2e2' :
+                                                                                            isAcceptedQty ? '#f3f4f6' : 'transparent',
                                                                                 },
                                                                                 "& .MuiInputBase-root": {
                                                                                     bgcolor: isRejectionPercentage ? '#fffbeb' :
-                                                                                        isRejectedQty ? '#f3f4f6' :
-                                                                                            'white'
+                                                                                        isInvalidValue ? '#fee2e2' :
+                                                                                            isAcceptedQty ? '#f3f4f6' : 'white'
                                                                                 }
                                                                             }}
-                                                                            error={isInvalid || isRejectedInvalid}
+                                                                            error={isInvalidValue}
                                                                         />
                                                                     </TableCell>
                                                                 );
