@@ -602,19 +602,23 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             return ((totalRej / totalProduction) * 100).toFixed(2) + "%";
         };
 
-        const prodRowsArr = ["Production", ...allCavitiesForSummary.map(() => productionCount)];
-
         const visRejVals = allCavitiesForSummary.map(c => getSummVal(visInspections, c, 'Rejected Quantity'));
-        const visRejRowsArr = ["Visual Inspection Rejection", ...visRejVals];
-
         const hardRejVals = allCavitiesForSummary.map(c => getSummVal(hardRowsForSection, c, 'Rejected Quantity'));
-        const hardRejRowsArr = ["Hardness Inspection Rejection", ...hardRejVals];
-
         const ndtRejVals = allCavitiesForSummary.map(c => getSummVal(ndtRowsForSection, c, 'Rejected Quantity'));
-        const ndtRejRowsArr = ["NDT X-Ray Rejection", ...ndtRejVals];
-
         const mcRejVals = allCavitiesForSummary.map(c => getSummVal(mcInspections, c, 'Rejected Quantity'));
-        const mcRejRowsArr = ["M/C Rejection", ...mcRejVals];
+
+        const visRejTotal = visRejVals.reduce((a, b) => a + b, 0);
+        const hardRejTotal = hardRejVals.reduce((a, b) => a + b, 0);
+        const ndtRejTotal = ndtRejVals.reduce((a, b) => a + b, 0);
+        const mcRejTotal = mcRejVals.reduce((a, b) => a + b, 0);
+
+        const prodTotal = productionCount * allCavitiesForSummary.length;
+        const prodRowsArr = ["Production", ...allCavitiesForSummary.map(() => productionCount), prodTotal];
+
+        const visRejRowsArr = ["Visual Inspection Rejection", ...visRejVals, visRejTotal];
+        const hardRejRowsArr = ["Hardness Inspection Rejection", ...hardRejVals, hardRejTotal];
+        const ndtRejRowsArr = ["NDT X-Ray Rejection", ...ndtRejVals, ndtRejTotal];
+        const mcRejRowsArr = ["M/C Rejection", ...mcRejVals, mcRejTotal];
 
         const calcOkRowsArr = ["Calculated OK Quantity"];
         const actualOkRowsArr = ["Actual OK Quantity"];
@@ -633,7 +637,15 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             balanceRowsArr.push(calcRaw - actRaw);
         });
 
-        const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Rejection %", "Remarks"];
+        const calcOkTotal = calcOkRowsArr.slice(1).reduce((a, b) => a + b, 0);
+        const actualOkTotal = actualOkRowsArr.slice(1).reduce((a, b) => a + b, 0);
+        const balanceTotal = balanceRowsArr.slice(1).reduce((a, b) => a + b, 0);
+
+        calcOkRowsArr.push(calcOkTotal);
+        actualOkRowsArr.push(actualOkTotal);
+        balanceRowsArr.push(balanceTotal);
+
+        const summaryHeaders = ["Parameter", ...allCavitiesForSummary, "Total", "Rejection %", "Remarks"];
 
         const finalSummaryRows = [
             [...prodRowsArr, "-", ""],
@@ -647,11 +659,12 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         ];
 
         const firstColW = 85;
+        const totalColW = 40;
         const rejPctW = 50;
         const remarksW = 100;
-        const remainingW = 535 - firstColW - rejPctW - remarksW;
+        const remainingW = 535 - firstColW - totalColW - rejPctW - remarksW;
         const cavColW = remainingW / allCavitiesForSummary.length;
-        const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), rejPctW, remarksW];
+        const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), totalColW, rejPctW, remarksW];
 
         p2NextY = drawTable(doc, { headers: summaryHeaders, rows: finalSummaryRows }, col1X, p2NextY, summaryColWidths) + 15;
     }
