@@ -343,10 +343,12 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
 };
 
 export const approveProgress = async (trial_id, user, trx, ipAddress) => {
-    await trx.query(
-        `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND approval_status = 'pending'`,
-        { trial_id }
-    );
+    if (user.role !== 'Admin') {
+        await trx.query(
+            `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
+            { trial_id, department_id: user.department_id }
+        );
+    }
     const [pending] = await trx.query(
         `SELECT TOP 1 df.department_id FROM department_flow df
         JOIN department_progress dp ON dp.department_id = df.department_id
