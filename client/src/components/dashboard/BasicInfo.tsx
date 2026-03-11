@@ -704,9 +704,9 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                     </Grid>
                   </Paper>
 
-                  {/* Moulding Details */}
+                  {/* Moulding Parameters(From NPD) */}
                   <Paper sx={{ p: 3, overflowX: "auto", mb: 3 }}>
-                    <SectionHeader icon={<EditIcon />} title="Moulding Details" color={COLORS.primary} />
+                    <SectionHeader icon={<EditIcon />} title="Moulding Parameters(From NPD)" color={COLORS.primary} />
                     <Table size="small">
                       <TableHead>
                         <TableRow>

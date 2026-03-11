@@ -23,7 +23,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
 
     useEffect(() => {
         const fetchProgressing = async () => {
-            if (departmentId === 4 || departmentId === 6 || departmentId === 7 || departmentId === 8) {
+            if ([4, 5, 6, 7, 8, 10].includes(departmentId)) {
                 setLoadingTrials(true);
                 try {
                     let data;
@@ -47,7 +47,7 @@ const ProgressingTrialsGrid: React.FC<ProgressingTrialsGridProps> = ({ departmen
         return () => clearInterval(interval);
     }, [departmentId]);
 
-    if (departmentId !== 4 && departmentId !== 6 && departmentId !== 7 && departmentId !== 8) {
+    if (![4, 5, 6, 7, 8, 10].includes(departmentId)) {
         return null;
     }
 

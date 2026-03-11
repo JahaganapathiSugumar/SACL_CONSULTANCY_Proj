@@ -167,37 +167,37 @@ function SectionTable({
 
                 if (inspectedRow && acceptedRow && rejectedRow) {
                     const inspectedValues = copy[inspectedRow.id] || [];
-                    const acceptedValues = copy[acceptedRow.id] || [];
-                    const rejectedValues = [...(copy[rejectedRow.id] || [])];
+                    const rejectedValues = copy[rejectedRow.id] || [];
+                    const acceptedValues = [...(copy[acceptedRow.id] || [])];
                     const percentageValues = percentageRow ? [...(copy[percentageRow.id] || [])] : [];
 
                     const inspectedNum = parseFloat(String(inspectedValues[colIndex] || '').trim());
-                    const acceptedNum = parseFloat(String(acceptedValues[colIndex] || '').trim());
+                    const rejectedNum = parseFloat(String(rejectedValues[colIndex] || '').trim());
 
-                    if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
-                        if (acceptedNum > inspectedNum) {
-                            rejectedValues[colIndex] = 'Invalid';
+                    if (!isNaN(inspectedNum) && !isNaN(rejectedNum)) {
+                        if (rejectedNum > inspectedNum) {
+                            acceptedValues[colIndex] = 'Invalid';
                             if (percentageRow) percentageValues[colIndex] = 'Invalid';
                             if (showAlert) {
-                                showAlert('error', `Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
+                                showAlert('error', `Column ${colIndex + 1}: Rejected quantity (${rejectedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
                             }
                         } else {
-                            const calculatedRejected = inspectedNum - acceptedNum;
-                            rejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
+                            const calculatedAccepted = inspectedNum - rejectedNum;
+                            acceptedValues[colIndex] = calculatedAccepted >= 0 ? calculatedAccepted.toString() : '';
 
                             if (percentageRow) {
                                 if (inspectedNum > 0) {
-                                    percentageValues[colIndex] = ((calculatedRejected / inspectedNum) * 100).toFixed(2);
+                                    percentageValues[colIndex] = ((rejectedNum / inspectedNum) * 100).toFixed(2);
                                 } else {
                                     percentageValues[colIndex] = '0.00';
                                 }
                             }
                         }
-                        copy = { ...copy, [rejectedRow.id]: rejectedValues };
+                        copy = { ...copy, [acceptedRow.id]: acceptedValues };
                         if (percentageRow) copy = { ...copy, [percentageRow.id]: percentageValues };
 
-                        const rejectedCombined = rejectedValues?.map(v => v || "").join('|');
-                        onChange(rejectedRow.id, { value: rejectedCombined });
+                        const acceptedCombined = acceptedValues?.map(v => v || "").join('|');
+                        onChange(acceptedRow.id, { value: acceptedCombined });
 
                         if (percentageRow) {
                             const percentageCombined = percentageValues?.map(v => v || "").join('|');
@@ -357,14 +357,14 @@ function SectionTable({
                                                         textAlign: 'center',
                                                         fontFamily: 'Roboto Mono',
                                                         bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
-                                                            isRejectedQty ? '#f3f4f6' : 'transparent'
+                                                            isAcceptedQty ? '#f3f4f6' : 'transparent'
                                                     },
                                                     "& .MuiInputBase-root": {
                                                         bgcolor: labelLower.includes('percentage') ? '#fffbeb' :
-                                                            isRejectedQty ? '#f3f4f6' : 'white'
+                                                            isAcceptedQty ? '#f3f4f6' : 'white'
                                                     }
                                                 }}
-                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || isRejectedQty || r.label.toLowerCase().includes('percentage')}
+                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || isAcceptedQty || r.label.toLowerCase().includes('percentage')}
                                             />
                                         </TableCell>
                                     ))}
@@ -670,18 +670,18 @@ export default function VisualInspection({
 
             if (inspectedRow && acceptedRow && rejectedRow) {
                 const inspectedNum = parseFloat(String(inspectedRow?.values?.[colIndex] || '').trim());
-                const acceptedNum = parseFloat(String(acceptedRow?.values?.[colIndex] || '').trim());
+                const rejectedNum = parseFloat(String(rejectedRow?.values?.[colIndex] || '').trim());
 
-                if (!isNaN(inspectedNum) && !isNaN(acceptedNum)) {
-                    const newRejectedValues = [...(rejectedRow?.values || [])];
-                    if (acceptedNum > inspectedNum) {
-                        newRejectedValues[colIndex] = 'Invalid';
-                        showAlert('error', `Column ${colIndex + 1}: Accepted quantity (${acceptedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
+                if (!isNaN(inspectedNum) && !isNaN(rejectedNum)) {
+                    const newAcceptedValues = [...(acceptedRow?.values || [])];
+                    if (rejectedNum > inspectedNum) {
+                        newAcceptedValues[colIndex] = 'Invalid';
+                        showAlert('error', `Column ${colIndex + 1}: Rejected quantity (${rejectedNum}) cannot be greater than Inspected quantity (${inspectedNum})`);
                     } else {
-                        const calculatedRejected = inspectedNum - acceptedNum;
-                        newRejectedValues[colIndex] = calculatedRejected >= 0 ? calculatedRejected.toString() : '';
+                        const calculatedAccepted = inspectedNum - rejectedNum;
+                        newAcceptedValues[colIndex] = calculatedAccepted >= 0 ? calculatedAccepted.toString() : '';
                     }
-                    updated = updated?.map(r => r.id === rejectedRow.id ? { ...r, values: newRejectedValues } : r);
+                    updated = updated?.map(r => r.id === acceptedRow.id ? { ...r, values: newAcceptedValues } : r);
                 }
             }
 

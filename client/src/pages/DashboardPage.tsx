@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
                 )}
 
                 {/* Progressing Trials Grid for Moulding, PCQC, Sand Plant, Machine Shop */}
-                {(user?.department_id === 4 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 8) && (
+                {(user?.department_id === 4 || user?.department_id === 5 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 8 || user?.department_id === 10) && (
                   <ProgressingTrialsGrid departmentId={user?.department_id || 0} />
                 )}
 
