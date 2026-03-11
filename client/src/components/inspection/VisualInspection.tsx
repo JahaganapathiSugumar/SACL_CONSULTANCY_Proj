@@ -382,7 +382,7 @@ function SectionTable({
 }
 
 export default function VisualInspection({
-    initialRows = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"],
+    initialRows = ["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"],
     initialCols = [""],
     onSave = async (payload: any) => {
         return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
@@ -414,8 +414,8 @@ export default function VisualInspection({
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
     const [dataExists, setDataExists] = useState(false);
-    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
-    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"]));
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -590,7 +590,7 @@ export default function VisualInspection({
                             }));
                         };
 
-                        const labels = ["Cavity Number", "Inspected Quantity", "Accepted Quantity", "Rejected Quantity", "Rejection Percentage", "Reason for rejection"];
+                        const labels = ["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"];
                         const ndtRowsData = restoreSection(data?.ndt_inspection, labels, data?.ndt_inspection_ok, data?.ndt_inspection_remarks);
                         if (ndtRowsData?.length > 0) setNdtRows(ndtRowsData as NdtRow[]);
 
