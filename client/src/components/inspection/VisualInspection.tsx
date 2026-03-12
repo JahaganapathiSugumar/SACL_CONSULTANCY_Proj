@@ -647,18 +647,6 @@ export default function VisualInspection({
 
     const updateCell = (rowId: string, colIndex: number, value: string) => {
         setRows(prev => {
-            const targetRow = prev.find(r => r.id === rowId);
-            if (targetRow?.label?.toLowerCase()?.includes("accepted quantity")) {
-                setHardRows(hPrev => hPrev.map(hr => {
-                    if (hr.label.toLowerCase() === "inspected quantity") {
-                        const vals = (hr.value || "").split('|');
-                        vals[colIndex] = value;
-                        return { ...hr, value: vals.join('|') };
-                    }
-                    return hr;
-                }));
-            }
-
             let updated = prev?.map(r => {
                 if (r.id !== rowId) return r;
                 const newValues = r?.values?.map((v, i) => (i === colIndex ? value : v));
@@ -685,6 +673,16 @@ export default function VisualInspection({
                         newAcceptedValues[colIndex] = calculatedAccepted >= 0 ? calculatedAccepted.toString() : '';
                     }
                     updated = updated?.map(r => r.id === acceptedRow.id ? { ...r, values: newAcceptedValues } : r);
+                    setHardRows(hPrev => hPrev.map(hr => {
+                        if (hr.label.toLowerCase() === "inspected quantity") {
+                            const currentVals = (hr.value || "").split('|');
+                            const newVals = [...currentVals];
+                            while (newVals.length <= colIndex) newVals.push("");
+                            newVals[colIndex] = newAcceptedValues[colIndex];
+                            return { ...hr, value: newVals.join('|') };
+                        }
+                        return hr;
+                    }));
                 }
             }
 
@@ -989,8 +987,8 @@ export default function VisualInspection({
             await Swal.fire({
                 icon: 'success',
                 title: isDraft ? 'Saved as Draft' : 'Success',
-                text: isDraft 
-                    ? 'Progress saved and moved to next department.' 
+                text: isDraft
+                    ? 'Progress saved and moved to next department.'
                     : `Visual Inspection ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate(-1);
