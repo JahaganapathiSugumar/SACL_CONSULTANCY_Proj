@@ -418,7 +418,7 @@ export const getProgressingTrials = async (req, res, next) => {
                t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
                t.sample_traceability, t.trial_type
         FROM trial_cards t
-        WHERE (t.status = 'IN_PROGRESS' OR t.status = 'CREATED') AND t.deleted_at IS NULL
+        WHERE t.status = 'IN_PROGRESS' AND t.deleted_at IS NULL
         AND NOT EXISTS (
             SELECT 1
             FROM department_progress dp
