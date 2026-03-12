@@ -259,13 +259,13 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     // Header
     doc.rect(0, 0, 595, 60).fillColor('#2c3e50').fill();
     doc.font('Helvetica-Bold').fontSize(18).fillColor('white').text('SAMPLE CARD', 30, 20, { align: 'left' });
-    doc.fontSize(10).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 42, { align: 'left' });
+    doc.fontSize(8.5).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 42, { align: 'left' });
     doc.fillColor('black'); // Reset
 
     let y = 80;
     const col1X = 30;
-    const col2X = 305;
-    const colWidth = 260;
+    const col2X = 315;
+    const colWidth = 250;
 
     // --- PAGE 1: PROCESS DATA ---
 

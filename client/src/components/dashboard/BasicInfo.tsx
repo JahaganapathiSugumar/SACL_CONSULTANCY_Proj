@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -31,6 +31,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { trialService } from "../../services/trialService";
+import { inspectionService } from "../../services/inspectionService";
 import { formatDate } from "../../utils/dateUtils";
 import { useAuth } from "../../context/AuthContext";
 
@@ -73,6 +74,7 @@ type TrialData = {
   hardness_core?: string;
   xray?: string;
   mpi?: string;
+  heat_code?: string;
 };
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color: string }) => (
@@ -319,6 +321,15 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
           } catch (masterError) {
             console.error("Failed to fetch master list data:", masterError);
           }
+        }
+        
+        try {
+          const pouringResponse = await inspectionService.getPouringDetails(id);
+          if (pouringResponse?.success && pouringResponse?.data?.length > 0) {
+            parsedTrial.heat_code = pouringResponse?.data[0]?.heat_code;
+          }
+        } catch (pouringError) {
+          console.error("Failed to fetch pouring details:", pouringError);
         }
 
         setData(parsedTrial);
@@ -595,8 +606,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                             "Actual Moulds",
                             "DISA / FOUNDRY-A",
                             "Reason For Sampling",
-                            "Sample Traceability",
-
+                            "Sample Traceability & Heat Code",
                           ].map((head) => (
                             <TableCell
                               key={head}
@@ -658,13 +668,25 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                               InputProps={{ readOnly: true, sx: { textAlign: 'center' } }}
                             />
                           </TableCell>
-                          <TableCell align="center">
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={data?.sample_traceability || '-'}
-                              InputProps={{ readOnly: true, sx: { textAlign: 'center' } }}
-                            />
+                          <TableCell align="center" sx={{ minWidth: 200 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                label="Traceability"
+                                value={data?.sample_traceability || '-'}
+                                InputProps={{ readOnly: true, sx: { textAlign: 'center', fontSize: '0.75rem' } }}
+                                slotProps={{ inputLabel: { shrink: true, sx: { fontSize: '0.75rem' } } }}
+                              />
+                              <TextField
+                                fullWidth
+                                size="small"
+                                label="Heat Code"
+                                value={data?.heat_code || '-'}
+                                InputProps={{ readOnly: true, sx: { textAlign: 'center', fontSize: '0.75rem' } }}
+                                slotProps={{ inputLabel: { shrink: true, sx: { fontSize: '0.75rem' } } }}
+                              />
+                            </Box>
                           </TableCell>
 
                         </TableRow>

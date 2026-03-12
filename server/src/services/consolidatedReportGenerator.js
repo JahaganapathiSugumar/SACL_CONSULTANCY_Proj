@@ -290,13 +290,13 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         doc.rect(0, 0, 595, 60).fillColor('#2c3e50').fill();
         doc.font('Helvetica-Bold').fontSize(16).fillColor('white')
             .text('SAMPLE CARD', 30, 20, { align: 'left' });
-        doc.fontSize(10)
+        doc.fontSize(8.5)
             .text(`Part Name: ${trialCard?.part_name || "-"}   |   Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 42, { align: 'left' });
 
         let y = 80;
         const col1X = 30;
-        const col2X = 305;
-        const colWidth = 260;
+        const col2X = 315;
+        const colWidth = 250;
 
         // Trial Card Details
         let yNext = y;

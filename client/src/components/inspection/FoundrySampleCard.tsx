@@ -422,7 +422,7 @@ function FoundrySampleCard() {
   const handlePatternChange = (v: PartData | null) => { setSelectedPattern(v); if (v) setSelectedPart(v); };
 
   const buildServerPayload = () => {
-    const reasonFinal = reason === 'Others' ? `Others (${customReason})` : reason;
+    const reasonFinal = reason === 'Others' ? `${customReason}` : reason;
     const source = previewPayload || {
       trial_id: trialId || trialIdFromUrl,
       trial_no: trialNo,
