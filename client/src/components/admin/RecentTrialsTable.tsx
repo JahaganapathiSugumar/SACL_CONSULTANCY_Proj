@@ -164,7 +164,7 @@ const RecentTrialsTable: React.FC = () => {
                   </TableCell>
                   <TableCell className="premium-table-cell" align="center">
                     {
-                      (trial.status === 'CLOSED' || trial.document_id) ? (
+                      (trial.status === 'CLOSED' && trial.document_id) ? (
                         <Button
                           variant="outlined"
                           size="small"
