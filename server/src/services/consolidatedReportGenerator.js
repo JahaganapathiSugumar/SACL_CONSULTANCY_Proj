@@ -295,8 +295,8 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         let y = 80;
         const col1X = 30;
-        const col2X = 325;
-        const colWidth = 240;
+        const col2X = 315;
+        const colWidth = 250;
 
         // Trial Card Details
         let yNext = y;
@@ -510,9 +510,9 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         if (visInspections.length > 0) {
             const labelMap = {
                 'Cavity Number': 'Cavity No',
-                'Inspected Quantity': 'Insp Qty',
-                'Accepted Quantity': 'Acc Qty',
-                'Rejected Quantity': 'Rej Qty',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
                 'Rejection Percentage': 'Rej %',
                 'Reason for rejection': 'Reason'
             };
@@ -529,7 +529,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
                 r['Reason for rejection'] || '-'
             ]);
 
-            const colWidths = [40, 50, 50, 50, 50, 150];
+            const colWidths = [35, 40, 40, 40, 40, 55];
             visitY = drawTable(doc, { headers, rows }, col1X, visitY, colWidths) + 8;
         }
 
@@ -550,7 +550,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         const dimInspections = safeParse(dimensional?.inspections, []);
         if (dimInspections.length > 0) {
-            dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [100, 100]) + 8;
+            dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [125, 125]) + 8;
         }
 
         let p2NextY = Math.max(visitY, dimY) + 15;
@@ -631,9 +631,9 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
                     'Cavity Number': 'Cavity No',
                     'FDY OK Quantity': 'FDY OK Qty',
                     'Received Quantity': 'Received Qty',
-                    'Inspected Quantity': 'Insp Qty',
-                    'Rejected Quantity': 'Rej Qty',
-                    'Accepted Quantity': 'Acc Qty',
+                    'Inspected Quantity': 'Inspected Qty',
+                    'Rejected Quantity': 'Rejected Qty',
+                    'Accepted Quantity': 'Accepted Qty',
                     'Rejection Percentage': 'Rej %',
                     'Reason for rejection': 'Reason'
                 };
