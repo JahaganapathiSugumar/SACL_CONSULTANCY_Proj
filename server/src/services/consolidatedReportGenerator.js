@@ -295,8 +295,8 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         let y = 80;
         const col1X = 30;
-        const col2X = 315;
-        const colWidth = 250;
+        const col2X = 325;
+        const colWidth = 240;
 
         // Trial Card Details
         let yNext = y;
@@ -489,7 +489,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         }
 
         // Header P2 (Simplified)
-        doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
+        doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"} | Trial No: ${trialCard?.trial_no || "-"}`, 30, p2y - 20);
         doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
 
         let visitY = p2y;
@@ -699,7 +699,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             for (const [category, docs] of Object.entries(groupedDocs)) {
                 doc.addPage();
                 doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
-                    .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Trial: ${trialCard?.trial_no})`, 30, 25, { align: 'center', width: 535 });
+                    .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Trial No: ${trialCard?.trial_no})`, 30, 25, { align: 'center', width: 535 });
                 doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
 
                 let currentAttY = 55;

@@ -264,8 +264,8 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     let y = 80;
     const col1X = 30;
-    const col2X = 315;
-    const colWidth = 250;
+    const col2X = 325;
+    const colWidth = 240;
 
     // --- PAGE 1: PROCESS DATA ---
 

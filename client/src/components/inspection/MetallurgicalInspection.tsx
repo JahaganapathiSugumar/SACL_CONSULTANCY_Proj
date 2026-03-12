@@ -131,7 +131,7 @@ function SectionTable({
     if (cavityNumbers && cavityNumbers?.length > 0) {
       const cavityRow = rows?.find(r => r?.label === "Cavity Number");
       if (cavityRow) {
-        setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
+        setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `Cavity ${c}` })));
         setValues((prev: Record<string, string[]>) => {
           const nextValues: Record<string, string[]> = { ...prev };
           rows.forEach(r => {
@@ -193,15 +193,16 @@ function SectionTable({
               {cols?.map((c, ci) => (
                 <TableCell key={c?.id} sx={{ minWidth: 140 }}>
                   <Box display="flex" alignItems="center" gap={1} justifyContent="center">
-                    <TextField
-                      size="small"
-                      value={c?.label}
-                      onChange={(e) => setCols((prev) => prev?.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
-                      variant="standard"
-                      InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
-                      sx={{ input: { textAlign: 'center' } }}
-                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                    />
+                    <Typography
+                      sx={{
+                        color: COLORS.blueHeaderText,
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {c?.label}
+                    </Typography>
                   </Box>
                 </TableCell>
               ))}
@@ -353,7 +354,7 @@ function MicrostructureTable({
   const isMachineShop = user?.department_id === 8;
   useEffect(() => {
     if (cavityNumbers && cavityNumbers.length > 0) {
-      setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
+      setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `Cavity ${c}` })));
       setValues((prev: Record<string, string[]>) => {
         const nextValues: Record<string, string[]> = { ...prev };
         params.forEach(p => {
@@ -419,15 +420,16 @@ function MicrostructureTable({
               {cols?.map((c, ci) => (
                 <TableCell key={c?.id} sx={{ minWidth: 140 }}>
                   <Box display="flex" alignItems="center" gap={1} justifyContent="center">
-                    <TextField
-                      size="small"
-                      value={c?.label}
-                      onChange={(e) => setCols((prev) => prev?.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
-                      variant="standard"
-                      InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
-                      sx={{ input: { textAlign: 'center' } }}
-                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing}
-                    />
+                    <Typography
+                      sx={{
+                        color: COLORS.blueHeaderText,
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {c?.label}
+                    </Typography>
                   </Box>
                 </TableCell>
               ))}
