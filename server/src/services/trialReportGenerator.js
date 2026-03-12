@@ -467,7 +467,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     }
 
     // Header P2 (Simplified)
-    doc.font('Helvetica-Bold').fontSize(12).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
+    doc.font('Helvetica-Bold').fontSize(8.5).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
     doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
 
     let p2NextY = p2y;
@@ -581,7 +581,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         if (p2NextY > 650) {
             doc.addPage();
             p2NextY = 40;
-            doc.font('Helvetica-Bold').fontSize(12).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 20);
+            doc.font('Helvetica-Bold').fontSize(8.5).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 20);
             doc.moveTo(30, 35).lineTo(565, 35).stroke();
         }
 

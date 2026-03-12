@@ -489,7 +489,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         }
 
         // Header P2 (Simplified)
-        doc.font('Helvetica-Bold').fontSize(12).text(`Part Name: ${trialCard?.part_name || "-"}`, 30, p2y - 20);
+        doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
         doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
 
         let visitY = p2y;
@@ -598,7 +598,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             if (p2y > 650) {
                 doc.addPage();
                 p2y = 40;
-                doc.font('Helvetica-Bold').fontSize(12).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 20);
+                doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 20);
                 doc.moveTo(30, 35).lineTo(565, 35).stroke();
             }
 
