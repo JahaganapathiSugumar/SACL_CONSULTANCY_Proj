@@ -502,7 +502,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     const dimInspections = safeParse(dimensional?.inspections, []);
     if (dimInspections.length > 0) {
-        dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [130, 130]) + 8;
+        dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [100, 100]) + 8;
     }
 
     // Move NDT and Hardness below BOTH to span full width

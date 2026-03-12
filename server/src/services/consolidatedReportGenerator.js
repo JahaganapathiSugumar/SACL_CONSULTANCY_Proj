@@ -524,7 +524,7 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         const dimInspections = safeParse(dimensional?.inspections, []);
         if (dimInspections.length > 0) {
-            dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [130, 130]) + 8;
+            dimY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: Array.isArray(dimInspections) ? dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) : [] }, col2X, dimY, [100, 100]) + 8;
         }
 
         let p2NextY = Math.max(visitY, dimY) + 15;
