@@ -116,12 +116,15 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     }, [trials]);
 
     const filteredTrials = trials
-        .filter(trial =>
-            trial.trial_id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trial.trial_no?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trial.part_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trial.pattern_code?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter(trial => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                String(trial.trial_id || '').toLowerCase().includes(searchLower) ||
+                String(trial.trial_no || '').toLowerCase().includes(searchLower) ||
+                String(trial.part_name || '').toLowerCase().includes(searchLower) ||
+                String(trial.pattern_code || '').toLowerCase().includes(searchLower)
+            );
+        })
         .filter(trial => {
             if (statusFilter === 'ALL') return true;
             return trial.status === statusFilter;
