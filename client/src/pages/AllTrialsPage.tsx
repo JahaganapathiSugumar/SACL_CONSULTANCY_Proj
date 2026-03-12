@@ -28,6 +28,7 @@ import {
     TableContainer,
     TablePagination,
     CircularProgress,
+    Autocomplete,
 } from '@mui/material';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
@@ -68,6 +69,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [deptFilter, setDeptFilter] = useState('ALL');
+    const [patternFilter, setPatternFilter] = useState('ALL');
     const [departments, setDepartments] = useState<any[]>([]);
     const [showProfile, setShowProfile] = useState(false);
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
@@ -108,6 +110,11 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         fetchDepartments();
     }, []);
 
+    const uniquePatternCodes = useMemo(() => {
+        const codes = trials.map(t => t.pattern_code).filter(Boolean);
+        return Array.from(new Set(codes)).sort() as string[];
+    }, [trials]);
+
     const filteredTrials = trials
         .filter(trial =>
             trial.trial_id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,6 +129,10 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         .filter(trial => {
             if (deptFilter === 'ALL') return true;
             return trial.current_department_id === Number(deptFilter);
+        })
+        .filter(trial => {
+            if (patternFilter === 'ALL') return true;
+            return trial.pattern_code === patternFilter;
         })
         .sort((a, b) => new Date(b.date_of_sampling).getTime() - new Date(a.date_of_sampling).getTime());
 
@@ -325,6 +336,17 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     <MenuItem value="CLOSED">Closed</MenuItem>
                                 </Select>
                             </FormControl>
+                            <Autocomplete
+                                size="small"
+                                sx={{ minWidth: 200, bgcolor: 'white' }}
+                                options={['ALL', ...uniquePatternCodes]}
+                                getOptionLabel={(option) => option === 'ALL' ? 'All Pattern Codes' : option}
+                                value={patternFilter}
+                                onChange={(_, newValue) => setPatternFilter(newValue || 'ALL')}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Pattern Code" variant="outlined" />
+                                )}
+                            />
                             <TextField
                                 placeholder="Search Trial No, Part Name..."
                                 value={searchTerm}
