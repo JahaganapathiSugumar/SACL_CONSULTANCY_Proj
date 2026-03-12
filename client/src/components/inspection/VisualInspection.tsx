@@ -953,13 +953,12 @@ export default function VisualInspection({
         }
     };
 
-    const handleFinalSave = async () => {
-        if (!previewPayload) return;
+    const performSave = async (isDraft: boolean) => {
+        if (!isDraft && !previewPayload) return;
         setSaving(true);
         setMessage(null);
-
         try {
-            const apiPayload = buildServerPayload(false);
+            const apiPayload = buildServerPayload(isDraft);
 
             if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
                 await inspectionService.updateVisualInspection(apiPayload);
@@ -967,100 +966,46 @@ export default function VisualInspection({
                 await inspectionService.submitVisualInspection(apiPayload);
             }
 
+            const upload = async (files: File[], isConfidential: boolean) => {
+                if (files.length > 0) {
+                    await uploadFiles(
+                        files,
+                        trialId,
+                        "VISUAL_INSPECTION",
+                        user?.username || "system",
+                        isConfidential ? "VISUAL_INSPECTION_CONFIDENTIAL" : "VISUAL_INSPECTION",
+                        isConfidential
+                    ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+                }
+            };
 
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "VISUAL_INSPECTION",
-                    user?.username || "system",
-                    "VISUAL_INSPECTION",
-                    false
-                ).catch(err => console.error("File upload error:", err));
-            }
-
-            if (confidentialFiles.length > 0) {
-                await uploadFiles(
-                    confidentialFiles,
-                    trialId,
-                    "VISUAL_INSPECTION",
-                    user?.username || "system",
-                    "VISUAL_INSPECTION",
-                    true
-                ).catch(err => console.error("Confidential file upload error:", err));
-            }
+            await upload(attachedFiles, false);
+            await upload(confidentialFiles, true);
 
             setSubmitted(true);
-            setPreviewMode(false);
+            if (!isDraft) setPreviewMode(false);
+
             await Swal.fire({
                 icon: 'success',
-                title: 'Success',
-                text: `Visual Inspection ${dataExists ? 'updated' : 'created'} successfully.`
+                title: isDraft ? 'Saved as Draft' : 'Success',
+                text: isDraft 
+                    ? 'Progress saved and moved to next department.' 
+                    : `Visual Inspection ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate(-1);
         } catch (err: any) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: err?.message || 'Failed to save Visual Inspection. Please try again.'
+                text: err?.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
             });
         } finally {
             setSaving(false);
         }
     };
 
-    const handleSaveDraft = async () => {
-        setSaving(true);
-        setMessage(null);
-        try {
-            const apiPayload = buildServerPayload(true);
-
-            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-                await inspectionService.updateVisualInspection(apiPayload);
-            } else {
-                await inspectionService.submitVisualInspection(apiPayload);
-            }
-
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "VISUAL_INSPECTION",
-                    user?.username || "system",
-                    "VISUAL_INSPECTION",
-                    false
-                ).catch(err => console.error("Draft file upload error", err));
-            }
-
-            if (confidentialFiles.length > 0) {
-                await uploadFiles(
-                    confidentialFiles,
-                    trialId,
-                    "VISUAL_INSPECTION",
-                    user?.username || "system",
-                    "VISUAL_INSPECTION",
-                    true
-                ).catch(err => console.error("Confidential draft file upload error", err));
-            }
-
-            setSubmitted(true);
-            await Swal.fire({
-                icon: 'success',
-                title: 'Saved as Draft',
-                text: 'Progress saved and moved to next department.'
-            });
-            navigate(-1);
-
-        } catch (error: any) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to save draft.'
-            });
-        } finally {
-            setSaving(false);
-        }
-    };
+    const handleFinalSave = () => performSave(false);
+    const handleSaveDraft = () => performSave(true);
 
 
     return (

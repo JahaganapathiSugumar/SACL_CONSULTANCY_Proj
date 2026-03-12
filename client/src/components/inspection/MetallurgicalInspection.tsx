@@ -850,12 +850,11 @@ export default function MetallurgicalInspection() {
     setMessage(null);
   };
 
-  const handleFinalSave = async () => {
-    if (!previewPayload) return;
+  const performSave = async (isDraft: boolean) => {
+    if (!isDraft && !previewPayload) return;
     setSending(true);
-
     try {
-      const apiPayload = buildServerPayload(false);
+      const apiPayload = buildServerPayload(isDraft);
 
       if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
         await inspectionService.updateMetallurgicalInspection(apiPayload);
@@ -863,98 +862,46 @@ export default function MetallurgicalInspection() {
         await inspectionService.submitMetallurgicalInspection(apiPayload);
       }
 
-      if (attachedFiles.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "METALLURGICAL_INSPECTION",
-          user?.username || "system",
-          "METALLURGICAL_INSPECTION",
-          false
-        ).catch(err => console.error("File upload error:", err));
-      }
+      const upload = async (files: File[], isConfidential: boolean) => {
+        if (files.length > 0) {
+          await uploadFiles(
+            files,
+            trialId,
+            "METALLURGICAL_INSPECTION",
+            user?.username || "system",
+            isConfidential ? "METALLURGICAL_INSPECTION_CONFIDENTIAL" : "METALLURGICAL_INSPECTION",
+            isConfidential
+          ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+        }
+      };
 
-      if (confidentialFiles.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "METALLURGICAL_INSPECTION",
-          user?.username || "system",
-          "METALLURGICAL_INSPECTION",
-          true
-        ).catch(err => console.error("Confidential file upload error:", err));
-      }
+      await upload(attachedFiles, false);
+      await upload(confidentialFiles, true);
 
       setPreviewSubmitted(true);
-      setPreviewMode(false);
+      if (!isDraft) setPreviewMode(false);
+
       await Swal.fire({
         icon: 'success',
-        title: 'Success',
-        text: `Metallurgical Inspection ${dataExists ? 'updated' : 'created'} successfully.`
+        title: isDraft ? 'Saved as Draft' : 'Success',
+        text: isDraft 
+          ? 'Progress saved and moved to next department.' 
+          : `Metallurgical Inspection ${dataExists ? 'updated' : 'created'} successfully.`
       });
       navigate(-1);
     } catch (err: any) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'Failed to save Metallurgical Inspection. Please try again.'
+        text: err.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
       });
     } finally {
       setSending(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    setSending(true);
-    try {
-      const apiPayload = buildServerPayload(true);
-
-      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-        await inspectionService.updateMetallurgicalInspection(apiPayload);
-      } else {
-        await inspectionService.submitMetallurgicalInspection(apiPayload);
-      }
-
-      if (attachedFiles.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "METALLURGICAL_INSPECTION",
-          user?.username || "system",
-          "METALLURGICAL_INSPECTION",
-          false
-        ).catch(err => console.error("Draft file upload error", err));
-      }
-
-      if (confidentialFiles.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "METALLURGICAL_INSPECTION",
-          user?.username || "system",
-          "METALLURGICAL_INSPECTION",
-          true
-        ).catch(err => console.error("Confidential draft file upload error", err));
-      }
-
-      setPreviewSubmitted(true);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Saved as Draft',
-        text: 'Progress saved and moved to next department.'
-      });
-      navigate(-1);
-
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to save draft.'
-      });
-    } finally {
-      setSending(false);
-    }
-  };
+  const handleFinalSave = () => performSave(false);
+  const handleSaveDraft = () => performSave(true);
 
 
   const PreviewSectionTable = ({ title, rows, cols = [], ok, remarks, showTotal = true }: { title: string, rows: any[], cols?: any[], ok: any, remarks: string, showTotal?: boolean }) => {

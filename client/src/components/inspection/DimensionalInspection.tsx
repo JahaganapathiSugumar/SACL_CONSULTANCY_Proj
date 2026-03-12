@@ -319,12 +319,11 @@ export default function DimensionalInspection({
         setMessage(null);
     };
 
-    const handleFinalSave = async () => {
-        if (!previewPayload) return;
+    const performSave = async (isDraft: boolean) => {
+        if (!isDraft && !previewPayload) return;
         setSaving(true);
-
         try {
-            const apiPayload = buildServerPayload(false);
+            const apiPayload = buildServerPayload(isDraft);
 
             if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
                 await inspectionService.updateDimensionalInspection(apiPayload);
@@ -332,98 +331,46 @@ export default function DimensionalInspection({
                 await inspectionService.submitDimensionalInspection(apiPayload);
             }
 
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "DIMENSIONAL_INSPECTION",
-                    user?.username || "system",
-                    "DIMENSIONAL_INSPECTION",
-                    false
-                ).catch(err => console.error("File upload error:", err));
-            }
+            const upload = async (files: File[], isConfidential: boolean) => {
+                if (files.length > 0) {
+                    await uploadFiles(
+                        files,
+                        trialId,
+                        "DIMENSIONAL_INSPECTION",
+                        user?.username || "system",
+                        isConfidential ? "DIMENSIONAL_INSPECTION_CONFIDENTIAL" : "DIMENSIONAL_INSPECTION",
+                        isConfidential
+                    ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+                }
+            };
 
-            if (confidentialFiles.length > 0) {
-                await uploadFiles(
-                    confidentialFiles,
-                    trialId,
-                    "DIMENSIONAL_INSPECTION",
-                    user?.username || "system",
-                    "DIMENSIONAL_INSPECTION",
-                    true
-                ).catch(err => console.error("Confidential file upload error:", err));
-            }
+            await upload(attachedFiles, false);
+            await upload(confidentialFiles, true);
 
             setPreviewSubmitted(true);
-            setPreviewMode(false);
+            if (!isDraft) setPreviewMode(false);
+
             await Swal.fire({
                 icon: 'success',
-                title: 'Success',
-                text: `Dimensional Inspection ${dataExists ? 'updated' : 'created'} successfully.`
+                title: isDraft ? 'Saved as Draft' : 'Success',
+                text: isDraft 
+                    ? 'Progress saved and moved to next department.' 
+                    : `Dimensional Inspection ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate(-1);
         } catch (err: any) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: err.message || 'Failed to save Dimensional Inspection. Please try again.'
+                text: err.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
             });
         } finally {
             setSaving(false);
         }
     };
 
-    const handleSaveDraft = async () => {
-        setSaving(true);
-        try {
-            const apiPayload = buildServerPayload(true);
-
-            if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-                await inspectionService.updateDimensionalInspection(apiPayload);
-            } else {
-                await inspectionService.submitDimensionalInspection(apiPayload);
-            }
-
-            if (attachedFiles.length > 0) {
-                await uploadFiles(
-                    attachedFiles,
-                    trialId,
-                    "DIMENSIONAL_INSPECTION",
-                    user?.username || "system",
-                    "DIMENSIONAL_INSPECTION",
-                    false
-                ).catch(err => console.error("Draft file upload error", err));
-            }
-
-            if (confidentialFiles.length > 0) {
-                await uploadFiles(
-                    confidentialFiles,
-                    trialId,
-                    "DIMENSIONAL_INSPECTION",
-                    user?.username || "system",
-                    "DIMENSIONAL_INSPECTION",
-                    true
-                ).catch(err => console.error("Confidential draft file upload error", err));
-            }
-
-            setPreviewSubmitted(true);
-            await Swal.fire({
-                icon: 'success',
-                title: 'Saved as Draft',
-                text: 'Progress saved and moved to next department.'
-            });
-            navigate(-1);
-
-        } catch (error: any) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to save draft.'
-            });
-        } finally {
-            setSaving(false);
-        }
-    };
+    const handleFinalSave = () => performSave(false);
+    const handleSaveDraft = () => performSave(true);
 
 
     return (

@@ -178,10 +178,11 @@ function SandTable() {
     setPreviewMode(true);
   };
 
-  const handleFinalSave = async () => {
+  const performSave = async (isDraft: boolean) => {
+    if (!isDraft && !previewMode) return;
     setLoading(true);
     try {
-      const apiPayload = buildServerPayload(false);
+      const apiPayload = buildServerPayload(isDraft);
 
       if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
         await inspectionService.updateSandProperties(apiPayload);
@@ -189,97 +190,46 @@ function SandTable() {
         await inspectionService.submitSandProperties(apiPayload);
       }
 
-      if (attachedFiles?.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "SAND_PROPERTIES",
-          user?.username || "system",
-          "SAND_PROPERTIES",
-          false
-        ).catch(err => console.error("File upload error:", err));
-      }
+      const upload = async (files: File[], isConfidential: boolean) => {
+        if (files.length > 0) {
+          await uploadFiles(
+            files,
+            trialId,
+            "SAND_PROPERTIES",
+            user?.username || "system",
+            isConfidential ? "SAND_PROPERTIES_CONFIDENTIAL" : "SAND_PROPERTIES",
+            isConfidential
+          ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+        }
+      };
 
-      if (confidentialFiles?.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "SAND_PROPERTIES",
-          user?.username || "system",
-          "SAND_PROPERTIES",
-          true
-        ).catch(err => console.error("Confidential file upload error:", err));
-      }
+      await upload(attachedFiles, false);
+      await upload(confidentialFiles, true);
 
       setSubmitted(true);
-      setPreviewMode(false);
+      if (!isDraft) setPreviewMode(false);
+
       await Swal.fire({
         icon: 'success',
-        title: 'Success',
-        text: `Sand Properties ${dataExists ? 'updated' : 'created'} successfully.`
+        title: isDraft ? 'Saved as Draft' : 'Success',
+        text: isDraft 
+          ? 'Progress saved and moved to next department.' 
+          : `Sand Properties ${dataExists ? 'updated' : 'created'} successfully.`
       });
       navigate(-1);
     } catch (err: any) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'Failed to save Sand Properties. Please try again.'
+        text: err.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    setLoading(true);
-    try {
-      const apiPayload = buildServerPayload(true);
-
-      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-        await inspectionService.updateSandProperties(apiPayload);
-      } else {
-        await inspectionService.submitSandProperties(apiPayload);
-      }
-
-      if (attachedFiles?.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "SAND_PROPERTIES",
-          user?.username || "system",
-          "SAND_PROPERTIES",
-          false
-        ).catch(err => console.error("Draft file upload error", err));
-      }
-
-      if (confidentialFiles?.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "SAND_PROPERTIES",
-          user?.username || "system",
-          "SAND_PROPERTIES",
-          true
-        ).catch(err => console.error("Confidential draft file upload error", err));
-      }
-
-      setSubmitted(true);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Saved as Draft',
-        text: 'Progress saved and moved to next department.'
-      });
-      navigate(-1);
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || 'Failed to save draft.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleFinalSave = () => performSave(false);
+  const handleSaveDraft = () => performSave(true);
 
 
   return (

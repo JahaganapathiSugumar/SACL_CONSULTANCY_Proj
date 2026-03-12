@@ -489,12 +489,11 @@ export default function McShopInspection({
     setMessage(null);
   };
 
-  const handleFinalSave = async () => {
-    if (!previewPayload) return;
+  const performSave = async (isDraft: boolean) => {
+    if (!isDraft && !previewPayload) return;
     setSaving(true);
-
     try {
-      const serverPayload = buildServerPayload(false);
+      const serverPayload = buildServerPayload(isDraft);
 
       if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
         await inspectionService.updateMachineShopInspection(serverPayload);
@@ -502,99 +501,47 @@ export default function McShopInspection({
         await inspectionService.submitMachineShopInspection(serverPayload);
       }
 
-      if (attachedFiles.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "MC_SHOP_INSPECTION",
-          user?.username || "system",
-          "MC_SHOP_INSPECTION",
-          false
-        ).catch(err => console.error("File upload error:", err));
-      }
+      const upload = async (files: File[], isConfidential: boolean) => {
+        if (files.length > 0) {
+          await uploadFiles(
+            files,
+            trialId,
+            "MC_SHOP_INSPECTION",
+            user?.username || "system",
+            isConfidential ? "MC_SHOP_INSPECTION_CONFIDENTIAL" : "MC_SHOP_INSPECTION",
+            isConfidential
+          ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+        }
+      };
 
-      if (confidentialFiles.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "MC_SHOP_INSPECTION",
-          user?.username || "system",
-          "MC_SHOP_INSPECTION",
-          true
-        ).catch(err => console.error("Confidential file upload error:", err));
-      }
+      await upload(attachedFiles, false);
+      await upload(confidentialFiles, true);
 
       setPreviewSubmitted(true);
-      setPreviewMode(false);
+      if (!isDraft) setPreviewMode(false);
+
       await Swal.fire({
         icon: 'success',
-        title: 'Success',
-        text: `Machine Shop Inspection ${dataExists ? 'updated' : 'created'} successfully.`
+        title: isDraft ? 'Saved as Draft' : 'Success',
+        text: isDraft 
+          ? 'Progress saved and moved to next department.' 
+          : `Machine Shop Inspection ${dataExists ? 'updated' : 'created'} successfully.`
       });
       navigate(-1);
     } catch (err: any) {
-      console.error("Error saving machine shop inspection:", err);
+      console.error(`Error ${isDraft ? 'saving draft' : 'saving inspection'}:`, err);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'Failed to save machine shop inspection. Please try again.'
+        text: err.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    setSaving(true);
-    try {
-      const serverPayload = buildServerPayload(true);
-
-      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-        await inspectionService.updateMachineShopInspection(serverPayload);
-      } else {
-        await inspectionService.submitMachineShopInspection(serverPayload);
-      }
-
-      if (attachedFiles.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId,
-          "MC_SHOP_INSPECTION",
-          user?.username || "system",
-          "MC_SHOP_INSPECTION_DRAFT",
-          false
-        );
-      }
-
-      if (confidentialFiles.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId,
-          "MC_SHOP_INSPECTION",
-          user?.username || "system",
-          "MC_SHOP_INSPECTION_CONFIDENTIAL_DRAFT",
-          true
-        );
-      }
-
-      setPreviewSubmitted(true);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Saved as Draft',
-        text: 'Progress saved and moved to next department.'
-      });
-      navigate(-1);
-
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to save draft.'
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleFinalSave = () => performSave(false);
+  const handleSaveDraft = () => performSave(true);
 
 
   return (

@@ -183,10 +183,11 @@ function MouldingTable() {
     </Box>
   );
 
-  const handleFinalSave = async () => {
+  const performSave = async (isDraft: boolean) => {
+    if (!isDraft && !previewMode) return;
     setLoading(true);
     try {
-      const apiPayload = buildServerPayload(false);
+      const apiPayload = buildServerPayload(isDraft);
 
       if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
         await inspectionService.updateMouldingCorrection(apiPayload);
@@ -194,97 +195,46 @@ function MouldingTable() {
         await inspectionService.submitMouldingCorrection(apiPayload);
       }
 
-      if (attachedFiles?.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId || "",
-          "MOULDING",
-          user?.username || "system",
-          "MOULDING",
-          false
-        ).catch(err => console.error("File upload error:", err));
-      }
+      const upload = async (files: File[], isConfidential: boolean) => {
+        if (files.length > 0) {
+          await uploadFiles(
+            files,
+            trialId || "",
+            "MOULDING",
+            user?.username || "system",
+            isConfidential ? "MOULDING_CONFIDENTIAL" : "MOULDING",
+            isConfidential
+          ).catch(err => console.error(`${isDraft ? 'Draft ' : ''}file upload error`, err));
+        }
+      };
 
-      if (confidentialFiles?.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId || "",
-          "MOULDING",
-          user?.username || "system",
-          "MOULDING",
-          true
-        ).catch(err => console.error("Confidential file upload error:", err));
-      }
+      await upload(attachedFiles, false);
+      await upload(confidentialFiles, true);
 
       setSubmitted(true);
-      setPreviewMode(false);
+      if (!isDraft) setPreviewMode(false);
+
       await Swal.fire({
         icon: 'success',
-        title: 'Success',
-        text: `Moulding Correction ${dataExists ? 'updated' : 'created'} successfully.`
+        title: isDraft ? 'Saved as Draft' : 'Success',
+        text: isDraft 
+          ? 'Progress saved and moved to next department.' 
+          : `Moulding Correction ${dataExists ? 'updated' : 'created'} successfully.`
       });
       navigate(-1);
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: error?.message || 'Failed to save Moulding Correction. Please try again.'
+        text: error?.message || `Failed to ${isDraft ? 'save draft' : 'save inspection'}.`
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    setLoading(true);
-    try {
-      const apiPayload = buildServerPayload(true);
-
-      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-        await inspectionService.updateMouldingCorrection(apiPayload);
-      } else {
-        await inspectionService.submitMouldingCorrection(apiPayload);
-      }
-
-      if (attachedFiles?.length > 0) {
-        await uploadFiles(
-          attachedFiles,
-          trialId || "",
-          "MOULDING",
-          user?.username || "system",
-          "MOULDING",
-          false
-        ).catch(err => console.error("Draft file upload error", err));
-      }
-
-      if (confidentialFiles?.length > 0) {
-        await uploadFiles(
-          confidentialFiles,
-          trialId || "",
-          "MOULDING",
-          user?.username || "system",
-          "MOULDING",
-          true
-        ).catch(err => console.error("Confidential draft file upload error", err));
-      }
-
-      setSubmitted(true);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Saved as Draft',
-        text: 'Progress saved and moved to next department.'
-      });
-      navigate(-1);
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || 'Failed to save draft.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleFinalSave = () => performSave(false);
+  const handleSaveDraft = () => performSave(true);
 
   return (
     <ThemeProvider theme={appTheme}>
