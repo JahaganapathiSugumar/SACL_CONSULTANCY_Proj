@@ -491,7 +491,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                 </TableCell>
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                                                        {(trial.status === 'CLOSED' || trial.document_id) ? (
+                                                        {(trial.status === 'CLOSED' && trial.document_id) ? (
                                                             <Button
                                                                 variant="outlined"
                                                                 size="small"
@@ -508,7 +508,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                 {fetchingReport === trial.trial_id ? 'Loading...' : 'Report'}
                                                             </Button>
                                                         ) : "N/A"}
-                                                        {trial.file_base64 && user?.role === 'Admin' && (
+                                                        {trial.document_id && user?.role === 'Admin' && (
                                                             <Tooltip title="Delete Report">
                                                                 <IconButton
                                                                     size="small"
