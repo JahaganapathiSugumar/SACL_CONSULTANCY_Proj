@@ -107,7 +107,7 @@ function SectionTable({
   const isMachineShop = user?.department_id === 8;
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...(rows?.map(r => (r?.value ? r.value.split('|').length : 1)) || [1]), 1);
-    return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' })); // Labels lost in string storage
+    return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: `${i + 1}` })); 
   });
 
   const [values, setValues] = useState<Record<string, string[]>>(() => {
@@ -131,7 +131,7 @@ function SectionTable({
     if (cavityNumbers && cavityNumbers?.length > 0) {
       const cavityRow = rows?.find(r => r?.label === "Cavity Number");
       if (cavityRow) {
-        setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `Cavity ${c}` })));
+        setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `${c}` })));
         setValues((prev: Record<string, string[]>) => {
           const nextValues: Record<string, string[]> = { ...prev };
           rows.forEach(r => {
@@ -354,7 +354,7 @@ function MicrostructureTable({
   const isMachineShop = user?.department_id === 8;
   useEffect(() => {
     if (cavityNumbers && cavityNumbers.length > 0) {
-      setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `Cavity ${c}` })));
+      setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: `${c}` })));
       setValues((prev: Record<string, string[]>) => {
         const nextValues: Record<string, string[]> = { ...prev };
         params.forEach(p => {
@@ -387,18 +387,7 @@ function MicrostructureTable({
     });
   };
 
-  const addColumn = () => {
-    setCols((prev: MicroCol[]) => {
-      const nextIndex = prev.length + 1;
-      return [...prev, { id: `c${nextIndex}`, label: '' }];
-    });
 
-    setValues((prev: Record<string, string[]>) => {
-      const copy: Record<string, string[]> = {};
-      Object.keys(prev).forEach((k) => { copy[k] = [...prev[k], ""]; });
-      return copy;
-    });
-  };
 
   const updateCell = (param: string, colIndex: number, val: string) => {
     setValues((prev: Record<string, string[]>) => ({ ...prev, [param]: prev[param].map((v, i) => (i === colIndex ? val : v)) }));
@@ -536,10 +525,6 @@ export default function MetallurgicalInspection() {
   const [microOk, setMicroOk] = useState<boolean | null>(null);
   const [microRemarks, setMicroRemarks] = useState<string>("");
   const [cavityNumbers, setCavityNumbers] = useState<string[]>([]);
-
-
-
-
   const [mechOk, setMechOk] = useState<boolean | null>(null);
   const [mechRemarks, setMechRemarks] = useState<string>("");
   const [impactOk, setImpactOk] = useState<boolean | null>(null);
