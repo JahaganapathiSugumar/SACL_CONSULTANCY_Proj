@@ -255,15 +255,16 @@ function SectionTable({
                             {cols.map((c, ci) => (
                                 <TableCell key={c.id} sx={{ minWidth: 140 }}>
                                     <Box display="flex" alignItems="center" gap={1} justifyContent="center">
-                                        <TextField
-                                            size="small"
-                                            value={c.label}
-                                            onChange={(e) => setCols((prev) => prev.map((col, i) => (i === ci ? { ...col, label: e.target.value } : col)))}
-                                            variant="standard"
-                                            InputProps={{ disableUnderline: true, style: { color: COLORS.blueHeaderText, textAlign: 'center' } }}
-                                            sx={{ input: { textAlign: 'center' } }}
-                                            disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
-                                        />
+                                        <Typography
+                                            sx={{
+                                                color: COLORS.blueHeaderText,
+                                                fontWeight: 700,
+                                                fontSize: '0.875rem',
+                                                textAlign: 'center'
+                                            }}
+                                        >
+                                            {""}
+                                        </Typography>
                                     </Box>
                                 </TableCell>
                             ))}
