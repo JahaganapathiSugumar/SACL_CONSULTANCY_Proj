@@ -487,45 +487,28 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
     const visInspections = safeParse(visual?.inspections, []);
     if (visInspections.length > 0) {
-        const parameters = [
-            { key: 'Cavity Number', label: 'Cavity No' },
-            { key: 'Inspected Quantity', label: 'Inspected Qty' },
-            { key: 'Accepted Quantity', label: 'Accepted Qty' },
-            { key: 'Rejected Quantity', label: 'Rejected Qty' },
-            { key: 'Rejection Percentage', label: 'Rej %' },
-            { key: 'Reason for rejection', label: 'Reason' }
-        ];
+        const labelMap = {
+            'Cavity Number': 'Cavity No',
+            'Inspected Quantity': 'Insp Qty',
+            'Accepted Quantity': 'Acc Qty',
+            'Rejected Quantity': 'Rej Qty',
+            'Rejection Percentage': 'Rej %',
+            'Reason for rejection': 'Reason'
+        };
 
-        const headers = ['Parameter', ...visInspections.map(r => r['Cavity Number'] || '-'), 'Total'];
-        const rows = parameters.map(p => {
-            const rowData = [p.label];
-            let total = 0;
-            let isNumeric = p.key.includes('Quantity');
+        const rawHeaders = ['Cavity Number', 'Inspected Quantity', 'Accepted Quantity', 'Rejected Quantity', 'Rejection Percentage', 'Reason for rejection'];
+        const headers = rawHeaders.map(h => labelMap[h] || h);
+        
+        const rows = visInspections.map(r => [
+            r['Cavity Number'] || '-',
+            r['Inspected Quantity'] || '0',
+            r['Accepted Quantity'] || '0',
+            r['Rejected Quantity'] || '0',
+            r['Rejection Percentage'] || '0.00%',
+            r['Reason for rejection'] || '-'
+        ]);
 
-            visInspections.forEach(r => {
-                let val = r[p.key];
-                if (p.key === 'Accepted Quantity' && (val === undefined || val === null)) {
-                    val = (parseFloat(r['Inspected Quantity'] || 0) - parseFloat(r['Rejected Quantity'] || 0)).toString();
-                }
-                rowData.push(val || '-');
-                if (isNumeric) total += parseFloat(val || 0);
-            });
-
-            if (p.key === 'Rejection Percentage') {
-                const totalInsp = visInspections.reduce((acc, r) => acc + parseFloat(r['Inspected Quantity'] || 0), 0);
-                const totalRej = visInspections.reduce((acc, r) => acc + parseFloat(r['Rejected Quantity'] || 0), 0);
-                rowData.push(totalInsp > 0 ? ((totalRej / totalInsp) * 100).toFixed(2) + '%' : '0.00%');
-            } else if (isNumeric) {
-                rowData.push(total.toString());
-            } else {
-                rowData.push('-');
-            }
-            return rowData;
-        });
-
-        const dynamicColWidth = (535 - 100) / (visInspections.length + 1);
-        const colWidths = [100, ...visInspections.map(() => dynamicColWidth), dynamicColWidth];
-
+        const colWidths = [40, 50, 50, 50, 50, 150];
         visitY = drawTable(doc, { headers, rows }, col1X, visitY, colWidths) + 8;
     }
     if (visual?.remarks) {
