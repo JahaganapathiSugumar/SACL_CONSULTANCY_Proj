@@ -14,10 +14,14 @@ import {
     Typography,
     TableContainer,
     IconButton,
-    Tooltip
+    Tooltip,
+    TextField,
+    InputAdornment
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import CancelIcon from '@mui/icons-material/Cancel';
 import LoadingState from '../common/LoadingState';
 import { trialService } from '../../services/trialService';
 import DocumentViewer from '../common/DocumentViewer';
@@ -33,6 +37,7 @@ interface ConsolidatedReport {
 const ConsolidatedReportsTable: React.FC = () => {
     const [reports, setReports] = useState<ConsolidatedReport[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [fetchingReport, setFetchingReport] = useState<string | null>(null);
 
@@ -51,6 +56,15 @@ const ConsolidatedReportsTable: React.FC = () => {
 
         fetchReports();
     }, []);
+
+    const filteredReports = reports.filter(report => {
+        if (!searchTerm) return true;
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            report.pattern_code?.toLowerCase().includes(searchLower) ||
+            report.part_name?.toLowerCase().includes(searchLower)
+        );
+    });
 
     const handleViewReport = async (report: ConsolidatedReport) => {
         try {
@@ -90,7 +104,31 @@ const ConsolidatedReportsTable: React.FC = () => {
     };
 
     return (
-        <TableContainer
+        <Box sx={{ p: 2 }}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <TextField
+                    size="small"
+                    placeholder="Search consolidated reports..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ width: 300, bgcolor: 'white' }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon sx={{ color: '#95a5a6' }} />
+                            </InputAdornment>
+                        ),
+                        endAdornment: searchTerm && (
+                            <InputAdornment position="end">
+                                <IconButton size="small" onClick={() => setSearchTerm('')}>
+                                    <CancelIcon sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}
+                />
+            </Box>
+            <TableContainer
             className="premium-table-container"
             sx={{
                 maxHeight: 'calc(100vh - 400px)',
@@ -126,16 +164,16 @@ const ConsolidatedReportsTable: React.FC = () => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {!loading && reports.length === 0 ? (
+                    {!loading && filteredReports.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={3} align="center" className="premium-table-cell" sx={{ py: 20 }}>
                                 <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                                    No consolidated reports found.
+                                    No reports found matching your search.
                                 </Typography>
                             </TableCell>
                         </TableRow>
                     ) : (
-                        reports.map((report) => (
+                        filteredReports.map((report) => (
                             <TableRow key={report.document_id} className="premium-table-row">
                                 <TableCell className="premium-table-cell-bold">{report.pattern_code}</TableCell>
                                 <TableCell className="premium-table-cell">{report.part_name}</TableCell>
@@ -161,6 +199,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                     )}
                 </TableBody>
             </Table>
+        </TableContainer>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -181,7 +220,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                     <Button onClick={() => setViewReport(null)} color="inherit">Close</Button>
                 </DialogActions>
             </Dialog>
-        </TableContainer>
+        </Box>
     );
 };
 

@@ -17,9 +17,10 @@ import StatsGrid from '../components/dashboard/StatsGrid';
 import { getDepartmentInfo } from '../utils/dashboardUtils';
 import { type StatItem } from '../data/dashboardData';
 import { getDashboardStats } from '../services/statsService';
-import { Box, Typography, Button, TextField, InputAdornment } from '@mui/material';
+import { Box, Typography, Button, TextField, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import CancelIcon from '@mui/icons-material/Cancel';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useMediaQuery } from '@mui/material';
@@ -46,6 +47,7 @@ const Dashboard: React.FC = () => {
   const [editingMasterItem, setEditingMasterItem] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [refreshKey, setRefreshKey] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
+  const [dashboardSearchTerm, setDashboardSearchTerm] = useState('');
 
   // Stats
   const [stats, setStats] = useState<StatItem[]>([]);
@@ -192,13 +194,22 @@ const Dashboard: React.FC = () => {
                       <TextField
                         placeholder="Search trials by Part Name or Trial No..."
                         size="small"
-                        sx={{ width: 300, bgcolor: 'white' }}
+                        value={dashboardSearchTerm}
+                        onChange={(e) => setDashboardSearchTerm(e.target.value)}
+                        sx={{ width: 305, bgcolor: 'white' }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
                               <SearchIcon sx={{ color: '#95a5a6' }} />
                             </InputAdornment>
                           ),
+                          endAdornment: dashboardSearchTerm && (
+                            <InputAdornment position="end">
+                              <IconButton size="small" onClick={() => setDashboardSearchTerm('')}>
+                                <CancelIcon sx={{ fontSize: '1rem' }} />
+                              </IconButton>
+                            </InputAdornment>
+                          )
                         }}
                       />
 
@@ -225,7 +236,7 @@ const Dashboard: React.FC = () => {
                           Recent trials and reports
                         </Typography>
                       </Box>
-                      <RecentTrialsTable key={refreshKey} />
+                      <RecentTrialsTable key={refreshKey} searchTerm={dashboardSearchTerm} />
                     </Box>
                   </>
                 )}

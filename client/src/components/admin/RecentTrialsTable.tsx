@@ -35,7 +35,11 @@ interface Trial {
   document_type?: string;
 }
 
-const RecentTrialsTable: React.FC = () => {
+interface RecentTrialsTableProps {
+  searchTerm?: string;
+}
+
+const RecentTrialsTable: React.FC<RecentTrialsTableProps> = ({ searchTerm = '' }) => {
   const [trials, setTrials] = useState<Trial[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -56,6 +60,16 @@ const RecentTrialsTable: React.FC = () => {
 
     fetchTrials();
   }, []);
+
+  const filteredTrials = trials.filter((trial) => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      trial.trial_no?.toLowerCase().includes(searchLower) ||
+      trial.part_name?.toLowerCase().includes(searchLower) ||
+      trial.pattern_code?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const handleViewReport = async (trial: Trial) => {
     try {
@@ -130,8 +144,8 @@ const RecentTrialsTable: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {trials.length > 0 ? (
-              trials.map((trial) => (
+            {filteredTrials.length > 0 ? (
+              filteredTrials.map((trial) => (
                 <TableRow key={trial.trial_id} className="premium-table-row">
                   <TableCell className="premium-table-cell-bold">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
