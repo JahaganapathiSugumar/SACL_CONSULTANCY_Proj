@@ -381,6 +381,9 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         // Metallurgical Inspection
         p2y = drawSectionTitle(doc, "METALLURGICAL INSPECTION", col1X, p2y);
+        const metaDate = meta?.inspection_date ? new Date(meta.inspection_date).toISOString().slice(0, 10) : '-';
+        doc.font('Helvetica-Bold').fontSize(7).fillColor('black').text(`Inspection Date: ${metaDate}`, col1X, p2y);
+        p2y += 12;
         const mechRows = safeParse(meta.mech_properties, []);
         const impactRows = safeParse(meta.impact_strength, []);
         const microRows = safeParse(meta.micro_structure, []);
@@ -498,13 +501,53 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
         // Visual (Left)
         visitY = drawSectionTitle(doc, "VISUAL INSPECTION", col1X, visitY);
 
+        const visDate = visual?.inspection_date ? new Date(visual.inspection_date).toISOString().slice(0, 10) : '-';
         const visualRes = visual?.visual_ok === null || visual?.visual_ok === undefined ? "-" : (visual?.visual_ok ? "OK" : "NOT OK");
-        doc.font('Helvetica-Bold').fontSize(7).text(`Result: ${visualRes}`, col1X, visitY);
+        doc.font('Helvetica-Bold').fontSize(7).text(`Inspection Date: ${visDate} | Result: ${visualRes}`, col1X, visitY);
         visitY += 10;
 
         const visInspections = safeParse(visual?.inspections, []);
         if (visInspections.length > 0) {
-            visitY = drawTable(doc, { headers: ['Cav', 'Insp', 'Rej', 'Rej %', 'Reason'], rows: visInspections.map(r => [r['Cavity Number'], r['Inspected Quantity'], r['Rejected Quantity'], (r['Rejection Percentage'] || "0.00"), (r['Reason for rejection'] || "").substring(0, 15)]) }, col1X, visitY, [25, 25, 25, 25, 185]) + 8;
+            const parameters = [
+                { key: 'Cavity Number', label: 'Cavity No' },
+                { key: 'Inspected Quantity', label: 'Inspected Qty' },
+                { key: 'Accepted Quantity', label: 'Accepted Qty' },
+                { key: 'Rejected Quantity', label: 'Rejected Qty' },
+                { key: 'Rejection Percentage', label: 'Rej %' },
+                { key: 'Reason for rejection', label: 'Reason' }
+            ];
+
+            const headers = ['Parameter', ...visInspections.map(r => r['Cavity Number'] || '-'), 'Total'];
+            const rows = parameters.map(p => {
+                const rowData = [p.label];
+                let total = 0;
+                let isNumeric = p.key.includes('Quantity');
+                
+                visInspections.forEach(r => {
+                    let val = r[p.key];
+                    if (p.key === 'Accepted Quantity' && (val === undefined || val === null)) {
+                        val = (parseFloat(r['Inspected Quantity'] || 0) - parseFloat(r['Rejected Quantity'] || 0)).toString();
+                    }
+                    rowData.push(val || '-');
+                    if (isNumeric) total += parseFloat(val || 0);
+                });
+
+                if (p.key === 'Rejection Percentage') {
+                    const totalInsp = visInspections.reduce((acc, r) => acc + parseFloat(r['Inspected Quantity'] || 0), 0);
+                    const totalRej = visInspections.reduce((acc, r) => acc + parseFloat(r['Rejected Quantity'] || 0), 0);
+                    rowData.push(totalInsp > 0 ? ((totalRej / totalInsp) * 100).toFixed(2) + '%' : '0.00%');
+                } else if (isNumeric) {
+                    rowData.push(total.toString());
+                } else {
+                    rowData.push('-');
+                }
+                return rowData;
+            });
+
+            const dynamicColWidth = (535 - 100) / (visInspections.length + 1);
+            const colWidths = [100, ...visInspections.map(() => dynamicColWidth), dynamicColWidth];
+            
+            visitY = drawTable(doc, { headers, rows }, col1X, visitY, colWidths) + 8;
         }
 
         if (visual?.remarks) {
@@ -529,46 +572,62 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
         let p2NextY = Math.max(visitY, dimY) + 15;
 
-        // NDT and Hardness Side-by-Side
-        let ndtY = p2NextY;
+        // Hardness and NDT Side-by-Side
         let hardY = p2NextY;
+        let ndtY = p2NextY;
 
-        // NDT (Left)
-        const ndtRowsForSection = safeParse(visual?.ndt_inspection, []);
-        if (ndtRowsForSection.length > 0) {
-            const sectionOk = visual?.ndt_inspection_ok;
-            const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
-
-            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, ndtY, { width: colWidth });
-            if (visual?.ndt_inspection_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, doc.y + 2, { width: colWidth });
-            }
-            ndtY = doc.y + 10;
-
-            const headers = Object.keys(ndtRowsForSection[0]);
-            const rows = ndtRowsForSection.map(r => headers.map(h => r[h]));
-            const colWidths = headers.map(() => colWidth / headers.length);
-
-            ndtY = drawTable(doc, { headers, rows }, col1X, ndtY, colWidths) + 15;
-        }
-
-        // Hardness (Right)
+        // Hardness (Left)
         const hardRowsForSection = safeParse(visual?.hardness, []);
         if (hardRowsForSection.length > 0) {
             const sectionOk = visual?.hardness_ok;
             const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
 
-            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col2X, hardY, { width: colWidth });
+            doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col1X, hardY, { width: colWidth });
             if (visual?.hardness_remarks) {
-                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col2X, doc.y + 2, { width: colWidth });
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, doc.y + 2, { width: colWidth });
             }
             hardY = doc.y + 10;
 
-            const headers = Object.keys(hardRowsForSection[0]);
-            const rows = hardRowsForSection.map(r => headers.map(h => r[h]));
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+            const headers = Object.keys(hardRowsForSection[0]).map(h => labelMap[h] || h);
+            const rows = hardRowsForSection.map(r => Object.keys(hardRowsForSection[0]).map(h => r[h]));
             const colWidths = headers.map(() => colWidth / headers.length);
 
-            hardY = drawTable(doc, { headers, rows }, col2X, hardY, colWidths) + 15;
+            hardY = drawTable(doc, { headers, rows }, col1X, hardY, colWidths) + 15;
+        }
+
+        // NDT (Right)
+        const ndtRowsForSection = safeParse(visual?.ndt_inspection, []);
+        if (ndtRowsForSection.length > 0) {
+            const sectionOk = visual?.ndt_inspection_ok;
+            const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
+
+            doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col2X, ndtY, { width: colWidth });
+            if (visual?.ndt_inspection_remarks) {
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col2X, doc.y + 2, { width: colWidth });
+            }
+            ndtY = doc.y + 10;
+
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+            const headers = Object.keys(ndtRowsForSection[0]).map(h => labelMap[h] || h);
+            const rows = ndtRowsForSection.map(r => Object.keys(ndtRowsForSection[0]).map(h => r[h]));
+            const colWidths = headers.map(() => colWidth / headers.length);
+
+            ndtY = drawTable(doc, { headers, rows }, col2X, ndtY, colWidths) + 15;
         }
 
         p2NextY = Math.max(ndtY, hardY);
@@ -585,8 +644,18 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
             ], col1X, p2y, colWidth * 2 + 15) + 8;
 
             if (mcInspections.length > 0) {
-                const headers = Object.keys(mcInspections[0]);
-                const rows = mcInspections.map(r => Object.values(r));
+                const labelMap = {
+                    'Cavity Number': 'Cavity No',
+                    'FDY OK Quantity': 'FDY OK Qty',
+                    'Received Quantity': 'Received Qty',
+                    'Inspected Quantity': 'Insp Qty',
+                    'Rejected Quantity': 'Rej Qty',
+                    'Accepted Quantity': 'Acc Qty',
+                    'Rejection Percentage': 'Rej %',
+                    'Reason for rejection': 'Reason'
+                };
+                const headers = Object.keys(mcInspections[0]).map(h => labelMap[h] || h);
+                const rows = mcInspections.map(r => Object.keys(mcInspections[0]).map(h => r[h]));
                 const colW = 535 / headers.length;
                 p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW)) + 15;
             }
