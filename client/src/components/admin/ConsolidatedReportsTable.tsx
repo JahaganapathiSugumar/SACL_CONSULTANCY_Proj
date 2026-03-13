@@ -187,7 +187,7 @@ const ConsolidatedReportsTable: React.FC = () => {
 
                     'Metallurgical Result(Micro)': meta.micro_structure_ok ? 'OK' : (meta.micro_structure_ok === false ? 'NOT OK' : '-'),
                     'Metallurgical Result(Mech)': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
-                    'Metallurgical Result(Impact)': meta.impact_ok ? 'OK' : (meta.impact_ok === false ? 'NOT OK' : '-'),
+                    'Metallurgical Result(Impact)': meta.impact_strength_ok ? 'OK' : (meta.impact_strength_ok === false ? 'NOT OK' : '-'),
                     'Metallurgical Result(Hardness)': meta.hardness_ok ? 'OK' : (meta.hardness_ok === false ? 'NOT OK' : '-'),
 
                     'Visual Result': visual.visual_ok ? 'OK' : (visual.visual_ok === false ? 'NOT OK' : '-'),
