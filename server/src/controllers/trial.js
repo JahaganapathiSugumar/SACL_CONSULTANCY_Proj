@@ -105,9 +105,8 @@ export const getPatternFullData = async (req, res, next) => {
     if (!pattern_code) {
         return res.status(400).json({ success: false, message: 'Pattern code is required' });
     }
-        const allTrialsData = await fetchAllTrialsDataForPatternCode(pattern_code, Client);
-        res.status(200).json({ success: true, data: allTrialsData });
-    }
+    const allTrialsData = await fetchAllTrialsDataForPatternCode(pattern_code, Client);
+    res.status(200).json({ success: true, data: allTrialsData });
 };
 
 export const getRecentTrialReports = async (req, res, next) => {
