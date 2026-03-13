@@ -16,7 +16,8 @@ import {
     IconButton,
     Tooltip,
     TextField,
-    InputAdornment
+    InputAdornment,
+    CircularProgress
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,6 +26,9 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import LoadingState from '../common/LoadingState';
 import { trialService } from '../../services/trialService';
 import DocumentViewer from '../common/DocumentViewer';
+import * as XLSX from 'xlsx';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import Swal from 'sweetalert2';
 
 interface ConsolidatedReport {
     document_id: number;
@@ -40,6 +44,7 @@ const ConsolidatedReportsTable: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [viewReport, setViewReport] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [fetchingReport, setFetchingReport] = useState<string | null>(null);
+    const [exportingExcel, setExportingExcel] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchReports = async () => {
@@ -100,6 +105,152 @@ const ConsolidatedReportsTable: React.FC = () => {
             alert('Failed to load report file.');
         } finally {
             setFetchingReport(null);
+        }
+    };
+
+    const handleExportExcel = async (report: ConsolidatedReport) => {
+        try {
+            setExportingExcel(report.pattern_code);
+            
+            const response = await trialService.getPatternFullData(report.pattern_code);
+            
+            if (!Array.isArray(response)) {
+                throw new Error('Failed to fetch pattern data');
+            }
+
+            const allTrialsData = response;
+            if (allTrialsData.length === 0) {
+                Swal.fire('Info', 'No trial data found for this pattern.', 'info');
+                return;
+            }
+
+            const flattenedData = allTrialsData.map((data: any) => {
+                const trial = data.trial_cards?.[0] || {};
+                const pouring = data.pouring_details?.[0] || {};
+                const sand = data.sand_properties?.[0] || {};
+                const moulding = data.mould_correction?.[0] || {};
+                const meta = data.metallurgical_inspection?.[0] || {};
+                const visual = data.visual_inspection?.[0] || {};
+                const dimensional = data.dimensional_inspection?.[0] || {};
+                const mcShop = data.machine_shop?.[0] || {};
+
+                const safeParse = (val: any) => {
+                    if (!val) return null;
+                    try {
+                        return typeof val === 'string' ? JSON.parse(val) : val;
+                    } catch (e) {
+                        return null;
+                    }
+                };
+
+                const pInoc = safeParse(pouring.inoculation);
+                const actualChem = safeParse(pouring.composition);
+                const mechProps = safeParse(meta.mech_properties) || [];
+                const microStruct = safeParse(meta.micro_structure) || [];
+                const visInspections = safeParse(visual.inspections) || [];
+                const mcInspections = safeParse(mcShop.inspections) || [];
+
+                const firstMech = mechProps[0] || {};
+                const firstMicro = microStruct[0] || {};
+                
+                const row: any = {
+                    'Trial No': trial.trial_no,
+                    'Date': trial.date_of_sampling ? new Date(trial.date_of_sampling).toLocaleDateString('en-GB') : '-',
+                    'Status': trial.status,
+                    'Reason': trial.reason_for_sampling,
+                    'Moulds (Plan/Act)': `${trial.plan_moulds || '-'} / ${trial.actual_moulds || '-'}`,
+                    'Remarks': trial.remarks,
+                    
+                    'Heat Code': pouring.heat_code || '-',
+                    'Pour Temp (C)': pouring.pouring_temp_c || '-',
+                    'Pour Time (s)': pouring.pouring_time_sec || '-',
+                    'Moulds Poured': pouring.no_of_mould_poured || '-',
+                    'Inoc Type': pInoc?.text || '-',
+                    'Melting Remarks': pouring.remarks || '-',
+                    'Chem: C': actualChem?.C || '-',
+                    'Chem: Si': actualChem?.Si || '-',
+                    'Chem: Mn': actualChem?.Mn || '-',
+                    'Chem: S': actualChem?.S || '-',
+                    'Chem: Mg': actualChem?.Mg || '-',
+                    'Chem: P': actualChem?.P || '-',
+                    'Chem: Cu': actualChem?.Cu || '-',
+                    'Chem: Cr': actualChem?.Cr || '-',
+
+                    'Sand Date': sand.date ? new Date(sand.date).toLocaleDateString('en-GB') : '-',
+                    'Sand: Clay (T/A)': `${sand.t_clay || '-'} / ${sand.a_clay || '-'}`,
+                    'Sand: VCM/LOI': `${sand.vcm || '-'} / ${sand.loi || '-'}`,
+                    'Sand: AFS/GCS': `${sand.afs || '-'} / ${sand.gcs || '-'}`,
+                    'Sand: MOI/Comp': `${sand.moi || '-'} / ${sand.compactability || '-'}`,
+                    'Sand: Permeability': sand.permeability || '-',
+                    'Sand Remarks': sand.remarks || '-',
+
+                    'Mould Date': moulding.date ? new Date(moulding.date).toLocaleDateString('en-GB') : '-',
+                    'Mould: Thickness': moulding.mould_thickness || '-',
+                    'Mould: Compressibility': moulding.compressability || '-',
+                    'Mould: Squeeze Pressure': moulding.squeeze_pressure || '-',
+                    'Mould: Hardness': moulding.mould_hardness || '-',
+                    'Mould Remarks': moulding.remarks || '-',
+
+                    'Metallurgical Date': meta.inspection_date ? new Date(meta.inspection_date).toLocaleDateString('en-GB') : '-',
+                    'Metallurgical Result': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
+                    'Metallurgical Mech Remarks': meta.mech_properties_remarks || '-',
+                    'Yield Strength': firstMech['Yield Strength'] || '-',
+                    'Tensile Strength': firstMech['Tensile Strength'] || '-',
+                    'Elongation %': firstMech['Elongation'] || '-',
+                    'Micro: Nodule Count': firstMicro['Nodule Count'] || '-',
+                    'Micro: Nodularity %': firstMicro['Nodularity'] || '-',
+                    'Micro: Ferrite %': firstMicro['Ferrite'] || '-',
+                    'Micro: Pearlite %': firstMicro['Pearlite'] || '-',
+                    'Micro Remarks': meta.micro_structure_remarks || '-',
+
+                    'Visual Date': visual.inspection_date ? new Date(visual.inspection_date).toLocaleDateString('en-GB') : '-',
+                    'Visual Result': visual.visual_ok ? 'OK' : (visual.visual_ok === false ? 'NOT OK' : '-'),
+                    'Total Inspected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
+                    'Total Accepted': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'Total Rejected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
+                    'Visual Remarks': visual.remarks || '-',
+
+                    'NDT Result': visual.ndt_inspection_ok ? 'OK' : (visual.ndt_inspection_ok === false ? 'NOT OK' : '-'),
+                    'NDT Remarks': visual.ndt_inspection_remarks || '-',
+                    'Visual Hardness Result': visual.hardness_ok ? 'OK' : (visual.hardness_ok === false ? 'NOT OK' : '-'),
+                    'Visual Hardness Remarks': visual.hardness_remarks || '-',
+
+                    'Dimensional Date': dimensional.inspection_date ? new Date(dimensional.inspection_date).toLocaleDateString('en-GB') : '-',
+                    'Weight (kg)': dimensional.casting_weight || '-',
+                    'Yield %': dimensional.yields || '-',
+                    'Dimensional Remarks': dimensional.remarks || '-',
+
+                    'Machine Shop Date': mcShop.inspection_date ? new Date(mcShop.inspection_date).toLocaleDateString('en-GB') : '-',
+                    'MC Received Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Received Quantity']) || 0), 0),
+                    'MC Accepted Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'MC Rejected Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
+                    'MC Remarks': mcShop.remarks || '-'
+                };
+
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Consolidated Trials');
+
+            worksheet['!cols'] = Object.keys(flattenedData[0] || {}).map(() => ({ wch: 20 }));
+
+            XLSX.writeFile(workbook, `Consolidated_Report_${report.pattern_code}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Consolidated report exported to Excel.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error('Error exporting consolidated excel:', error);
+            Swal.fire('Error', 'Failed to generate Excel report.', 'error');
+        } finally {
+            setExportingExcel(null);
         }
     };
 
@@ -178,21 +329,38 @@ const ConsolidatedReportsTable: React.FC = () => {
                                 <TableCell className="premium-table-cell-bold">{report.pattern_code}</TableCell>
                                 <TableCell className="premium-table-cell">{report.part_name}</TableCell>
                                 <TableCell className="premium-table-cell" align="right">
-                                    <Button
-                                        onClick={() => handleViewReport(report)}
-                                        variant="contained"
-                                        size="small"
-                                        disabled={fetchingReport === report.pattern_code}
-                                        sx={{
-                                            textTransform: 'none',
-                                            bgcolor: '#E67E22',
-                                            '&:hover': {
-                                                bgcolor: '#D35400',
-                                            }
-                                        }}
-                                    >
-                                        {fetchingReport === report.pattern_code ? 'Loading...' : 'View report'}
-                                    </Button>
+                                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                                        <Button
+                                            onClick={() => handleViewReport(report)}
+                                            variant="contained"
+                                            size="small"
+                                            disabled={fetchingReport === report.pattern_code}
+                                            startIcon={<VisibilityIcon fontSize="small" />}
+                                            sx={{
+                                                textTransform: 'none',
+                                                bgcolor: '#E67E22',
+                                                '&:hover': {
+                                                    bgcolor: '#D35400',
+                                                }
+                                            }}
+                                        >
+                                            {fetchingReport === report.pattern_code ? 'Loading...' : 'View PDF'}
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleExportExcel(report)}
+                                            variant="contained"
+                                            color="success"
+                                            size="small"
+                                            disabled={exportingExcel === report.pattern_code}
+                                            startIcon={exportingExcel === report.pattern_code ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
+                                            sx={{
+                                                textTransform: 'none',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            {exportingExcel === report.pattern_code ? 'Exporting...' : 'Excel'}
+                                        </Button>
+                                    </Box>
                                 </TableCell>
                             </TableRow>
                         ))

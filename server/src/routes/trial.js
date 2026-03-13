@@ -20,6 +20,7 @@ router.get('/progressing', verifyToken, asyncErrorHandler(trialController.getPro
 router.get('/cavity-numbers', verifyToken, asyncErrorHandler(trialController.getCavityNumbers));
 router.get('/consolidated-reports', verifyToken, asyncErrorHandler(trialController.getConsolidatedReports));
 router.get('/consolidated-report-file/:pattern_code', verifyToken, asyncErrorHandler(trialController.getConsolidatedReportFile));
+router.get('/pattern-full-data/:pattern_code', verifyToken, asyncErrorHandler(trialController.getPatternFullData));
 router.put('/update', verifyToken, authorizeDepartments(1, 2), authorizeRoles('Admin', 'HOD'), validate(updateTrialCardSchema), asyncErrorHandler(trialController.updateTrial));
 
 router.delete('/delete-reports', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(trialController.deleteTrialReports));

@@ -143,6 +143,21 @@ export const trialService = {
     },
 
     /**
+     * Fetches all data for all trials of a pattern code
+     * @param patternCode - Pattern code to search for
+     * @returns Promise resolving to trial data
+     */
+    async getPatternFullData(patternCode: string): Promise<any[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const data = await apiService.request(`/trial/pattern-full-data/${encodeURIComponent(patternCode)}`);
+            return data.data || [];
+        } catch (error) {
+            console.error('Failed to fetch pattern full data:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Updates trial data
      * @param payload - Trial data to update
      * @returns Promise resolving to API response

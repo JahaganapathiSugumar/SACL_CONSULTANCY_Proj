@@ -100,6 +100,16 @@ export const getConsolidatedReportFile = async (req, res, next) => {
     res.status(200).json({ success: true, data: rows[0] });
 };
 
+export const getPatternFullData = async (req, res, next) => {
+    const { pattern_code } = req.params;
+    if (!pattern_code) {
+        return res.status(400).json({ success: false, message: 'Pattern code is required' });
+    }
+        const allTrialsData = await fetchAllTrialsDataForPatternCode(pattern_code, Client);
+        res.status(200).json({ success: true, data: allTrialsData });
+    }
+};
+
 export const getRecentTrialReports = async (req, res, next) => {
     const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
     res.status(200).json({ success: true, data: rows });
