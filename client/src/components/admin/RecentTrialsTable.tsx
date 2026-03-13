@@ -65,16 +65,16 @@ const RecentTrialsTable: React.FC<RecentTrialsTableProps> = ({ searchTerm = '' }
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
-      trial.trial_no?.toLowerCase().includes(searchLower) ||
-      trial.part_name?.toLowerCase().includes(searchLower) ||
-      trial.pattern_code?.toLowerCase().includes(searchLower)
+      String(trial.trial_no || '').toLowerCase().includes(searchLower) ||
+      String(trial.part_name || '').toLowerCase().includes(searchLower) ||
+      String(trial.pattern_code || '').toLowerCase().includes(searchLower)
     );
   });
 
   const handleViewReport = async (trial: Trial) => {
     try {
       setFetchingReport(trial.trial_id);
-      
+
       let reportData = trial;
       if (!trial.file_base64) {
         const response = await trialService.getTrialReportFile(trial.trial_id);
