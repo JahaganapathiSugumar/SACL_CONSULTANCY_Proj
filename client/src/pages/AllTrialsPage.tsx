@@ -568,18 +568,29 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         </Box>
                     </Box>
                 </Box>
-                <Box sx={{ flexGrow: 1, overflow: 'hidden', p: embedded ? 0 : 3, pt: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ 
+                    flexGrow: 1, 
+                    p: embedded ? 0 : 3, 
+                    pt: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    minHeight: 0,
+                    overflow: 'hidden'
+                }}>
 
                     <TableContainer
                         className="premium-table-container"
                         sx={{
-                            flexGrow: 1,
-                            maxHeight: '650px',
+                            flex: 1,
                             overflow: 'auto',
                             position: 'relative',
-                            minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto',
+                            minHeight: 0,
                             bgcolor: 'white',
-                            borderRadius: '12px',
+                            borderTopLeftRadius: '12px',
+                            borderTopRightRadius: '12px',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                            '&::-webkit-scrollbar': { width: '8px', height: '8px' },
+                            '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: '4px' },
                             border: '1px solid #e2e8f0'
                         }}
                     >
@@ -855,7 +866,10 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             borderTop: '1px solid #e2e8f0',
                             bgcolor: '#f8fafc',
                             borderBottomLeftRadius: '12px',
-                            borderBottomRightRadius: '12px'
+                            borderBottomRightRadius: '12px',
+                            position: 'relative',
+                            zIndex: 5,
+                            boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
                         }}
                     />
                 </Box>
