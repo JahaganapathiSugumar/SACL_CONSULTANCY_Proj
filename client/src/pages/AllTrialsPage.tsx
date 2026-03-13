@@ -570,7 +570,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 </Box>
                 <Box sx={{ 
                     flexGrow: 1, 
-                    p: embedded ? 0 : 3, 
+                    p: embedded ? 0 : 1.5,
                     pt: 1, 
                     display: 'flex', 
                     flexDirection: 'column', 
@@ -582,6 +582,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                         className="premium-table-container"
                         sx={{
                             flex: 1,
+                            maxHeight: '450px',
                             overflow: 'auto',
                             position: 'relative',
                             minHeight: 0,
