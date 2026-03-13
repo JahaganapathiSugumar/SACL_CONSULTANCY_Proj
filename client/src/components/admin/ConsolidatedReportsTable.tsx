@@ -156,7 +156,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                 
                 const row: any = {
                     'Trial No': trial.trial_no,
-                    'Pouring Date': pouring.pouring_date ? new Date(pouring.pouring_date).toLocaleDateString('en-GB') : '-',
+                    'Pouring Date': pouring.pour_date ? new Date(pouring.pouring_date).toLocaleDateString('en-GB') : '-',
                     'Trial Type': trial.trial_type,
                     'Initiated By': trial.initiated_by,
                     'DISA / Machine': trial.disa || '-',
@@ -173,7 +173,6 @@ const ConsolidatedReportsTable: React.FC = () => {
                     'Pour Time (s)': pouring.pouring_time_sec || '-',
                     'Moulds Poured': pouring.no_of_mould_poured || '-',
                     'Inoc Type': pInoc?.text || '-',
-                    'Melting Remarks': pouring.remarks || '-',
                     'Melting Other Remarks': pouring.other_remarks || '-',
                     'Chem: C': actualChem?.C || '-',
                     'Chem: Si': actualChem?.Si || '-',
@@ -186,7 +185,6 @@ const ConsolidatedReportsTable: React.FC = () => {
 
                     'Metallurgical Date': meta.inspection_date ? new Date(meta.inspection_date).toLocaleDateString('en-GB') : '-',
                     'Metallurgical Result': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
-                    'Metallurgical Remarks': meta.mech_properties_remarks || '-',
                     'Yield Strength': firstMech['Yield Strength'] || '-',
                     'Tensile Strength': firstMech['Tensile Strength'] || '-',
                     'Elongation %': firstMech['Elongation'] || '-',
@@ -194,17 +192,23 @@ const ConsolidatedReportsTable: React.FC = () => {
                     'Micro: Ferrite %': firstMicro['Ferrite'] || '-',
                     'Micro: Pearlite %': firstMicro['Pearlite'] || '-',
 
-                    'Visual Date': visual.inspection_date ? new Date(visual.inspection_date).toLocaleDateString('en-GB') : '-',
                     'Visual Result': visual.visual_ok ? 'OK' : (visual.visual_ok === false ? 'NOT OK' : '-'),
                     'Total Inspected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
                     'Total Accepted': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
                     'Total Rejected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
 
                     'NDT Result': visual.ndt_inspection_ok ? 'OK' : (visual.ndt_inspection_ok === false ? 'NOT OK' : '-'),
-                    'Visual Hardness Result': visual.hardness_ok ? 'OK' : (visual.hardness_ok === false ? 'NOT OK' : '-'),
+                    'NDT Inspected Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
+                    'NDT Accepted Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'NDT Rejected Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
+                    
+                    'Hardness Result': visual.hardness_ok ? 'OK' : (visual.hardness_ok === false ? 'NOT OK' : '-'),
+                    'Hardness Inspected Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
+                    'Hardness Accepted Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'Hardness Rejected Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
 
-                    'Machine Shop Date': mcShop.inspection_date ? new Date(mcShop.inspection_date).toLocaleDateString('en-GB') : '-',
                     'MC Received Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Received Quantity']) || 0), 0),
+                    'MC Inspected Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
                     'MC Accepted Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
                     'MC Rejected Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
                 };
