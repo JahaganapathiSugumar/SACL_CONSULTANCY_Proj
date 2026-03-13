@@ -30,7 +30,7 @@ import {
     CircularProgress,
     Autocomplete,
 } from '@mui/material';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
