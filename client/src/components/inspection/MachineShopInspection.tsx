@@ -272,6 +272,7 @@ export default function McShopInspection({
           }
         } catch (error) {
           console.error("Failed to fetch machine shop data:", error);
+          showAlert('error', 'Failed to load existing data.');
         }
       }
     };
