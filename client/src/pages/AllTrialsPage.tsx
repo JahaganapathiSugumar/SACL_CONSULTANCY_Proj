@@ -526,7 +526,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     <TableCell className="premium-table-header-cell">Date</TableCell>
                                     <TableCell className="premium-table-header-cell">Dept</TableCell>
                                     <TableCell className="premium-table-header-cell">Status</TableCell>
-                                    <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Details</TableCell>
+                                    {user?.department_id == 2 && user?.role == 'Admin' && (
+                                        <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Details</TableCell>
+                                    )}
                                     <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -583,7 +585,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
-                                                    {user?.department_id === 2 && user?.role === 'Admin' && (
+                                                    {user?.department_id == 2 && user?.role == 'Admin' && (
                                                         <IconButton
                                                             color="success"
                                                             size="small"
