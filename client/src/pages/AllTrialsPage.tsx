@@ -180,7 +180,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 
                 departments.forEach(dept => {
                     const p = progress.find(prog => prog.department_id === dept.department_id);
-                    row[`${dept.department_name} (Completed)`] = p?.completed_at 
+                    row[`${dept.department_name} (${p?.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending'})`] = p?.completed_at 
                         ? new Date(p.completed_at).toLocaleString('en-GB') 
                         : (p?.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending');
                 });
