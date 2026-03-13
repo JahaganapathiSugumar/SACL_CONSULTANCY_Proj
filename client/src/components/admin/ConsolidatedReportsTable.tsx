@@ -26,7 +26,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import LoadingState from '../common/LoadingState';
 import { trialService } from '../../services/trialService';
 import DocumentViewer from '../common/DocumentViewer';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Swal from 'sweetalert2';
 
@@ -143,8 +143,6 @@ const ConsolidatedReportsTable: React.FC = () => {
 
                 const pInoc = safeParse(pouring.inoculation);
                 const actualChem = safeParse(pouring.composition);
-                const mechProps = safeParse(meta.mech_properties) || [];
-                const microStruct = safeParse(meta.micro_structure) || [];
                 const visInspections = safeParse(visual.inspections) || [];
                 const ndtInspections = safeParse(visual.ndt_inspection) || [];
                 const hardnessInspections = safeParse(visual.hardness) || [];
@@ -152,21 +150,15 @@ const ConsolidatedReportsTable: React.FC = () => {
                 
                 const matCorrChem = safeParse(materialCorrection.chemical_composition);
                 const matCorrParams = safeParse(materialCorrection.process_parameters);
-
-                const firstMech = mechProps[0] || {};
-                const firstMicro = microStruct[0] || {};
                 
                 const row: any = {
                     'Trial No': trial.trial_no,
                     'Pouring Date': pouring.pour_date ? new Date(pouring.pour_date).toLocaleDateString('en-GB') : '-',
-                    'Trial Type': trial.trial_type,
-                    'Initiated By': trial.initiated_by,
                     'DISA / Machine': trial.disa || '-',
                     'Sample Traceability': trial.sample_traceability || '-',
                     'Reason': trial.reason_for_sampling,
                     'Moulds (Plan/Act)': `${trial.plan_moulds || '-'} / ${trial.actual_moulds || '-'}`,
 
-                    'Material Correction Date': materialCorrection.date ? new Date(materialCorrection.date).toLocaleDateString('en-GB') : '-',
                     'Material Correction Chem': matCorrChem ? JSON.stringify(matCorrChem) : '-',
                     'Material Correction Params': matCorrParams ? JSON.stringify(matCorrParams) : '-',
                     
@@ -214,11 +206,54 @@ const ConsolidatedReportsTable: React.FC = () => {
                 return row;
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+            const headerStyle = {
+                fill: { fgColor: { rgb: "2C3E50" } },
+                font: { color: { rgb: "FFFFFF" }, bold: true },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+
+            const dataStyle = {
+                font: { bold: true, color: { rgb: "2C3E50" } },
+                alignment: { horizontal: "left", vertical: "center" }
+            };
+
+            const headerData = [
+                [
+                    { v: "Pattern Code:", s: headerStyle },
+                    { v: report.pattern_code, s: dataStyle },
+                    { v: "" },
+                    { v: "Part Name:", s: headerStyle },
+                    { v: report.part_name, s: dataStyle }
+                ],
+                []
+            ];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(headerData);
+
+            XLSX.utils.sheet_add_json(worksheet, flattenedData, { origin: "A3" });
+
+            const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+            const tableHeaderStyle = {
+                fill: { fgColor: { rgb: "E8F6F3" } },
+                font: { bold: true, color: { rgb: "117A65" } },
+                border: {
+                    top: { style: "thin", color: { rgb: "D1F2EB" } },
+                    bottom: { style: "thin", color: { rgb: "D1F2EB" } },
+                    left: { style: "thin", color: { rgb: "D1F2EB" } },
+                    right: { style: "thin", color: { rgb: "D1F2EB" } }
+                }
+            };
+
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_col(C) + "3"; 
+                if (!worksheet[address]) continue;
+                worksheet[address].s = tableHeaderStyle;
+            }
+
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Consolidated Trials');
 
-            worksheet['!cols'] = Object.keys(flattenedData[0] || {}).map(() => ({ wch: 20 }));
+            worksheet['!cols'] = Object.keys(flattenedData[0] || {}).map(() => ({ wch: 22 }));
 
             XLSX.writeFile(workbook, `Consolidated_Report_${report.pattern_code}_${new Date().toISOString().split('T')[0]}.xlsx`);
 
