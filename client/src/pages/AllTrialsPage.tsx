@@ -140,7 +140,17 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             return trial.pattern_code === patternFilter;
         })
         .sort((a, b) => new Date(b.date_of_sampling).getTime() - new Date(a.date_of_sampling).getTime());
-
+    
+    const totalCols = useMemo(() => {
+        let cols = 8;
+        if (user?.role === 'Admin') {
+            cols += 1;
+        }
+        if (user?.department_id != 3) {
+            cols += 1;
+        }
+        return cols;
+    }, [user]);
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
@@ -231,7 +241,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const handleViewReport = async (trial: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
             setFetchingReport(trial.trial_id);
-            
+
             let reportData = trial;
             if (!trial.file_base64) {
                 const response = await trialService.getTrialReportFile(trial.trial_id);
@@ -252,7 +262,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 uploaded_at: new Date().toISOString(),
                 remarks: 'Auto-generated Report'
             };
-            
+
             setViewReport({
                 trialId: reportData.trial_id,
                 trialNo: reportData.trial_no,
@@ -457,9 +467,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 disabled={selectedIds.length === 0}
                                 startIcon={<DeleteIcon fontSize="small" />}
                                 onClick={handleBulkDelete}
-                                sx={{ 
-                                    textTransform: 'none', 
-                                    fontWeight: 600, 
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 600,
                                     borderRadius: 1,
                                     height: '40px',
                                     whiteSpace: 'nowrap',
@@ -473,13 +483,13 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 </Box>
                 <Box sx={{ flexGrow: 1, overflow: 'hidden', p: embedded ? 0 : 3, pt: 1, display: 'flex', flexDirection: 'column' }}>
 
-                    <TableContainer 
-                        className="premium-table-container" 
-                        sx={{ 
+                    <TableContainer
+                        className="premium-table-container"
+                        sx={{
                             flexGrow: 1,
-                            maxHeight: '650px', 
-                            overflow: 'auto', 
-                            position: 'relative', 
+                            maxHeight: '650px',
+                            overflow: 'auto',
+                            position: 'relative',
                             minHeight: loading || filteredTrials.length === 0 ? '300px' : 'auto',
                             bgcolor: 'white',
                             borderRadius: '12px',
@@ -638,7 +648,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                             </TableRow>
 
                                             <TableRow>
-                                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 11 : 9} className="premium-table-cell">
+                                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={totalCols} className="premium-table-cell">
                                                     <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
                                                         <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
                                                             <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
@@ -751,7 +761,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={user?.role === 'Admin' ? 11 : 9} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                        <TableCell colSpan={totalCols} align="center" className="premium-table-cell" sx={{ py: 20 }}>
                                             <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                                 No trials found.
                                             </Typography>
@@ -781,8 +791,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                     />
                 </Box>
 
-                    <Box sx={{ mt: 3, textAlign: 'right' }}>
-                    </Box>
+                <Box sx={{ mt: 3, textAlign: 'right' }}>
+                </Box>
             </Box>
 
             <Dialog open={!!viewReport} onClose={() => setViewReport(null)} maxWidth="md" fullWidth>
