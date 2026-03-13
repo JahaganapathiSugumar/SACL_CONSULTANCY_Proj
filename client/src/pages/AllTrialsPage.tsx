@@ -463,7 +463,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     borderRadius: 1,
                                     height: '40px',
                                     whiteSpace: 'nowrap',
-                                    display: user?.role === 'Admin' ? 'flex' : 'none'
+                                    display: (user?.role === 'Admin' && selectedIds.length > 0) ? 'flex' : 'none'
                                 }}
                             >
                                 Delete Selected ({selectedIds.length})
@@ -583,17 +583,19 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
-                                                    <IconButton
-                                                        color="success"
-                                                        size="small"
-                                                        title="Export Details"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRowExportClick(trial);
-                                                        }}
-                                                    >
-                                                        <FileDownloadIcon fontSize="small" />
-                                                    </IconButton>
+                                                    {user?.department_id === 2 && user?.role === 'Admin' && (
+                                                        <IconButton
+                                                            color="success"
+                                                            size="small"
+                                                            title="Export Details"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRowExportClick(trial);
+                                                            }}
+                                                        >
+                                                            <FileDownloadIcon fontSize="small" />
+                                                        </IconButton>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
