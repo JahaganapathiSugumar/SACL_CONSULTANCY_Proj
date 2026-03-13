@@ -146,6 +146,8 @@ const ConsolidatedReportsTable: React.FC = () => {
                 const mechProps = safeParse(meta.mech_properties) || [];
                 const microStruct = safeParse(meta.micro_structure) || [];
                 const visInspections = safeParse(visual.inspections) || [];
+                const ndtInspections = safeParse(visual.ndt_inspection) || [];
+                const hardnessInspections = safeParse(visual.hardness) || [];
                 const mcInspections = safeParse(mcShop.inspections) || [];
                 
                 const matCorrChem = safeParse(materialCorrection.chemical_composition);
@@ -156,7 +158,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                 
                 const row: any = {
                     'Trial No': trial.trial_no,
-                    'Pouring Date': pouring.pour_date ? new Date(pouring.pouring_date).toLocaleDateString('en-GB') : '-',
+                    'Pouring Date': pouring.pour_date ? new Date(pouring.pour_date).toLocaleDateString('en-GB') : '-',
                     'Trial Type': trial.trial_type,
                     'Initiated By': trial.initiated_by,
                     'DISA / Machine': trial.disa || '-',
@@ -198,14 +200,14 @@ const ConsolidatedReportsTable: React.FC = () => {
                     'Total Rejected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
 
                     'NDT Result': visual.ndt_inspection_ok ? 'OK' : (visual.ndt_inspection_ok === false ? 'NOT OK' : '-'),
-                    'NDT Inspected Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
-                    'NDT Accepted Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
-                    'NDT Rejected Qty': visual.ndt_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
+                    'NDT Inspected Qty': ndtInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
+                    'NDT Accepted Qty': ndtInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'NDT Rejected Qty': ndtInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
                     
                     'Hardness Result': visual.hardness_ok ? 'OK' : (visual.hardness_ok === false ? 'NOT OK' : '-'),
-                    'Hardness Inspected Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
-                    'Hardness Accepted Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
-                    'Hardness Rejected Qty': visual.hardness_inspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
+                    'Hardness Inspected Qty': hardnessInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
+                    'Hardness Accepted Qty': hardnessInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Accepted Quantity']) || 0), 0),
+                    'Hardness Rejected Qty': hardnessInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Rejected Quantity']) || 0), 0),
 
                     'MC Received Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Received Quantity']) || 0), 0),
                     'MC Inspected Qty': mcInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
