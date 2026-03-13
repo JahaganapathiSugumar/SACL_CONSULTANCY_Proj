@@ -119,10 +119,10 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         .filter(trial => {
             const searchLower = searchTerm.toLowerCase();
             return (
-                String(trial.trial_id || '').toLowerCase().includes(searchLower) ||
-                String(trial.trial_no || '').toLowerCase().includes(searchLower) ||
-                String(trial.part_name || '').toLowerCase().includes(searchLower) ||
-                String(trial.pattern_code || '').toLowerCase().includes(searchLower)
+                trial.trial_id?.toString().toLowerCase().includes(searchLower) ||
+                trial.trial_no?.toString().toLowerCase().includes(searchLower) ||
+                trial.part_name?.toLowerCase().includes(searchLower) ||
+                trial.pattern_code?.toLowerCase().includes(searchLower)
             );
         })
         .filter(trial => {

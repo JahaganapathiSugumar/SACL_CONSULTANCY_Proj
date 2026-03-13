@@ -61,8 +61,8 @@ const ConsolidatedReportsTable: React.FC = () => {
         if (!searchTerm) return true;
         const searchLower = searchTerm.toLowerCase();
         return (
-            String(report.pattern_code || '').toLowerCase().includes(searchLower) ||
-            String(report.part_name || '').toLowerCase().includes(searchLower)
+            report.pattern_code?.toLowerCase().includes(searchLower) ||
+            report.part_name?.toLowerCase().includes(searchLower)
         );
     });
 
