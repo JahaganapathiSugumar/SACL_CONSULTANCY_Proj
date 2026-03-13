@@ -79,6 +79,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(50);
     const [fetchingReport, setFetchingReport] = useState<number | string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
     const departmentInfo = getDepartmentInfo(user);
 
 
@@ -153,7 +154,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         if (filteredTrials.length === 0) return;
         
         try {
-            setLoading(true);
+            setIsExporting(true);
             const allProgress = await Promise.all(
                 filteredTrials.map(async (trial) => {
                     try {
@@ -217,7 +218,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             console.error("Error exporting trial report:", error);
             Swal.fire('Error', 'Failed to generate trial report.', 'error');
         } finally {
-            setLoading(false);
+            setIsExporting(false);
         }
     };
 
@@ -533,8 +534,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                 variant="contained"
                                 color="success"
                                 size="small"
-                                disabled={filteredTrials.length === 0}
-                                startIcon={<FileDownloadIcon fontSize="small" />}
+                                disabled={filteredTrials.length === 0 || isExporting}
+                                startIcon={isExporting ? <CircularProgress size={20} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
                                 onClick={handleGlobalExport}
                                 sx={{
                                     textTransform: 'none',
@@ -545,7 +546,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     display: (user?.department_id != 3) ? 'flex' : 'none'
                                 }}
                             >
-                                Export Report
+                                {isExporting ? 'Exporting...' : 'Export Report'}
                             </Button>
                             <Button
                                 variant="contained"
