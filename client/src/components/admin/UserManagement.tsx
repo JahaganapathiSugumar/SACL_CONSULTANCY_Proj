@@ -25,12 +25,7 @@ const UserManagement: React.FC = () => {
       const userList = await apiService.getUsers();
       setUsers(userList);
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      Swal.fire({
-        title: 'Error',
-        text: err.message || 'Failed to load users',
-        icon: 'error',
-        confirmButtonColor: '#d33'
-      });
+      console.log("Failed to load users");
     } finally {
       setLoading(false);
     }

@@ -36,7 +36,6 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
     const { user } = useAuth();
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Selection state
@@ -49,11 +48,10 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
             if (result.success) {
                 setData(result.data);
             } else {
-                setError(result.message || 'Failed to fetch master lists');
+                console.log("Failed to fetch master lists");
             }
         } catch (err) {
-            setError('Error connecting to server');
-            console.error(err);
+            console.log("Failed to fetch master lists");
         } finally {
             setLoading(false);
         }
@@ -148,8 +146,6 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
             });
         }
     };
-
-    if (error) return <Alert severity="error">{error}</Alert>;
 
     return (
         <Box sx={{ p: 2 }}>
