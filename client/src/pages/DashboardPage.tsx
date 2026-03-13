@@ -255,19 +255,21 @@ const Dashboard: React.FC = () => {
               <AllTrialsPage embedded={true} />
             )}
 
-            {user?.role === 'Admin' && currentView === 'master-list' && (
+            {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && currentView === 'master-list' && (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setEditingMasterItem(null);
-                      setIsAddMasterModalOpen(true);
-                    }}
-                    sx={{ textTransform: 'none', bgcolor: '#E67E22', '&:hover': { bgcolor: '#d35400' } }}
-                  >
-                    Add to Master List
-                  </Button>
+                  {(user?.role === 'Admin' || user?.department_id === 3) && (
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditingMasterItem(null);
+                        setIsAddMasterModalOpen(true);
+                      }}
+                      sx={{ textTransform: 'none', bgcolor: '#E67E22', '&:hover': { bgcolor: '#d35400' } }}
+                    >
+                      Add to Master List
+                    </Button>
+                  )}
                 </Box>
                 <Box sx={{ bgcolor: 'white', borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
                   <MasterListTable

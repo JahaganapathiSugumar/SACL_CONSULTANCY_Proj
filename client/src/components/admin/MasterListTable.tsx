@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -25,6 +25,7 @@ import {
 import { masterListService } from '../../services/masterListService';
 import LoadingState from '../common/LoadingState';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 
 interface MasterListTableProps {
     onEdit: (data: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -32,6 +33,7 @@ interface MasterListTableProps {
 }
 
 const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }) => {
+    const { user } = useAuth();
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -153,7 +155,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
         <Box sx={{ p: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={2}>
                 <Box display="flex" alignItems="center" gap={2}>
-                    {selectedItems.size > 0 && (
+                    {selectedItems.size > 0 && user?.role === 'Admin' && (
                         <Stack direction="row" spacing={1} alignItems="center">
                             <Button
                                 variant="contained"
@@ -261,6 +263,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                             <span
                                                 onClick={async (e) => {
+                                                    if (user?.role !== 'Admin') return;
                                                     e.stopPropagation();
                                                     try {
                                                         const newStatus = !row.is_active;
@@ -283,7 +286,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                                                     }
                                                 }}
                                                 className={`status-pill ${(row.is_active === true || Number(row.is_active) === 1) ? 'status-pill-active' : 'status-pill-inactive'}`}
-                                                style={{ cursor: 'pointer' }}
+                                                style={{ cursor: user?.role === 'Admin' ? 'pointer' : 'default' }}
                                             >
                                                 {(row.is_active === true || Number(row.is_active) === 1) ? (
                                                     <><CheckCircleIcon sx={{ fontSize: '13px' }} /> Active</>
@@ -301,17 +304,19 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                                             >
                                                 <EditIcon fontSize="small" />
                                             </IconButton>
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => onDuplicate(row)}
-                                                sx={{
-                                                    color: '#9b59b6',
-                                                    '&:hover': { bgcolor: '#f5eef8' }
-                                                }}
-                                                title="Duplicate"
-                                            >
-                                                <ContentCopyIcon fontSize="small" />
-                                            </IconButton>
+                                            {(user?.role === 'Admin' || user?.department_id === 3) && (
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => onDuplicate(row)}
+                                                    sx={{
+                                                        color: '#9b59b6',
+                                                        '&:hover': { bgcolor: '#f5eef8' }
+                                                    }}
+                                                    title="Duplicate"
+                                                >
+                                                    <ContentCopyIcon fontSize="small" />
+                                                </IconButton>
+                                            )}
                                         </Box>
                                     </TableCell>
                                 </TableRow>

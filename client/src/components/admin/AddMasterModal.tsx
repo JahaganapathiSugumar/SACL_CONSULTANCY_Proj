@@ -26,6 +26,7 @@ import { masterListService } from '../../services/masterListService';
 import FileUploadSection from '../common/FileUploadSection';
 import ActionButtons from '../common/ActionButtons';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 
 interface AddMasterModalProps {
     isOpen: boolean;
@@ -35,6 +36,8 @@ interface AddMasterModalProps {
 }
 
 const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initialData, onSuccess }) => {
+    const { user } = useAuth();
+    const isRestricted = user?.role !== 'Admin' && user?.department_id === 2;
     const [formData, setFormData] = useState<any>({ // eslint-disable-line @typescript-eslint/no-explicit-any
         pattern_code: '',
         part_name: '',
@@ -447,6 +450,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('pattern_code', e.target.value)}
                                 placeholder="e.g., PC-001"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -458,6 +462,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('part_name', e.target.value)}
                                 placeholder="e.g., Gear Wheel"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -468,6 +473,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('material_grade', e.target.value)}
                                 placeholder="e.g., EN8"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                     </Grid>
@@ -496,6 +502,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                                 placeholder="--"
                                                 size="small"
                                                 sx={{ '& .MuiInputBase-input': { textAlign: 'center', p: 1 } }}
+                                                disabled={isRestricted}
                                             />
                                         </TableCell>
                                     ))}
@@ -521,6 +528,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('micro_structure', e.target.value)}
                                 placeholder="e.g., Fine pearlite with ferrite"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
@@ -533,6 +541,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('tensile_strength_min', e.target.value)}
                                         placeholder="e.g., 550 MPa"
                                         size="small"
+                                        disabled={isRestricted}
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 12 }}>
@@ -543,6 +552,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('yield_strength_min', e.target.value)}
                                         placeholder="e.g., 420 MPa"
                                         size="small"
+                                        disabled={isRestricted}
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 12 }}>
@@ -553,6 +563,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                         onChange={(e) => handleInputChange('elongation', e.target.value)}
                                         placeholder="e.g., 12%"
                                         size="small"
+                                        disabled={isRestricted}
                                     />
                                 </Grid>
                             </Grid>
@@ -565,6 +576,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('impact_cold', e.target.value)}
                                 placeholder="e.g., 18 J"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -575,6 +587,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('impact_room', e.target.value)}
                                 placeholder="e.g., 20 J"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -585,6 +598,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('hardness_surface', e.target.value)}
                                 placeholder="e.g., 62 HRC"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -595,6 +609,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('hardness_core', e.target.value)}
                                 placeholder="e.g., 58 HRC"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -603,6 +618,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 label="X-Ray"
                                 value={formData.xray}
                                 onChange={(e) => {
+                                    if (isRestricted) return;
                                     const value = e.target.value;
                                     const mpiMatch = value.match(/MPI\s*[:\-]\s*(.*)$/i);
 
@@ -623,6 +639,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 }}
                                 placeholder="e.g., No internal defects"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -633,6 +650,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                                 onChange={(e) => handleInputChange('mpi', e.target.value)}
                                 placeholder="e.g., No indications"
                                 size="small"
+                                disabled={isRestricted}
                             />
                         </Grid>
                     </Grid>
@@ -648,6 +666,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                             accept=".pdf,image/*"
                             multiple
                             label="Choose Files"
+                            disabled={isRestricted}
                         />
                     </Box>
 

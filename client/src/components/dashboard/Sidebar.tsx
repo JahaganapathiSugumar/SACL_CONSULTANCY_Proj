@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen = f
             subLabel: 'Manage pattern codes',
             icon: <ListAltIcon />,
             view: 'master-list' as const,
-            show: user?.role === 'Admin'
+            show: user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3
         },
         {
             id: 'employees',
