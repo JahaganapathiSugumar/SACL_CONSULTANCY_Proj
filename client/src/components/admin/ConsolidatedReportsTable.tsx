@@ -185,13 +185,10 @@ const ConsolidatedReportsTable: React.FC = () => {
                     'Chem: Cu': actualChem?.Cu || '-',
                     'Chem: Cr': actualChem?.Cr || '-',
 
-                    'Metallurgical Result': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
-                    'Yield Strength': firstMech['Yield Strength'] || '-',
-                    'Tensile Strength': firstMech['Tensile Strength'] || '-',
-                    'Elongation %': firstMech['Elongation'] || '-',
-                    'Micro: Nodularity %': firstMicro['Nodularity'] || '-',
-                    'Micro: Ferrite %': firstMicro['Ferrite'] || '-',
-                    'Micro: Pearlite %': firstMicro['Pearlite'] || '-',
+                    'Metallurgical Result(Micro)': meta.micro_structure_ok ? 'OK' : (meta.micro_structure_ok === false ? 'NOT OK' : '-'),
+                    'Metallurgical Result(Mech)': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
+                    'Metallurgical Result(Impact)': meta.impact_ok ? 'OK' : (meta.impact_ok === false ? 'NOT OK' : '-'),
+                    'Metallurgical Result(Hardness)': meta.hardness_ok ? 'OK' : (meta.hardness_ok === false ? 'NOT OK' : '-'),
 
                     'Visual Result': visual.visual_ok ? 'OK' : (visual.visual_ok === false ? 'NOT OK' : '-'),
                     'Total Inspected': visInspections.reduce((acc: number, r: any) => acc + (parseFloat(r['Inspected Quantity']) || 0), 0),
