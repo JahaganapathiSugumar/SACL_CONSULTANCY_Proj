@@ -185,7 +185,6 @@ const ConsolidatedReportsTable: React.FC = () => {
                     'Chem: Cu': actualChem?.Cu || '-',
                     'Chem: Cr': actualChem?.Cr || '-',
 
-                    'Metallurgical Date': meta.inspection_date ? new Date(meta.inspection_date).toLocaleDateString('en-GB') : '-',
                     'Metallurgical Result': meta.mech_properties_ok ? 'OK' : (meta.mech_properties_ok === false ? 'NOT OK' : '-'),
                     'Yield Strength': firstMech['Yield Strength'] || '-',
                     'Tensile Strength': firstMech['Tensile Strength'] || '-',
