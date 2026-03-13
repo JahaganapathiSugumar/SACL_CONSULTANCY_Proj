@@ -227,14 +227,16 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                 <Table size="small" stickyHeader>
                     <TableHead className="premium-table-head">
                         <TableRow>
-                            <TableCell padding="checkbox" className="premium-table-header-cell" sx={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                                <Checkbox
-                                    checked={filteredData.length > 0 && selectedItems.size === filteredData.length}
-                                    indeterminate={selectedItems.size > 0 && selectedItems.size < filteredData.length}
-                                    onChange={handleSelectAll}
-                                    size="small"
-                                />
-                            </TableCell>
+                            {user?.role === 'Admin' && (
+                                <TableCell padding="checkbox" className="premium-table-header-cell" sx={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                                    <Checkbox
+                                        checked={filteredData.length > 0 && selectedItems.size === filteredData.length}
+                                        indeterminate={selectedItems.size > 0 && selectedItems.size < filteredData.length}
+                                        onChange={handleSelectAll}
+                                        size="small"
+                                    />
+                                </TableCell>
+                            )}
                             <TableCell className="premium-table-header-cell" sx={{ position: 'sticky', top: 0, zIndex: 10 }}>PATTERN CODE</TableCell>
                             <TableCell className="premium-table-header-cell" sx={{ position: 'sticky', top: 0, zIndex: 10 }}>PART NAME</TableCell>
                             <TableCell className="premium-table-header-cell" sx={{ position: 'sticky', top: 0, zIndex: 10 }}>GRADE</TableCell>
@@ -249,13 +251,15 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                                     className="premium-table-row"
                                     selected={selectedItems.has(row.id)}
                                 >
-                                    <TableCell padding="checkbox" className="premium-table-cell">
-                                        <Checkbox
-                                            checked={selectedItems.has(row.id)}
-                                            onChange={() => handleSelectItem(row.id)}
-                                            size="small"
-                                        />
-                                    </TableCell>
+                                    {user?.role === 'Admin' && (
+                                        <TableCell padding="checkbox" className="premium-table-cell">
+                                            <Checkbox
+                                                checked={selectedItems.has(row.id)}
+                                                onChange={() => handleSelectItem(row.id)}
+                                                size="small"
+                                            />
+                                        </TableCell>
+                                    )}
                                     <TableCell className="premium-table-cell-bold">{row.pattern_code}</TableCell>
                                     <TableCell className="premium-table-cell">{row.part_name}</TableCell>
                                     <TableCell className="premium-table-cell">{row.material_grade}</TableCell>
@@ -323,7 +327,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                <TableCell colSpan={user?.role === 'Admin' ? 5 : 4} align="center" className="premium-table-cell" sx={{ py: 20 }}>
                                     <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                         No data found matching your search.
                                     </Typography>
