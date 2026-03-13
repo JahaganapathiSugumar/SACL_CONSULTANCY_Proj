@@ -288,49 +288,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         }
     };
 
-    const handleExportExcel = () => {
-        try {
-            const exportData = filteredTrials.map(trial => ({
-                'Trial No': trial.trial_no,
-                'Part Name': trial.part_name,
-                'Pattern Code': trial.pattern_code,
-                'Material Grade': trial.material_grade,
-                'Date of Sampling': new Date(trial.date_of_sampling).toLocaleDateString('en-GB'),
-                'Current Department': trial.department || 'N/A',
-                'Status': trial.status,
-            }));
 
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Trials');
-
-            // Adjust column widths
-            const wscols = [
-                { wch: 15 }, // Trial No
-                { wch: 30 }, // Part Name
-                { wch: 20 }, // Pattern Code
-                { wch: 20 }, // Grade
-                { wch: 15 }, // Date
-                { wch: 25 }, // Dept
-                { wch: 15 }, // Status
-                { wch: 15 }  // Comp Status
-            ];
-            worksheet['!cols'] = wscols;
-
-            XLSX.writeFile(workbook, `Trial_Data_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
-            
-            Swal.fire({
-                title: 'Success!',
-                text: 'Excel file has been generated and downloaded.',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        } catch (error) {
-            console.error("Excel export error:", error);
-            Swal.fire('Error', 'Failed to export data to Excel.', 'error');
-        }
-    };
 
     const handleExportTrialDetails = (trial: any, progress: any[]) => {
         try {
@@ -494,32 +452,22 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             />
                             <Button
                                 variant="contained"
-                                color="success"
+                                color="error"
                                 size="small"
-                                startIcon={<FileDownloadIcon fontSize="small" />}
-                                onClick={handleExportExcel}
+                                disabled={selectedIds.length === 0}
+                                startIcon={<DeleteIcon fontSize="small" />}
+                                onClick={handleBulkDelete}
                                 sx={{ 
                                     textTransform: 'none', 
                                     fontWeight: 600, 
                                     borderRadius: 1,
                                     height: '40px',
-                                    whiteSpace: 'nowrap'
+                                    whiteSpace: 'nowrap',
+                                    display: user?.role === 'Admin' ? 'flex' : 'none'
                                 }}
                             >
-                                Export Data
+                                Delete Selected ({selectedIds.length})
                             </Button>
-                            {user?.role === 'Admin' && selectedIds.length > 0 && (
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    size="small"
-                                    startIcon={<DeleteIcon fontSize="small" />}
-                                    onClick={handleBulkDelete}
-                                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1 }}
-                                >
-                                    Delete ({selectedIds.length})
-                                </Button>
-                            )}
                         </Box>
                     </Box>
                 </Box>
