@@ -146,11 +146,80 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         if (user?.role === 'Admin') {
             cols += 2;
         }
-        if (user?.department_id != 3) {
-            cols += 1;
-        }
         return cols;
     }, [user]);
+
+    const handleGlobalExport = async () => {
+        if (filteredTrials.length === 0) return;
+        
+        try {
+            setLoading(true);
+            const allProgress = await Promise.all(
+                filteredTrials.map(async (trial) => {
+                    try {
+                        const progress = trialProgressData[trial.trial_id] || 
+                                        await departmentProgressService.getProgressByTrialId(trial.trial_id);
+                        return { trial, progress };
+                    } catch (err) {
+                        console.error(`Error fetching progress for trial ${trial.trial_no}:`, err);
+                        return { trial, progress: [] };
+                    }
+                })
+            );
+
+            const exportData = allProgress.map(({ trial, progress }) => {
+                const row: any = {
+                    'Trial No': trial.trial_no,
+                    'Part Name': trial.part_name,
+                    'Pattern Code': trial.pattern_code,
+                    'Grade': trial.material_grade,
+                    'Sampling Date': new Date(trial.date_of_sampling).toLocaleDateString('en-GB'),
+                    'Overall Status': trial.status,
+                    'Current Dept': trial.department || 'N/A'
+                };
+                
+                departments.forEach(dept => {
+                    const p = progress.find(prog => prog.department_id === dept.department_id);
+                    row[`${dept.department_name} (Completed)`] = p?.completed_at 
+                        ? new Date(p.completed_at).toLocaleString('en-GB') 
+                        : (p?.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending');
+                });
+                
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Trials Progress');
+
+            const wscols = [
+                { wch: 15 },
+                { wch: 30 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 20 },
+                ...departments.map(() => ({ wch: 25 }))
+            ];
+            worksheet['!cols'] = wscols;
+
+            XLSX.writeFile(workbook, `Global_Trial_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Global report exported to Excel.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Error exporting global report:", error);
+            Swal.fire('Error', 'Failed to generate global report.', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
@@ -462,6 +531,24 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                             />
                             <Button
                                 variant="contained"
+                                color="success"
+                                size="small"
+                                disabled={filteredTrials.length === 0}
+                                startIcon={<FileDownloadIcon fontSize="small" />}
+                                onClick={handleGlobalExport}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    borderRadius: 1,
+                                    height: '40px',
+                                    whiteSpace: 'nowrap',
+                                    display: (user?.department_id != 3) ? 'flex' : 'none'
+                                }}
+                            >
+                                Export Report
+                            </Button>
+                            <Button
+                                variant="contained"
                                 color="error"
                                 size="small"
                                 disabled={selectedIds.length === 0}
@@ -536,9 +623,6 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     <TableCell className="premium-table-header-cell">Date</TableCell>
                                     <TableCell className="premium-table-header-cell">Dept</TableCell>
                                     <TableCell className="premium-table-header-cell">Status</TableCell>
-                                    {user?.department_id != 3 && (
-                                        <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Details</TableCell>
-                                    )}
                                     <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -594,21 +678,6 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         {trial.status}
                                                     </span>
                                                 </TableCell>
-                                                {user?.department_id != 3 && (
-                                                    <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
-                                                        <IconButton
-                                                            color="success"
-                                                            size="small"
-                                                            title="Export Details"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleRowExportClick(trial);
-                                                            }}
-                                                        >
-                                                            <FileDownloadIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                )}
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                                         {(trial.status === 'CLOSED' && trial.document_id) ? (
