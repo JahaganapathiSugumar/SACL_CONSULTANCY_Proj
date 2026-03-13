@@ -144,7 +144,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
     const totalCols = useMemo(() => {
         let cols = 8;
         if (user?.role === 'Admin') {
-            cols += 1;
+            cols += 2;
         }
         if (user?.department_id != 3) {
             cols += 1;
@@ -594,8 +594,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         {trial.status}
                                                     </span>
                                                 </TableCell>
-                                                <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
-                                                    {user?.department_id != 3 && (
+                                                {user?.department_id != 3 && (
+                                                    <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
                                                         <IconButton
                                                             color="success"
                                                             size="small"
@@ -607,8 +607,8 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         >
                                                             <FileDownloadIcon fontSize="small" />
                                                         </IconButton>
-                                                    )}
-                                                </TableCell>
+                                                    </TableCell>
+                                                )}
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                                         {(trial.status === 'CLOSED' && trial.document_id) ? (
