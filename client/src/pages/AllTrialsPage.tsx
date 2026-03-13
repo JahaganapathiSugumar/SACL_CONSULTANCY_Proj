@@ -180,7 +180,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                 
                 departments.forEach(dept => {
                     const p = progress.find(prog => prog.department_id === dept.department_id);
-                    row[`${dept.department_name} (${p?.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending'})`] = p?.completed_at 
+                    row[`${dept.department_name} (Completed)`] = p?.completed_at 
                         ? new Date(p.completed_at).toLocaleString('en-GB') 
                         : (p?.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending');
                 });
@@ -204,18 +204,18 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             ];
             worksheet['!cols'] = wscols;
 
-            XLSX.writeFile(workbook, `Global_Trial_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `Trial_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
 
             Swal.fire({
                 title: 'Success!',
-                text: 'Global report exported to Excel.',
+                text: 'Trial report exported to Excel.',
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false
             });
         } catch (error) {
-            console.error("Error exporting global report:", error);
-            Swal.fire('Error', 'Failed to generate global report.', 'error');
+            console.error("Error exporting trial report:", error);
+            Swal.fire('Error', 'Failed to generate trial report.', 'error');
         } finally {
             setLoading(false);
         }
