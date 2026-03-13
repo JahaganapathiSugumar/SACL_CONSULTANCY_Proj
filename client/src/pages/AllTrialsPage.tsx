@@ -30,6 +30,8 @@ import {
     CircularProgress,
     Autocomplete,
 } from '@mui/material';
+import * as XLSX from 'xlsx';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import LoadingState from '../components/common/LoadingState';
 import DocumentViewer from '../components/common/DocumentViewer';
 import BackButton from '../components/common/BackButton';
@@ -285,6 +287,50 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             }
         }
     };
+
+    const handleExportExcel = () => {
+        try {
+            const exportData = filteredTrials.map(trial => ({
+                'Trial No': trial.trial_no,
+                'Part Name': trial.part_name,
+                'Pattern Code': trial.pattern_code,
+                'Material Grade': trial.material_grade,
+                'Date of Sampling': new Date(trial.date_of_sampling).toLocaleDateString('en-GB'),
+                'Current Department': trial.department || 'N/A',
+                'Status': trial.status,
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Trials');
+
+            // Adjust column widths
+            const wscols = [
+                { wch: 15 }, // Trial No
+                { wch: 30 }, // Part Name
+                { wch: 20 }, // Pattern Code
+                { wch: 20 }, // Grade
+                { wch: 15 }, // Date
+                { wch: 25 }, // Dept
+                { wch: 15 }, // Status
+                { wch: 15 }  // Comp Status
+            ];
+            worksheet['!cols'] = wscols;
+
+            XLSX.writeFile(workbook, `Trial_Data_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            
+            Swal.fire({
+                title: 'Success!',
+                text: 'Excel file has been generated and downloaded.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Excel export error:", error);
+            Swal.fire('Error', 'Failed to export data to Excel.', 'error');
+        }
+    };
     return (
         <ThemeProvider theme={appTheme}>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -367,6 +413,22 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     ),
                                 }}
                             />
+                            <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                startIcon={<FileDownloadIcon fontSize="small" />}
+                                onClick={handleExportExcel}
+                                sx={{ 
+                                    textTransform: 'none', 
+                                    fontWeight: 600, 
+                                    borderRadius: 1,
+                                    height: '40px',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                Export Data
+                            </Button>
                             {user?.role === 'Admin' && selectedIds.length > 0 && (
                                 <Button
                                     variant="contained"
