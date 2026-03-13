@@ -331,6 +331,85 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
             Swal.fire('Error', 'Failed to export data to Excel.', 'error');
         }
     };
+
+    const handleExportTrialDetails = (trial: any, progress: any[]) => {
+        try {
+            // Header Info
+            const trialInfo = [
+                ['TRIAL DETAILS REPORT'],
+                [''],
+                ['Trial No', trial.trial_no],
+                ['Part Name', trial.part_name],
+                ['Pattern Code', trial.pattern_code],
+                ['Grade', trial.material_grade],
+                ['Sampling Date', new Date(trial.date_of_sampling).toLocaleDateString('en-GB')],
+                ['Overall Status', trial.status],
+                [''],
+                ['DEPARTMENT PROGRESS HISTORY'],
+                ['Department', 'Status', 'Completed At', 'Remarks']
+            ];
+
+            // Progress Rows
+            const progressRows = progress.map(p => [
+                p.department_name || `Dept ${p.department_id}`,
+                p.approval_status ? p.approval_status.charAt(0).toUpperCase() + p.approval_status.slice(1) : 'Pending',
+                p.completed_at ? new Date(p.completed_at).toLocaleString('en-GB') : 'Pending',
+                p.remarks || '-'
+            ]);
+
+            const finalData = [...trialInfo, ...progressRows];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(finalData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Trial Details');
+
+            // Formatting
+            const wscols = [
+                { wch: 25 },
+                { wch: 15 },
+                { wch: 25 },
+                { wch: 40 }
+            ];
+            worksheet['!cols'] = wscols;
+
+            XLSX.writeFile(workbook, `Trial_${trial.trial_no}_Details_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Trial details exported to Excel.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Trial detail export error:", error);
+            Swal.fire('Error', 'Failed to export trial details.', 'error');
+        }
+    };
+
+    const handleRowExportClick = async (trial: any) => {
+        let progress = trialProgressData[trial.trial_id];
+        if (!progress || progress.length === 0) {
+            Swal.fire({
+                title: 'Preparing Export',
+                text: 'Fetching detailed progress data...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            try {
+                progress = await departmentProgressService.getProgressByTrialId(trial.trial_id);
+                setTrialProgressData(prev => ({ ...prev, [trial.trial_id]: progress }));
+                Swal.close();
+            } catch (error) {
+                console.error("Error fetching trial progress:", error);
+                Swal.fire('Error', 'Failed to fetch trial progress details.', 'error');
+                return;
+            }
+        }
+        handleExportTrialDetails(trial, progress);
+    };
     return (
         <ThemeProvider theme={appTheme}>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -499,6 +578,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     <TableCell className="premium-table-header-cell">Date</TableCell>
                                     <TableCell className="premium-table-header-cell">Dept</TableCell>
                                     <TableCell className="premium-table-header-cell">Status</TableCell>
+                                    <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Details</TableCell>
                                     <TableCell className="premium-table-header-cell" style={{ textAlign: 'center' }}>Report</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -554,6 +634,19 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         {trial.status}
                                                     </span>
                                                 </TableCell>
+                                                <TableCell className="premium-table-cell" style={{ textAlign: 'center' }}>
+                                                    <IconButton
+                                                        color="success"
+                                                        size="small"
+                                                        title="Export Details"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRowExportClick(trial);
+                                                        }}
+                                                    >
+                                                        <FileDownloadIcon fontSize="small" />
+                                                    </IconButton>
+                                                </TableCell>
                                                 <TableCell align="center" className="premium-table-cell">
                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                                         {(trial.status === 'CLOSED' && trial.document_id) ? (
@@ -593,7 +686,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                             </TableRow>
 
                                             <TableRow>
-                                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 10 : 8} className="premium-table-cell">
+                                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={user?.role === 'Admin' ? 11 : 9} className="premium-table-cell">
                                                     <Collapse in={expandedTrialId === trial.trial_id} timeout="auto" unmountOnExit>
                                                         <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2 }}>
                                                             <Typography variant="h6" gutterBottom component="div" sx={{ fontSize: '1rem', fontWeight: 'bold', mb: 2 }}>
@@ -706,7 +799,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={user?.role === 'Admin' ? 10 : 8} align="center" className="premium-table-cell" sx={{ py: 20 }}>
+                                        <TableCell colSpan={user?.role === 'Admin' ? 11 : 9} align="center" className="premium-table-cell" sx={{ py: 20 }}>
                                             <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                                                 No trials found.
                                             </Typography>
