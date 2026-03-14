@@ -29,6 +29,7 @@ import DocumentViewer from '../common/DocumentViewer';
 import XLSX from 'xlsx-js-style';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 
 interface ConsolidatedReport {
     document_id: number;
@@ -39,6 +40,7 @@ interface ConsolidatedReport {
 }
 
 const ConsolidatedReportsTable: React.FC = () => {
+    const { user } = useAuth();
     const [reports, setReports] = useState<ConsolidatedReport[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -365,20 +367,22 @@ const ConsolidatedReportsTable: React.FC = () => {
                                         >
                                             {fetchingReport === report.pattern_code ? 'Loading...' : 'View PDF'}
                                         </Button>
-                                        <Button
-                                            onClick={() => handleExportExcel(report)}
-                                            variant="contained"
-                                            color="success"
-                                            size="small"
-                                            disabled={exportingExcel === report.pattern_code}
-                                            startIcon={exportingExcel === report.pattern_code ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
-                                            sx={{
-                                                textTransform: 'none',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            {exportingExcel === report.pattern_code ? 'Exporting...' : 'Excel'}
-                                        </Button>
+                                        {user?.department_id !== 3 && (
+                                            <Button
+                                                onClick={() => handleExportExcel(report)}
+                                                variant="contained"
+                                                color="success"
+                                                size="small"
+                                                disabled={exportingExcel === report.pattern_code}
+                                                startIcon={exportingExcel === report.pattern_code ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
+                                                sx={{
+                                                    textTransform: 'none',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                {exportingExcel === report.pattern_code ? 'Exporting...' : 'Excel'}
+                                            </Button>
+                                        )}
                                     </Box>
                                 </TableCell>
                             </TableRow>
