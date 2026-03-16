@@ -267,8 +267,32 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     const current_department_id = user.department_id;
     const { trial_type, part_name, pattern_code, trial_no } = current_trial[0];
 
-    const current_department_hod = await getDepartmentHOD(current_department_id, trial_type, trx);
+    let current_department_hod_result;
+    if (current_department_id == 8) {
+        if (trial_type == 'MACHINING - CUSTOMER END') {
+            current_department_hod_result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD' AND is_active = 1`,
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
+            current_department_hod_result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                { current_department_id }
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
+            current_department_hod_result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                { current_department_id }
+            );
+        }
+    } else {
+        current_department_hod_result = await trx.query(
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1`,
+            { current_department_id }
+        );
+    }
 
+    const [current_department_hod] = current_department_hod_result;
+    
     if (current_department_hod) {
         const current_department_hod_username = current_department_hod.username;
         await trx.query(
