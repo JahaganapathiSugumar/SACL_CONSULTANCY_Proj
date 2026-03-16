@@ -209,14 +209,13 @@ export const updateTrial = async (req, res, next) => {
                 sendMail({
                     to: emails,
                     subject: `Trial Updated: ${part_name} - ${trial_no}`,
-                    text: `The trial card ${trial_no} (ID: ${trial_id}, Part: ${part_name}) has been updated by ${req.user.username}.`,
+                    text: `The trial card Trial No: ${trial_no} (Part: ${part_name}) has been updated by ${req.user.username}.`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                             <h2 style="color: #E67E22;">Trial Card Update Notification</h2>
                             <p>The following trial card has been updated:</p>
                             <ul style="list-style: none; padding: 0;">
                                 <li><strong>Trial No:</strong> ${trial_no}</li>
-                                <li><strong>Trial ID (DB):</strong> ${trial_id}</li>
                                 <li><strong>Part Name:</strong> ${part_name}</li>
                                 <li><strong>Pattern Code:</strong> ${pattern_code}</li>
                             </ul>

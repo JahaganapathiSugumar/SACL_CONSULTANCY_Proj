@@ -33,22 +33,22 @@ const getDepartmentHOD = async (department_id, trial_type, trx) => {
     if (department_id == 8) {
         if (trial_type == 'MACHINING - CUSTOMER END') {
             result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD' AND is_active = 1`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD'`,
             );
         } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
             result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'NPD'`,
                 { department_id }
             );
         } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
             result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'REGULAR'`,
                 { department_id }
             );
         }
     } else {
         result = await trx.query(
-            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1`,
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD'`,
             { department_id }
         );
     }
@@ -156,7 +156,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
 
     const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
 
-    const ccEmails = ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"];
+    const ccEmails = ["cae_sacl@sakthiauto.com"];
     if (next_department_hod && next_department_hod.email) {
         ccEmails.push(next_department_hod.email);
     }
@@ -290,7 +290,7 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
         const [targetUser] = user_result;
         const mailOptions = {
             to: targetUser.email,
-            cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+            cc: ["cae_sacl@sakthiauto.com"],
             subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
             html: `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -480,7 +480,7 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
 
     const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
 
-    const ccEmails = ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"];
+    const ccEmails = ["cae_sacl@sakthiauto.com"];
     if (next_department_hod && next_department_hod.email) {
         ccEmails.push(next_department_hod.email);
     }
