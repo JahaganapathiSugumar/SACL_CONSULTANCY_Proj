@@ -28,6 +28,36 @@ export const createDepartmentProgress = async (trial_id, user, part_name, trx, i
     }
 };
 
+const getDepartmentHOD = async (department_id, trial_type, trx) => {
+    let result;
+    if (department_id == 8) {
+        if (trial_type == 'MACHINING - CUSTOMER END') {
+            result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD' AND is_active = 1`,
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
+            result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
+                { department_id }
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
+            result = await trx.query(
+                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
+                { department_id }
+            );
+        }
+    } else {
+        result = await trx.query(
+            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND is_active = 1`,
+            { department_id }
+        );
+    }
+    if (result[0] && result[0].length > 0) {
+        return result[0][0];
+    }
+    return null;
+};
+
 const assignToNextDepartmentUser = async (current_department_id, trial_id, trial_type, next_department_id, user, trx, ipAddress) => {
     await trx.query(
         `UPDATE department_progress SET completed_at = @completed_at, approval_status = @approval_status, remarks = @remarks WHERE department_id = @department_id AND trial_id = @trial_id AND approval_status = 'pending'`,
@@ -124,9 +154,16 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     );
     const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
 
+    const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
+
+    const ccEmails = ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"];
+    if (next_department_hod && next_department_hod.email) {
+        ccEmails.push(next_department_hod.email);
+    }
+
     const mailOptions = {
         to: next_department_user_rows[0].email,
-        cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+        cc: ccEmails,
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -230,34 +267,10 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     const current_department_id = user.department_id;
     const { trial_type, part_name, pattern_code, trial_no } = current_trial[0];
 
-    let current_department_hod_result;
-    if (current_department_id == 8) {
-        if (trial_type == 'MACHINING - CUSTOMER END') {
-            current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD' AND is_active = 1`,
-            );
-        } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
-            current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'NPD'`,
-                { current_department_id }
-            );
-        } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
-            current_department_hod_result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1 AND machine_shop_user_type = 'REGULAR'`,
-                { current_department_id }
-            );
-        }
-    } else {
-        current_department_hod_result = await trx.query(
-            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @current_department_id AND role = 'HOD' AND is_active = 1`,
-            { current_department_id }
-        );
-    }
+    const current_department_hod = await getDepartmentHOD(current_department_id, trial_type, trx);
 
-    const [current_department_hod] = current_department_hod_result;
-
-    if (current_department_hod && current_department_hod.length > 0) {
-        const current_department_hod_username = current_department_hod[0].username;
+    if (current_department_hod) {
+        const current_department_hod_username = current_department_hod.username;
         await trx.query(
             `UPDATE department_progress SET username = @current_department_hod_username, remarks = 'HOD approval pending', approval_status = 'pending' WHERE department_id = @department_id AND trial_id = @trial_id AND approval_status = 'pending'`,
             { current_department_hod_username, department_id: current_department_id, trial_id }
@@ -465,9 +478,16 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
         remarks: `Next department updated by draft save by ${user.username} (IP: ${ipAddress})`
     });
 
+    const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
+
+    const ccEmails = ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"];
+    if (next_department_hod && next_department_hod.email) {
+        ccEmails.push(next_department_hod.email);
+    }
+
     const mailOptions = {
         to: next_department_user[0].email,
-        cc: ["cae_sacl@sakthiauto.com", "dharmaraja.k@sakthiauto.com"],
+        cc: ccEmails,
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
