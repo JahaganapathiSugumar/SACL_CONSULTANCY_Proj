@@ -4,6 +4,36 @@ import logger from '../config/logger.js';
 import { generateAndStoreTrialReport } from './trialReportGenerator.js';
 import { generateAndStoreConsolidatedReport } from './consolidatedReportGenerator.js';
 
+const getDepartmentHODEmail = async (department_id, trial_type, trx) => {
+    let result;
+    if (department_id == 8) {
+        if (trial_type == 'MACHINING - CUSTOMER END') {
+            result = await trx.query(
+                `SELECT TOP 1 email FROM dtc_users WHERE department_id = 3 AND role = 'HOD'`,
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
+            result = await trx.query(
+                `SELECT TOP 1 email FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'NPD'`,
+                { department_id }
+            );
+        } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
+            result = await trx.query(
+                `SELECT TOP 1 email FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'REGULAR'`,
+                { department_id }
+            );
+        }
+    } else {
+        result = await trx.query(
+            `SELECT TOP 1 email FROM dtc_users WHERE department_id = @department_id AND role = 'HOD'`,
+            { department_id }
+        );
+    }
+    if (result[0] && result[0].length > 0) {
+        return result[0][0].email;
+    }
+    return null;
+};
+
 export const createDepartmentProgress = async (trial_id, user, part_name, trx, ipAddress) => {
     const initial_department_sql = 'SELECT department_id FROM department_flow WHERE sequence_no=1';
     const [rows] = await trx.query(initial_department_sql);
@@ -26,36 +56,6 @@ export const createDepartmentProgress = async (trial_id, user, part_name, trx, i
         });
 
     }
-};
-
-const getDepartmentHOD = async (department_id, trial_type, trx) => {
-    let result;
-    if (department_id == 8) {
-        if (trial_type == 'MACHINING - CUSTOMER END') {
-            result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = 3 AND role = 'HOD'`,
-            );
-        } else if (trial_type == 'INHOUSE MACHINING(NPD)') {
-            result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'NPD'`,
-                { department_id }
-            );
-        } else if (trial_type == 'INHOUSE MACHINING(REGULAR)') {
-            result = await trx.query(
-                `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD' AND machine_shop_user_type = 'REGULAR'`,
-                { department_id }
-            );
-        }
-    } else {
-        result = await trx.query(
-            `SELECT TOP 1 * FROM dtc_users WHERE department_id = @department_id AND role = 'HOD'`,
-            { department_id }
-        );
-    }
-    if (result[0] && result[0].length > 0) {
-        return result[0][0];
-    }
-    return null;
 };
 
 const assignToNextDepartmentUser = async (current_department_id, trial_id, trial_type, next_department_id, user, trx, ipAddress) => {
@@ -153,17 +153,11 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
         { trial_id }
     );
     const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
-
-    const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
-
-    const ccEmails = ["cae_sacl@sakthiauto.com"];
-    if (next_department_hod && next_department_hod.email) {
-        ccEmails.push(next_department_hod.email);
-    }
+    const hod_email = await getDepartmentHODEmail(next_department_id, trial_type, trx);
 
     const mailOptions = {
         to: next_department_user_rows[0].email,
-        cc: ccEmails,
+        cc: ["cae_sacl@sakthiauto.com", hod_email],
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -292,9 +286,9 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     }
 
     const [current_department_hod] = current_department_hod_result;
-    
-    if (current_department_hod) {
-        const current_department_hod_username = current_department_hod.username;
+
+    if (current_department_hod && current_department_hod.length > 0) {
+        const current_department_hod_username = current_department_hod[0].username;
         await trx.query(
             `UPDATE department_progress SET username = @current_department_hod_username, remarks = 'HOD approval pending', approval_status = 'pending' WHERE department_id = @department_id AND trial_id = @trial_id AND approval_status = 'pending'`,
             { current_department_hod_username, department_id: current_department_id, trial_id }
@@ -482,7 +476,7 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
     }
     const [next_department_user] = next_department_user_result;
 
-    if (!next_department_user) {
+    if (!next_department_user || next_department_user.length === 0) {
         throw new CustomError("No user found for the next department");
     }
 
@@ -502,16 +496,11 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
         remarks: `Next department updated by draft save by ${user.username} (IP: ${ipAddress})`
     });
 
-    const next_department_hod = await getDepartmentHOD(next_department_id, trial_type, trx);
-
-    const ccEmails = ["cae_sacl@sakthiauto.com"];
-    if (next_department_hod && next_department_hod.email) {
-        ccEmails.push(next_department_hod.email);
-    }
+    const hod_email = await getDepartmentHODEmail(next_department_id, trial_type, trx);
 
     const mailOptions = {
         to: next_department_user[0].email,
-        cc: ccEmails,
+        cc: ["cae_sacl@sakthiauto.com", hod_email],
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
