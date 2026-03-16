@@ -154,10 +154,14 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     );
     const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
     const hod_email = await getDepartmentHODEmail(next_department_id, trial_type, trx);
+    const cc_emails = ["cae_sacl@sakthiauto.com"];
+    if (hod_email) {
+        cc_emails.push(hod_email);
+    }
 
     const mailOptions = {
         to: next_department_user_rows[0].email,
-        cc: ["cae_sacl@sakthiauto.com", hod_email],
+        cc: cc_emails,
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -497,10 +501,14 @@ export const triggerNextDepartment = async (trial_id, user, trx, ipAddress) => {
     });
 
     const hod_email = await getDepartmentHODEmail(next_department_id, trial_type, trx);
+    const cc_emails = ["cae_sacl@sakthiauto.com"];
+    if (hod_email) {
+        cc_emails.push(hod_email);
+    }
 
     const mailOptions = {
         to: next_department_user[0].email,
-        cc: ["cae_sacl@sakthiauto.com", hod_email],
+        cc: cc_emails,
         subject: `[Action Required] Digital Sample Card: ${part_name} (Trial No: ${trial_no})`,
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
