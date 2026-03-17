@@ -348,7 +348,7 @@ function PouringDetailsTable() {
     };
 
     const buildServerPayload = (isDraft: boolean = false) => {
-        const source = previewPayload || buildPreviewPayload();
+        const source = buildPreviewPayload();
 
         return {
             trial_id: trialId,

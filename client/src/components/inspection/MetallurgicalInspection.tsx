@@ -749,7 +749,7 @@ export default function MetallurgicalInspection() {
   };
 
   const buildServerPayload = (isDraft: boolean = false) => {
-    const source = previewPayload || buildPayload();
+    const source = buildPayload();
 
     const getMicroRow = (labelPart: string) => (source?.microRows || [])?.find((r: any) => String(r?.label)?.toLowerCase()?.includes(labelPart.toLowerCase()));
     const microCavityRow = getMicroRow('cavity number');

@@ -831,7 +831,7 @@ export default function VisualInspection({
     };
 
     const buildServerPayload = (isDraft: boolean = false) => {
-        const source = previewPayload || buildPayload();
+        const source = buildPayload();
 
         const findRow = (labelPart: string) => (source?.rows || []).find((r: any) => r?.label?.toLowerCase()?.includes(labelPart?.toLowerCase()));
         const cavityRow = findRow('cavity number');

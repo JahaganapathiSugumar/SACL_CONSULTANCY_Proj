@@ -182,7 +182,7 @@ export default function MaterialCorrection() {
     };
 
     const buildServerPayload = () => {
-        const source = previewPayload || {
+        const source = {
             trial_id: trialId,
             chemical_composition: chemState,
             process_parameters: processState,

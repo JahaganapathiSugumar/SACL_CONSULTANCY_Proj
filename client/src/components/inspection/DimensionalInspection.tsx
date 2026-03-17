@@ -286,7 +286,7 @@ export default function DimensionalInspection({
     };
 
     const buildServerPayload = (isDraft: boolean = false) => {
-        const source = previewPayload || buildPayload();
+        const source = buildPayload();
 
         const cavityRow = source?.cavity_rows?.find((r: any) => String(r?.label)?.toLowerCase()?.includes('cavity'));
         const castingRow = source?.cavity_rows?.find((r: any) => String(r?.label)?.toLowerCase()?.includes('casting'));
@@ -299,10 +299,10 @@ export default function DimensionalInspection({
 
         return {
             trial_id: trialId,
-            inspection_date: source.inspection_date || source.created_at || null,
+            inspection_date: source.inspection_date || source.created_at || new Date().toISOString(),
             casting_weight: source.weight_target ? parseFloat(source.weight_target) : null,
             bunch_weight: source.bunch_weight ? parseFloat(source.bunch_weight) : null,
-            no_of_cavities: parseInt(source.number_of_cavity) || (source.cavities ? source.cavities.length : null),
+            no_of_cavities: parseInt(source.number_of_cavity || "") || (source.cavities ? source.cavities.length : null),
             yields: source.yield ? parseFloat(source.yield) : null,
             inspections: inspections,
             remarks: source.remarks || "",

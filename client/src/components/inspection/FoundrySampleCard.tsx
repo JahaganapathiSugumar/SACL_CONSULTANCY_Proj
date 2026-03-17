@@ -167,6 +167,11 @@ function FoundrySampleCard() {
   const MACHINES = ["DISA - 1", "DISA - 2", "DISA - 3", "DISA - 4", "DISA - 5"];
   const SAMPLING_REASONS = ["First trial", "Metallurgical Trial", "Others"];
   const TRIAL_TYPES = ["INHOUSE MACHINING(NPD)", "INHOUSE MACHINING(REGULAR)", "MACHINING - CUSTOMER END"];
+  const TRIAL_TYPE_LABELS: Record<string, string> = {
+    "INHOUSE MACHINING(NPD)": "NPD",
+    "INHOUSE MACHINING(REGULAR)": "Regular Part",
+    "MACHINING - CUSTOMER END": "Rough Casting or Foundry Trial"
+  };
   const [samplingDate, setSamplingDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [planMoulds, setPlanMoulds] = useState("");
   const [machine, setMachine] = useState("");
@@ -423,7 +428,7 @@ function FoundrySampleCard() {
 
   const buildServerPayload = () => {
     const reasonFinal = reason === 'Others' ? `${customReason}` : reason;
-    const source = previewPayload || {
+    const source = {
       trial_id: trialId || trialIdFromUrl,
       trial_no: trialNo,
       pattern_code: selectedPart?.pattern_code,
@@ -1117,7 +1122,7 @@ function FoundrySampleCard() {
                                   key={type}
                                   value={type}
                                   control={<Radio size="small" />}
-                                  label={<Typography variant="caption">{type}</Typography>}
+                                  label={<Typography variant="caption">{TRIAL_TYPE_LABELS[type] || type}</Typography>}
                                   disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
                                   sx={{ mb: 0.5 }}
                                 />
