@@ -53,7 +53,7 @@ app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cookieParser());
 
 app.use(cors({
-  origin: ['http://localhost:9011', 'https://sacl-consultancy-proj.onrender.com', 'https://digitaltrialcard-sakthiauto.vercel.app'],
+  origin: ['http://localhost:9011'],
   credentials: true
 }))
 
