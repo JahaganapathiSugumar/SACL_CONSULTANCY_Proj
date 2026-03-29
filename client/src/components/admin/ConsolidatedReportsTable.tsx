@@ -303,7 +303,7 @@ const ConsolidatedReportsTable: React.FC = () => {
             <TableContainer
             className="premium-table-container"
             sx={{
-                maxHeight: 'calc(100vh - 400px)',
+                maxHeight: 'calc(100vh - 250px)',
                 overflow: 'auto',
                 position: 'relative',
                 minHeight: loading || reports.length === 0 ? '300px' : 'auto'

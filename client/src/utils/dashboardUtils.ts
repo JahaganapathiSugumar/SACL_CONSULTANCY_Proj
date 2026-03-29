@@ -1,10 +1,10 @@
-﻿export const getDepartmentInfo = (user: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+export const getDepartmentInfo = (user: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (user?.role === 'Admin') {
         return { displayText: user.role, showDepartment: false };
     } else {
-        const department = user?.department_name
+        const department = user?.department;
         return {
-            displayText: department || '',
+            displayText: department || 'N/A',
             showDepartment: true
         };
     }
