@@ -31,6 +31,7 @@ interface PendingTrials {
     approval_status?: string | null;
     department_name?: string;
     department_id: number;
+    trial_type?: string;
 }
 
 interface PendingTrialsViewProps {
@@ -155,7 +156,9 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
                                         </span>
                                     </TableCell>
                                     {!isMobile && <TableCell className="premium-table-cell">
-                                        {card.department_name}
+                                        {card.department_id === 8 && card.trial_type === 'MACHINING - CUSTOMER END'
+                                            ? `${card.department_name} (External)`
+                                            : card.department_name}
                                     </TableCell>}
                                 </TableRow>
                             ))

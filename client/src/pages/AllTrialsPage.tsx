@@ -680,7 +680,9 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                 <TableCell className="premium-table-cell">{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
                                                 <TableCell className="premium-table-cell">
                                                     <span className="status-pill status-pill-info">
-                                                        {trial.department || 'N/A'}
+                                                        {trial.current_department_id === 8 && trial.trial_type === 'MACHINING - CUSTOMER END'
+                                                            ? `${trial.department} (External)`
+                                                            : (trial.department)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="premium-table-cell">
@@ -752,7 +754,11 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                                     <Grid container alignItems="center" spacing={2}>
                                                                                         <Grid size={{ xs: 3 }}>
                                                                                             <Typography variant="subtitle2" color="textSecondary">Department</Typography>
-                                                                                            <Typography variant="body2" fontWeight="medium">{progress.department_name || `Dept ID: ${progress.department_id}`}</Typography>
+                                                                                            <Typography variant="body2" fontWeight="medium">
+                                                                                                {progress.department_id === 8 && trial.trial_type === 'MACHINING - CUSTOMER END'
+                                                                                                    ? `${progress.department_name} (External)`
+                                                                                                    : (progress.department_name)}
+                                                                                            </Typography>
                                                                                         </Grid>
                                                                                         <Grid size={{ xs: 2 }}>
                                                                                             <Typography variant="subtitle2" color="textSecondary">Status</Typography>

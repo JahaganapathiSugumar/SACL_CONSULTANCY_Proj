@@ -14,6 +14,7 @@ export interface ProgressItem {
   date_of_sampling?: string;
   department_name?: string;
   status?: string;
+  trial_type?: string;
 }
 
 export async function getProgress(username: string, department_id: number): Promise<ProgressItem[]> {
