@@ -241,7 +241,7 @@ export const updateDepartment = async (trial_id, user, trx, ipAddress) => {
     );
 
     if (!rows || rows.length === 0) {
-        return await approveProgress(trial_id, trial_type, user, trx, ipAddress);
+        return await approveProgress(trial_id, user, trx, ipAddress);
     }
 
     const next_department_id = rows[0].department_id;
@@ -368,7 +368,7 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
         );
 
         if (!rows || rows.length === 0) {
-            return await approveProgress(trial_id, trial_type, user, trx, ipAddress);
+            return await approveProgress(trial_id, user, trx, ipAddress);
         }
 
         const next_department_id = rows[0].department_id;
@@ -377,34 +377,11 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     }
 };
 
-export const approveProgress = async (trial_id, trial_type, user, trx, ipAddress) => {
-    if(user.role !== 'Admin') {
-        if (trial_type !== 'MACHINING - CUSTOMER END') {
-            await trx.query(
-                `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
-                { trial_id, department_id: user.department_id }
-            );
-        } else {
-            await trx.query(
-                `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
-                { trial_id, department_id: 3 }
-            );
-        }
-    }
-    const [pending] = await trx.query(
-        `SELECT TOP 1 df.department_id FROM department_flow df
-        JOIN department_progress dp ON dp.department_id = df.department_id
-        WHERE dp.trial_id = @trial_id AND dp.approval_status = 'pending'
-        ORDER BY df.sequence_no`,
+export const approveProgress = async (trial_id, user, trx, ipAddress) => {
+    await trx.query(
+        `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND approval_status = 'pending'`,
         { trial_id }
     );
-    if (pending && pending.length > 0) {
-        await trx.query(
-            `UPDATE trial_cards SET current_department_id = @pending_department_id, status = 'IN_PROGRESS' WHERE trial_id = @trial_id`,
-            { pending_department_id: pending[0].department_id, trial_id }
-        );
-        return;
-    }
     await trx.query(
         `UPDATE trial_cards SET status = 'CLOSED' WHERE trial_id = @trial_id`,
         { trial_id }
