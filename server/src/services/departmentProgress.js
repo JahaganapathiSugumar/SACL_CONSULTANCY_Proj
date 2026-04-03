@@ -379,8 +379,8 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
 
 export const approveProgress = async (trial_id, user, trx, ipAddress) => {
     await trx.query(
-        `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND approval_status = 'pending'`,
-        { trial_id }
+        `UPDATE department_progress SET approval_status = 'approved', completed_at = @completed_at, remarks = @remarks, username = @username WHERE trial_id = @trial_id AND approval_status = 'pending'`,
+        { trial_id, completed_at: new Date(), remarks: `Approved by ${user.role}`, username: user.username }
     );
     await trx.query(
         `UPDATE trial_cards SET status = 'CLOSED' WHERE trial_id = @trial_id`,
