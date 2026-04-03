@@ -241,7 +241,7 @@ export const updateDepartment = async (trial_id, user, trx, ipAddress) => {
     );
 
     if (!rows || rows.length === 0) {
-        return await approveProgress(trial_id, user, trx, ipAddress);
+        return await approveProgress(trial_id, trial_type, user, trx, ipAddress);
     }
 
     const next_department_id = rows[0].department_id;
@@ -368,7 +368,7 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
         );
 
         if (!rows || rows.length === 0) {
-            return await approveProgress(trial_id, user, trx, ipAddress);
+            return await approveProgress(trial_id, trial_type, user, trx, ipAddress);
         }
 
         const next_department_id = rows[0].department_id;
@@ -377,12 +377,19 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
     }
 };
 
-export const approveProgress = async (trial_id, user, trx, ipAddress) => {
-    if (user.role !== 'Admin') {
-        await trx.query(
-            `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
-            { trial_id, department_id: user.department_id }
-        );
+export const approveProgress = async (trial_id, trial_type, user, trx, ipAddress) => {
+    if(user.role !== 'Admin') {
+        if (trial_type !== 'MACHINING - CUSTOMER END') {
+            await trx.query(
+                `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
+                { trial_id, department_id: user.department_id }
+            );
+        } else {
+            await trx.query(
+                `UPDATE department_progress SET approval_status = 'approved' WHERE trial_id = @trial_id AND department_id = @department_id AND approval_status = 'pending'`,
+                { trial_id, department_id: 3 }
+            );
+        }
     }
     const [pending] = await trx.query(
         `SELECT TOP 1 df.department_id FROM department_flow df
