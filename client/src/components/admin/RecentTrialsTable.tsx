@@ -29,6 +29,8 @@ interface Trial {
   material_grade: string;
   date_of_sampling: string;
   department: string;
+  current_department_id?: number;
+  trial_type?: string;
   status: string;
   file_base64?: string;
   file_name?: string;
@@ -163,7 +165,9 @@ const RecentTrialsTable: React.FC<RecentTrialsTableProps> = ({ searchTerm = '' }
                   <TableCell className="premium-table-cell">{new Date(trial.date_of_sampling).toLocaleDateString('en-GB')}</TableCell>
                   <TableCell className="premium-table-cell">
                     <Box sx={{ fontWeight: 600, color: '#3498db' }}>
-                      {trial.department || 'N/A'}
+                      {trial.current_department_id === 8 && trial.trial_type === 'MACHINING - CUSTOMER END'
+                        ? `${trial.department} (External)`
+                        : (trial.department)}
                     </Box>
                   </TableCell>
                   <TableCell className="premium-table-cell">
