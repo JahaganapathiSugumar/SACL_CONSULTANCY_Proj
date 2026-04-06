@@ -105,7 +105,7 @@ const PendingTrialsView: React.FC<PendingTrialsViewProps> = ({ username, departm
             )}
 
             {/* Pending Cards Table */}
-            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 350px)', overflow: 'auto', position: 'relative', minHeight: loading || pendingTrials.length === 0 ? '300px' : 'auto' }}>
+            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto', position: 'relative', minHeight: loading || pendingTrials.length === 0 ? '400px' : 'auto' }}>
                 {loading ? (
                     <Box sx={{
                         display: 'flex',
