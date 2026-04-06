@@ -54,7 +54,6 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
             setError(null);
         } catch (err) {
             console.error('Error fetching completed trials:', err);
-            setError('Failed to fetch completed trials. Please try again.');
             setCompletedTrials([]);
         } finally {
             setLoading(false);
@@ -87,15 +86,12 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
             {/* Header Section with Search */}
             <Box sx={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
+                justifyContent: 'flex-end', 
                 alignItems: 'center', 
                 mb: 3,
                 flexDirection: { xs: 'column', sm: 'row' },
                 gap: 2
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#334155', display: { xs: 'none', sm: 'block' } }}>
-                    Completed History List
-                </Typography>
                 <TextField
                     placeholder="Search by Trial No, Part, or Pattern..."
                     size="small"
