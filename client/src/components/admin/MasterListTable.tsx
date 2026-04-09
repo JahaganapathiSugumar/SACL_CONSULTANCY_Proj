@@ -201,7 +201,7 @@ const MasterListTable: React.FC<MasterListTableProps> = ({ onEdit, onDuplicate }
                     }}
                 />
             </Box>
-            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 300px)', overflow: 'auto', position: 'relative', minHeight: loading || filteredData.length === 0 ? '300px' : 'auto' }}>
+            <TableContainer className="premium-table-container" sx={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto', position: 'relative', minHeight: loading || filteredData.length === 0 ? '450px' : 'auto' }}>
                 {loading ? (
                     <Box sx={{
                         display: 'flex',
