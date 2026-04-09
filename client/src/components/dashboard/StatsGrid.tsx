@@ -7,15 +7,6 @@ interface StatsGridProps {
 }
 
 const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
-
-    const getBorderColor = (label: string): string => {
-        const l = label.toLowerCase();
-        if (l.includes('total')) return '#2C3E50';
-        if (l.includes('ongoing')) return '#2C3E50';
-        if (l.includes('approved')) return '#2C3E50';
-        return '#95A5A6';
-    };
-
     return (
         <>
             <style>
@@ -100,7 +91,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
             </style>
             <div className="stats-grid">
                 {stats.map((stat, index) => {
-                    const borderColor = getBorderColor(stat.label);
+                    const borderColor = stat.color || "#2C3E50";
 
                     return (
                         <div
