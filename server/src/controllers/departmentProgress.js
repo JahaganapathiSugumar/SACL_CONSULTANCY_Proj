@@ -33,10 +33,10 @@ export const getCompletedTrials = async (req, res, next) => {
          FROM department_progress dp
          JOIN trial_cards t ON dp.trial_id = t.trial_id
          JOIN departments d ON dp.department_id = d.department_id
-         WHERE t.deleted_at IS NULL AND dp.department_id = @department_id 
+         WHERE t.deleted_at IS NULL AND dp.username = @username 
          AND (dp.approval_status = 'approved')
          ORDER BY dp.completed_at DESC`,
-        { department_id: req.user.department_id }
+        { username: req.user.username }
     );
 
     res.status(200).json({

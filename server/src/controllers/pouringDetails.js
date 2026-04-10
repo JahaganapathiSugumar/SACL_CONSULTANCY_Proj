@@ -1,6 +1,6 @@
 import Client from '../config/connection.js';
 
-import { updateDepartment, updateRole, triggerNextDepartment } from '../services/departmentProgress.js';
+import { updateDepartment, updateRole } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
 
 export const createPouringDetails = async (req, res, next) => {
@@ -43,9 +43,7 @@ export const createPouringDetails = async (req, res, next) => {
             remarks: `Pouring details ${trial_id} created by ${req.user.username} (IP: ${req.ip}) with trial id ${trial_id}`
         });
         if (req.user.role !== 'Admin') {
-            if (is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
-            } else {
+            if (!is_draft) {
                 await updateRole(trial_id, req.user, trx, req.ip);
             }
         }
@@ -113,12 +111,12 @@ export const updatePouringDetails = async (req, res, next) => {
             logger.info('Pouring details updated', { trial_id, updatedBy: req.user.username });
         }
         if (req.user.role !== 'Admin') {
-            if (req.body.is_draft) {
-                await triggerNextDepartment(trial_id, req.user, trx, req.ip);
-            } else if (req.user.role === 'User') {
-                await updateRole(trial_id, req.user, trx, req.ip);
-            } else {
-                await updateDepartment(trial_id, req.user, trx, req.ip);
+            if (!req.body.is_draft) {
+                if (req.user.role === 'User') {
+                    await updateRole(trial_id, req.user, trx, req.ip);
+                } else {
+                    await updateDepartment(trial_id, req.user, trx, req.ip);
+                }
             }
         }
     });
