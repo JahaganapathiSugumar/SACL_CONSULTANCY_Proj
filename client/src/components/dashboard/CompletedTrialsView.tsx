@@ -72,10 +72,10 @@ const CompletedTrialsView: React.FC<CompletedTrialsViewProps> = ({ username }) =
     const filteredTrials = completedTrials.filter(trial => {
         const searchLower = searchTerm.toLowerCase();
         return (
-            (trial.trial_no?.toLowerCase() || '').includes(searchLower) ||
-            (trial.part_name?.toLowerCase() || '').includes(searchLower) ||
-            (trial.pattern_code?.toLowerCase() || '').includes(searchLower) ||
-            (trial.department_name?.toLowerCase() || '').includes(searchLower)
+            String(trial.trial_no || '').toLowerCase().includes(searchLower) ||
+            String(trial.part_name || '').toLowerCase().includes(searchLower) ||
+            String(trial.pattern_code || '').toLowerCase().includes(searchLower) ||
+            String(trial.department_name || '').toLowerCase().includes(searchLower)
         );
     });
 
