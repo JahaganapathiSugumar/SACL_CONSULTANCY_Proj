@@ -7,8 +7,8 @@ async function fetchAuditLog() {
     try {
         console.log(`Fetching audit logs for Trial ID: ${trial_id}, Dept ID: ${department_id}...`);
         const [rows] = await client.query(
-            'SELECT * FROM audit_log WHERE trial_id = @trial_id AND department_id = @department_id ORDER BY action_timestamp DESC',
-            { trial_id, department_id }
+            'SELECT * FROM audit_log WHERE trial_id = @trial_id',
+            { trial_id }
         );
 
         if (rows && rows.length > 0) {
