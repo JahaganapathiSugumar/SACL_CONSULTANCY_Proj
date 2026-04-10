@@ -427,7 +427,7 @@ function PouringDetailsTable() {
                 icon: 'success',
                 title: isDraft ? 'Saved as Draft' : 'Success',
                 text: isDraft
-                    ? 'Progress saved and moved to next department.'
+                    ? 'Draft saved successfully.'
                     : `Pouring Details ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate(-1);

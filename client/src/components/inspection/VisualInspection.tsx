@@ -988,7 +988,7 @@ export default function VisualInspection({
                 icon: 'success',
                 title: isDraft ? 'Saved as Draft' : 'Success',
                 text: isDraft
-                    ? 'Progress saved and moved to next department.'
+                    ? 'Draft saved successfully.'
                     : `Visual Inspection ${dataExists ? 'updated' : 'created'} successfully.`
             });
             navigate(-1);

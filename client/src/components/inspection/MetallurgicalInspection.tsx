@@ -869,8 +869,8 @@ export default function MetallurgicalInspection() {
       await Swal.fire({
         icon: 'success',
         title: isDraft ? 'Saved as Draft' : 'Success',
-        text: isDraft 
-          ? 'Progress saved and moved to next department.' 
+        text: isDraft
+          ? 'Draft saved successfully.'
           : `Metallurgical Inspection ${dataExists ? 'updated' : 'created'} successfully.`
       });
       navigate(-1);
