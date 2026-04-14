@@ -1267,14 +1267,14 @@ export default function VisualInspection({
 
                                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 1 }}>
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                                            {user?.department_id !== 8 && user?.department_id !== 2 && (
-                                                <ActionButtons
-                                                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                                                    onSave={handleSaveAndContinue}
-                                                    showSubmit={false}
-                                                    saveLabel={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
-                                                    saveIcon={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                                                >
+                                            <ActionButtons
+                                                {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                                                onSave={handleSaveAndContinue}
+                                                showSubmit={false}
+                                                saveLabel={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
+                                                saveIcon={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
+                                                disabled={user?.department_id === 2}
+                                            >
                                                     {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                                                         <Button
                                                             variant="outlined"
@@ -1297,8 +1297,7 @@ export default function VisualInspection({
                                                         </Button>
                                                     )}
                                                 </ActionButtons>
-                                            )}
-                                        </Box>
+                                            </Box>
                                     </Box>
                                 </Paper>
 

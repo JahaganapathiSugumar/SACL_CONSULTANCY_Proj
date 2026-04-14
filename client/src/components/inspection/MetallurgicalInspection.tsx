@@ -1195,13 +1195,14 @@ export default function MetallurgicalInspection() {
                           showSubmit={false}
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
+                          disabled={user?.department_id === 2}
                         >
                           {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                             <Button
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={sending || user?.department_id === 8}
+                              disabled={sending || user?.department_id === 8 || user?.department_id === 2}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
@@ -1212,7 +1213,7 @@ export default function MetallurgicalInspection() {
                               variant="outlined"
                               onClick={() => setIsEditing(!isEditing)}
                               sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                              disabled={user?.department_id === 8}
+                              disabled={user?.department_id === 8 || user?.department_id === 2}
                             >
                               {isEditing ? "Cancel Edit" : "Edit Details"}
                             </Button>

@@ -452,6 +452,7 @@ export default function MaterialCorrection() {
                                                     showSubmit={false}
                                                     saveLabel={((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                                                     saveIcon={((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
+                                                    disabled={user?.department_id === 2}
                                                 >
 
                                                     {((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') && (

@@ -396,14 +396,15 @@ function MouldingTable() {
 
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                      <ActionButtons
-                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                        onSave={handleSaveAndContinue}
-                        showSubmit={false}
-                        saveLabel={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
-                        saveIcon={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                      >
-                        {(user?.role !== 'HOD' && user?.role !== 'Admin' && user?.department_id !== 2) && (
+                        <ActionButtons
+                          {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                          onSave={handleSaveAndContinue}
+                          showSubmit={false}
+                          saveLabel={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
+                          saveIcon={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
+                          disabled={user?.department_id === 2}
+                        >
+                          {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                           <Button
                             variant="outlined"
                             startIcon={<SaveIcon />}
