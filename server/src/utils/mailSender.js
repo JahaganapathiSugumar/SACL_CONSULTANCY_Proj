@@ -48,9 +48,9 @@ const sendMail = async ({ to, cc, bcc, subject, text, html }) => {
       }]
     };
 
-    const info = await getTransporter().sendMail(mailOptions);
-    logger.info(`Email sent successfully: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    // const info = await getTransporter().sendMail(mailOptions);
+    // logger.info(`Email sent successfully: ${info.messageId}`);
+    // return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error('Email sending error:', error.message);
     return { success: false, error: error.message };

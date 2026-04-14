@@ -72,7 +72,7 @@ function MouldingTable() {
   useEffect(() => {
     const checkAssignment = async () => {
       if (user && trialId) {
-        if (user.role === 'Admin') {
+        if (user.role === 'Admin' || user.department_id === 2) {
           setIsAssigned(true);
           return;
         }
@@ -280,7 +280,7 @@ function MouldingTable() {
                           setMouldDate(e.target.value);
                         }}
                         sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5 } }}
-                        disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                       />
                     </Box>
                   </Box>
@@ -314,7 +314,7 @@ function MouldingTable() {
                               onChange={(e: any) => {
                                 handleChange('thickness', e.target.value);
                               }}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                             />
                           </TableCell>
                           <TableCell>
@@ -323,7 +323,7 @@ function MouldingTable() {
                               onChange={(e: any) => {
                                 handleChange('compressability', e.target.value);
                               }}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                             />
                           </TableCell>
                           <TableCell>
@@ -332,7 +332,7 @@ function MouldingTable() {
                               onChange={(e: any) => {
                                 handleChange('pressure', e.target.value);
                               }}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                             />
                           </TableCell>
                           <TableCell sx={{ borderRight: `2px solid ${COLORS.border}` }}>
@@ -341,7 +341,7 @@ function MouldingTable() {
                               onChange={(e: any) => {
                                 handleChange('hardness', e.target.value);
                               }}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                             />
                           </TableCell>
 
@@ -349,7 +349,7 @@ function MouldingTable() {
                             <SpecInput
                               value={mouldState?.remarks ?? ""}
                               onChange={(e: any) => handleChange('remarks', e.target.value)}
-                              disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                              disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                             />
                           </TableCell>
                         </TableRow>
@@ -370,7 +370,7 @@ function MouldingTable() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                       disabled={false}
+                       disabled={user?.department_id === 2}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -386,7 +386,7 @@ function MouldingTable() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                         disabled={false}
+                         disabled={user?.department_id === 2}
                       />
                     </Box>
 
@@ -403,12 +403,12 @@ function MouldingTable() {
                         saveLabel={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                         saveIcon={((user?.role === 'HOD' && user?.department_id === 6) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
                       >
-                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                        {(user?.role !== 'HOD' && user?.role !== 'Admin' && user?.department_id !== 2) && (
                           <Button
                             variant="outlined"
                             startIcon={<SaveIcon />}
                             onClick={handleSaveDraft}
-                            disabled={loading}
+                            disabled={loading || user?.department_id === 2}
                             sx={{ mr: 2 }}
                           >
                             Save as Draft
@@ -419,6 +419,7 @@ function MouldingTable() {
                             variant="outlined"
                             onClick={() => setIsEditing(!isEditing)}
                             sx={{ color: COLORS.secondary, borderColor: COLORS.secondary, mr: 2 }}
+                            disabled={user?.department_id === 2}
                           >
                             {isEditing ? "Cancel Edit" : "Edit Details"}
                           </Button>

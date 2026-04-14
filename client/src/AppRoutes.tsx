@@ -46,23 +46,23 @@ const AppRoutes: React.FC = () => {
             } />
 
             <Route path="/metallurgical-inspection" element={
-                <ProtectedRoute requiredDepartment={[1, 9, 8]}><MetallurgicalInspection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 9, 8]}><MetallurgicalInspection /></ProtectedRoute>
             } />
 
             <Route path="/material-correction" element={
-                <ProtectedRoute requiredDepartment={[1, 3, 6, 7, 8]}><MaterialCorrection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 3, 6, 7, 8]}><MaterialCorrection /></ProtectedRoute>
             } />
 
             <Route path="/visual-inspection" element={
-                <ProtectedRoute requiredDepartment={[1, 5, 8]}><VisualInspection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 5, 8]}><VisualInspection /></ProtectedRoute>
             } />
 
             <Route path="/dimensional-inspection" element={
-                <ProtectedRoute requiredDepartment={[1, 8, 10]}><DimensionalInspection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 8, 10]}><DimensionalInspection /></ProtectedRoute>
             } />
 
             <Route path="/mc-shop" element={
-                <ProtectedRoute requiredDepartment={[1, 8, 3]}><McShopInspection /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 8, 3]}><McShopInspection /></ProtectedRoute>
             } />
 
             <Route path="/foundry-sample-card" element={
@@ -70,15 +70,15 @@ const AppRoutes: React.FC = () => {
             } />
 
             <Route path="/moulding" element={
-                <ProtectedRoute requiredDepartment={[1, 6]}><MouldingTable /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 6]}><MouldingTable /></ProtectedRoute>
             } />
 
             <Route path="/pouring" element={
-                <ProtectedRoute requiredDepartment={[1, 7]}><PouringDetailsTable /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 7]}><PouringDetailsTable /></ProtectedRoute>
             } />
 
             <Route path="/sand" element={
-                <ProtectedRoute requiredDepartment={[1, 4]}><SandTable /></ProtectedRoute>
+                <ProtectedRoute requiredDepartment={[1, 2, 4]}><SandTable /></ProtectedRoute>
             } />
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

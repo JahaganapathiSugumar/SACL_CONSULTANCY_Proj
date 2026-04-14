@@ -73,7 +73,7 @@ function SandTable() {
   useEffect(() => {
     const checkAssignment = async () => {
       if (user && trialId) {
-        if (user?.role === 'Admin') {
+        if (user?.role === 'Admin' || user?.department_id === 2) {
           setIsAssigned(true);
           return;
         }
@@ -296,6 +296,7 @@ function SandTable() {
                                     setSandDate(e.target.value);
                                   }}
                                   sx={{ bgcolor: 'white', borderRadius: 1 }}
+                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                                 />
                               </Box>
                             </TableCell>
@@ -341,7 +342,7 @@ function SandTable() {
                                   onChange={(e: any) => {
                                     handleChange(key, e?.target?.value);
                                   }}
-                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                  disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                                 />
                               </TableCell>
                             ))}
@@ -354,7 +355,7 @@ function SandTable() {
                                 placeholder="Enter remarks..."
                                 value={sandProps?.remarks}
                                 onChange={(e) => handleChange("remarks", e?.target?.value)}
-                                disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                                 sx={{ bgcolor: '#fff' }}
                               />
                             </TableCell>
@@ -373,7 +374,7 @@ function SandTable() {
                         onFileRemove={removeAttachedFile}
                         showAlert={showAlert}
                         label="Attach PDF"
-                        disabled={false}
+                        disabled={user?.department_id === 2}
                       />
 
                       <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -389,7 +390,7 @@ function SandTable() {
                           onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                           showAlert={showAlert}
                           label="Attach Confidential PDF"
-                          disabled={false}
+                          disabled={user?.department_id === 2}
                         />
                       </Box>
 
@@ -405,12 +406,12 @@ function SandTable() {
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 4) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 4) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
                         >
-                          {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                          {(user?.role !== 'HOD' && user?.role !== 'Admin' && user?.department_id !== 2) && (
                             <Button
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={loading}
+                              disabled={loading || user?.department_id === 2}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
@@ -425,6 +426,7 @@ function SandTable() {
                                 borderColor: COLORS.secondary,
                                 mr: 2
                               }}
+                              disabled={user?.department_id === 2}
                             >
                               {isEditing ? "Cancel Edit" : "Edit Details"}
                             </Button>

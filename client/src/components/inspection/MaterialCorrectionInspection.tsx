@@ -89,7 +89,7 @@ export default function MaterialCorrection() {
     useEffect(() => {
         const checkAssignment = async () => {
             if (user && trialId) {
-                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 6 || user.department_id === 7) {
+                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 6 || user.department_id === 7 || user.department_id === 2) {
                     setIsAssigned(true);
                     return;
                 }
@@ -118,7 +118,7 @@ export default function MaterialCorrection() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && trialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user.department_id === 2) && trialId) {
                 try {
                     const response = await inspectionService.getMaterialCorrection(trialId);
                     if (response?.success && response?.data && response?.data?.length > 0) {
@@ -309,7 +309,7 @@ export default function MaterialCorrection() {
                                                         value={date}
                                                         onChange={(e) => setDate(e.target.value)}
                                                         sx={{ bgcolor: 'white', borderRadius: 1, width: 140, "& .MuiInputBase-input": { py: 0.5 } }}
-                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing}
+                                                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing}
                                                     />
                                                 </Box>
                                             </Box>
@@ -362,19 +362,19 @@ export default function MaterialCorrection() {
                                                     </TableHead>
                                                     <TableBody>
                                                         <TableRow>
-                                                            <TableCell><SpecInput value={chemState.c} onChange={(e: any) => setChemState({ ...chemState, c: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.si} onChange={(e: any) => setChemState({ ...chemState, si: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.mn} onChange={(e: any) => setChemState({ ...chemState, mn: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.p} onChange={(e: any) => setChemState({ ...chemState, p: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.s} onChange={(e: any) => setChemState({ ...chemState, s: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.mg} onChange={(e: any) => setChemState({ ...chemState, mg: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={chemState.cu} onChange={(e: any) => setChemState({ ...chemState, cu: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.c} onChange={(e: any) => setChemState({ ...chemState, c: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.si} onChange={(e: any) => setChemState({ ...chemState, si: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.mn} onChange={(e: any) => setChemState({ ...chemState, mn: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.p} onChange={(e: any) => setChemState({ ...chemState, p: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.s} onChange={(e: any) => setChemState({ ...chemState, s: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.mg} onChange={(e: any) => setChemState({ ...chemState, mg: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={chemState.cu} onChange={(e: any) => setChemState({ ...chemState, cu: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
                                                             <TableCell sx={{ borderRight: `2px solid ${COLORS.border} !important` }}>
-                                                                <SpecInput value={chemState.cr} onChange={(e: any) => setChemState({ ...chemState, cr: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} />
+                                                                <SpecInput value={chemState.cr} onChange={(e: any) => setChemState({ ...chemState, cr: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} />
                                                             </TableCell>
-                                                            <TableCell><SpecInput value={processState.pouringTemp} onChange={(e: any) => setProcessState({ ...processState, pouringTemp: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={processState.inoculantPerSec} onChange={(e: any) => setProcessState({ ...processState, inoculantPerSec: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
-                                                            <TableCell><SpecInput value={processState.inoculantType} onChange={(e: any) => setProcessState({ ...processState, inoculantType: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={processState.pouringTemp} onChange={(e: any) => setProcessState({ ...processState, pouringTemp: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={processState.inoculantPerSec} onChange={(e: any) => setProcessState({ ...processState, inoculantPerSec: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
+                                                            <TableCell><SpecInput value={processState.inoculantType} onChange={(e: any) => setProcessState({ ...processState, inoculantType: e.target.value })} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing} /></TableCell>
                                                         </TableRow>
                                                     </TableBody>
                                                 </Table>
@@ -397,7 +397,7 @@ export default function MaterialCorrection() {
                                                 onFileRemove={removeAttachedFile}
                                                 label="Upload Files"
                                                 showAlert={showAlert}
-                                                disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2}
                                             />
 
                                             <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -413,7 +413,7 @@ export default function MaterialCorrection() {
                                                     onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                     showAlert={showAlert}
                                                     label="Attach Confidential PDF"
-                                                    disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                    disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2}
                                                 />
                                             </Box>
 
@@ -438,7 +438,7 @@ export default function MaterialCorrection() {
                                                 value={remarks}
                                                 onChange={(e) => setRemarks(e.target.value)}
                                                 sx={{ bgcolor: "#fff" }}
-                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7) && !isEditing}
+                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2) && !isEditing}
                                             />
                                         </Paper>
                                     </Grid>
@@ -459,7 +459,7 @@ export default function MaterialCorrection() {
                                                             variant="outlined"
                                                             onClick={() => setIsEditing(!isEditing)}
                                                             sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                                            disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
+                                                            disabled={user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user?.department_id === 2}
                                                         >
                                                             {isEditing ? "Cancel Edit" : "Edit Details"}
                                                         </Button>

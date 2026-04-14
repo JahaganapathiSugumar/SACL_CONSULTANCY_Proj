@@ -107,7 +107,7 @@ export default function McShopInspection({
   useEffect(() => {
     const checkAssignment = async () => {
       if (user && trialId) {
-        if (user.role === 'Admin') {
+        if (user.role === 'Admin' || user.department_id === 2) {
           setIsAssigned(true);
           return;
         }
@@ -593,7 +593,7 @@ export default function McShopInspection({
                         }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin'}
+                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2}
                       />
                     </Grid>
 
@@ -651,7 +651,7 @@ export default function McShopInspection({
                                           r?.label?.toLowerCase()?.includes("accepted quantity") ? '#f3f4f6' : 'white'
                                       }
                                     }}
-                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
+                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
                               ))}
@@ -674,7 +674,7 @@ export default function McShopInspection({
 
                                       variant="outlined"
                                       sx={{ bgcolor: 'white' }}
-                                      disabled={(user?.role === 'HOD' || user?.role === 'Admin') && !isEditing}
+                                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
                                     />
 
                                   </Box>
@@ -699,7 +699,7 @@ export default function McShopInspection({
                       onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={false}
+                      disabled={user?.department_id === 2}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -715,7 +715,7 @@ export default function McShopInspection({
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={false}
+                        disabled={user?.department_id === 2}
                       />
                     </Box>
 
@@ -725,34 +725,37 @@ export default function McShopInspection({
 
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                      <ActionButtons
-                        {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                        onSave={handleSaveAndContinue}
-                        showSubmit={false}
-                        saveLabel={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
-                        saveIcon={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                      >
-                        {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                          <Button
-                            variant="outlined"
-                            startIcon={<SaveIcon />}
-                            onClick={handleSaveDraft}
-                            disabled={saving}
-                            sx={{ mr: 2 }}
-                          >
-                            Save as Draft
-                          </Button>
-                        )}
-                        {((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') && (
-                          <Button
-                            variant="outlined"
-                            onClick={() => setIsEditing(!isEditing)}
-                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                          >
-                            {isEditing ? "Cancel Edit" : "Edit Details"}
-                          </Button>
-                        )}
-                      </ActionButtons>
+                      {user?.department_id !== 2 && (
+                        <ActionButtons
+                          {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                          onSave={handleSaveAndContinue}
+                          showSubmit={false}
+                          saveLabel={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
+                          saveIcon={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
+                        >
+                          {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                            <Button
+                              variant="outlined"
+                              startIcon={<SaveIcon />}
+                              onClick={handleSaveDraft}
+                              disabled={saving || user?.department_id === 2}
+                              sx={{ mr: 2 }}
+                            >
+                              Save as Draft
+                            </Button>
+                          )}
+                          {((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') && (
+                            <Button
+                              variant="outlined"
+                              onClick={() => setIsEditing(!isEditing)}
+                              sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                              disabled={user?.department_id === 2}
+                            >
+                              {isEditing ? "Cancel Edit" : "Edit Details"}
+                            </Button>
+                          )}
+                        </ActionButtons>
+                      )}
                     </Box>
                   </Box>
 

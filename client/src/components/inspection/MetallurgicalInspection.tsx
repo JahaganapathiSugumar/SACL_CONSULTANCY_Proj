@@ -104,7 +104,7 @@ function SectionTable({
   sectionRemarks: string;
   onSectionRemarksChange: (val: string) => void;
 }) {
-  const isMachineShop = user?.department_id === 8;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...(rows?.map(r => (r?.value ? r.value.split('|').length : 1)) || [1]), 1);
     return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' })); 
@@ -238,8 +238,8 @@ function SectionTable({
               <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <RadioGroup row sx={{ justifyContent: 'center' }} value={sectionOk === null ? "" : String(sectionOk)} onChange={(e) => onSectionOkChange(e.target.value === "true")}>
-                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing} />
-                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing} />
+                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShopOrFoundry) && !isEditing} />
+                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShopOrFoundry) && !isEditing} />
                   </RadioGroup>
                 </Box>
               </TableCell>
@@ -256,9 +256,8 @@ function SectionTable({
                     placeholder="Enter remarks..."
                     variant="outlined"
                     sx={{ bgcolor: 'white' }}
-                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
                   />
-
                 </Box>
               </TableCell>
             </TableRow>
@@ -276,7 +275,7 @@ function SectionTable({
                   <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r?.label}</TableCell>
 
                   {cols?.map((c, ci) => {
-                    const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing);
+                    const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing);
 
                     return (
                       <TableCell key={c?.id}>
@@ -351,7 +350,7 @@ function MicrostructureTable({
   isEditing: boolean;
   cavityNumbers: string[];
 }) {
-  const isMachineShop = user?.department_id === 8;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
   useEffect(() => {
     if (cavityNumbers && cavityNumbers.length > 0) {
       setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
@@ -440,7 +439,7 @@ function MicrostructureTable({
                       onChange={(e) => updateCell(param, ci, e.target.value)}
                       variant="outlined"
                       sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                      disabled={param === "Cavity Number" || (user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8) && !isEditing}
+                      disabled={param === "Cavity Number" || (user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
                     />
                   </TableCell>
                 ))}
@@ -454,8 +453,8 @@ function MicrostructureTable({
                         value={microOk === null ? "" : String(microOk)}
                         onChange={(e) => setMicroOk(e.target.value === "true")}
                       >
-                        <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing} />
-                        <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShop) && !isEditing} />
+                        <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShopOrFoundry) && !isEditing} />
+                        <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || isMachineShopOrFoundry) && !isEditing} />
                       </RadioGroup>
                     </TableCell>
 
@@ -471,7 +470,7 @@ function MicrostructureTable({
                           placeholder="Enter remarks..."
                           variant="outlined"
                           sx={{ bgcolor: 'white' }}
-                          disabled={(user?.role === 'HOD' || isMachineShop) && !isEditing}
+                          disabled={(user?.role === 'HOD' || isMachineShopOrFoundry) && !isEditing}
                         />
 
                       </Box>
@@ -500,7 +499,7 @@ export default function MetallurgicalInspection() {
   const [userIP, setUserIP] = useState<string>("Loading...");
   const { alert, showAlert } = useAlert();
   const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
-  const isMachineShop = user?.department_id === 8;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
   const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
   const [loadKey, setLoadKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -553,7 +552,7 @@ export default function MetallurgicalInspection() {
   useEffect(() => {
     const checkAssignment = async () => {
       if (user && trialId) {
-        if (user.role === 'Admin' || user.department_id === 8) {
+        if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2) {
           setIsAssigned(true);
           return;
         }
@@ -1163,7 +1162,7 @@ export default function MetallurgicalInspection() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.department_id === 8}
+                      disabled={user?.department_id === 8 || user?.department_id === 2}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1179,7 +1178,7 @@ export default function MetallurgicalInspection() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.department_id === 8}
+                        disabled={user?.department_id === 8 || user?.department_id === 2}
                       />
                     </Box>
 
@@ -1189,7 +1188,7 @@ export default function MetallurgicalInspection() {
 
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                      {!isMachineShop && (
+                      {!isMachineShopOrFoundry && (
                         <ActionButtons
                           {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                           onSave={handleSaveAndContinue}
