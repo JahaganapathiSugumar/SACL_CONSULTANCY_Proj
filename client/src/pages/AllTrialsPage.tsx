@@ -146,7 +146,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
         let cols = 8;
         if (user?.role === 'Admin') {
             cols += 2;
-        } else if (user?.department_id === 2) {
+        } else if (user?.department_id === 2 || user?.department_id === 3) {
             cols += 1;
         }
         return cols;
@@ -629,7 +629,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                             />
                                         </TableCell>
                                     )}
-                                    {(user?.role === 'Admin' || user?.department_id === 2) && <TableCell className="premium-table-header-cell" />}
+                                    {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && <TableCell className="premium-table-header-cell" />}
 
                                     <TableCell className="premium-table-header-cell">Trial No</TableCell>
                                     <TableCell className="premium-table-header-cell">Part Name</TableCell>
@@ -659,7 +659,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                         />
                                                     </TableCell>
                                                 )}
-                                                {(user?.role === 'Admin' || user?.department_id === 2) && (
+                                                {(user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && (
                                                     <TableCell className="premium-table-cell">
                                                         <IconButton
                                                             aria-label="expand row"
