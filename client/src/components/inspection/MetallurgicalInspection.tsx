@@ -104,7 +104,7 @@ function SectionTable({
   sectionRemarks: string;
   onSectionRemarksChange: (val: string) => void;
 }) {
-  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3;
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...(rows?.map(r => (r?.value ? r.value.split('|').length : 1)) || [1]), 1);
     return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' })); 
@@ -256,7 +256,7 @@ function SectionTable({
                     placeholder="Enter remarks..."
                     variant="outlined"
                     sx={{ bgcolor: 'white' }}
-                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
+                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
                   />
                 </Box>
               </TableCell>
@@ -275,7 +275,7 @@ function SectionTable({
                   <TableCell sx={{ fontWeight: 600, color: COLORS.textSecondary, bgcolor: '#f8fafc' }}>{r?.label}</TableCell>
 
                   {cols?.map((c, ci) => {
-                    const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing);
+                    const isFieldDisabled = ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing);
 
                     return (
                       <TableCell key={c?.id}>
@@ -350,7 +350,7 @@ function MicrostructureTable({
   isEditing: boolean;
   cavityNumbers: string[];
 }) {
-  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3;
   useEffect(() => {
     if (cavityNumbers && cavityNumbers.length > 0) {
       setCols(cavityNumbers.map((c, i) => ({ id: `c${i + 1}`, label: '' })));
@@ -439,7 +439,7 @@ function MicrostructureTable({
                       onChange={(e) => updateCell(param, ci, e.target.value)}
                       variant="outlined"
                       sx={{ "& .MuiInputBase-input": { textAlign: 'center', fontFamily: 'Roboto Mono' } }}
-                      disabled={param === "Cavity Number" || (user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
+                      disabled={param === "Cavity Number" || (user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
                     />
                   </TableCell>
                 ))}
@@ -499,7 +499,7 @@ export default function MetallurgicalInspection() {
   const [userIP, setUserIP] = useState<string>("Loading...");
   const { alert, showAlert } = useAlert();
   const trialId = new URLSearchParams(window.location.search).get('trial_id') || "";
-  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2;
+  const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3;
   const [isAssigned, setIsAssigned] = useState<boolean | null>(null);
   const [loadKey, setLoadKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -1162,7 +1162,7 @@ export default function MetallurgicalInspection() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.department_id === 8 || user?.department_id === 2}
+                      disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1178,7 +1178,7 @@ export default function MetallurgicalInspection() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.department_id === 8 || user?.department_id === 2}
+                        disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                       />
                     </Box>
 
@@ -1195,14 +1195,14 @@ export default function MetallurgicalInspection() {
                           showSubmit={false}
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                          disabled={user?.department_id === 2}
+                          disabled={user?.department_id === 2 || user?.department_id === 3}
                         >
                           {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                             <Button
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={sending || user?.department_id === 8 || user?.department_id === 2}
+                              disabled={sending || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
@@ -1213,7 +1213,7 @@ export default function MetallurgicalInspection() {
                               variant="outlined"
                               onClick={() => setIsEditing(!isEditing)}
                               sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                              disabled={user?.department_id === 8 || user?.department_id === 2}
+                              disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                             >
                               {isEditing ? "Cancel Edit" : "Edit Details"}
                             </Button>

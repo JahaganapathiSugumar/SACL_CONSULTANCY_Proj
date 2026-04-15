@@ -295,8 +295,8 @@ function SectionTable({
                             {showTotal && <TableCell sx={{ bgcolor: '#f8fafc' }} />}
                             <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
                                 <RadioGroup row sx={{ justifyContent: 'center' }} value={okStatus === null ? "" : String(okStatus)} onChange={(e) => updateSectionMeta({ ok: e.target.value === "true" })}>
-                                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing} />
-                                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing} />
+                                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
+                                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
                                 </RadioGroup>
                             </TableCell>
                             <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none', minWidth: 300, maxWidth: 300 }}>
@@ -310,7 +310,7 @@ function SectionTable({
                                     placeholder="Enter remarks..."
                                     variant="outlined"
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
+                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
                                 />
                             </TableCell>
                         </TableRow>
@@ -367,7 +367,7 @@ function SectionTable({
                                                                 isAcceptedQty ? '#f3f4f6' : 'white'
                                                     }
                                                 }}
-                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing) || isAcceptedQty || r.label.toLowerCase().includes('percentage')}
+                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || isAcceptedQty || r.label.toLowerCase().includes('percentage')}
                                             />
                                         </TableCell>
                                     ))}
@@ -1101,7 +1101,7 @@ export default function VisualInspection({
                                                                             value={displayValue}
                                                                             onChange={(e) => updateCell(r.id, ci, e.target.value)}
                                                                             variant="outlined"
-                                                                            disabled={isFieldDisabled || user?.department_id === 8 || user?.department_id === 2}
+                                                                            disabled={isFieldDisabled || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                                                                             sx={{
                                                                                 "& .MuiInputBase-input": {
                                                                                     textAlign: 'center',
@@ -1167,8 +1167,8 @@ export default function VisualInspection({
 
                                                                         >
 
-                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing} />
-                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing} />
+                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
+                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
                                                                         </RadioGroup>
                                                                     </TableCell>
 
@@ -1187,7 +1187,7 @@ export default function VisualInspection({
                                                                                 onChange={(e) => setRemarks(e.target.value)}
                                                                                 variant="outlined"
                                                                                 sx={{ bgcolor: 'white' }}
-                                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && !isEditing}
+                                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
                                                                             />
 
                                                                         </Box>
@@ -1241,7 +1241,7 @@ export default function VisualInspection({
                                             onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                                             showAlert={showAlert}
                                             label="Attach PDF"
-                                            disabled={user?.department_id === 8 || user?.department_id === 2}
+                                            disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                                         />
 
                                         <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1257,7 +1257,7 @@ export default function VisualInspection({
                                                 onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                                                 showAlert={showAlert}
                                                 label="Attach Confidential PDF"
-                                                disabled={user?.department_id === 8 || user?.department_id === 2}
+                                                disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                                             />
                                         </Box>
 
@@ -1273,14 +1273,14 @@ export default function VisualInspection({
                                                 showSubmit={false}
                                                 saveLabel={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                                                 saveIcon={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                                                disabled={user?.department_id === 2}
+                                                disabled={user?.department_id === 2 || user?.department_id === 3}
                                             >
                                                     {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                                                         <Button
                                                             variant="outlined"
                                                             startIcon={<SaveIcon />}
                                                             onClick={handleSaveDraft}
-                                                            disabled={saving || user?.department_id === 8 || user?.department_id === 2}
+                                                            disabled={saving || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                                                             sx={{ mr: 2 }}
                                                         >
                                                             Save as Draft
@@ -1291,7 +1291,7 @@ export default function VisualInspection({
                                                             variant="outlined"
                                                             onClick={() => setIsEditing(!isEditing)}
                                                             sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                                            disabled={user?.department_id === 8 || user?.department_id === 2}
+                                                            disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                                                         >
                                                             {isEditing ? "Cancel Edit" : "Edit Details"}
                                                         </Button>

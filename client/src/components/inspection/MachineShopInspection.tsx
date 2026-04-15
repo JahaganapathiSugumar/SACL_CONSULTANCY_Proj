@@ -593,7 +593,7 @@ export default function McShopInspection({
                         }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2}
+                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3}
                       />
                     </Grid>
 
@@ -651,7 +651,7 @@ export default function McShopInspection({
                                           r?.label?.toLowerCase()?.includes("accepted quantity") ? '#f3f4f6' : 'white'
                                       }
                                     }}
-                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
+                                    disabled={r.label === "Cavity Number" || r.label === "FDY OK Quantity" || ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || r?.label?.toLowerCase()?.includes("accepted quantity") || r?.label?.toLowerCase()?.includes("rejection percentage")}
                                   />
                                 </TableCell>
                               ))}
@@ -674,7 +674,7 @@ export default function McShopInspection({
 
                                       variant="outlined"
                                       sx={{ bgcolor: 'white' }}
-                                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2) && !isEditing}
+                                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
                                     />
 
                                   </Box>
@@ -699,7 +699,7 @@ export default function McShopInspection({
                       onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.department_id === 2}
+                      disabled={user?.department_id === 2 || user?.department_id === 3}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -715,7 +715,7 @@ export default function McShopInspection({
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.department_id === 2}
+                        disabled={user?.department_id === 2 || user?.department_id === 3}
                       />
                     </Box>
 
@@ -731,14 +731,14 @@ export default function McShopInspection({
                           showSubmit={false}
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                          disabled={user?.department_id === 2}
+                          disabled={user?.department_id === 2 || user?.department_id === 3}
                         >
                           {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                             <Button
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={saving || user?.department_id === 2}
+                              disabled={saving || user?.department_id === 2 || user?.department_id === 3}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
@@ -749,7 +749,7 @@ export default function McShopInspection({
                               variant="outlined"
                               onClick={() => setIsEditing(!isEditing)}
                               sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                              disabled={user?.department_id === 2}
+                              disabled={user?.department_id === 2 || user?.department_id === 3}
                             >
                               {isEditing ? "Cancel Edit" : "Edit Details"}
                             </Button>

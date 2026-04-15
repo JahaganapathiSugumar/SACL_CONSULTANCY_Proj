@@ -224,7 +224,7 @@ function FoundrySampleCard() {
     const checkAssignment = async () => {
       if (!user) return;
 
-      if (user?.role === 'Admin' || user?.role === 'User' || user?.department_id === 8 || user?.department_id === 2) {
+      if (user?.role === 'Admin' || user?.role === 'User' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) {
         setIsAssigned(true);
         return;
       }
@@ -251,7 +251,7 @@ function FoundrySampleCard() {
 
   useEffect(() => {
     const fetchTrialDataForHOD = async () => {
-      if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2) && trialIdFromUrl) {
+      if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && trialIdFromUrl) {
         try {
           const response = await trialService.getTrialById(trialIdFromUrl);
           if (response?.data) {
@@ -572,7 +572,7 @@ function FoundrySampleCard() {
                             value={selectedPattern}
                             onChange={(_, v) => handlePatternChange(v)}
                             getOptionLabel={(o) => o.pattern_code}
-                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                             renderInput={(params) =>
                               <TextField
                                 {...params}
@@ -588,7 +588,7 @@ function FoundrySampleCard() {
                             value={selectedPart}
                             onChange={(_, v) => handlePartChange(v)}
                             getOptionLabel={(o) => o.part_name}
-                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                             renderInput={(params) =>
                               <TextField
                                 {...params}
@@ -1017,7 +1017,7 @@ function FoundrySampleCard() {
                               setSamplingDate(e.target.value);
                             }}
                             size="small"
-                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                           />
                         </TableCell>
                         <TableCell>
@@ -1031,7 +1031,7 @@ function FoundrySampleCard() {
                                 setPlanMoulds(e.target.value);
                               }}
                               size="small"
-                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                               InputLabelProps={{ shrink: true }}
                               sx={{
                                 bgcolor: '#FFF59D',
@@ -1050,7 +1050,7 @@ function FoundrySampleCard() {
                                 setMachine(e.target.value);
                               }}
                               displayEmpty
-                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                             >
                               <MenuItem value="" disabled>
                                 Select
@@ -1072,7 +1072,7 @@ function FoundrySampleCard() {
                                 if (e.target.value !== 'Others') setCustomReason("");
                               }}
                               displayEmpty
-                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                             >
                               <MenuItem value="" disabled>
                                 Select
@@ -1094,7 +1094,7 @@ function FoundrySampleCard() {
                                 setCustomReason(e.target.value);
                               }}
                               sx={{ mt: 1 }}
-                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                              disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                             />
                           )}
                         </TableCell>
@@ -1106,7 +1106,7 @@ function FoundrySampleCard() {
                               setSampleTraceability(e.target.value);
                             }}
                             size="small"
-                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                            disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                           />
                         </TableCell>
                         <TableCell>
@@ -1123,7 +1123,7 @@ function FoundrySampleCard() {
                                   value={type}
                                   control={<Radio size="small" />}
                                   label={<Typography variant="caption">{TRIAL_TYPE_LABELS[type] || type}</Typography>}
-                                  disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                                  disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                                   sx={{ mb: 0.5 }}
                                 />
                               ))}
@@ -1169,7 +1169,7 @@ function FoundrySampleCard() {
                         value={toolingModification}
                         onChange={(e) => setToolingModification(e.target.value)}
                         sx={{ bgcolor: '#fff' }}
-                        disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                        disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -1182,7 +1182,7 @@ function FoundrySampleCard() {
                         onFileRemove={removeToolingFile}
                         showAlert={showAlert}
                         label="Attach Tooling PDF"
-                        disabled={(user?.department_id === 8) && !isEditing}
+                        disabled={(user?.department_id === 8 || user?.department_id === 3) && !isEditing}
                       />
                       <DocumentViewer trialId={trialId || ""} category="TOOLING_MODIFICATION" label="Attached Tooling Files" refreshTrigger={docsRefreshTrigger} />
                     </Grid>
@@ -1216,16 +1216,16 @@ function FoundrySampleCard() {
                       {mouldCorrections.map((row) => (
                         <TableRow key={row.id}>
                           <TableCell>
-                            <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8} />
+                            <TextField fullWidth size="small" value={row.compressibility} onChange={(e) => handleMouldCorrectionChange(row.id, 'compressibility', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3} />
                           </TableCell>
                           <TableCell>
-                            <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8} />
+                            <TextField fullWidth size="small" value={row.squeezePressure} onChange={(e) => handleMouldCorrectionChange(row.id, 'squeezePressure', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3} />
                           </TableCell>
                           <TableCell>
-                            <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8} />
+                            <TextField fullWidth size="small" value={row.fillerSize} onChange={(e) => handleMouldCorrectionChange(row.id, 'fillerSize', e.target.value)} disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3} />
                           </TableCell>
                           <TableCell align="center">
-                            {mouldCorrections?.length > 1 && !(((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8) && (
+                            {mouldCorrections?.length > 1 && !(((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3) && (
                               <IconButton size="small" onClick={() => removeMouldCorrectionRow(row.id)} sx={{ color: '#DC2626' }}>
                                 <DeleteIcon />
                               </IconButton>
@@ -1250,7 +1250,7 @@ function FoundrySampleCard() {
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     sx={{ bgcolor: "#fff", mb: 3 }}
-                    disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8}
+                    disabled={((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) || user?.department_id === 8 || user?.department_id === 3}
                   />
 
                   <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1266,7 +1266,7 @@ function FoundrySampleCard() {
                       onFileRemove={removeConfidentialFile}
                       showAlert={showAlert}
                       label="Attach Confidential PDF"
-                      disabled={user?.department_id === 8}
+                      disabled={user?.department_id === 8 || user?.department_id === 3}
                     />
                     <DocumentViewer trialId={trialId || trialIdFromUrl || ""} category="FOUNDRY_SAMPLE_CARD" refreshTrigger={docsRefreshTrigger} />
                   </Box>
@@ -1286,7 +1286,7 @@ function FoundrySampleCard() {
                       variant="outlined"
                       onClick={() => setIsEditing(!isEditing)}
                       sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                      disabled={user?.department_id === 8}
+                      disabled={user?.department_id === 8 || user?.department_id === 3}
                     >
                       {isEditing ? "Cancel Edit" : "Edit Details"}
                     </Button>
