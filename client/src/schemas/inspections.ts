@@ -96,7 +96,10 @@ export const visualInspectionSchema = z.object({
     hardness_remarks: z.string().optional().nullable(),
     inspection_date: z.string().optional().nullable(),
     is_edit: z.boolean().default(true),
-    is_draft: z.boolean().default(false)
+    is_draft: z.boolean().default(false),
+    is_visual_complete: z.boolean().optional().nullable(),
+    is_hardness_complete: z.boolean().optional().nullable(),
+    is_ndt_complete: z.boolean().optional().nullable()
 });
 
 export const dimensionalInspectionSchema = z.object({

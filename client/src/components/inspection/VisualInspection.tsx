@@ -295,8 +295,8 @@ function SectionTable({
                             {showTotal && <TableCell sx={{ bgcolor: '#f8fafc' }} />}
                             <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: COLORS.successBg, verticalAlign: "middle", textAlign: 'center', width: 140, borderBottom: 'none' }}>
                                 <RadioGroup row sx={{ justifyContent: 'center' }} value={okStatus === null ? "" : String(okStatus)} onChange={(e) => updateSectionMeta({ ok: e.target.value === "true" })}>
-                                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
-                                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
+                                    <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={!isEditing || user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8} />
+                                    <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={!isEditing || user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8} />
                                 </RadioGroup>
                             </TableCell>
                             <TableCell rowSpan={rows?.length + 1} sx={{ bgcolor: '#fff7ed', verticalAlign: "top", borderBottom: 'none', minWidth: 300, maxWidth: 300 }}>
@@ -310,7 +310,7 @@ function SectionTable({
                                     placeholder="Enter remarks..."
                                     variant="outlined"
                                     sx={{ bgcolor: 'white' }}
-                                    disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
+                                    disabled={!isEditing || user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8}
                                 />
                             </TableCell>
                         </TableRow>
@@ -367,7 +367,7 @@ function SectionTable({
                                                                 isAcceptedQty ? '#f3f4f6' : 'white'
                                                     }
                                                 }}
-                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || isAcceptedQty || r.label.toLowerCase().includes('percentage')}
+                                                disabled={!isEditing || isAcceptedQty || r.label.toLowerCase().includes('percentage') || user?.department_id === 2 || user?.department_id === 3}
                                             />
                                         </TableCell>
                                     ))}
@@ -415,8 +415,13 @@ export default function VisualInspection({
     const [headerRefreshKey, setHeaderRefreshKey] = useState(0);
     const departmentInfo = getDepartmentInfo(user);
     const [dataExists, setDataExists] = useState(false);
+    const [hasVisualData, setHasVisualData] = useState(false);
+    const [hasHardnessData, setHasHardnessData] = useState(false);
+    const [hasNdtData, setHasNdtData] = useState(false);
     const [ndtRows, setNdtRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"]));
     const [hardRows, setHardRows] = useState<NdtRow[]>(initialNdtRows(["Cavity Number", "Inspected Quantity", "Rejected Quantity", "Accepted Quantity", "Rejection Percentage", "Reason for rejection"]));
+    const isVisualFilled = hasVisualData;
+    const isHardnessFilled = hasHardnessData;
 
     const handleNdtChange = (id: string, patch: Partial<NdtRow>) => {
         setNdtRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -454,7 +459,7 @@ export default function VisualInspection({
     useEffect(() => {
         const checkAssignment = async () => {
             if (user && trialId) {
-                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2) {
+                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2 || user.department_id === 3) {
                     setIsAssigned(true);
                     return;
                 }
@@ -547,6 +552,8 @@ export default function VisualInspection({
                                     values: inspections?.map((item: any) => String(item?.[fieldName] || ''))
                                 };
                             }));
+                            const actuallyFilled = !!data.is_visual_complete;
+                            setHasVisualData(actuallyFilled);
                         }
 
                         setVisualOk(data?.visual_ok === null || data?.visual_ok === undefined ? null : (data.visual_ok === true || data.visual_ok === 1 || String(data.visual_ok) === "1" || String(data.visual_ok) === "true"));
@@ -597,6 +604,9 @@ export default function VisualInspection({
 
                         const hardRowsData = restoreSection(data?.hardness, labels, data?.hardness_ok, data?.hardness_remarks);
                         if (hardRowsData?.length > 0) setHardRows(hardRowsData as NdtRow[]);
+
+                        setHasHardnessData(!!data.is_hardness_complete);
+                        setHasNdtData(!!data.is_ndt_complete);
 
                         setDataExists(true);
                     }
@@ -919,6 +929,10 @@ export default function VisualInspection({
             };
         });
 
+        const isVisualFilledNow = inspections.some((item: any) => String(item['Inspected Quantity'] || '').trim().length > 0);
+        const isHardnessFilledNow = hardness.some((item: any) => String(item['Accepted Quantity'] || '').trim().length > 0);
+        const isNdtFilledNow = ndt_inspection.some((item: any) => String(item['Accepted Quantity'] || '').trim().length > 0);
+
         return {
             trial_id: trialId,
             inspections,
@@ -932,7 +946,10 @@ export default function VisualInspection({
             hardness,
             is_edit: isEditing || dataExists,
             is_draft: isDraft,
-            inspection_date: date
+            inspection_date: date,
+            is_visual_complete: hasVisualData || isVisualFilledNow,
+            is_hardness_complete: hasHardnessData || isHardnessFilledNow,
+            is_ndt_complete: hasNdtData || isNdtFilledNow,
         };
 
     };
@@ -1089,9 +1106,11 @@ export default function VisualInspection({
                                                             {cols?.map((_, ci) => {
                                                                 const displayValue = isRejectionPercentage ? calculateRejectionPercentage(ci) : (r?.values?.[ci] ?? "");
                                                                 const isInvalidValue = displayValue === 'Invalid';
-                                                                const isFieldDisabled = r.label === "Cavity Number" || ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
+                                                                const isFieldDisabled = r.label === "Cavity Number" ||
+                                                                    ((user?.role === 'HOD' || user?.role === 'Admin') && !isEditing) ||
                                                                     isAcceptedQty ||
-                                                                    isRejectionPercentage;
+                                                                    isRejectionPercentage ||
+                                                                    (hasVisualData && !isEditing);
 
                                                                 return (
                                                                     <TableCell key={ci}>
@@ -1167,8 +1186,8 @@ export default function VisualInspection({
 
                                                                         >
 
-                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
-                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing} />
+                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)} />
+                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)} />
                                                                         </RadioGroup>
                                                                     </TableCell>
 
@@ -1187,7 +1206,7 @@ export default function VisualInspection({
                                                                                 onChange={(e) => setRemarks(e.target.value)}
                                                                                 variant="outlined"
                                                                                 sx={{ bgcolor: 'white' }}
-                                                                                disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing}
+                                                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)}
                                                                             />
 
                                                                         </Box>
@@ -1204,31 +1223,35 @@ export default function VisualInspection({
 
                                 </Paper>
 
-                                <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
-                                    <SectionTable
-                                        title="HARDNESS INSPECTION"
-                                        rows={hardRows}
-                                        onChange={handleHardnessChange}
-                                        showTotal={true}
-                                        showAlert={showAlert}
-                                        user={user}
-                                        isEditing={isEditing}
-                                        onSectionChange={handleHardnessSectionChange}
-                                    />
-                                </Paper>
+                                {isVisualFilled && (
+                                    <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
+                                        <SectionTable
+                                            title="HARDNESS INSPECTION"
+                                            rows={hardRows}
+                                            onChange={handleHardnessChange}
+                                            showTotal={true}
+                                            showAlert={showAlert}
+                                            user={user}
+                                            isEditing={(isEditing || !hasHardnessData) && user?.department_id !== 2 && user?.department_id !== 3 || user?.department_id === 8}
+                                            onSectionChange={handleHardnessSectionChange}
+                                        />
+                                    </Paper>
+                                )}
 
-                                <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
-                                    <SectionTable
-                                        title="NDT INSPECTION ANALYSIS"
-                                        rows={ndtRows}
-                                        onChange={handleNdtChange}
-                                        showTotal={true}
-                                        showAlert={showAlert}
-                                        user={user}
-                                        isEditing={isEditing}
-                                        onSectionChange={handleNdtSectionChange}
-                                    />
-                                </Paper>
+                                {isHardnessFilled && (
+                                    <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, overflow: 'hidden' }}>
+                                        <SectionTable
+                                            title="NDT INSPECTION ANALYSIS"
+                                            rows={ndtRows}
+                                            onChange={handleNdtChange}
+                                            showTotal={true}
+                                            showAlert={showAlert}
+                                            user={user}
+                                            isEditing={(isEditing || !hasNdtData) && user?.department_id !== 2 && user?.department_id !== 3 || user?.department_id === 8}
+                                            onSectionChange={handleNdtSectionChange}
+                                        />
+                                    </Paper>
+                                )}
 
                                 <Paper sx={{ p: { xs: 2, md: 4 }, overflow: 'hidden' }}>
                                     <Box sx={{ p: 1, bgcolor: "#fff" }}>
@@ -1269,35 +1292,35 @@ export default function VisualInspection({
                                         <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
                                             <ActionButtons
                                                 {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                                                onSave={handleSaveAndContinue}
+                                                onSave={(hasVisualData && hasHardnessData) ? handleSaveAndContinue : undefined}
                                                 showSubmit={false}
                                                 saveLabel={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                                                 saveIcon={((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                                                disabled={user?.department_id === 2 || user?.department_id === 3}
+                                                disabled={saving || (!isEditing && user?.role !== 'Admin' && user?.role !== 'HOD' && submitted) || user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8}
                                             >
-                                                    {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
-                                                        <Button
-                                                            variant="outlined"
-                                                            startIcon={<SaveIcon />}
-                                                            onClick={handleSaveDraft}
-                                                            disabled={saving || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
-                                                            sx={{ mr: 2 }}
-                                                        >
-                                                            Save as Draft
-                                                        </Button>
-                                                    )}
-                                                    {((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') && (
-                                                        <Button
-                                                            variant="outlined"
-                                                            onClick={() => setIsEditing(!isEditing)}
-                                                            sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                                                            disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
-                                                        >
-                                                            {isEditing ? "Cancel Edit" : "Edit Details"}
-                                                        </Button>
-                                                    )}
-                                                </ActionButtons>
-                                            </Box>
+                                                {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<SaveIcon />}
+                                                    onClick={handleSaveDraft}
+                                                    disabled={saving || (!isEditing && user?.role !== 'Admin' && user?.role !== 'HOD' && submitted) || user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8}
+                                                    sx={{ mr: 2 }}
+                                                >
+                                                    Save as Draft
+                                                </Button>
+                                                )}
+                                                {((user?.role === 'HOD' && user?.department_id === 5) || user?.role === 'Admin') && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={() => setIsEditing(!isEditing)}
+                                                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                                                        disabled={saving}
+                                                    >
+                                                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                                                    </Button>
+                                                )}
+                                            </ActionButtons>
+                                        </Box>
                                     </Box>
                                 </Paper>
 

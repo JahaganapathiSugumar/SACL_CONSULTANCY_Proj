@@ -107,7 +107,7 @@ function SectionTable({
   const isMachineShopOrFoundry = user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3;
   const [cols, setCols] = useState<MicroCol[]>(() => {
     const maxLen = Math.max(...(rows?.map(r => (r?.value ? r.value.split('|').length : 1)) || [1]), 1);
-    return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' })); 
+    return Array.from({ length: maxLen }, (_, i) => ({ id: `c${i + 1}`, label: '' }));
   });
 
   const [values, setValues] = useState<Record<string, string[]>>(() => {
@@ -552,7 +552,7 @@ export default function MetallurgicalInspection() {
   useEffect(() => {
     const checkAssignment = async () => {
       if (user && trialId) {
-        if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2) {
+        if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2 || user.department_id === 3) {
           setIsAssigned(true);
           return;
         }
@@ -1078,7 +1078,7 @@ export default function MetallurgicalInspection() {
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         sx={{ width: 160 }}
-                        disabled={user?.role === 'HOD'}
+                        disabled={user?.role === 'HOD' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
                       />
                     </Box>
                   </Box>
@@ -1162,7 +1162,7 @@ export default function MetallurgicalInspection() {
                       onFileRemove={removeAttachedFile}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
+                      disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3 || (user?.role === 'HOD' && !isEditing)}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -1178,7 +1178,7 @@ export default function MetallurgicalInspection() {
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3}
+                        disabled={user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3 || (user?.role === 'HOD' && !isEditing)}
                       />
                     </Box>
 
@@ -1188,14 +1188,13 @@ export default function MetallurgicalInspection() {
 
                   <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="flex-end" alignItems="stretch" gap={2} sx={{ mt: 2, mb: 4 }}>
                     <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width={{ xs: '100%', sm: 'auto' }}>
-                      {!isMachineShopOrFoundry && (
                         <ActionButtons
                           {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
                           onSave={handleSaveAndContinue}
                           showSubmit={false}
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 9) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                          disabled={user?.department_id === 2 || user?.department_id === 3}
+                          disabled={user?.department_id === 2 || user?.department_id === 3 || user.department_id === 8}
                         >
                           {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                             <Button
@@ -1219,7 +1218,6 @@ export default function MetallurgicalInspection() {
                             </Button>
                           )}
                         </ActionButtons>
-                      )}
                     </Box>
                   </Box>
 

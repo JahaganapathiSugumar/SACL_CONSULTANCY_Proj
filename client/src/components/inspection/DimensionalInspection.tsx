@@ -99,7 +99,7 @@ export default function DimensionalInspection({
     useEffect(() => {
         const checkAssignment = async () => {
             if (user && trialId) {
-                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2) {
+                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 2 || user.department_id === 3) {
                     setIsAssigned(true);
                     return;
                 }
@@ -602,7 +602,7 @@ export default function DimensionalInspection({
                                             showSubmit={false}
                                             saveLabel={((user?.role === 'HOD' && user?.department_id === 10) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                                             saveIcon={((user?.role === 'HOD' && user?.department_id === 10) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                                            disabled={user?.department_id === 2 || user?.department_id === 3}
+                                            disabled={user?.department_id === 2 || user?.department_id === 3 || user?.department_id === 8}
                                         >
                                             {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                                                 <Button

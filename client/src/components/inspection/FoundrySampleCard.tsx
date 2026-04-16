@@ -1273,140 +1273,139 @@ function FoundrySampleCard() {
                 </Paper>
 
                 <Box sx={{ mt: 2, mb: 4 }}>
-                <ActionButtons
-                  {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
-                  onSave={handleSaveAndContinue}
-                  showSubmit={false}
-                  saveLabel={(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
-                  saveIcon={(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
-                  loading={isSubmitting}
-                >
-                  {(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) && (
-                    <Button
-                      variant="outlined"
-                      onClick={() => setIsEditing(!isEditing)}
-                      sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
-                      disabled={user?.department_id === 8 || user?.department_id === 3}
-                    >
-                      {isEditing ? "Cancel Edit" : "Edit Details"}
-                    </Button>
-                  )}
-                </ActionButtons>
-              </Box>
+                  <ActionButtons
+                    {...(user?.role !== 'HOD' && user?.role !== 'Admin' ? { onReset: handleReset } : {})}
+                    onSave={handleSaveAndContinue}
+                    showSubmit={false}
+                    saveLabel={(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) ? 'Approve' : 'Save & Continue'}
+                    saveIcon={(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) ? <CheckCircleIcon /> : <SaveIcon />}
+                    loading={isSubmitting}
+                    disabled={user?.department_id === 3 || user?.department_id === 8}
+                  >
+                    {(((user?.role === 'HOD' && user?.department_id === 2) || user?.role === 'Admin') && trialIdFromUrl) && (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setIsEditing(!isEditing)}
+                        sx={{ color: COLORS.secondary, borderColor: COLORS.secondary }}
+                        disabled={user?.department_id === 8 || user?.department_id === 3}
+                      >
+                        {isEditing ? "Cancel Edit" : "Edit Details"}
+                      </Button>
+                    )}
+                  </ActionButtons>
+                </Box>
 
               </React.Fragment>
             )}
+          </Container>
+        </Box >
 
+        <Dialog open={showPatternDialog} onClose={() => setShowPatternDialog(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ bgcolor: COLORS.primary, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Pattern Data Sheet
+            <IconButton onClick={() => setShowPatternDialog(false)} sx={{ color: 'white' }}><CloseIcon /></IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            {selectedPattern ? (
+              <Grid container spacing={3}>
+                {/* Left Column */}
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <TableContainer component={Paper} elevation={0} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Description</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Value</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {[
+                          { l: "Number of cavity in pattern", v: (selectedPattern as any)?.number_of_cavity },
+                          { l: "Cavity identification number", v: (selectedPattern as any)?.cavity_identification },
+                          { l: "Pattern material", v: (selectedPattern as any)?.pattern_material },
+                          { l: "Core weight in kgs", v: (selectedPattern as any)?.core_weight },
+                          { l: "Core mask thickness in mm", v: (selectedPattern as any)?.core_mask_thickness },
+                          { l: "Estimated casting weight", v: (selectedPattern as any)?.estimated_casting_weight },
+                        ].map((r, i) => (
+                          <TableRow key={i}>
+                            <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>{r.l}</TableCell>
+                            <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.v || "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Grid>
 
-        </Container>
+                {/* Right Column */}
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <TableContainer component={Paper} elevation={0} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Description</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>SP Side Pattern</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>PP Side Pattern</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {[
+                          { l: "Pattern plate thickness in mm", sp: (selectedPattern as any)?.pattern_plate_thickness_sp, pp: (selectedPattern as any)?.pattern_plate_thickness_pp },
+                          { l: "Pattern plate weight in kgs", sp: (selectedPattern as any)?.pattern_plate_weight_sp, pp: (selectedPattern as any)?.pattern_plate_weight_pp },
+                          { l: "Crush pin height in mm", sp: (selectedPattern as any)?.crush_pin_height_sp, pp: (selectedPattern as any)?.crush_pin_height_pp },
+                          { l: "Core mask weight in kgs", sp: (selectedPattern as any)?.core_mask_weight_sp, pp: (selectedPattern as any)?.core_mask_weight_pp },
+                        ].map((r, i) => (
+                          <TableRow key={i}>
+                            <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>{r.l}</TableCell>
+                            <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.sp || "-"}</TableCell>
+                            <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.pp || "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>Estimated Bunch weight</TableCell>
+                          <TableCell colSpan={2} sx={{ fontSize: '13px', fontWeight: 500 }}>
+                            <Box display="flex" alignItems="center" gap={3}>
+                              <span>{(selectedPattern as any)?.estimated_bunch_weight || "-"}</span>
+                              {(selectedPattern as any)?.yield_label && (
+                                <span style={{ fontWeight: 'bold' }}>Yield: {(selectedPattern as any)?.yield_label}</span>
+                              )}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Grid>
+
+                {/* Remarks */}
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="subtitle2" gutterBottom fontWeight="bold">Remarks:</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9fafb', minHeight: '60px' }}>
+                    <Typography variant="body2">{(selectedPattern as any)?.remarks || "-"}</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+            ) : (
+              <Box textAlign="center" py={4}>
+                <Typography color="textSecondary">No pattern selected</Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowPatternDialog(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Profile Modal */}
+        {
+          showProfile && (
+            <ProfileModal
+              onClose={() => setShowProfile(false)}
+              onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
+            />
+          )
+        }
       </Box >
-
-      <Dialog open={showPatternDialog} onClose={() => setShowPatternDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ bgcolor: COLORS.primary, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Pattern Data Sheet
-          <IconButton onClick={() => setShowPatternDialog(false)} sx={{ color: 'white' }}><CloseIcon /></IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedPattern ? (
-            <Grid container spacing={3}>
-              {/* Left Column */}
-              <Grid size={{ xs: 12, md: 5 }}>
-                <TableContainer component={Paper} elevation={0} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Description</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Value</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {[
-                        { l: "Number of cavity in pattern", v: (selectedPattern as any)?.number_of_cavity },
-                        { l: "Cavity identification number", v: (selectedPattern as any)?.cavity_identification },
-                        { l: "Pattern material", v: (selectedPattern as any)?.pattern_material },
-                        { l: "Core weight in kgs", v: (selectedPattern as any)?.core_weight },
-                        { l: "Core mask thickness in mm", v: (selectedPattern as any)?.core_mask_thickness },
-                        { l: "Estimated casting weight", v: (selectedPattern as any)?.estimated_casting_weight },
-                      ].map((r, i) => (
-                        <TableRow key={i}>
-                          <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>{r.l}</TableCell>
-                          <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.v || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid>
-
-              {/* Right Column */}
-              <Grid size={{ xs: 12, md: 7 }}>
-                <TableContainer component={Paper} elevation={0} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>Description</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>SP Side Pattern</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '13px' }}>PP Side Pattern</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {[
-                        { l: "Pattern plate thickness in mm", sp: (selectedPattern as any)?.pattern_plate_thickness_sp, pp: (selectedPattern as any)?.pattern_plate_thickness_pp },
-                        { l: "Pattern plate weight in kgs", sp: (selectedPattern as any)?.pattern_plate_weight_sp, pp: (selectedPattern as any)?.pattern_plate_weight_pp },
-                        { l: "Crush pin height in mm", sp: (selectedPattern as any)?.crush_pin_height_sp, pp: (selectedPattern as any)?.crush_pin_height_pp },
-                        { l: "Core mask weight in kgs", sp: (selectedPattern as any)?.core_mask_weight_sp, pp: (selectedPattern as any)?.core_mask_weight_pp },
-                      ].map((r, i) => (
-                        <TableRow key={i}>
-                          <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>{r.l}</TableCell>
-                          <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.sp || "-"}</TableCell>
-                          <TableCell sx={{ fontSize: '13px', fontWeight: 500 }}>{r.pp || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell sx={{ fontSize: '13px', color: COLORS.textSecondary }}>Estimated Bunch weight</TableCell>
-                        <TableCell colSpan={2} sx={{ fontSize: '13px', fontWeight: 500 }}>
-                          <Box display="flex" alignItems="center" gap={3}>
-                            <span>{(selectedPattern as any)?.estimated_bunch_weight || "-"}</span>
-                            {(selectedPattern as any)?.yield_label && (
-                              <span style={{ fontWeight: 'bold' }}>Yield: {(selectedPattern as any)?.yield_label}</span>
-                            )}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid>
-
-              {/* Remarks */}
-              <Grid size={{ xs: 12 }}>
-                <Typography variant="subtitle2" gutterBottom fontWeight="bold">Remarks:</Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9fafb', minHeight: '60px' }}>
-                  <Typography variant="body2">{(selectedPattern as any)?.remarks || "-"}</Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          ) : (
-            <Box textAlign="center" py={4}>
-              <Typography color="textSecondary">No pattern selected</Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowPatternDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Profile Modal */}
-      {
-        showProfile && (
-          <ProfileModal
-            onClose={() => setShowProfile(false)}
-            onPhotoUpdate={() => setHeaderRefreshKey(prev => prev + 1)}
-          />
-        )
-      }
-    </Box >
     </ThemeProvider >
   );
 }

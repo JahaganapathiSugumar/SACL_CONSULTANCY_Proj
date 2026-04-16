@@ -167,7 +167,7 @@ function PouringDetailsTable() {
     useEffect(() => {
         const checkAssignment = async () => {
             if (user && trialId) {
-                if (user.role === 'Admin' || user.department_id === 2) {
+                if (user.role === 'Admin' || user.department_id === 2 || user.department_id === 3) {
                     setIsAssigned(true);
                     return;
                 }

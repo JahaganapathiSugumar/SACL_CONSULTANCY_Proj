@@ -4,7 +4,8 @@ import { updateDepartment, updateRole } from '../services/departmentProgress.js'
 import logger from '../config/logger.js';
 
 export const createInspection = async (req, res, next) => {
-    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_draft } = req.body || {};
+    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_draft,
+        is_visual_complete, is_hardness_complete, is_ndt_complete } = req.body || {};
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
     }
@@ -14,7 +15,7 @@ export const createInspection = async (req, res, next) => {
     const hardnessJson = JSON.stringify(hardness || []);
 
     await Client.transaction(async (trx) => {
-        const sql = 'INSERT INTO visual_inspection (trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date) VALUES (@trial_id, @inspections, @visual_ok, @remarks, @ndt_inspection, @ndt_inspection_ok, @ndt_inspection_remarks, @hardness, @hardness_ok, @hardness_remarks, @inspection_date)';
+        const sql = 'INSERT INTO visual_inspection (trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_visual_complete, is_hardness_complete, is_ndt_complete) VALUES (@trial_id, @inspections, @visual_ok, @remarks, @ndt_inspection, @ndt_inspection_ok, @ndt_inspection_remarks, @hardness, @hardness_ok, @hardness_remarks, @inspection_date, @is_visual_complete, @is_hardness_complete, @is_ndt_complete)';
         await trx.query(sql, {
             trial_id,
             inspections: inspectionsJson,
@@ -26,7 +27,10 @@ export const createInspection = async (req, res, next) => {
             hardness: hardnessJson,
             hardness_ok: hardness_ok ?? null,
             hardness_remarks: hardness_remarks || null,
-            inspection_date: inspection_date || null
+            inspection_date: inspection_date || null,
+            is_visual_complete: is_visual_complete ? 1 : 0,
+            is_hardness_complete: is_hardness_complete ? 1 : 0,
+            is_ndt_complete: is_ndt_complete ? 1 : 0
         });
 
         const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
@@ -49,7 +53,8 @@ export const createInspection = async (req, res, next) => {
 };
 
 export const updateInspection = async (req, res, next) => {
-    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_edit } = req.body || {};
+    const { trial_id, inspections, visual_ok, remarks, ndt_inspection, ndt_inspection_ok, ndt_inspection_remarks, hardness, hardness_ok, hardness_remarks, inspection_date, is_edit,
+        is_visual_complete, is_hardness_complete, is_ndt_complete } = req.body || {};
 
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'Trial ID is required' });
@@ -71,7 +76,10 @@ export const updateInspection = async (req, res, next) => {
                 hardness = COALESCE(@hardness, hardness),
                 hardness_ok = COALESCE(@hardness_ok, hardness_ok),
                 hardness_remarks = COALESCE(@hardness_remarks, hardness_remarks),
-                inspection_date = COALESCE(@inspection_date, inspection_date)
+                inspection_date = COALESCE(@inspection_date, inspection_date),
+                is_visual_complete = COALESCE(@is_visual_complete, is_visual_complete),
+                is_hardness_complete = COALESCE(@is_hardness_complete, is_hardness_complete),
+                is_ndt_complete = COALESCE(@is_ndt_complete, is_ndt_complete)
                 WHERE trial_id = @trial_id`;
 
             await trx.query(sql, {
@@ -85,6 +93,9 @@ export const updateInspection = async (req, res, next) => {
                 hardness_ok: hardness_ok ?? null,
                 hardness_remarks: hardness_remarks || null,
                 inspection_date: inspection_date || null,
+                is_visual_complete: is_visual_complete !== undefined ? (is_visual_complete ? 1 : 0) : null,
+                is_hardness_complete: is_hardness_complete !== undefined ? (is_hardness_complete ? 1 : 0) : null,
+                is_ndt_complete: is_ndt_complete !== undefined ? (is_ndt_complete ? 1 : 0) : null,
                 trial_id
             });
 

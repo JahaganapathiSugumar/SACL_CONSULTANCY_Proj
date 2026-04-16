@@ -89,7 +89,7 @@ export default function MaterialCorrection() {
     useEffect(() => {
         const checkAssignment = async () => {
             if (user && trialId) {
-                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 6 || user.department_id === 7 || user.department_id === 2) {
+                if (user.role === 'Admin' || user.department_id === 8 || user.department_id === 6 || user.department_id === 7 || user.department_id === 2 || user.department_id === 3) {
                     setIsAssigned(true);
                     return;
                 }
@@ -118,7 +118,7 @@ export default function MaterialCorrection() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user.department_id === 2) && trialId) {
+            if ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7 || user.department_id === 2 || user.department_id === 3) && trialId) {
                 try {
                     const response = await inspectionService.getMaterialCorrection(trialId);
                     if (response?.success && response?.data && response?.data?.length > 0) {
@@ -452,7 +452,7 @@ export default function MaterialCorrection() {
                                                     showSubmit={false}
                                                     saveLabel={((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                                                     saveIcon={((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                                                    disabled={user?.department_id === 2}
+                                                    disabled={user?.department_id === 2 || user?.department_id === 8 || user?.department_id === 6 || user?.department_id === 7}
                                                 >
 
                                                     {((user?.role === 'HOD' && user?.department_id === 3) || user?.role === 'Admin') && (
