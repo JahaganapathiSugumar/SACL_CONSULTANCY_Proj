@@ -1186,8 +1186,8 @@ export default function VisualInspection({
 
                                                                         >
 
-                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)} />
-                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)} />
+                                                                            <FormControlLabel value="true" control={<Radio size="small" color="success" />} label={<Typography variant="caption">OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isVisualFilled && !isEditing)} />
+                                                                            <FormControlLabel value="false" control={<Radio size="small" color="error" />} label={<Typography variant="caption">NOT OK</Typography>} disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isVisualFilled && !isEditing)} />
                                                                         </RadioGroup>
                                                                     </TableCell>
 
@@ -1206,7 +1206,7 @@ export default function VisualInspection({
                                                                                 onChange={(e) => setRemarks(e.target.value)}
                                                                                 variant="outlined"
                                                                                 sx={{ bgcolor: 'white' }}
-                                                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isHardnessFilled && !isEditing)}
+                                                                                disabled={((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 8 || user?.department_id === 2 || user?.department_id === 3) && !isEditing) || (isVisualFilled && !isEditing)}
                                                                             />
 
                                                                         </Box>
