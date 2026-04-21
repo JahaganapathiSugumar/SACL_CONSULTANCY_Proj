@@ -9,6 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { documentService } from '../../services/documentService';
 import { formatFileSize } from '../../utils';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 
 interface DocumentViewerProps {
     trialId?: number | string;
@@ -32,6 +33,7 @@ interface Document {
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, label = "Previously Attached Files", refreshTrigger = 0, documents: externalDocuments, onRefresh }) => {
+    const { user } = useAuth();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -165,15 +167,17 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
                                 >
                                     <VisibilityIcon />
                                 </IconButton>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => handleDelete(doc)}
-                                    sx={{ color: 'error.main' }}
-                                    disabled={deleteLoading === doc.document_id}
-                                    title="Delete Document"
-                                >
-                                    <DeleteIcon />
-                                </IconButton>
+                                {(user?.role === 'Admin' || user?.role === 'HOD' || user?.user_id == doc.uploaded_by) && (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDelete(doc)}
+                                        sx={{ color: 'error.main' }}
+                                        disabled={deleteLoading === doc.document_id}
+                                        title="Delete Document"
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                )}
                             </Box>
                         }
                         sx={{ borderBottom: '1px solid #f0f0f0', '&:last-child': { borderBottom: 'none' } }}

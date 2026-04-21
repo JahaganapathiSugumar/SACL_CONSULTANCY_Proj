@@ -105,12 +105,19 @@ export const viewDocument = async (req, res, next) => {
 export const deleteDocument = async (req, res, next) => {
     const { id } = req.params;
 
-    const [docs] = await Client.query(`SELECT file_name, document_type, trial_id, pattern_code FROM documents WHERE document_id = @id`, { id });
+    const [docs] = await Client.query(`SELECT file_name, document_type, trial_id, pattern_code, uploaded_by FROM documents WHERE document_id = @id`, { id });
     if (!docs || docs.length === 0) {
         return res.status(404).json({ success: false, message: "Document not found" });
     }
 
     const doc = docs[0];
+
+    const isUploader = doc.uploaded_by == req.user.user_id;
+    const isAdminOrHOD = req.user.role === 'Admin' || req.user.role === 'HOD';
+
+    if (!isUploader && !isAdminOrHOD) {
+        return res.status(403).json({ success: false, message: "Permission denied. You can only delete your own uploads." });
+    }
 
     await Client.query(`DELETE FROM documents WHERE document_id = @id`, { id });
 
