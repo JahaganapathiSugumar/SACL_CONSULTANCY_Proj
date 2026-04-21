@@ -12,18 +12,15 @@ export const masterListService = {
     });
   },
 
-  submitMasterListFormData(payload: Record<string, unknown>, attachments: File[]) {
+  submitMasterList(payload: Record<string, unknown>, isEdit: boolean = false, id: number | string | null = null) {
     const validatedData = validate(masterCardSchema, payload);
-    const formData = new FormData();
-    formData.append('payload', JSON.stringify(validatedData));
-    attachments.forEach((file) => {
-      formData.append('attachments', file, file.name);
+    return apiService.request(isEdit ? `/master-list/${id}` : '/master-list', {
+      method: isEdit ? 'PUT' : 'POST',
+      body: JSON.stringify(validatedData),
     });
-
-    return apiService.request('/master-list', {
-      method: 'POST',
-      body: formData,
-    });
+  },
+  submitMasterListFormData(payload: Record<string, unknown>) {
+      return this.submitMasterList(payload);
   },
 
   getAllMasterLists() {

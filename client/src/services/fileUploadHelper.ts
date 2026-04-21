@@ -46,11 +46,12 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
  */
 export const uploadFiles = async (
     files: File[],
-    trialId: number | string,
+    trialId: number | string | null,
     documentType: string,
     uploadedBy: string,
     remarks: string = '',
-    isConfidential: boolean = false
+    isConfidential: boolean = false,
+    patternCode: string | null = null
 ): Promise<UploadResult[]> => {
     const uploadResults: UploadResult[] = [];
 
@@ -66,7 +67,8 @@ export const uploadFiles = async (
                 uploadedBy,
                 new Date().toISOString(),
                 remarks,
-                isConfidential
+                isConfidential,
+                patternCode
             );
 
             if (response.ok) {

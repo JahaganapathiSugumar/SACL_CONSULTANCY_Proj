@@ -223,7 +223,8 @@ GO
 
 CREATE TABLE documents (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
-    trial_id INT NOT NULL,
+    trial_id INT NULL,
+    pattern_code VARCHAR(150) NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
@@ -232,11 +233,13 @@ CREATE TABLE documents (
     remarks NVARCHAR(MAX),
     is_confidential BIT DEFAULT 0,
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code),
     FOREIGN KEY (uploaded_by) REFERENCES dtc_users(user_id)
 );
 GO
 
 CREATE INDEX idx_documents_trial ON documents(trial_id);
+CREATE INDEX idx_documents_pattern ON documents(pattern_code);
 CREATE INDEX idx_documents_type ON documents(document_type);
 GO
 

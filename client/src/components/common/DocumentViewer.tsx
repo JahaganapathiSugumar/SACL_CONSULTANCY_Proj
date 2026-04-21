@@ -5,8 +5,10 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { documentService } from '../../services/documentService';
 import { formatFileSize } from '../../utils';
+import Swal from 'sweetalert2';
 
 interface DocumentViewerProps {
     trialId?: number | string;
@@ -14,6 +16,7 @@ interface DocumentViewerProps {
     label?: string;
     refreshTrigger?: number;
     documents?: Document[];
+    onRefresh?: () => void;
 }
 
 interface Document {
@@ -28,10 +31,11 @@ interface Document {
     is_confidential?: boolean | number;
 }
 
-const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, label = "Previously Attached Files", refreshTrigger = 0, documents: externalDocuments }) => {
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, label = "Previously Attached Files", refreshTrigger = 0, documents: externalDocuments, onRefresh }) => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchDocuments = async () => {
@@ -95,6 +99,40 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
         }
     };
 
+    const handleDelete = async (file: Document) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: `You want to delete "${file.file_name}"? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            setDeleteLoading(file.document_id);
+            try {
+                const response = await documentService.deleteDocument(file.document_id);
+                if (response && response.success) {
+                    Swal.fire('Deleted!', 'Document has been deleted.', 'success');
+                    if (externalDocuments) {
+                        if (onRefresh) onRefresh();
+                    } else {
+                        setDocuments(prev => prev.filter(d => d.document_id !== file.document_id));
+                    }
+                } else {
+                    Swal.fire('Error', response?.message || 'Failed to delete document', 'error');
+                }
+            } catch (err) {
+                console.error("Error deleting document:", err);
+                Swal.fire('Error', 'An error occurred while deleting the document', 'error');
+            } finally {
+                setDeleteLoading(null);
+            }
+        }
+    };
+
     const getFileIcon = (fileName: string) => {
         const ext = fileName.split('.').pop()?.toLowerCase();
         if (ext === 'pdf') return <PictureAsPdfIcon color="error" />;
@@ -118,13 +156,25 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ trialId, category, labe
                     <ListItem
                         key={doc.document_id}
                         secondaryAction={
-                            <IconButton
-                                size="small"
-                                onClick={() => handleViewFile(doc)}
-                                sx={{ color: 'primary.main' }}
-                            >
-                                <VisibilityIcon />
-                            </IconButton>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleViewFile(doc)}
+                                    sx={{ color: 'primary.main' }}
+                                    title="View Document"
+                                >
+                                    <VisibilityIcon />
+                                </IconButton>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleDelete(doc)}
+                                    sx={{ color: 'error.main' }}
+                                    disabled={deleteLoading === doc.document_id}
+                                    title="Delete Document"
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
+                            </Box>
                         }
                         sx={{ borderBottom: '1px solid #f0f0f0', '&:last-child': { borderBottom: 'none' } }}
                     >

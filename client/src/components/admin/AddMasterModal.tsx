@@ -23,7 +23,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CloseIcon from '@mui/icons-material/Close';
 import { masterListService } from '../../services/masterListService';
+import { documentService } from '../../services/documentService';
+import { uploadFiles } from '../../services/fileUploadHelper';
 import FileUploadSection from '../common/FileUploadSection';
+import DocumentViewer from '../common/DocumentViewer';
 import ActionButtons from '../common/ActionButtons';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
@@ -75,7 +78,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
     });
     const [loading, setLoading] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
+    const [existingFiles, setExistingFiles] = useState<any[]>([]);
     const [showToolingTable, setShowToolingTable] = useState(false);
+    const [filesLoading, setFilesLoading] = useState(false);
 
 
     const handleInputChange = (field: string, value: string) => {
@@ -168,6 +173,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 yield_label: initialData.yield_label || '',
                 remarks: (initialData as any).tooling_remarks || initialData.remarks || ''
             });
+            fetchExistingFiles(initialData.pattern_code);
         } else {
             setFormData({
                 pattern_code: '',
@@ -202,7 +208,23 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 yield_label: '',
                 remarks: ''
             });
-            setAttachments([]);
+            setExistingFiles([]);
+        }
+        setAttachments([]);
+    };
+
+    const fetchExistingFiles = async (patternCode: string) => {
+        if (!patternCode) return;
+        setFilesLoading(true);
+        try {
+            const response = await documentService.getDocumentsByPatternCode(patternCode);
+            if (response.success) {
+                setExistingFiles(response.data || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch existing files:", error);
+        } finally {
+            setFilesLoading(false);
         }
     };
 
@@ -283,14 +305,24 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             let response;
 
             if (initialData && initialData.id) {
-                // UPDATE MODE
-                response = await masterListService.updateMasterList(initialData.id, payloadObj);
+                response = await masterListService.submitMasterList(payloadObj, true, initialData.id);
             } else {
-                // CREATE MODE
-                if (attachments.length > 0) {
-                    response = await masterListService.submitMasterListFormData(payloadObj, attachments);
-                } else {
-                    response = await masterListService.submitMasterListJson(payloadObj);
+                response = await masterListService.submitMasterList(payloadObj, false);
+            }
+
+            if (response && response.success && attachments.length > 0) {
+                try {
+                    await uploadFiles(
+                        attachments,
+                        null,
+                        "TOOLING_DATA_SHEET",
+                        user?.username || "Unknown",
+                        `Attachments for Pattern: ${formData.pattern_code}`,
+                        false,
+                        formData.pattern_code
+                    );
+                } catch (uploadErr) {
+                    console.error("Failed to upload attachments:", uploadErr);
                 }
             }
 
@@ -658,6 +690,17 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                         Attachments
                     </Typography>
+                    
+                    {existingFiles.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                            <DocumentViewer 
+                                trialId="" 
+                                documents={existingFiles}
+                                onRefresh={() => fetchExistingFiles(formData.pattern_code)}
+                            />
+                        </Box>
+                    )}
+
                     <Box sx={{ mb: 3 }}>
                         <FileUploadSection
                             files={attachments}
@@ -665,7 +708,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                             onFileRemove={handleFileRemove}
                             accept=".pdf,image/*"
                             multiple
-                            label="Choose Files"
+                            label={existingFiles.length > 0 ? "Add More Files" : "Choose Files"}
                             disabled={isRestricted}
                         />
                     </Box>
