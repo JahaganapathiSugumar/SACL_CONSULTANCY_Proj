@@ -141,6 +141,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
             }
 
             setFormData({
+                ...formData,
                 pattern_code: initialData.pattern_code || '',
                 part_name: initialData.part_name || '',
                 material_grade: initialData.material_grade || '',
@@ -173,7 +174,9 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                 yield_label: initialData.yield_label || '',
                 remarks: (initialData as any).tooling_remarks || initialData.remarks || ''
             });
-            fetchExistingFiles(initialData.pattern_code);
+            if (initialData.id) {
+                fetchExistingFiles(initialData.id);
+            }
         } else {
             setFormData({
                 pattern_code: '',
@@ -213,11 +216,11 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
         setAttachments([]);
     };
 
-    const fetchExistingFiles = async (patternCode: string) => {
-        if (!patternCode) return;
+    const fetchExistingFiles = async (masterCardId: number | string) => {
+        if (!masterCardId) return;
         setFilesLoading(true);
         try {
-            const response = await documentService.getDocumentsByPatternCode(patternCode);
+            const response = await documentService.getDocumentsByMasterCardId(masterCardId);
             if (response.success) {
                 setExistingFiles(response.data || []);
             }
@@ -312,6 +315,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
 
             if (response && response.success && attachments.length > 0) {
                 try {
+                    const masterCardId = (initialData && initialData.id) || response.data?.id;
                     await uploadFiles(
                         attachments,
                         null,
@@ -319,7 +323,7 @@ const AddMasterModal: React.FC<AddMasterModalProps> = ({ isOpen, onClose, initia
                         user?.username || "Unknown",
                         `Attachments for Pattern: ${formData.pattern_code}`,
                         false,
-                        formData.pattern_code
+                        masterCardId
                     );
                 } catch (uploadErr) {
                     console.error("Failed to upload attachments:", uploadErr);

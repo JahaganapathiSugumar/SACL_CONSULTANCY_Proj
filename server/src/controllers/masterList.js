@@ -236,7 +236,8 @@ export const createMasterList = async (req, res, next) => {
 
     res.status(201).json({
         success: true,
-        message: "Master list created successfully."
+        message: "Master list created successfully.",
+        data: { id: masterId }
     });
 };
 

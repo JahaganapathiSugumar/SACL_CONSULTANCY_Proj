@@ -2,11 +2,11 @@ import Client from '../config/connection.js';
 import logger from '../config/logger.js';
 
 export const uploadDocument = async (req, res, next) => {
-    const { trial_id, pattern_code, document_type, file_name, file_base64, remarks, is_confidential } = req.body;
+    const { trial_id, master_card_id, document_type, file_name, file_base64, remarks, is_confidential } = req.body;
     await Client.query(
-        `INSERT INTO documents (trial_id, pattern_code, document_type, file_name, file_base64, uploaded_by, remarks, is_confidential) 
-         VALUES (@trial_id, @pattern_code, @document_type, @file_name, @file_base64, @uploaded_by, @remarks, @is_confidential)`,
-        { trial_id, pattern_code, document_type, file_name, file_base64, uploaded_by: req.user.user_id, remarks, is_confidential: is_confidential ? 1 : 0 }
+        `INSERT INTO documents (trial_id, master_card_id, document_type, file_name, file_base64, uploaded_by, remarks, is_confidential) 
+         VALUES (@trial_id, @master_card_id, @document_type, @file_name, @file_base64, @uploaded_by, @remarks, @is_confidential)`,
+        { trial_id, master_card_id, document_type, file_name, file_base64, uploaded_by: req.user.user_id, remarks, is_confidential: is_confidential ? 1 : 0 }
     );
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await Client.query(audit_sql, {
@@ -14,7 +14,7 @@ export const uploadDocument = async (req, res, next) => {
         department_id: req.user.department_id,
         trial_id,
         action: 'Document uploaded',
-        remarks: `Document ${file_name} uploaded by ${req.user.username} (IP: ${req.ip}) for ${document_type} (Trial: ${trial_id || '-'}, Pattern: ${pattern_code || '-'})`
+        remarks: `Document ${file_name} uploaded by ${req.user.username} (IP: ${req.ip}) for ${document_type} (Trial: ${trial_id || '-'}, Master ID: ${master_card_id || '-'})`
     });
 
     logger.info('Document uploaded', { trial_id, document_type, file_name, uploadedBy: req.user.username });
@@ -26,7 +26,7 @@ export const uploadDocument = async (req, res, next) => {
 };
 
 export const getDocuments = async (req, res, next) => {
-    const { trial_id, pattern_code } = req.query;
+    const { trial_id, master_card_id } = req.query;
     let rows;
     
     let whereClause = '';
@@ -35,11 +35,11 @@ export const getDocuments = async (req, res, next) => {
     if (trial_id) {
         whereClause = 'd.trial_id = @trial_id';
         params.trial_id = trial_id;
-    } else if (pattern_code) {
-        whereClause = 'd.pattern_code = @pattern_code';
-        params.pattern_code = pattern_code;
+    } else if (master_card_id) {
+        whereClause = 'd.master_card_id = @master_card_id';
+        params.master_card_id = master_card_id;
     } else {
-        return res.status(400).json({ success: false, message: 'trial_id or pattern_code is required' });
+        return res.status(400).json({ success: false, message: 'trial_id or master_card_id is required' });
     }
 
     const baseQuery = `
@@ -105,7 +105,7 @@ export const viewDocument = async (req, res, next) => {
 export const deleteDocument = async (req, res, next) => {
     const { id } = req.params;
 
-    const [docs] = await Client.query(`SELECT file_name, document_type, trial_id, pattern_code, uploaded_by FROM documents WHERE document_id = @id`, { id });
+    const [docs] = await Client.query(`SELECT file_name, document_type, trial_id, master_card_id, uploaded_by FROM documents WHERE document_id = @id`, { id });
     if (!docs || docs.length === 0) {
         return res.status(404).json({ success: false, message: "Document not found" });
     }
@@ -127,7 +127,7 @@ export const deleteDocument = async (req, res, next) => {
         department_id: req.user.department_id,
         trial_id: doc.trial_id,
         action: 'Document deleted',
-        remarks: `Document ${doc.file_name} (${doc.document_type}) deleted by ${req.user.username} (Trial: ${doc.trial_id || '-'}, Pattern: ${doc.pattern_code || '-'})`
+        remarks: `Document ${doc.file_name} (${doc.document_type}) deleted by ${req.user.username} (Trial: ${doc.trial_id || '-'}, Master ID: ${doc.master_card_id || '-'})`
     });
 
     logger.info('Document deleted', { document_id: id, fileName: doc.file_name, deletedBy: req.user.username });

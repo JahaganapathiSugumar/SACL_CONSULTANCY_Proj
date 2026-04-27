@@ -33,15 +33,30 @@ export const trialService = {
     },
 
     /**
+     * Fetches master list item by ID
+     * @param id - Master list ID to fetch
+     * @returns Promise resolving to master list item
+     */
+    async getMasterListById(id: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const data = await apiService.request(`/master-list/${id}`);
+            return data.data || null;
+        } catch (error) {
+            console.error('Failed to fetch master list item by ID:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Fetches trial information by pattern code
      * @param patternCode - Number of the pattern to search for
      * @returns Promise resolving to trial data
      */
-    async getTrialIdByPatternCode(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async generateTrialNo(masterCardId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            return await apiService.request(`/trial/id?pattern_code=${encodeURIComponent(patternCode)}`);
+            return await apiService.request(`/trial/generate-no?master_card_id=${encodeURIComponent(String(masterCardId))}`);
         } catch (error) {
-            console.error('Failed to fetch trial by pattern code:', error);
+            console.error('Failed to generate trial no:', error);
             throw error;
         }
     },
@@ -147,9 +162,9 @@ export const trialService = {
      * @param patternCode - Pattern code to search for
      * @returns Promise resolving to trial data
      */
-    async getPatternFullData(patternCode: string): Promise<any[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getPatternFullData(masterCardId: number | string): Promise<any[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            const data = await apiService.request(`/trial/pattern-full-data/${encodeURIComponent(patternCode)}`);
+            const data = await apiService.request(`/trial/pattern-full-data/${encodeURIComponent(String(masterCardId))}`);
             return data.data || [];
         } catch (error) {
             console.error('Failed to fetch pattern full data:', error);
@@ -226,9 +241,9 @@ export const trialService = {
      * @param patternCode - Pattern code to fetch report for
      * @returns Promise resolving to report data with base64
      */
-    async getConsolidatedReportFile(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    async getConsolidatedReportFile(masterCardId: number | string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
         try {
-            const data = await apiService.request(`/trial/consolidated-report-file/${encodeURIComponent(patternCode)}`);
+            const data = await apiService.request(`/trial/consolidated-report-file/${encodeURIComponent(String(masterCardId))}`);
             return data.data || data;
         } catch (error) {
             console.error('Failed to fetch consolidated report file:', error);

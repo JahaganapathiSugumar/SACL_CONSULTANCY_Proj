@@ -1,4 +1,4 @@
-import sql from 'mssql';
+import sql from "mssql/msnodesqlv8.js";
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -9,18 +9,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+const serverString = process.env.DB_SERVER || 'localhost';
+
 const config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 1433,
-  database: process.env.DB_DATABASE,
+  driver: 'msnodesqlv8',
+  connectionString: `Driver={ODBC Driver 18 for SQL Server};Server=${serverString};Database=${process.env.DB_DATABASE};Trusted_Connection=Yes;Encrypt=Yes;TrustServerCertificate=Yes;`,
   options: {
-    encrypt: true,
-    trustServerCertificate: true
-  },
-  connectionTimeout: 30000,
-  requestTimeout: 60000
+    useUTC: false
+  }
 };
 
 const poolPromise = new sql.ConnectionPool(config)

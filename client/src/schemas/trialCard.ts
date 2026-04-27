@@ -13,9 +13,10 @@ const jsonValueSchema: z.ZodType<any> = z.lazy(() =>
 
 export const trialCardSchema = z.object({
     trial_id: z.union([z.number(), z.string()]).optional().nullable(),
+    master_card_id: z.number().positive("Master Card ID is required"),
     trial_no: z.preprocess((v) => (v === "" || v === null ? null : Number(v)), z.number().positive("Trial Number is required")),
-    part_name: z.string().min(1, "Part Name is required").max(100),
-    pattern_code: z.string().min(1, "Pattern Code is required").max(150),
+    part_name: z.string().optional().nullable(),
+    pattern_code: z.string().optional().nullable(),
     material_grade: z.string().min(1, "Material Grade is required").max(50),
     trial_type: z.enum(['INHOUSE MACHINING(NPD)', 'INHOUSE MACHINING(REGULAR)', 'MACHINING - CUSTOMER END'], {
         message: "Please select a valid Trial Type"

@@ -1,13 +1,12 @@
 import PDFDocument from 'pdfkit';
 
-// Helper to fetch data (extracted from the controller logic)
 export const fetchTrialData = async (trial_id, trx) => {
     if (!trial_id) return null;
 
     const [trial_cards] = await trx.query(
         `SELECT tc.*, mc.chemical_composition AS spec_chem, mc.micro_structure AS spec_micro 
          FROM trial_cards tc 
-         LEFT JOIN master_card mc ON tc.pattern_code = mc.pattern_code 
+         JOIN master_card mc ON tc.master_card_id = mc.id 
          WHERE tc.trial_id = @trial_id`, { trial_id }
     );
     const [pouring_details] = await trx.query(
@@ -231,17 +230,19 @@ const drawSectionTitle = (doc, title, x, y) => {
     }
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c3e50').text(title, x, y);
     const width = doc.widthOfString(title);
-    doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke(); // Underline
+    doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke(); 
     return y + 18;
 };
 
-// Helper to fetch all trials for a part name
-export const fetchAllTrialsDataForPatternCode = async (pattern_code, trx) => {
-    if (!pattern_code) return [];
+export const fetchAllTrialsDataForMasterCard = async (masterCardId, trx) => {
+    if (!masterCardId) return [];
 
     const [trials] = await trx.query(
-        `SELECT trial_id FROM trial_cards WHERE pattern_code = @pattern_code AND status = 'CLOSED' AND deleted_at IS NULL ORDER BY date_of_sampling ASC`,
-        { pattern_code }
+        `SELECT trial_id 
+         FROM trial_cards 
+         WHERE master_card_id = @masterCardId AND status = 'CLOSED' AND deleted_at IS NULL 
+         ORDER BY date_of_sampling ASC`,
+        { masterCardId }
     );
 
     if (!trials || trials.length === 0) return [];
@@ -255,12 +256,17 @@ export const fetchAllTrialsDataForPatternCode = async (pattern_code, trx) => {
     return allTrialsData;
 };
 
-export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
-    const allTrialsData = await fetchAllTrialsDataForPatternCode(pattern_code, trx);
+export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
+    const allTrialsData = await fetchAllTrialsDataForMasterCard(masterCardId, trx);
+    
+    // Get pattern_code for filename and display
+    const [masterRows] = await trx.query(`SELECT pattern_code FROM master_card WHERE id = @masterCardId`, { masterCardId });
+    const pattern_code = masterRows[0]?.pattern_code || "Unknown";
+
     if (allTrialsData.length === 0) {
         await trx.query(
-            `DELETE FROM consolidated_reports WHERE pattern_code = @pattern_code`,
-            { pattern_code }
+            `DELETE FROM consolidated_reports WHERE master_card_id = @masterCardId`,
+            { masterCardId }
         );
         return;
     }
@@ -859,21 +865,21 @@ export const generateAndStoreConsolidatedReport = async (pattern_code, trx) => {
 
             try {
                 const [existing] = await trx.query(
-                    `SELECT document_id FROM consolidated_reports WHERE pattern_code = @pattern_code`,
-                    { pattern_code }
+                    `SELECT document_id FROM consolidated_reports WHERE master_card_id = @masterCardId`,
+                    { masterCardId }
                 );
 
                 if (existing && existing.length > 0) {
                     await trx.query(
                         `UPDATE consolidated_reports SET file_base64 = @file_base64, file_name = @file_name, uploaded_at = GETDATE() 
-                         WHERE pattern_code = @pattern_code`,
-                        { pattern_code, file_base64: base64PDF, file_name: fileName }
+                         WHERE master_card_id = @masterCardId`,
+                        { masterCardId, file_base64: base64PDF, file_name: fileName }
                     );
                 } else {
                     await trx.query(
-                        `INSERT INTO consolidated_reports (pattern_code, document_type, file_name, file_base64) 
-                         VALUES (@pattern_code, 'CONSOLIDATED_REPORT', @file_name, @file_base64)`,
-                        { pattern_code, file_name: fileName, file_base64: base64PDF }
+                        `INSERT INTO consolidated_reports (master_card_id, document_type, file_name, file_base64) 
+                         VALUES (@masterCardId, 'CONSOLIDATED_REPORT', @file_name, @file_base64)`,
+                        { masterCardId, file_name: fileName, file_base64: base64PDF }
                     );
                 }
                 resolve(true);

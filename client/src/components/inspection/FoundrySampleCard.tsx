@@ -380,7 +380,7 @@ function FoundrySampleCard() {
     if (!selectedPart) return;
     setTrialLoading(true);
     try {
-      const json = await trialService.getTrialIdByPatternCode(selectedPart?.pattern_code || "");
+      const json = await trialService.generateTrialNo(selectedPart.id);
       const trial_no = (json && (json?.trialNo || json?.data)) as string | undefined;
       if (trial_no) {
         setTrialNo(trial_no);
@@ -431,6 +431,7 @@ function FoundrySampleCard() {
     const source = {
       trial_id: trialId || trialIdFromUrl,
       trial_no: trialNo,
+      master_card_id: selectedPart?.id,
       pattern_code: selectedPart?.pattern_code,
       part_name: selectedPart?.part_name,
       material_grade: selectedPart?.material_grade,
