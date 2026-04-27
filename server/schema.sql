@@ -59,7 +59,8 @@ GO
 
 CREATE TABLE trial_cards (
     trial_id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-    master_card_id INT NOT NULL,
+    part_name VARCHAR(100) NOT NULL,
+    pattern_code VARCHAR(150) NOT NULL,
     trial_no INT NOT NULL,
     material_grade VARCHAR(50) NOT NULL,
     trial_type VARCHAR(50) NOT NULL DEFAULT 'INHOUSE MACHINING(NPD)',  
@@ -80,11 +81,11 @@ CREATE TABLE trial_cards (
     CONSTRAINT chk_trial_status CHECK (status IN ('CREATED', 'IN_PROGRESS', 'CLOSED')),
     CONSTRAINT chk_trial_type CHECK (trial_type IN ('INHOUSE MACHINING(NPD)', 'INHOUSE MACHINING(REGULAR)', 'MACHINING - CUSTOMER END')),
     FOREIGN KEY (current_department_id) REFERENCES departments(department_id),
-    FOREIGN KEY (master_card_id) REFERENCES master_card(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code) ON UPDATE CASCADE
 );
 GO
 
-CREATE INDEX idx_trial_master_card ON trial_cards(master_card_id);
+CREATE INDEX idx_trial_pattern_code ON trial_cards(pattern_code);
 CREATE INDEX idx_trial_status ON trial_cards(status);
 CREATE INDEX idx_trial_department ON trial_cards(current_department_id);
 GO
@@ -223,7 +224,7 @@ GO
 CREATE TABLE documents (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
     trial_id INT NULL,
-    master_card_id INT NULL,
+    pattern_code VARCHAR(150) NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
@@ -232,13 +233,13 @@ CREATE TABLE documents (
     remarks NVARCHAR(MAX),
     is_confidential BIT DEFAULT 0,
     FOREIGN KEY (trial_id) REFERENCES trial_cards(trial_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (master_card_id) REFERENCES master_card(id),
+    FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code),
     FOREIGN KEY (uploaded_by) REFERENCES dtc_users(user_id)
 );
 GO
 
 CREATE INDEX idx_documents_trial ON documents(trial_id);
-CREATE INDEX idx_documents_master ON documents(master_card_id);
+CREATE INDEX idx_documents_pattern ON documents(pattern_code);
 CREATE INDEX idx_documents_type ON documents(document_type);
 GO
 
@@ -330,18 +331,17 @@ GO
 
 CREATE TABLE consolidated_reports (
     document_id INT IDENTITY(1,1) PRIMARY KEY,
-    master_card_id INT NOT NULL,
+    pattern_code NVARCHAR(255) NOT NULL,
     document_type VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_base64 NVARCHAR(MAX),
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
-    CONSTRAINT uq_consolidated_reports_master UNIQUE (master_card_id),
-    FOREIGN KEY (master_card_id) REFERENCES master_card(id)
+    CONSTRAINT uq_consolidated_reports_pattern UNIQUE (pattern_code),
 );
 GO
 
-CREATE INDEX idx_consolidated_reports_master ON consolidated_reports(master_card_id);
+CREATE INDEX idx_consolidated_reports_pattern ON consolidated_reports(pattern_code);
 CREATE INDEX idx_consolidated_reports_type ON consolidated_reports(document_type);
 GO
 
