@@ -81,7 +81,7 @@ CREATE TABLE trial_cards (
     CONSTRAINT chk_trial_status CHECK (status IN ('CREATED', 'IN_PROGRESS', 'CLOSED')),
     CONSTRAINT chk_trial_type CHECK (trial_type IN ('INHOUSE MACHINING(NPD)', 'INHOUSE MACHINING(REGULAR)', 'MACHINING - CUSTOMER END')),
     FOREIGN KEY (current_department_id) REFERENCES departments(department_id),
-    FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code)
+    FOREIGN KEY (pattern_code) REFERENCES master_card(pattern_code) ON UPDATE CASCADE
 );
 GO
 
