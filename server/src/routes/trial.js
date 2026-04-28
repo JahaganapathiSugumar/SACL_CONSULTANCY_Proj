@@ -12,15 +12,15 @@ const router = express.Router();
 router.post('/', verifyToken, authorizeDepartments(1, 2), validate(trialCardSchema), asyncErrorHandler(trialController.createTrial));
 router.get('/', verifyToken, asyncErrorHandler(trialController.getTrials));
 router.get('/trial_id', verifyToken, asyncErrorHandler(trialController.getTrialById));
-router.get('/id', verifyToken, asyncErrorHandler(trialController.generateTrialNo));
+router.get('/generate-no', verifyToken, asyncErrorHandler(trialController.generateTrialNo));
 router.get('/trial-reports', verifyToken, asyncErrorHandler(trialController.getTrialReports));
 router.get('/report-file/:trial_id', verifyToken, asyncErrorHandler(trialController.getTrialReportFile));
 router.get('/recent-trial-reports', verifyToken, asyncErrorHandler(trialController.getRecentTrialReports));
 router.get('/progressing', verifyToken, asyncErrorHandler(trialController.getProgressingTrials));
 router.get('/cavity-numbers', verifyToken, asyncErrorHandler(trialController.getCavityNumbers));
 router.get('/consolidated-reports', verifyToken, asyncErrorHandler(trialController.getConsolidatedReports));
-router.get('/consolidated-report-file/:pattern_code', verifyToken, asyncErrorHandler(trialController.getConsolidatedReportFile));
-router.get('/pattern-full-data/:pattern_code', verifyToken, asyncErrorHandler(trialController.getPatternFullData));
+router.get('/consolidated-report-file/:master_card_id', verifyToken, asyncErrorHandler(trialController.getConsolidatedReportFile));
+router.get('/pattern-full-data/:master_card_id', verifyToken, asyncErrorHandler(trialController.getPatternFullData));
 router.put('/update', verifyToken, authorizeDepartments(1, 2), authorizeRoles('Admin', 'HOD'), validate(updateTrialCardSchema), asyncErrorHandler(trialController.updateTrial));
 
 router.delete('/delete-reports', verifyToken, authorizeRoles('Admin'), asyncErrorHandler(trialController.deleteTrialReports));

@@ -1,10 +1,10 @@
 import { apiService } from './commonService';
 
 export const documentService = {
-    async uploadDocument(trial_id: number | string | null, document_type: string, file_name: string, file_base64: string, uploaded_by: string, uploaded_at: string, remarks: string, is_confidential: boolean = false, pattern_code: string | null = null) {
+    async uploadDocument(trial_id: number | string | null, document_type: string, file_name: string, file_base64: string, uploaded_by: string, uploaded_at: string, remarks: string, is_confidential: boolean = false, master_card_id: number | string | null = null) {
         const body = {
             "trial_id": trial_id,
-            "pattern_code": pattern_code,
+            "master_card_id": master_card_id,
             "document_type": document_type,
             "file_name": file_name,
             "file_base64": file_base64,
@@ -25,8 +25,8 @@ export const documentService = {
         });
     },
 
-    async getDocumentsByPatternCode(patternCode: string) {
-        return apiService.request(`/documents?pattern_code=${encodeURIComponent(patternCode)}`, {
+    async getDocumentsByMasterCardId(masterCardId: number | string) {
+        return apiService.request(`/documents?master_card_id=${encodeURIComponent(String(masterCardId))}`, {
             method: "GET"
         });
     },

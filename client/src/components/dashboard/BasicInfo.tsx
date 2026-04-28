@@ -75,6 +75,7 @@ type TrialData = {
   xray?: string;
   mpi?: string;
   heat_code?: string;
+  master_card_id?: number | string;
 };
 
 const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color: string }) => (
@@ -119,7 +120,7 @@ const parseChemicalComposition = (composition: any) => {
 };
 
 
-const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, data?: any }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+const PatternDatasheetSection = ({ masterCardId, patternCode, data }: { masterCardId: number | string, patternCode: string | undefined, data?: any }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const [patternData, setPatternData] = useState<any | null>(data || null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(false);
 
@@ -132,7 +133,7 @@ const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, d
     const fetchPatternData = async () => {
       setLoading(true);
       try {
-        const masterData = await trialService.getMasterListByPatternCode(patternCode);
+        const masterData = await trialService.getMasterListById(masterCardId);
 
         if (masterData) {
           setPatternData(masterData);
@@ -143,10 +144,10 @@ const PatternDatasheetSection = ({ patternCode, data }: { patternCode: string, d
         setLoading(false);
       }
     };
-    if (patternCode) {
+    if (masterCardId) {
       fetchPatternData();
     }
-  }, [patternCode, data]);
+  }, [masterCardId, data]);
 
   if (loading) return <LoadingState size={24} message="Fetching datasheet..." />;
 
@@ -294,9 +295,9 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
         });
 
 
-        if (parsedTrial.pattern_code) {
+        if (parsedTrial.master_card_id) {
           try {
-            const masterData = await trialService.getMasterListByPatternCode(parsedTrial.pattern_code);
+            const masterData = await trialService.getMasterListById(parsedTrial.master_card_id);
             if (masterData) {
               setMasterListTooling(masterData);
 
@@ -429,12 +430,12 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ trialId: initialTrialId = "" }) =
                 <Grid container spacing={3} sx={{ mb: 3, mt: 0 }}>
 
 
-                  {data?.pattern_code && user?.department_id === 6 && (
+                  {data?.master_card_id && user?.department_id === 6 && (
                     <Grid size={12}>
                       <Paper sx={{ p: { xs: 2, md: 3 } }}>
                         <SectionHeader icon={<FactoryIcon />} title="Pattern Datasheet Details" color={COLORS.primary} />
                         <Box sx={{ overflowX: 'auto', width: '100%' }}>
-                          <PatternDatasheetSection patternCode={data.pattern_code} data={masterListTooling} />
+                          <PatternDatasheetSection masterCardId={data.master_card_id} patternCode={data.pattern_code} data={masterListTooling} />
                         </Box>
                       </Paper>
                     </Grid>

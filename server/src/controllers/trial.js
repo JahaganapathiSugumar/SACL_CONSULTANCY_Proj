@@ -2,31 +2,39 @@ import Client from '../config/connection.js';
 import { createDepartmentProgress, updateDepartment, updateRole } from '../services/departmentProgress.js';
 import logger from '../config/logger.js';
 import sendMail from '../utils/mailSender.js';
-import { generateAndStoreConsolidatedReport, fetchAllTrialsDataForPatternCode } from '../services/consolidatedReportGenerator.js';
+import { generateAndStoreConsolidatedReport, fetchAllTrialsDataForMasterCard } from '../services/consolidatedReportGenerator.js';
 
 export const createTrial = async (req, res, next) => {
-    const { part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
-
-    if (!part_name || !pattern_code || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
+    const { master_card_id, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
+    if (!master_card_id || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
     const mouldJson = JSON.stringify(mould_correction);
 
     let trial_id;
     let next_trial_no;
+    let part_name;
+    let pattern_code;
 
     await Client.transaction(async (trx) => {
+
+        const [masterRows] = await trx.query('SELECT pattern_code, part_name FROM master_card WHERE id = @master_card_id', { master_card_id });
+        if (masterRows.length === 0) {
+            throw new Error('Master card not found');
+        }
+        pattern_code = masterRows[0].pattern_code;
+        part_name = masterRows[0].part_name;
+
         const [countRows] = await trx.query(
-            'SELECT COUNT(*) AS count FROM trial_cards WITH (UPDLOCK, HOLDLOCK) WHERE pattern_code = @pattern_code',
-            { pattern_code }
+            'SELECT COUNT(*) AS count FROM trial_cards WITH (UPDLOCK, HOLDLOCK) WHERE master_card_id = @master_card_id',
+            { master_card_id }
         );
         next_trial_no = countRows[0].count + 1;
 
-        const sql = 'INSERT INTO trial_cards (trial_no, part_name, pattern_code, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_no, @part_name, @pattern_code, @trial_type, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks); SELECT SCOPE_IDENTITY() AS trial_id;';
+        const sql = 'INSERT INTO trial_cards (trial_no, master_card_id, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, current_department_id, disa, sample_traceability, mould_correction, tooling_modification, remarks) VALUES (@trial_no, @master_card_id, @trial_type, @material_grade, @initiated_by, @date_of_sampling, @plan_moulds, @actual_moulds, @reason_for_sampling, @status, @current_department_id, @disa, @sample_traceability, @mould_correction, @tooling_modification, @remarks); SELECT SCOPE_IDENTITY() AS trial_id;';
         const result = await trx.query(sql, {
             trial_no: next_trial_no,
-            part_name,
-            pattern_code,
+            master_card_id,
             trial_type,
             material_grade,
             initiated_by,
@@ -65,7 +73,12 @@ export const createTrial = async (req, res, next) => {
 };
 
 export const getTrials = async (req, res, next) => {
-    const [rows] = await Client.query('SELECT * FROM trial_cards WHERE deleted_at IS NULL');
+    const [rows] = await Client.query(`
+        SELECT t.*, m.part_name, m.pattern_code 
+        FROM trial_cards t 
+        JOIN master_card m ON t.master_card_id = m.id 
+        WHERE t.deleted_at IS NULL
+    `);
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -74,26 +87,43 @@ export const getTrialById = async (req, res, next) => {
     if (!trial_id) {
         return res.status(400).json({ success: false, message: 'trial_id query parameter is required' });
     }
-    const [rows] = await Client.query('SELECT * FROM trial_cards WHERE trial_id = @trial_id AND deleted_at IS NULL', { trial_id });
+    const [rows] = await Client.query(`
+        SELECT t.*, m.part_name, m.pattern_code 
+        FROM trial_cards t 
+        JOIN master_card m ON t.master_card_id = m.id 
+        WHERE t.trial_id = @trial_id AND t.deleted_at IS NULL
+    `, { trial_id });
     res.status(200).json({ success: true, data: rows });
 };
 
 export const getTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status, c.trial_type FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query(`
+        SELECT 
+            tr.document_id, tr.file_name, 
+            tc.trial_id, tc.trial_no, 
+            m.part_name, m.pattern_code, 
+            d.department_name AS department, 
+            tc.current_department_id, tc.material_grade, tc.date_of_sampling, tc.status, tc.trial_type 
+        FROM trial_cards tc 
+        JOIN master_card m ON tc.master_card_id = m.id
+        LEFT JOIN trial_reports tr ON tc.trial_id = tr.trial_id AND tr.deleted_at IS NULL 
+        LEFT JOIN departments d ON tc.current_department_id = d.department_id 
+        WHERE tc.deleted_at IS NULL
+    `);
     res.status(200).json({ success: true, data: rows });
 };
 
 export const getConsolidatedReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT c.document_id, c.file_name, c.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.pattern_code = m.pattern_code");
+    const [rows] = await Client.query("SELECT c.document_id, c.file_name, c.master_card_id, m.pattern_code, m.part_name FROM consolidated_reports c JOIN master_card m ON c.master_card_id = m.id");
     res.status(200).json({ success: true, data: rows });
 };
 
 export const getConsolidatedReportFile = async (req, res, next) => {
-    const { pattern_code } = req.params;
-    if (!pattern_code) {
-        return res.status(400).json({ success: false, message: 'Pattern code is required' });
+    const { master_card_id } = req.params;
+    if (!master_card_id) {
+        return res.status(400).json({ success: false, message: 'Master card ID is required' });
     }
-    const [rows] = await Client.query("SELECT file_base64, file_name FROM consolidated_reports WHERE pattern_code = @pattern_code", { pattern_code });
+    const [rows] = await Client.query("SELECT file_base64, file_name FROM consolidated_reports WHERE master_card_id = @master_card_id", { master_card_id });
     if (rows.length === 0) {
         return res.status(404).json({ success: false, message: 'Consolidated report file not found' });
     }
@@ -101,26 +131,38 @@ export const getConsolidatedReportFile = async (req, res, next) => {
 };
 
 export const getPatternFullData = async (req, res, next) => {
-    const { pattern_code } = req.params;
-    if (!pattern_code) {
-        return res.status(400).json({ success: false, message: 'Pattern code is required' });
+    const { master_card_id } = req.params;
+    if (!master_card_id) {
+        return res.status(400).json({ success: false, message: 'Master card ID is required' });
     }
-    const allTrialsData = await fetchAllTrialsDataForPatternCode(pattern_code, Client);
+    const allTrialsData = await fetchAllTrialsDataForMasterCard(master_card_id, Client);
     res.status(200).json({ success: true, data: allTrialsData });
 };
 
 export const getRecentTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT TOP 10 t.document_id, t.file_name, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status, c.trial_type FROM trial_cards c LEFT JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL ORDER BY c.date_of_sampling DESC");
+    const [rows] = await Client.query(`
+        SELECT TOP 10 
+            tr.document_id, tr.file_name, 
+            tc.trial_id, tc.trial_no, 
+            m.part_name, m.pattern_code, 
+            d.department_name AS department, 
+            tc.current_department_id, tc.material_grade, tc.date_of_sampling, tc.status, tc.trial_type 
+        FROM trial_cards tc 
+        JOIN master_card m ON tc.master_card_id = m.id
+        LEFT JOIN trial_reports tr ON tc.trial_id = tr.trial_id AND tr.deleted_at IS NULL 
+        LEFT JOIN departments d ON tc.current_department_id = d.department_id 
+        WHERE tc.deleted_at IS NULL 
+        ORDER BY tc.date_of_sampling DESC
+    `);
     res.status(200).json({ success: true, data: rows });
 };
 
 export const generateTrialNo = async (req, res, next) => {
-    let pattern_code = req.query.pattern_code;
-    if (!pattern_code) {
-        return res.status(400).json({ success: false, message: 'pattern_code query parameter is required' });
+    let master_card_id = req.query.master_card_id;
+    if (!master_card_id) {
+        return res.status(400).json({ success: false, message: 'master_card_id query parameter is required' });
     }
-    pattern_code = pattern_code.replace(/['"]+/g, '');
-    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards WHERE pattern_code = @pattern_code', { pattern_code });
+    const [rows] = await Client.query('SELECT COUNT(*) AS count FROM trial_cards WHERE master_card_id = @master_card_id', { master_card_id });
 
     const count = rows[0].count + 1;
     res.status(200).json({ success: true, data: count });
@@ -129,8 +171,7 @@ export const generateTrialNo = async (req, res, next) => {
 export const updateTrial = async (req, res, next) => {
     const {
         trial_id,
-        part_name,
-        pattern_code,
+        master_card_id,
         trial_no,
         trial_type,
         material_grade,
@@ -155,8 +196,7 @@ export const updateTrial = async (req, res, next) => {
     await Client.transaction(async (trx) => {
         if (is_edit) {
             const sql = `UPDATE trial_cards SET 
-                part_name = COALESCE(@part_name, part_name),
-                pattern_code = COALESCE(@pattern_code, pattern_code),
+                master_card_id = COALESCE(@master_card_id, master_card_id),
                 trial_no = COALESCE(@trial_no, trial_no),
                 trial_type = COALESCE(@trial_type, trial_type),
                 material_grade = COALESCE(@material_grade, material_grade),
@@ -172,8 +212,7 @@ export const updateTrial = async (req, res, next) => {
                 WHERE trial_id = @trial_id`;
 
             await trx.query(sql, {
-                part_name,
-                pattern_code,
+                master_card_id,
                 trial_no,
                 trial_type,
                 material_grade,
@@ -188,6 +227,14 @@ export const updateTrial = async (req, res, next) => {
                 remarks,
                 trial_id
             });
+
+            const [infoRows] = await trx.query(`
+                SELECT tc.trial_no, m.part_name, m.pattern_code 
+                FROM trial_cards tc 
+                JOIN master_card m ON tc.master_card_id = m.id 
+                WHERE tc.trial_id = @trial_id
+            `, { trial_id });
+            const { part_name, pattern_code } = infoRows[0];
 
             const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
             await trx.query(audit_sql, {
@@ -261,7 +308,19 @@ export const deleteTrialReports = async (req, res, next) => {
 };
 
 export const getDeletedTrialReports = async (req, res, next) => {
-    const [rows] = await Client.query("SELECT t.document_id, t.file_name, t.deleted_at, t.deleted_by, c.trial_id, c.trial_no, c.part_name, c.pattern_code, d.department_name AS department, c.current_department_id, c.material_grade, c.date_of_sampling, c.status FROM trial_cards c JOIN trial_reports t ON c.trial_id = t.trial_id AND t.deleted_at IS NOT NULL LEFT JOIN departments d ON c.current_department_id = d.department_id WHERE c.deleted_at IS NULL");
+    const [rows] = await Client.query(`
+        SELECT 
+            tr.document_id, tr.file_name, tr.deleted_at, tr.deleted_by, 
+            tc.trial_id, tc.trial_no, 
+            m.part_name, m.pattern_code, 
+            d.department_name AS department, 
+            tc.current_department_id, tc.material_grade, tc.date_of_sampling, tc.status 
+        FROM trial_cards tc 
+        JOIN master_card m ON tc.master_card_id = m.id
+        JOIN trial_reports tr ON tc.trial_id = tr.trial_id AND tr.deleted_at IS NOT NULL 
+        LEFT JOIN departments d ON tc.current_department_id = d.department_id 
+        WHERE tc.deleted_at IS NULL
+    `);
     res.status(200).json({ success: true, data: rows });
 };
 
@@ -291,7 +350,14 @@ export const deleteTrialCard = async (req, res, next) => {
     }
 
     await Client.transaction(async (trx) => {
+        const masterCardIdsToRegenerate = new Set();
+
         for (const id of trialIds) {
+            const [trialRows] = await trx.query('SELECT master_card_id FROM trial_cards WHERE trial_id = @trial_id', { trial_id: id });
+            if (trialRows[0]) {
+                masterCardIdsToRegenerate.add(trialRows[0].master_card_id);
+            }
+
             const sql = `UPDATE trial_cards SET deleted_at = GETDATE(), deleted_by = @username WHERE trial_id = @trial_id AND deleted_at IS NULL`;
             await trx.query(sql, { trial_id: id, username: req.user.username });
 
@@ -304,8 +370,9 @@ export const deleteTrialCard = async (req, res, next) => {
                 remarks: `Trial card ${id} soft deleted by ${req.user.username} (IP: ${req.ip}) (Bulk Delete)`
             });
         }
-        for (const pattern_code of patternCodes) {
-            await generateAndStoreConsolidatedReport(pattern_code, trx);
+
+        for (const masterId of masterCardIdsToRegenerate) {
+            await generateAndStoreConsolidatedReport(masterId, trx);
         }
     });
 
@@ -314,10 +381,18 @@ export const deleteTrialCard = async (req, res, next) => {
 };
 
 export const getDeletedTrialCards = async (req, res, next) => {
-    const sql = `SELECT c.trial_id, c.trial_no, c.part_name, c.pattern_code, c.material_grade, c.date_of_sampling, c.status, c.deleted_at, c.deleted_by, d.department_name AS department 
-                 FROM trial_cards c 
-                 LEFT JOIN departments d ON c.current_department_id = d.department_id 
-                 WHERE c.deleted_at IS NOT NULL`;
+    const sql = `
+        SELECT 
+            tc.trial_id, tc.trial_no, 
+            m.part_name, m.pattern_code, 
+            tc.material_grade, tc.date_of_sampling, tc.status, 
+            tc.deleted_at, tc.deleted_by, 
+            d.department_name AS department 
+        FROM trial_cards tc 
+        JOIN master_card m ON tc.master_card_id = m.id
+        LEFT JOIN departments d ON tc.current_department_id = d.department_id 
+        WHERE tc.deleted_at IS NOT NULL
+    `;
     const [rows] = await Client.query(sql);
     res.status(200).json({ success: true, data: rows });
 };
@@ -332,13 +407,15 @@ export const restoreTrialCard = async (req, res, next) => {
         const sql = `UPDATE trial_cards SET deleted_at = NULL, deleted_by = NULL WHERE trial_id = @trial_id`;
         await trx.query(sql, { trial_id });
 
-        const [pattern_code_result] = await trx.query(
-            `SELECT pattern_code FROM trial_cards WHERE trial_id = @trial_id`,
+        const [master_result] = await trx.query(
+            `SELECT master_card_id
+             FROM trial_cards 
+             WHERE trial_id = @trial_id`,
             { trial_id }
         );
-        if (pattern_code_result && pattern_code_result.length > 0) {
-            const pattern_code = pattern_code_result[0].pattern_code;
-            await generateAndStoreConsolidatedReport(pattern_code, trx);
+        if (master_result && master_result.length > 0) {
+            const masterId = master_result[0].master_card_id;
+            await generateAndStoreConsolidatedReport(masterId, trx);
         }
     });
 
@@ -422,10 +499,14 @@ export const permanentlyDeleteTrialReport = async (req, res, next) => {
 
 export const getProgressingTrials = async (req, res, next) => {
     const sql = `
-        SELECT t.trial_id, t.trial_no, t.part_name, t.pattern_code, t.current_department_id,
-               t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
-               t.sample_traceability, t.trial_type
+        SELECT 
+            t.trial_id, t.trial_no, 
+            m.part_name, m.pattern_code, 
+            t.current_department_id,
+            t.date_of_sampling, t.plan_moulds, t.disa, t.reason_for_sampling, 
+            t.sample_traceability, t.trial_type
         FROM trial_cards t
+        JOIN master_card m ON t.master_card_id = m.id
         WHERE t.status = 'IN_PROGRESS' AND t.deleted_at IS NULL
         AND NOT EXISTS (
             SELECT 1
@@ -450,7 +531,7 @@ export const getCavityNumbers = async (req, res, next) => {
             SELECT t.cavity_identification 
             FROM tooling_pattern_data t
             JOIN master_card m ON t.master_card_id = m.id
-            JOIN trial_cards tc ON m.pattern_code = tc.pattern_code
+            JOIN trial_cards tc ON m.id = tc.master_card_id
             WHERE tc.trial_id = @trial_id
         `;
 

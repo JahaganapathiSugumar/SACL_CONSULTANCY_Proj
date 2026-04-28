@@ -149,7 +149,7 @@ const assignToNextDepartmentUser = async (current_department_id, trial_id, trial
     });
 
     const [trial_details_result] = await trx.query(
-        `SELECT part_name, pattern_code, trial_no FROM trial_cards WHERE trial_id = @trial_id`,
+        `SELECT m.part_name, m.pattern_code, t.trial_no FROM trial_cards t JOIN master_card m ON t.master_card_id = m.id WHERE t.trial_id = @trial_id`,
         { trial_id }
     );
     const { part_name, pattern_code, trial_no } = trial_details_result[0] || {};
@@ -259,7 +259,7 @@ export const updateRole = async (trial_id, user, trx, ipAddress) => {
         remarks: `Department progress for trial ${trial_id} updated by ${user.username} (IP: ${ipAddress}) in ${user.department_name} department`
     });
     const [current_trial] = await trx.query(
-        `SELECT trial_type, part_name, pattern_code, trial_no FROM trial_cards WHERE trial_id = @trial_id`,
+        `SELECT t.trial_type, m.part_name, m.pattern_code, t.trial_no FROM trial_cards t JOIN master_card m ON t.master_card_id = m.id WHERE t.trial_id = @trial_id`,
         { trial_id }
     );
     const current_department_id = user.department_id;
@@ -387,13 +387,13 @@ export const approveProgress = async (trial_id, user, trx, ipAddress) => {
         { trial_id }
     );
     await generateAndStoreTrialReport(trial_id, trx);
-    const [pattern_code_result] = await trx.query(
-        `SELECT pattern_code FROM trial_cards WHERE trial_id = @trial_id`,
+    const [master_result] = await trx.query(
+        `SELECT master_card_id FROM trial_cards WHERE trial_id = @trial_id`,
         { trial_id }
     );
-    if (pattern_code_result && pattern_code_result.length > 0) {
-        const pattern_code = pattern_code_result[0].pattern_code;
-        await generateAndStoreConsolidatedReport(pattern_code, trx);
+    if (master_result && master_result.length > 0) {
+        const master_card_id = master_result[0].master_card_id;
+        await generateAndStoreConsolidatedReport(master_card_id, trx);
     }
     const audit_sql = 'INSERT INTO audit_log (user_id, department_id, trial_id, action, remarks) VALUES (@user_id, @department_id, @trial_id, @action, @remarks)';
     await trx.query(audit_sql, {

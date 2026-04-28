@@ -33,6 +33,7 @@ import { useAuth } from '../../context/AuthContext';
 
 interface ConsolidatedReport {
     document_id: number;
+    master_card_id: number;
     pattern_code: string;
     part_name: string;
     file_base64: string;
@@ -75,11 +76,11 @@ const ConsolidatedReportsTable: React.FC = () => {
 
     const handleViewReport = async (report: ConsolidatedReport) => {
         try {
-            setFetchingReport(report.pattern_code);
+            setFetchingReport(String(report.master_card_id));
             
             let reportData = report;
             if (!report.file_base64) {
-                const response = await trialService.getConsolidatedReportFile(report.pattern_code);
+                const response = await trialService.getConsolidatedReportFile(report.master_card_id);
                 if (response && response.file_base64) {
                     reportData = { ...report, ...response };
                 } else {
@@ -112,9 +113,9 @@ const ConsolidatedReportsTable: React.FC = () => {
 
     const handleExportExcel = async (report: ConsolidatedReport) => {
         try {
-            setExportingExcel(report.pattern_code);
+            setExportingExcel(String(report.master_card_id));
             
-            const response = await trialService.getPatternFullData(report.pattern_code);
+            const response = await trialService.getPatternFullData(report.master_card_id);
             
             if (!Array.isArray(response)) {
                 throw new Error('Failed to fetch pattern data');
@@ -355,7 +356,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                                             onClick={() => handleViewReport(report)}
                                             variant="contained"
                                             size="small"
-                                            disabled={fetchingReport === report.pattern_code}
+                                            disabled={fetchingReport === String(report.master_card_id)}
                                             startIcon={<VisibilityIcon fontSize="small" />}
                                             sx={{
                                                 textTransform: 'none',
@@ -365,7 +366,7 @@ const ConsolidatedReportsTable: React.FC = () => {
                                                 }
                                             }}
                                         >
-                                            {fetchingReport === report.pattern_code ? 'Loading...' : 'View PDF'}
+                                            {fetchingReport === String(report.master_card_id) ? 'Loading...' : 'View PDF'}
                                         </Button>
                                         {user?.department_id !== 3 && (
                                             <Button
@@ -373,14 +374,14 @@ const ConsolidatedReportsTable: React.FC = () => {
                                                 variant="contained"
                                                 color="success"
                                                 size="small"
-                                                disabled={exportingExcel === report.pattern_code}
-                                                startIcon={exportingExcel === report.pattern_code ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
+                                                disabled={exportingExcel === String(report.master_card_id)}
+                                                startIcon={exportingExcel === String(report.master_card_id) ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon fontSize="small" />}
                                                 sx={{
                                                     textTransform: 'none',
                                                     fontWeight: 600
                                                 }}
                                             >
-                                                {exportingExcel === report.pattern_code ? 'Exporting...' : 'Excel'}
+                                                {exportingExcel === String(report.master_card_id) ? 'Exporting...' : 'Excel'}
                                             </Button>
                                         )}
                                     </Box>

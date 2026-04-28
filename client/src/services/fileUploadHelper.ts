@@ -51,7 +51,7 @@ export const uploadFiles = async (
     uploadedBy: string,
     remarks: string = '',
     isConfidential: boolean = false,
-    patternCode: string | null = null
+    masterCardId: number | string | null = null
 ): Promise<UploadResult[]> => {
     const uploadResults: UploadResult[] = [];
 
@@ -68,7 +68,7 @@ export const uploadFiles = async (
                 new Date().toISOString(),
                 remarks,
                 isConfidential,
-                patternCode
+                masterCardId
             );
 
             if (response.ok) {
