@@ -4,7 +4,7 @@ export const fetchTrialData = async (trial_id, trx) => {
     if (!trial_id) return null;
 
     const [trial_cards] = await trx.query(
-        `SELECT tc.*, mc.chemical_composition AS spec_chem, mc.micro_structure AS spec_micro 
+        `SELECT tc.*, mc.part_name, mc.pattern_code, mc.chemical_composition AS spec_chem, mc.micro_structure AS spec_micro 
          FROM trial_cards tc 
          JOIN master_card mc ON tc.master_card_id = mc.id 
          WHERE tc.trial_id = @trial_id`, { trial_id }

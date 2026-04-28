@@ -89,11 +89,11 @@ export const getMasterList = async (req, res, next) => {
     res.status(200).json({ success: true, data: rows });
 };
 
-export const getMasterByPatternCode = async (req, res, next) => {
-    const { pattern_code } = req.query;
+export const getMasterById = async (req, res, next) => {
+    const { id } = req.params;
 
-    if (!pattern_code) {
-        return res.status(400).json({ success: false, message: 'Pattern code is required' });
+    if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ success: false, message: 'Valid ID is required' });
     }
 
     const query = `
@@ -133,9 +133,9 @@ export const getMasterByPatternCode = async (req, res, next) => {
             t.remarks
         FROM master_card m
         LEFT JOIN tooling_pattern_data t ON m.id = t.master_card_id
-        WHERE m.pattern_code = @pattern_code
+        WHERE m.id = @id
     `;
-    const [rows] = await Client.query(query, { pattern_code });
+    const [rows] = await Client.query(query, { id: parseInt(id) });
 
     res.status(200).json({ success: true, data: rows[0] || null });
 };
@@ -159,6 +159,7 @@ export const createMasterList = async (req, res, next) => {
         ? JSON.stringify(chemical_composition)
         : chemical_composition;
 
+    let masterId;
     await Client.transaction(async (trx) => {
         const masterSql = `
             INSERT INTO master_card (
@@ -189,7 +190,7 @@ export const createMasterList = async (req, res, next) => {
             mpi
         });
 
-        const masterId = masterResult[0][0]?.id;
+        masterId = masterResult[0][0]?.id;
 
         if (masterId) {
             try {

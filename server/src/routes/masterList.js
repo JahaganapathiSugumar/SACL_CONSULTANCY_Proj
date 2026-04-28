@@ -7,8 +7,8 @@ import { masterCardSchema, updateMasterCardSchema } from '../schemas/index.js';
 
 const router = express.Router();
 
-router.get('/search', verifyToken, asyncErrorHandler(masterListController.getMasterByPatternCode));
 router.get('/', verifyToken, asyncErrorHandler(masterListController.getMasterList));
+router.get('/:id', verifyToken, asyncErrorHandler(masterListController.getMasterById));
 router.post('/', verifyToken, validate(masterCardSchema), asyncErrorHandler(masterListController.createMasterList));
 router.put('/toggle-status', verifyToken, asyncErrorHandler(masterListController.toggleMasterListStatus));
 router.put('/:id', verifyToken, validate(updateMasterCardSchema), asyncErrorHandler(masterListController.updateMasterList));

@@ -18,21 +18,6 @@ export const trialService = {
     },
 
     /**
-     * Fetches master list item by pattern code
-     * @param patternCode - Pattern code to search for
-     * @returns Promise resolving to master list item
-     */
-    async getMasterListByPatternCode(patternCode: string): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
-        try {
-            const data = await apiService.request(`/master-list/search?pattern_code=${encodeURIComponent(patternCode)}`);
-            return data.data || null;
-        } catch (error) {
-            console.error('Failed to fetch master list item:', error);
-            throw error;
-        }
-    },
-
-    /**
      * Fetches master list item by ID
      * @param id - Master list ID to fetch
      * @returns Promise resolving to master list item

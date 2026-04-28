@@ -81,7 +81,7 @@ export const viewDocument = async (req, res, next) => {
 
     const doc = rows[0];
 
-    if (doc.is_confidential === 1 && req.user.role !== 'Admin') {
+    if ((doc.is_confidential === 1 || doc.is_confidential === true) && req.user.role !== 'Admin') {
         return res.status(403).json({
             success: false,
             message: "Access denied. Confidential document restricted to Admin only."

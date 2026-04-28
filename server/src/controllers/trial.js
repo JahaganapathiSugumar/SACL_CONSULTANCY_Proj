@@ -6,7 +6,6 @@ import { generateAndStoreConsolidatedReport, fetchAllTrialsDataForMasterCard } f
 
 export const createTrial = async (req, res, next) => {
     const { master_card_id, trial_type, material_grade, initiated_by, date_of_sampling, plan_moulds, actual_moulds, reason_for_sampling, status, disa, sample_traceability, mould_correction, tooling_modification, remarks } = req.body || {};
-
     if (!master_card_id || !trial_type || !material_grade || !initiated_by || !date_of_sampling || !plan_moulds || !reason_for_sampling || !disa || !sample_traceability) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -14,6 +13,8 @@ export const createTrial = async (req, res, next) => {
 
     let trial_id;
     let next_trial_no;
+    let part_name;
+    let pattern_code;
 
     await Client.transaction(async (trx) => {
 
@@ -21,7 +22,8 @@ export const createTrial = async (req, res, next) => {
         if (masterRows.length === 0) {
             throw new Error('Master card not found');
         }
-        const { pattern_code, part_name } = masterRows[0];
+        pattern_code = masterRows[0].pattern_code;
+        part_name = masterRows[0].part_name;
 
         const [countRows] = await trx.query(
             'SELECT COUNT(*) AS count FROM trial_cards WITH (UPDLOCK, HOLDLOCK) WHERE master_card_id = @master_card_id',
@@ -349,7 +351,7 @@ export const deleteTrialCard = async (req, res, next) => {
 
     await Client.transaction(async (trx) => {
         const masterCardIdsToRegenerate = new Set();
-        
+
         for (const id of trialIds) {
             const [trialRows] = await trx.query('SELECT master_card_id FROM trial_cards WHERE trial_id = @trial_id', { trial_id: id });
             if (trialRows[0]) {
@@ -368,7 +370,7 @@ export const deleteTrialCard = async (req, res, next) => {
                 remarks: `Trial card ${id} soft deleted by ${req.user.username} (IP: ${req.ip}) (Bulk Delete)`
             });
         }
-        
+
         for (const masterId of masterCardIdsToRegenerate) {
             await generateAndStoreConsolidatedReport(masterId, trx);
         }

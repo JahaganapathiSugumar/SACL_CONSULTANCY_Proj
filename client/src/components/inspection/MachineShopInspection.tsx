@@ -496,12 +496,6 @@ export default function McShopInspection({
     try {
       const serverPayload = buildServerPayload(isDraft);
 
-      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
-        await inspectionService.updateMachineShopInspection(serverPayload);
-      } else {
-        await inspectionService.submitMachineShopInspection(serverPayload);
-      }
-
       const upload = async (files: File[], isConfidential: boolean) => {
         if (files.length > 0) {
           await uploadFiles(
@@ -517,6 +511,13 @@ export default function McShopInspection({
 
       await upload(attachedFiles, false);
       await upload(confidentialFiles, true);
+      
+      if (dataExists || ((user?.role === 'HOD' || user?.role === 'Admin') && trialId)) {
+        await inspectionService.updateMachineShopInspection(serverPayload);
+      } else {
+        await inspectionService.submitMachineShopInspection(serverPayload);
+      }
+
 
       setPreviewSubmitted(true);
       if (!isDraft) setPreviewMode(false);
