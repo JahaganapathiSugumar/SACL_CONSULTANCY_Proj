@@ -337,7 +337,7 @@ CREATE TABLE consolidated_reports (
     uploaded_at DATETIME2 DEFAULT GETDATE(),
     remarks NVARCHAR(MAX),
     CONSTRAINT uq_consolidated_reports_master UNIQUE (master_card_id),
-    FOREIGN KEY (master_card_id) REFERENCES master_card(id)
+    FOREIGN KEY (master_card_id) REFERENCES master_card(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 GO
 
