@@ -53,7 +53,7 @@ export const getProgressByTrialId = async (req, res, next) => {
         `SELECT dp.*, d.department_name, t.trial_type FROM department_progress dp 
          JOIN departments d ON dp.department_id = d.department_id 
          JOIN trial_cards t ON dp.trial_id = t.trial_id
-         WHERE dp.trial_id = @trial_id AND dp.approval_status = 'approved' ORDER BY dp.completed_at DESC;`,
+         WHERE dp.trial_id = @trial_id AND dp.approval_status = 'approved' ORDER BY dp.completed_at ASC;`,
         { trial_id }
     );
     res.status(200).json({
