@@ -77,7 +77,7 @@ export const getTrials = async (req, res, next) => {
         SELECT t.*, m.part_name, m.pattern_code 
         FROM trial_cards t 
         JOIN master_card m ON t.master_card_id = m.id 
-        WHERE t.deleted_at IS NULL
+        WHERE t.deleted_at IS NULL ORDER BY t.date_of_sampling DESC
     `);
     res.status(200).json({ success: true, data: rows });
 };
@@ -108,7 +108,7 @@ export const getTrialReports = async (req, res, next) => {
         JOIN master_card m ON tc.master_card_id = m.id
         LEFT JOIN trial_reports tr ON tc.trial_id = tr.trial_id AND tr.deleted_at IS NULL 
         LEFT JOIN departments d ON tc.current_department_id = d.department_id 
-        WHERE tc.deleted_at IS NULL
+        WHERE tc.deleted_at IS NULL ORDER BY tc.date_of_sampling DESC
     `);
     res.status(200).json({ success: true, data: rows });
 };
@@ -151,7 +151,7 @@ export const getRecentTrialReports = async (req, res, next) => {
         JOIN master_card m ON tc.master_card_id = m.id
         LEFT JOIN trial_reports tr ON tc.trial_id = tr.trial_id AND tr.deleted_at IS NULL 
         LEFT JOIN departments d ON tc.current_department_id = d.department_id 
-        WHERE tc.deleted_at IS NULL 
+        WHERE tc.deleted_at IS NULL
         ORDER BY tc.date_of_sampling DESC
     `);
     res.status(200).json({ success: true, data: rows });
