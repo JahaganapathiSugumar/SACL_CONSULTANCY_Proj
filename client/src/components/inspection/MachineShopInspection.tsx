@@ -183,13 +183,11 @@ export default function McShopInspection({
             if (visualRes.success && visualRes.data?.[0]) {
               const visualData = visualRes.data[0];
               const ndtList = safeParse<any[]>(visualData.ndt_inspection, []);
-              console.log("NDT List", ndtList);
               ndtList.forEach(item => {
                 const cav = String(item?.['Cavity Number'] || '').trim();
                 const acc = String(item?.['Accepted Quantity'] || '').trim();
                 if (cav) acceptedMap[cav] = acc;
               });
-              console.log("Accepted Map", acceptedMap);
             }
           } catch (e) {
             console.error("Error fetching NDT values for pre-fill:", e);
