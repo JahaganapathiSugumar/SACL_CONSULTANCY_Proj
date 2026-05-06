@@ -826,7 +826,7 @@ export default function AllTrialsPage({ embedded = false }: AllTrialsPageProps) 
                                                                                                 variant="contained"
                                                                                                 size="small"
                                                                                                 color="primary"
-                                                                                                onClick={() => navigate(`${getPendingRoute(progress.department_id)}?trial_id=${trial.trial_id}`)}
+                                                                                                onClick={() => navigate(`${getPendingRoute(progress.department_id)}?trial_id=${trial.trial_id}&readonly=${user.department_id == 3 ? true : false}`)}
                                                                                                 sx={{ textTransform: 'none' }}
                                                                                             >
                                                                                                 View Details
