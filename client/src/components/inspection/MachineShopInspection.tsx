@@ -593,7 +593,8 @@ export default function McShopInspection({
                         }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
-                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 }
+                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing}
+
                       />
                     </Grid>
 
