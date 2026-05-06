@@ -593,7 +593,7 @@ export default function McShopInspection({
                         }}
                         fullWidth
                         sx={{ bgcolor: 'white' }}
-                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing}
+                        disabled={user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 }
                       />
                     </Grid>
 
@@ -699,7 +699,7 @@ export default function McShopInspection({
                       onFileRemove={(index) => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
                       showAlert={showAlert}
                       label="Attach PDF"
-                      disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing}
+                      disabled={user?.department_id === 2 || (user?.department_id === 3 && readOnly)}
                     />
 
                     <Box sx={{ mt: 3, p: 2, border: `1px dashed ${COLORS.border}`, borderRadius: 2, bgcolor: '#fff5f5' }}>
@@ -715,7 +715,7 @@ export default function McShopInspection({
                         onFileRemove={(index) => setConfidentialFiles(prev => prev.filter((_, i) => i !== index))}
                         showAlert={showAlert}
                         label="Attach Confidential PDF"
-                        disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing}
+                        disabled={user?.department_id === 2 || (user?.department_id === 3 && readOnly)}
                       />
                     </Box>
 
@@ -731,14 +731,14 @@ export default function McShopInspection({
                           showSubmit={false}
                           saveLabel={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? 'Approve' : 'Save & Continue'}
                           saveIcon={((user?.role === 'HOD' && user?.department_id === 8) || user?.role === 'Admin') ? <CheckCircleIcon /> : <SaveIcon />}
-                          disabled={(user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing}
+                          disabled={user?.department_id === 2 || (user?.department_id === 3 && readOnly)}
                         >
                           {(user?.role !== 'HOD' && user?.role !== 'Admin') && (
                             <Button
                               variant="outlined"
                               startIcon={<SaveIcon />}
                               onClick={handleSaveDraft}
-                              disabled={saving || ((user?.role === 'HOD' || user?.role === 'Admin' || user?.department_id === 2 || (user?.department_id === 3 && readOnly)) && !isEditing)}
+                              disabled={saving || user?.department_id === 2 || (user?.department_id === 3 && readOnly)}
                               sx={{ mr: 2 }}
                             >
                               Save as Draft
