@@ -8,7 +8,7 @@ if (!fs.existsSync(path.join(__dirname, "logs"))) {
 module.exports = {
     apps: [
         {
-            name: "backend",
+            name: "dtc",
             script: "./src/index.js",
             instances: "max",
             exec_mode: "cluster",
@@ -21,8 +21,8 @@ module.exports = {
                 PORT: 9012
             },
 
-            error_file: path.join(__dirname, "logs/backend-error.log"),
-            out_file: path.join(__dirname, "logs/backend-out.log"),
+            error_file: path.join(__dirname, "logs/dtc-error.log"),
+            out_file: path.join(__dirname, "logs/dtc-out.log"),
             log_date_format: "YYYY-MM-DD HH:mm:ss"
         }
     ]
