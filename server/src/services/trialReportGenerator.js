@@ -464,16 +464,20 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     p2y = p2y + 5;
 
     // --- PAGE 2: INSPECTION DATA ---
-    if (p2y > 100) { // Only add page if we significantly filled page 1
+    let isNewPageAdded = false;
+    if (p2y > 550) {
         doc.addPage();
         p2y = 40;
+        isNewPageAdded = true;
     } else {
         p2y += 15;
     }
 
-    // Header P2 (Simplified)
-    doc.font('Helvetica-Bold').fontSize(8.5).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
-    doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
+    if (isNewPageAdded || p2y === 40) {
+        // Header P2 (Simplified)
+        doc.font('Helvetica-Bold').fontSize(8.5).text(`Trial No: ${trialCard?.trial_no || "-"} | Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, p2y - 20);
+        doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
+    }
 
     let p2NextY = p2y;
 
@@ -498,7 +502,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
         const rawHeaders = ['Cavity Number', 'Inspected Quantity', 'Accepted Quantity', 'Rejected Quantity', 'Rejection Percentage', 'Reason for rejection'];
         const headers = rawHeaders.map(h => labelMap[h] || h);
-        
+
         const rows = visInspections.map(r => [
             r['Cavity Number'] || '-',
             r['Inspected Quantity'] || '0',

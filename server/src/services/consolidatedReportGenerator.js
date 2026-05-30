@@ -232,7 +232,7 @@ const drawSectionTitle = (doc, title, x, y) => {
     }
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c3e50').text(title, x, y);
     const width = doc.widthOfString(title);
-    doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke(); 
+    doc.moveTo(x, y + 11).lineTo(x + width, y + 11).strokeColor('#2c3e50').stroke();
     return y + 18;
 };
 
@@ -260,7 +260,7 @@ export const fetchAllTrialsDataForMasterCard = async (masterCardId, trx) => {
 
 export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
     const allTrialsData = await fetchAllTrialsDataForMasterCard(masterCardId, trx);
-    
+
     // Get pattern_code for filename and display
     const [masterRows] = await trx.query(`SELECT pattern_code FROM master_card WHERE id = @masterCardId`, { masterCardId });
     const pattern_code = masterRows[0]?.pattern_code || "Unknown";
@@ -388,7 +388,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
         p2y += 12;
 
 
-        
+
         const mechRows = safeParse(meta.mech_properties, []);
         const impactRows = safeParse(meta.impact_strength, []);
         const microRows = safeParse(meta.micro_structure, []);
@@ -480,12 +480,22 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
         }
 
         // --- PAGE 2: INSPECTION DATA ---
-        doc.addPage();
-        let p2NextY = 40;
+        let isNewPageAdded = false;
+        if (p2y > 550) {
+            doc.addPage();
+            p2y = 40;
+            isNewPageAdded = true;
+        } else {
+            p2y += 15;
+        }
 
-        // Header P2
-        doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"} | Trial No: ${trialCard?.trial_no || "-"}`, 30, 20);
-        doc.moveTo(30, 35).lineTo(565, 35).stroke();
+        let p2NextY = p2y;
+
+        if (isNewPageAdded || p2y === 40) {
+            // Header P2
+            doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"} | Trial No: ${trialCard?.trial_no || "-"}`, 30, p2y - 20);
+            doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
+        }
 
         // Visual
         p2NextY = drawSectionTitle(doc, "VISUAL INSPECTION", col1X, p2NextY);
