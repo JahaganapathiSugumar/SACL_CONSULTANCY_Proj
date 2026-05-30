@@ -353,17 +353,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
     doc.font('Helvetica-Bold').fontSize(7).fillColor('black').text(`Inspection Date: ${metaDate}`, col1X, p2y);
     p2y += 12;
 
-    // Material Specifications from Master Data
-    doc.font('Helvetica-Bold').fontSize(7.5).text("Material Specifications (Master Data)", col1X, p2y);
-    p2y += 10;
-    const specRows = [
-        { label: "Tensile Strength Spec", value: trialCard?.spec_tensile || "-" },
-        { label: "Yield Strength Spec", value: trialCard?.spec_yield || "-" },
-        { label: "Elongation Spec", value: trialCard?.spec_elongation || "-" },
-        { label: "Hardness Surface Spec", value: trialCard?.spec_hardness_surface || "-" },
-        { label: "Hardness Core Spec", value: trialCard?.spec_hardness_core || "-" }
-    ];
-    p2y = drawVerticalTable(doc, specRows, col1X, p2y, 535) + 15;
+
 
     const mechRows = safeParse(meta.mech_properties, []);
     const impactRows = safeParse(meta.impact_strength, []);
@@ -383,8 +373,11 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
         const mechOk = meta?.mech_properties_ok;
         const mechRes = mechOk === null || mechOk === undefined ? "-" : (mechOk ? "OK" : "NOT OK");
+        const specTensile = trialCard?.spec_tensile || "-";
+        const specYield = trialCard?.spec_yield || "-";
+        const specElongation = trialCard?.spec_elongation || "-";
 
-        doc.font('Helvetica-Bold').fontSize(7).text(`Mechanical Properties (Result: ${mechRes})`, col1X, p2y);
+        doc.font('Helvetica-Bold').fontSize(7).text(`Mechanical Properties (Result: ${mechRes}) | Spec: Tensile = ${specTensile}, Yield = ${specYield}, Elongation = ${specElongation}`, col1X, p2y);
         p2y += 10;
 
         if (meta?.mech_properties_remarks) {
@@ -455,8 +448,10 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
 
         const hardOk = meta?.hardness_ok;
         const hardRes = hardOk === null || hardOk === undefined ? "-" : (hardOk ? "OK" : "NOT OK");
+        const specSurface = trialCard?.spec_hardness_surface || "-";
+        const specCore = trialCard?.spec_hardness_core || "-";
 
-        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes})`, col1X, p2y);
+        doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${hardRes}) | Spec: Surface Hardness = ${specSurface}, Core Hardness = ${specCore}`, col1X, p2y);
         p2y += 10;
 
         if (meta?.hardness_remarks) {
