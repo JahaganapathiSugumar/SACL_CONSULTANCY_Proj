@@ -8,6 +8,7 @@ const router = express.Router();
 router.post('/', verifyToken, asyncErrorHandler(documentsController.uploadDocument));
 router.get('/', verifyToken, asyncErrorHandler(documentsController.getDocuments));
 router.get('/view/:id', verifyToken, asyncErrorHandler(documentsController.viewDocument));
+router.get('/:id', verifyToken, asyncErrorHandler(documentsController.getDocumentById));
 router.delete('/:id', verifyToken, asyncErrorHandler(documentsController.deleteDocument));
 
 export default router;

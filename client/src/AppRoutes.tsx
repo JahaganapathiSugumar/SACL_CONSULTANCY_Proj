@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import UpdateEmailPage from './pages/UpdateEmailPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import ViewDocumentPage from './pages/ViewDocumentPage';
 
 import LoadingState from './components/common/LoadingState';
 import MetallurgicalInspection from './components/inspection/MetallurgicalInspection';
@@ -29,6 +30,7 @@ const AppRoutes: React.FC = () => {
         <Routes>
             <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/view-document/:id" element={<ProtectedRoute><ViewDocumentPage /></ProtectedRoute>} />
 
             <Route path="/update-email" element={
                 <ProtectedRoute>

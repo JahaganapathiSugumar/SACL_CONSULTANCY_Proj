@@ -102,6 +102,34 @@ export const viewDocument = async (req, res, next) => {
     res.send(buffer);
 };
 
+export const getDocumentById = async (req, res, next) => {
+    const { id } = req.params;
+
+    const [rows] = await Client.query(
+        `SELECT document_id, trial_id, master_card_id, document_type, file_name, file_base64, uploaded_by, remarks, is_confidential 
+         FROM documents WHERE document_id = @id`,
+        { id }
+    );
+
+    if (!rows || rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const doc = rows[0];
+
+    if ((doc.is_confidential === 1 || doc.is_confidential === true) && req.user.role !== 'Admin') {
+        return res.status(403).json({
+            success: false,
+            message: "Access denied. Confidential document restricted to Admin only."
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        data: doc
+    });
+};
+
 export const deleteDocument = async (req, res, next) => {
     const { id } = req.params;
 

@@ -732,7 +732,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
 
                             doc.image(img, drawX, currentAttY + 15, { fit: [maxWidth, maxHeight], align: 'center' });
 
-                            const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                            const viewUrl = `${process.env.APP_URL || 'http://localhost:9011'}/view-document/${item.document_id}`;
                             doc.font('Helvetica').fontSize(7).fillColor('#2980b9')
                                 .text("Click here to view full size", drawX, currentAttY + 15 + maxHeight + 5, {
                                     link: viewUrl,
@@ -771,7 +771,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
                             .text(infoText, 45, currentAttY);
                         currentAttY += 12;
 
-                        const viewUrl = `${process.env.API_BASE_URL || 'http://localhost:9012'}/api/documents/view/${item.document_id}`;
+                        const viewUrl = `${process.env.APP_URL || 'http://localhost:9011'}/view-document/${item.document_id}`;
                         doc.fillColor('#2980b9')
                             .text(item.is_confidential ? "Click here to view (Admin only)" : "Click here to view/download document", 45, currentAttY, {
                                 link: viewUrl,
