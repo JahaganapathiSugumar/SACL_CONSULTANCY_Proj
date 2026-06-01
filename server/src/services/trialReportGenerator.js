@@ -728,29 +728,53 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
             return acc;
         }, {});
 
-        for (const [category, docs] of Object.entries(groupedDocs)) {
-            doc.addPage();
-            doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
-                .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')}`, 30, 25, { align: 'center', width: 535 });
-            doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+        doc.addPage();
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+            .text("ATTACHMENTS", 30, 25, { align: 'center', width: 535 });
+        doc.moveTo(30, 42).lineTo(565, 42).strokeColor('#2c3e50').stroke();
 
-            let currentAttY = 55;
-            let imageInPageCount = 0;
-            const colWidth = 260;
-            const xPos = [45, 305];
+        let currentAttY = 55;
+        let imageInPageCount = 0;
+        const colWidth = 260;
+        const xPos = [45, 305];
+
+        for (const [category, docs] of Object.entries(groupedDocs)) {
+            if (imageInPageCount % 2 !== 0) {
+                currentAttY += 225;
+                imageInPageCount = 0;
+            }
+
+            if (currentAttY > 730 || imageInPageCount >= 6) {
+                doc.addPage();
+                doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+                    .text("ATTACHMENTS (Cont.)", 30, 25, { align: 'center', width: 535 });
+                doc.moveTo(30, 42).lineTo(565, 42).strokeColor('#2c3e50').stroke();
+                currentAttY = 55;
+                imageInPageCount = 0;
+            }
+
+            // Print the category title inline
+            doc.font('Helvetica-Bold').fontSize(10).fillColor('#34495e')
+                .text(`Category: ${category.replace(/_/g, ' ')}`, 40, currentAttY);
+            currentAttY += 18;
+            doc.fillColor('black');
 
             for (const item of docs) {
                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.file_name);
                 const isPdf = /\.pdf$/i.test(item.file_name);
 
-                if (currentAttY > 750 || (isImage && imageInPageCount >= 6)) {
+                if (currentAttY > 730 || (isImage && imageInPageCount >= 6)) {
                     doc.addPage();
-                    currentAttY = 40;
-                    imageInPageCount = 0;
-                    doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
-                        .text(`ATTACHMENTS: ${category.replace(/_/g, ' ')} (Cont.)`, 30, 25, { align: 'center', width: 535 });
-                    doc.moveTo(30, 40).lineTo(565, 40).strokeColor('#2c3e50').stroke();
+                    doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+                        .text("ATTACHMENTS (Cont.)", 30, 25, { align: 'center', width: 535 });
+                    doc.moveTo(30, 42).lineTo(565, 42).strokeColor('#2c3e50').stroke();
                     currentAttY = 55;
+                    imageInPageCount = 0;
+
+                    doc.font('Helvetica-Bold').fontSize(10).fillColor('#34495e')
+                        .text(`Category: ${category.replace(/_/g, ' ')} (Cont.)`, 40, currentAttY);
+                    currentAttY += 18;
+                    doc.fillColor('black');
                 }
 
                 if (isImage && !item.is_confidential) {
@@ -788,9 +812,18 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
                         imageInPageCount = 0;
                     }
 
-                    if (currentAttY > 750) {
+                    if (currentAttY > 730) {
                         doc.addPage();
+                        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+                            .text("ATTACHMENTS (Cont.)", 30, 25, { align: 'center', width: 535 });
+                        doc.moveTo(30, 42).lineTo(565, 42).strokeColor('#2c3e50').stroke();
                         currentAttY = 55;
+                        imageInPageCount = 0;
+
+                        doc.font('Helvetica-Bold').fontSize(10).fillColor('#34495e')
+                            .text(`Category: ${category.replace(/_/g, ' ')} (Cont.)`, 40, currentAttY);
+                        currentAttY += 18;
+                        doc.fillColor('black');
                     }
 
                     const displayLabel = item.is_confidential ? `- ${item.file_name} (CONFIDENTIAL)` : `- ${item.file_name}`;
