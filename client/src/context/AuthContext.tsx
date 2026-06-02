@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { AuthContextType, LoginCredentials } from '../types/auth';
 import { authService } from '../services/authService';
 import { apiService } from '../services/commonService';
@@ -26,9 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const initialize = async () => {
+    const initialize = () => {
       if (token && user) {
-        await fetchProfilePhoto();
+        fetchProfilePhoto();
       }
       setLoading(false);
     };
