@@ -719,9 +719,9 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
                     imageInPageCount = 0;
                 }
 
-                // Print the category title inline
+                // Print the department title inline
                 doc.font('Helvetica-Bold').fontSize(10).fillColor('#34495e')
-                    .text(`Category: ${category.replace(/_/g, ' ')}`, 40, currentAttY);
+                    .text(`Department: ${category.replace(/_/g, ' ')}`, 40, currentAttY);
                 currentAttY += 18;
                 doc.fillColor('black');
 
@@ -738,7 +738,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
                         imageInPageCount = 0;
 
                         doc.font('Helvetica-Bold').fontSize(10).fillColor('#34495e')
-                            .text(`Category: ${category.replace(/_/g, ' ')} (Cont.)`, 40, currentAttY);
+                            .text(`Department: ${category.replace(/_/g, ' ')} (Cont.)`, 40, currentAttY);
                         currentAttY += 18;
                         doc.fillColor('black');
                     }

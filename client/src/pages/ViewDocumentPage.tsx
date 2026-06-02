@@ -126,7 +126,7 @@ const ViewDocumentPage: React.FC = () => {
                                 {doc.file_name}
                             </Typography>
                             <Typography variant="caption" color="textSecondary">
-                                Category: {doc.document_type?.replace('_', ' ')}
+                                Department: {doc.document_type?.replace(/_/g, ' ')}
                             </Typography>
                         </Box>
                     </Box>
