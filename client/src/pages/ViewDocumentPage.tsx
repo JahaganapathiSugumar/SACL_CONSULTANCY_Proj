@@ -126,7 +126,7 @@ const ViewDocumentPage: React.FC = () => {
                                 {doc.file_name}
                             </Typography>
                             <Typography variant="caption" color="textSecondary">
-                                Category: {doc.document_type} {doc.remarks ? `| ${doc.remarks}` : ''}
+                                Category: {doc.document_type?.replace('_', ' ')}
                             </Typography>
                         </Box>
                     </Box>
