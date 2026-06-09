@@ -832,11 +832,19 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
     const range = doc.bufferedPageRange();
     for (let i = 0; i < range.count; i++) {
         doc.switchToPage(i);
+        
+        // Temporarily set bottom margin to 0 to prevent PDFKit from auto-wrapping/creating new pages
+        const oldBottom = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+
         doc.font('Helvetica').fontSize(8).fillColor('#666666')
            .text("QF/07/FYQ-04, Rev.No: 01 dt 01.11.2023", 30, 815, {
                align: 'left',
                width: 500
            });
+
+        // Restore bottom margin
+        doc.page.margins.bottom = oldBottom;
     }
 
     doc.end();
