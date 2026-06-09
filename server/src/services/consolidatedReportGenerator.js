@@ -517,21 +517,6 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
             p2NextY += doc.heightOfString(visual.remarks, { width: 535 }) + 15;
         }
 
-        // Dimensional
-        p2NextY = drawSectionTitle(doc, "DIMENSIONAL INSPECTION", col1X, p2NextY);
-        const dimSubRows = [
-            { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
-            { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
-            { label: "Yield", value: `${dimensional?.yields || '-'} %` },
-            { label: "Remarks", value: dimensional?.remarks }
-        ];
-        p2NextY = drawVerticalTable(doc, dimSubRows, col1X, p2NextY, 535) + 8;
-
-        const dimInspections = safeParse(dimensional?.inspections, []);
-        if (dimInspections.length > 0) {
-            p2NextY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) }, col1X, p2NextY, [267, 268]) + 15;
-        } else { p2NextY += 15; }
-
         // Hardness
         const hardRowsForSection = safeParse(visual?.hardness, []);
         if (hardRowsForSection.length > 0) {
@@ -563,6 +548,21 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
             const colWidths = headers.map(() => 535 / headers.length);
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
         }
+
+        // Dimensional
+        p2NextY = drawSectionTitle(doc, "DIMENSIONAL INSPECTION", col1X, p2NextY);
+        const dimSubRows = [
+            { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
+            { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
+            { label: "Yield", value: `${dimensional?.yields || '-'} %` },
+            { label: "Remarks", value: dimensional?.remarks }
+        ];
+        p2NextY = drawVerticalTable(doc, dimSubRows, col1X, p2NextY, 535) + 8;
+
+        const dimInspections = safeParse(dimensional?.inspections, []);
+        if (dimInspections.length > 0) {
+            p2NextY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) }, col1X, p2NextY, [267, 268]) + 15;
+        } else { p2NextY += 15; }
 
         // 8. Machine Shop
         const mcInspections = safeParse(mcShop?.inspections, []);
