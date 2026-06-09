@@ -273,7 +273,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
         return;
     }
 
-    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+    const doc = new PDFDocument({ margin: 30, size: 'A4', bufferPages: true });
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
 
@@ -826,6 +826,17 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
                 }
             }
         }
+    }
+
+    // Global footer addition (before doc.end())
+    const range = doc.bufferedPageRange();
+    for (let i = 0; i < range.count; i++) {
+        doc.switchToPage(i);
+        doc.font('Helvetica').fontSize(8).fillColor('#666666')
+           .text("QF/07/FYQ-04, Rev.No: 01 dt 01.11.2023", 30, 815, {
+               align: 'left',
+               width: 500
+           });
     }
 
     doc.end();
