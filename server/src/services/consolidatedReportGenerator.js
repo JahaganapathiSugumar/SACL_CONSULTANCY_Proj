@@ -567,10 +567,10 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
         // 8. Machine Shop
         const mcInspections = safeParse(mcShop?.inspections, []);
         if (Object.keys(mcShop).length > 0) {
-            p2y = drawVerticalTable(doc, [
+            p2NextY = drawVerticalTable(doc, [
                 { label: "Date", value: mcShop?.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
                 { label: "Remarks", value: mcShop?.remarks }
-            ], col1X, p2y, colWidth * 2 + 15) + 8;
+            ], col1X, p2NextY, colWidth * 2 + 15) + 8;
 
             if (mcInspections.length > 0) {
                 const labelMap = {
@@ -586,21 +586,21 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
                 const headers = Object.keys(mcInspections[0]).map(h => labelMap[h] || h);
                 const rows = mcInspections.map(r => Object.keys(mcInspections[0]).map(h => r[h]));
                 const colW = 535 / headers.length;
-                p2y = drawTable(doc, { headers, rows }, col1X, p2y, headers.map(() => colW)) + 15;
+                p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, headers.map(() => colW)) + 15;
             }
         }
 
         // 9. PRODUCTION & REJECTION DETAILS
         const allCavitiesForSummary = visInspections.map(r => r['Cavity Number']).filter(Boolean);
         if (allCavitiesForSummary.length > 0) {
-            if (p2y > 650) {
+            if (p2NextY > 650) {
                 doc.addPage();
-                p2y = 40;
+                p2NextY = 40;
                 doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"}`, 30, 20);
                 doc.moveTo(30, 35).lineTo(565, 35).stroke();
             }
 
-            p2y = drawSectionTitle(doc, "PRODUCTION & REJECTION DETAILS", col1X, p2y);
+            p2NextY = drawSectionTitle(doc, "PRODUCTION & REJECTION DETAILS", col1X, p2NextY);
 
             const productionCount = trialCard?.actual_moulds || 0;
             const totalProduction = productionCount * allCavitiesForSummary.length;
@@ -681,7 +681,7 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
             const cavColW = remainingW / allCavitiesForSummary.length;
             const summaryColWidths = [firstColW, ...allCavitiesForSummary.map(() => cavColW), totalColW, rejPctW, remarksW];
 
-            p2y = drawTable(doc, { headers: summaryHeaders, rows: finalSummaryRows }, col1X, p2y, summaryColWidths) + 15;
+            p2NextY = drawTable(doc, { headers: summaryHeaders, rows: finalSummaryRows }, col1X, p2NextY, summaryColWidths) + 15;
         }
 
         // ---- ATTACHMENTS (Per Trial) ----
