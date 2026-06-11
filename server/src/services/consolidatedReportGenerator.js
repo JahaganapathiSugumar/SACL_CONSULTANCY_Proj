@@ -491,108 +491,239 @@ export const generateAndStoreConsolidatedReport = async (masterCardId, trx) => {
 
         let p2NextY = p2y;
 
-        if (isNewPageAdded || p2y === 40) {
-            // Header P2
-            doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"} | Trial No: ${trialCard?.trial_no || "-"}`, 30, p2y - 20);
-            doc.moveTo(30, p2y - 5).lineTo(565, p2y - 5).stroke();
+        const visInspections = safeParse(visual?.inspections, []);
+        const hardRowsForSection = safeParse(visual?.hardness, []);
+        const ndtRowsForSection = safeParse(visual?.ndt_inspection, []);
+        const dimInspections = safeParse(dimensional?.inspections, []);
+        const mcInspections = safeParse(mcShop?.inspections, []);
+
+        // Fetch cavity numbers from tooling table (with fallbacks to other departments)
+        const cavityStr = (data.tooling_pattern_data?.[0]?.cavity_identification) || '';
+        let allCavitiesForSummary = cavityStr.split(/[,\s;]+/).map(item => item.trim()).filter(item => item !== '');
+        if (allCavitiesForSummary.length === 0) {
+            const candidates = [
+                ...visInspections.map(r => r['Cavity Number']),
+                ...hardRowsForSection.map(r => r['Cavity Number']),
+                ...ndtRowsForSection.map(r => r['Cavity Number']),
+                ...dimInspections.map(r => r['Cavity Number']),
+                ...mcInspections.map(r => r['Cavity Number'])
+            ].filter(Boolean);
+            allCavitiesForSummary = [...new Set(candidates)];
+        } else {
+            allCavitiesForSummary = [...new Set(allCavitiesForSummary)];
         }
+
+        const checkPageSpace = (neededHeight) => {
+            if (p2NextY + neededHeight > 750) {
+                doc.addPage();
+                p2NextY = 40;
+                doc.font('Helvetica-Bold').fontSize(8.5).text(`Part Name: ${trialCard?.part_name || "-"} | Pattern Code: ${trialCard?.pattern_code || "-"} | Trial No: ${trialCard?.trial_no || "-"}`, 30, 20);
+                doc.moveTo(30, 35).lineTo(565, 35).stroke();
+            }
+        };
 
         // Visual
-        p2NextY = drawSectionTitle(doc, "VISUAL INSPECTION", col1X, p2NextY);
-        const visDate = visual?.inspection_date ? new Date(visual.inspection_date).toISOString().slice(0, 10) : '-';
-        const visualRes = visual?.visual_ok === null || visual?.visual_ok === undefined ? "-" : (visual?.visual_ok ? "OK" : "NOT OK");
-        doc.font('Helvetica-Bold').fontSize(7).text(`Inspection Date: ${visDate} | Result: ${visualRes}`, col1X, p2NextY);
-        p2NextY += 10;
+        if (allCavitiesForSummary.length > 0) {
+            const remarksHeight = visual?.remarks ? doc.heightOfString(visual.remarks, { width: 535 }) + 15 : 15;
+            const neededHeight = 50 + allCavitiesForSummary.length * 18 + remarksHeight;
+            checkPageSpace(neededHeight);
 
-        const visInspections = safeParse(visual?.inspections, []);
-        if (visInspections.length > 0) {
-            const labelMap = { 'Cavity Number': 'Cavity No', 'Inspected Quantity': 'Inspected Qty', 'Accepted Quantity': 'Accepted Qty', 'Rejected Quantity': 'Rejected Qty', 'Rejection Percentage': 'Rej %', 'Reason for rejection': 'Reason' };
-            const headers = ['Cavity No', 'Inspected Qty', 'Accepted Qty', 'Rejected Qty', 'Rej %', 'Reason'];
-            const rows = visInspections.map(r => [r['Cavity Number'] || '-', r['Inspected Quantity'] || '0', r['Accepted Quantity'] || '0', r['Rejected Quantity'] || '0', r['Rejection Percentage'] || '0.00%', r['Reason for rejection'] || '-']);
-            const colWidths = [70, 90, 90, 90, 85, 110];
+            p2NextY = drawSectionTitle(doc, "VISUAL INSPECTION", col1X, p2NextY);
+
+            const visDate = visual?.inspection_date ? new Date(visual.inspection_date).toISOString().slice(0, 10) : '-';
+            const visualRes = visual?.visual_ok === null || visual?.visual_ok === undefined ? "-" : (visual?.visual_ok ? "OK" : "NOT OK");
+            doc.font('Helvetica-Bold').fontSize(7).text(`Inspection Date: ${visDate} | Result: ${visualRes}`, col1X, p2NextY);
+            p2NextY += 10;
+
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+
+            const rawHeaders = ['Cavity Number', 'Inspected Quantity', 'Accepted Quantity', 'Rejected Quantity', 'Rejection Percentage', 'Reason for rejection'];
+            const headers = rawHeaders.map(h => labelMap[h] || h);
+
+            const rows = allCavitiesForSummary.map(c => {
+                const r = visInspections.find(item => String(item['Cavity Number'] || '').trim() === String(c).trim()) || {};
+                return [
+                    c,
+                    r['Inspected Quantity'] || '0',
+                    r['Accepted Quantity'] || '0',
+                    r['Rejected Quantity'] || '0',
+                    r['Rejection Percentage'] || '0.00%',
+                    r['Reason for rejection'] || '-'
+                ];
+            });
+
+            const colWidths = [70, 90, 90, 90, 85, 110]; // total 535
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 8;
-        }
-        if (visual?.remarks) {
-            doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.remarks}`, col1X, p2NextY, { width: 535 });
-            p2NextY += doc.heightOfString(visual.remarks, { width: 535 }) + 15;
+
+            if (visual?.remarks) {
+                doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual.remarks}`, col1X, p2NextY, { width: 535 });
+                p2NextY += doc.heightOfString(visual.remarks, { width: 535 }) + 15;
+            } else {
+                p2NextY += 15;
+            }
         }
 
         // Hardness
-        const hardRowsForSection = safeParse(visual?.hardness, []);
-        if (hardRowsForSection.length > 0) {
-            const sectionRes = visual?.hardness_ok === null || visual?.hardness_ok === undefined ? "-" : (visual?.hardness_ok ? "OK" : "NOT OK");
+        if (allCavitiesForSummary.length > 0) {
+            const remarksHeight = visual?.hardness_remarks ? doc.heightOfString(visual.hardness_remarks, { width: 535 }) + 15 : 15;
+            const neededHeight = 30 + allCavitiesForSummary.length * 18 + remarksHeight;
+            checkPageSpace(neededHeight);
+
+            const sectionOk = visual?.hardness_ok;
+            const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
+
             doc.font('Helvetica-Bold').fontSize(7).text(`Hardness Inspection (Result: ${sectionRes})`, col1X, p2NextY, { width: 535 });
             p2NextY += 10;
+
             if (visual?.hardness_remarks) {
                 doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.hardness_remarks}`, col1X, p2NextY, { width: 535 });
                 p2NextY += doc.heightOfString(visual.hardness_remarks, { width: 535 }) + 2;
             }
-            const headers = ['Cavity No', 'Inspected Qty', 'Accepted Qty', 'Rejected Qty', 'Rej %', 'Reason'];
-            const rows = hardRowsForSection.map(r => Object.keys(hardRowsForSection[0]).map(h => r[h]));
-            const colWidths = headers.map(() => 535 / headers.length);
+
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+            const rawHeaders = ['Cavity Number', 'Inspected Quantity', 'Accepted Quantity', 'Rejected Quantity', 'Rejection Percentage', 'Reason for rejection'];
+            const headers = rawHeaders.map(h => labelMap[h] || h);
+            const rows = allCavitiesForSummary.map(c => {
+                const r = hardRowsForSection.find(item => String(item['Cavity Number'] || '').trim() === String(c).trim()) || {};
+                return [
+                    c,
+                    r['Inspected Quantity'] || '0',
+                    r['Accepted Quantity'] || '0',
+                    r['Rejected Quantity'] || '0',
+                    r['Rejection Percentage'] || '0.00%',
+                    r['Reason for rejection'] || '-'
+                ];
+            });
+            const colWidths = [70, 90, 90, 90, 85, 110];
+
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
         }
 
         // NDT
-        const ndtRowsForSection = safeParse(visual?.ndt_inspection, []);
-        if (ndtRowsForSection.length > 0) {
-            const sectionRes = visual?.ndt_inspection_ok === null || visual?.ndt_inspection_ok === undefined ? "-" : (visual?.ndt_inspection_ok ? "OK" : "NOT OK");
+        if (allCavitiesForSummary.length > 0) {
+            const remarksHeight = visual?.ndt_inspection_remarks ? doc.heightOfString(visual.ndt_inspection_remarks, { width: 535 }) + 15 : 15;
+            const neededHeight = 30 + allCavitiesForSummary.length * 18 + remarksHeight;
+            checkPageSpace(neededHeight);
+
+            const sectionOk = visual?.ndt_inspection_ok;
+            const sectionRes = sectionOk === null || sectionOk === undefined ? "-" : (sectionOk ? "OK" : "NOT OK");
+
             doc.font('Helvetica-Bold').fontSize(7).text(`NDT Inspection Analysis (Result: ${sectionRes})`, col1X, p2NextY, { width: 535 });
             p2NextY += 10;
+
             if (visual?.ndt_inspection_remarks) {
                 doc.font('Helvetica-Oblique').fontSize(7).text(`Remarks: ${visual?.ndt_inspection_remarks}`, col1X, p2NextY, { width: 535 });
                 p2NextY += doc.heightOfString(visual.ndt_inspection_remarks, { width: 535 }) + 2;
             }
-            const headers = ['Cavity No', 'Inspected Qty', 'Accepted Qty', 'Rejected Qty', 'Rej %', 'Reason'];
-            const rows = ndtRowsForSection.map(r => Object.keys(ndtRowsForSection[0]).map(h => r[h]));
-            const colWidths = headers.map(() => 535 / headers.length);
+
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'Inspected Quantity': 'Inspected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+            const rawHeaders = ['Cavity Number', 'Inspected Quantity', 'Accepted Quantity', 'Rejected Quantity', 'Rejection Percentage', 'Reason for rejection'];
+            const headers = rawHeaders.map(h => labelMap[h] || h);
+            const rows = allCavitiesForSummary.map(c => {
+                const r = ndtRowsForSection.find(item => String(item['Cavity Number'] || '').trim() === String(c).trim()) || {};
+                return [
+                    c,
+                    r['Inspected Quantity'] || '0',
+                    r['Accepted Quantity'] || '0',
+                    r['Rejected Quantity'] || '0',
+                    r['Rejection Percentage'] || '0.00%',
+                    r['Reason for rejection'] || '-'
+                ];
+            });
+            const colWidths = [70, 90, 90, 90, 85, 110];
+
             p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, colWidths) + 15;
         }
 
         // Dimensional
-        p2NextY = drawSectionTitle(doc, "DIMENSIONAL INSPECTION", col1X, p2NextY);
-        const dimSubRows = [
-            { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
-            { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
-            { label: "Yield", value: `${dimensional?.yields || '-'} %` },
-            { label: "Remarks", value: dimensional?.remarks }
-        ];
-        p2NextY = drawVerticalTable(doc, dimSubRows, col1X, p2NextY, 535) + 8;
+        if (allCavitiesForSummary.length > 0) {
+            const neededHeight = 120 + allCavitiesForSummary.length * 18;
+            checkPageSpace(neededHeight);
 
-        const dimInspections = safeParse(dimensional?.inspections, []);
-        if (dimInspections.length > 0) {
-            p2NextY = drawTable(doc, { headers: ['Cavity', 'Weight (kg)'], rows: dimInspections.map(r => [r['Cavity Number'], r['Casting Weight']]) }, col1X, p2NextY, [267, 268]) + 15;
-        } else { p2NextY += 15; }
+            p2NextY = drawSectionTitle(doc, "DIMENSIONAL INSPECTION", col1X, p2NextY);
+            const dimSubRows = [
+                { label: "Date", value: dimensional?.inspection_date ? new Date(dimensional.inspection_date).toISOString().slice(0, 10) : '-' },
+                { label: "Weight", value: `${dimensional?.casting_weight || '-'} kg` },
+                { label: "Yield", value: `${dimensional?.yields || '-'} %` },
+                { label: "Remarks", value: dimensional?.remarks || '-' }
+            ];
+            p2NextY = drawVerticalTable(doc, dimSubRows, col1X, p2NextY, 535) + 8;
 
-        // 8. Machine Shop
-        const mcInspections = safeParse(mcShop?.inspections, []);
-        if (Object.keys(mcShop).length > 0) {
+            const rows = allCavitiesForSummary.map(c => {
+                const r = dimInspections.find(item => String(item['Cavity Number'] || '').trim() === String(c).trim()) || {};
+                return [c, r['Casting Weight'] || '-'];
+            });
+            p2NextY = drawTable(doc, { headers: ['Cavity No', 'Weight (kg)'], rows }, col1X, p2NextY, [267, 268]) + 15;
+        } else {
+            p2NextY += 15;
+        }
+
+        p2NextY = p2NextY + 10;
+
+        // Machine Shop (Full Width)
+        if (allCavitiesForSummary.length > 0) {
+            const neededHeight = 80 + allCavitiesForSummary.length * 18;
+            checkPageSpace(neededHeight);
+
+            p2NextY = drawSectionTitle(doc, "MACHINE SHOP INSPECTION", col1X, p2NextY);
             p2NextY = drawVerticalTable(doc, [
                 { label: "Date", value: mcShop?.inspection_date ? new Date(mcShop.inspection_date).toISOString().slice(0, 10) : '-' },
-                { label: "Remarks", value: mcShop?.remarks }
-            ], col1X, p2NextY, colWidth * 2 + 15) + 8;
+                { label: "Remarks", value: mcShop?.remarks || '-' }
+            ], col1X, p2NextY, 535) + 8; // span across
 
-            if (mcInspections.length > 0) {
-                const labelMap = {
-                    'Cavity Number': 'Cavity No',
-                    'FDY OK Quantity': 'FDY OK Qty',
-                    'Received Quantity': 'Received Qty',
-                    'Inspected Quantity': 'Inspected Qty',
-                    'Rejected Quantity': 'Rejected Qty',
-                    'Accepted Quantity': 'Accepted Qty',
-                    'Rejection Percentage': 'Rej %',
-                    'Reason for rejection': 'Reason'
-                };
-                const headers = Object.keys(mcInspections[0]).map(h => labelMap[h] || h);
-                const rows = mcInspections.map(r => Object.keys(mcInspections[0]).map(h => r[h]));
-                const colW = 535 / headers.length;
-                p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, headers.map(() => colW)) + 15;
-            }
+            const labelMap = {
+                'Cavity Number': 'Cavity No',
+                'FDY OK Quantity': 'FDY OK Qty',
+                'Received Quantity': 'Received Qty',
+                'Inspected Quantity': 'Inspected Qty',
+                'Rejected Quantity': 'Rejected Qty',
+                'Accepted Quantity': 'Accepted Qty',
+                'Rejection Percentage': 'Rej %',
+                'Reason for rejection': 'Reason'
+            };
+            const rawHeaders = ['Cavity Number', 'FDY OK Quantity', 'Received Quantity', 'Inspected Quantity', 'Rejected Quantity', 'Accepted Quantity', 'Rejection Percentage', 'Reason for rejection'];
+            const headers = rawHeaders.map(h => labelMap[h] || h);
+            const rows = allCavitiesForSummary.map(c => {
+                const r = mcInspections.find(item => String(item['Cavity Number'] || '').trim() === String(c).trim()) || {};
+                return [
+                    c,
+                    r['FDY OK Quantity'] || '0',
+                    r['Received Quantity'] || '0',
+                    r['Inspected Quantity'] || '0',
+                    r['Rejected Quantity'] || '0',
+                    r['Accepted Quantity'] || '0',
+                    r['Rejection Percentage'] || '0.00%',
+                    r['Reason for rejection'] || '-'
+                ];
+            });
+            const colW = 535 / headers.length;
+            p2NextY = drawTable(doc, { headers, rows }, col1X, p2NextY, headers.map(() => colW)) + 15;
         }
 
         // 9. PRODUCTION & REJECTION DETAILS
-        const allCavitiesForSummary = visInspections.map(r => r['Cavity Number']).filter(Boolean);
-        if (allCavitiesForSummary.length > 0) {
+        const allCavitiesForSummaryList = allCavitiesForSummary;
+        if (allCavitiesForSummaryList.length > 0) {
             if (p2NextY > 650) {
                 doc.addPage();
                 p2NextY = 40;
