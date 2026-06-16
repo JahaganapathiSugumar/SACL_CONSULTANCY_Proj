@@ -997,7 +997,7 @@ export const generateAndStoreTrialReport = async (trial_id, trx) => {
         doc.page.margins.bottom = 0;
 
         doc.font('Helvetica').fontSize(8).fillColor('#666666')
-           .text("QF/07/FYQ-04, Rev.No: 01 dt 01.11.2023", 30, 815, {
+           .text("QF/07/FYQ-04, Rev.No: 02 dt 02.05.2026", 30, 815, {
                align: 'left',
                width: 500
            });
