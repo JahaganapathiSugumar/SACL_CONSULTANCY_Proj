@@ -64,14 +64,22 @@ export const authService = {
   },
 
   async logout() {
-    try {
-      await apiService.request('/login/logout', { method: 'POST' });
-    } catch (err) {
-      console.error('Error during logout:', err);
-    }
+    const token = localStorage.getItem('authToken');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     localStorage.removeItem('refreshToken');
+    try {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      await apiService.request('/login/logout', { 
+        method: 'POST',
+        headers
+      });
+    } catch (err) {
+      console.error('Error during logout:', err);
+    }
   },
 
   getStoredUser() {
